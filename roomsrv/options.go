@@ -1,12 +1,17 @@
-package tunsrv
+// SPDX-License-Identifier: MIT
+
+package roomsrv
 
 import (
 	"context"
 	"fmt"
+	"net"
 	"strings"
 
-	"go.mindeco.de/ssb-tunnel/internal/keys"
-	"go.mindeco.de/ssb-tunnel/internal/repo"
+	kitlog "github.com/go-kit/kit/log"
+	"go.cryptoscope.co/netwrap"
+	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
+	"go.mindeco.de/ssb-rooms/internal/repo"
 )
 
 type Option func(srv *Server) error
@@ -65,10 +70,10 @@ func WithKeyPair(kp *keys.KeyPair) Option {
 	}
 }
 
-// WithInfo changes the info/warn/debug loging output.
-func WithInfo(log kitlog.Logger) Option {
+// WithLogger changes the info/warn/debug loging output.
+func WithLogger(log kitlog.Logger) Option {
 	return func(s *Server) error {
-		s.info = log
+		s.logger = log
 		return nil
 	}
 }
@@ -78,7 +83,39 @@ func WithInfo(log kitlog.Logger) Option {
 // Canceling the context also shuts down indexing. If no context is passed sbot.Shutdown() can be used.
 func WithContext(ctx context.Context) Option {
 	return func(s *Server) error {
-		s.rootCtx, s.Shutdown = ShutdownContext(ctx)
+		s.rootCtx, s.Shutdown = context.WithCancel(ctx)
+		return nil
+	}
+}
+
+// TODO: remove all this network stuff and make them options on network
+
+// WithListenAddr changes the muxrpc listener address. By default it listens to ':8008'.
+func WithListenAddr(addr string) Option {
+	return func(s *Server) error {
+		var err error
+		s.listenAddr, err = net.ResolveTCPAddr("tcp", addr)
+		if err != nil {
+			return fmt.Errorf("failed to parse tcp listen addr: %w", err)
+		}
+		return nil
+	}
+}
+
+// WithPreSecureConnWrapper wrapps the connection after it is encrypted.
+// Usefull for debugging and measuring traffic.
+func WithPreSecureConnWrapper(cw netwrap.ConnWrapper) Option {
+	return func(s *Server) error {
+		s.preSecureWrappers = append(s.preSecureWrappers, cw)
+		return nil
+	}
+}
+
+// WithPostSecureConnWrapper wrapps the connection before it is encrypted.
+// Usefull to insepct the muxrpc frames before they go into boxstream.
+func WithPostSecureConnWrapper(cw netwrap.ConnWrapper) Option {
+	return func(s *Server) error {
+		s.postSecureWrappers = append(s.postSecureWrappers, cw)
 		return nil
 	}
 }

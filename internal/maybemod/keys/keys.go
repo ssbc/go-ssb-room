@@ -19,8 +19,9 @@ import (
 
 var SecretPerms = os.FileMode(0600)
 
+// KeyPair contains a seret handshake keypair and the assosicated feed
 type KeyPair struct {
-	Id   *refs.FeedRef
+	Feed *refs.FeedRef
 	Pair secrethandshake.EdKeyPair
 }
 
@@ -51,7 +52,7 @@ func NewKeyPair(r io.Reader) (*KeyPair, error) {
 	}
 
 	keyPair := KeyPair{
-		Id:   &refs.FeedRef{ID: kp.Public[:], Algo: refs.RefAlgoFeedSSB1},
+		Feed: &refs.FeedRef{ID: kp.Public[:], Algo: refs.RefAlgoFeedSSB1},
 		Pair: *kp,
 	}
 
@@ -61,7 +62,7 @@ func NewKeyPair(r io.Reader) (*KeyPair, error) {
 // SaveKeyPair serializes the passed KeyPair to path.
 // It errors if path already exists.
 func SaveKeyPair(kp *KeyPair, path string) error {
-	if err := IsValidFeedFormat(kp.Id); err != nil {
+	if err := IsValidFeedFormat(kp.Feed); err != nil {
 		return err
 	}
 	if _, err := os.Stat(path); err == nil {
@@ -91,7 +92,7 @@ func SaveKeyPair(kp *KeyPair, path string) error {
 func EncodeKeyPairAsJSON(kp *KeyPair, w io.Writer) error {
 	var sec = ssbSecret{
 		Curve:   "ed25519",
-		ID:      kp.Id,
+		ID:      kp.Feed,
 		Private: base64.StdEncoding.EncodeToString(kp.Pair.Secret[:]) + ".ed25519",
 		Public:  base64.StdEncoding.EncodeToString(kp.Pair.Public[:]) + ".ed25519",
 	}
@@ -154,7 +155,7 @@ func ParseKeyPair(r io.Reader) (*KeyPair, error) {
 	}
 
 	ssbkp := KeyPair{
-		Id:   s.ID,
+		Feed: s.ID,
 		Pair: *pair,
 	}
 	return &ssbkp, nil

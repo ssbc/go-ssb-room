@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-// go-tunsrv hosts the database and p2p server for replication.
+// go-roomsrv hosts the database and p2p server for replication.
 // It supplies various flags to contol options.
-// See 'go-tunsrv -h' for a list and their usage.
+// See 'go-roomsrv -h' for a list and their usage.
 package main
 
 import (
@@ -10,10 +10,12 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 
@@ -24,6 +26,10 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/pkg/errors"
+	"go.cryptoscope.co/muxrpc/v2/debug"
+
+	"go.mindeco.de/ssb-rooms/roomsrv"
+	mksrv "go.mindeco.de/ssb-rooms/roomsrv"
 )
 
 var (
@@ -92,13 +98,13 @@ func initFlags() {
 		if err != nil {
 			panic(err) // logging not ready yet...
 		}
-		log = kitlog.NewJSONLogger(logFile)
+		log = kitlog.NewJSONLogger(kitlog.NewSyncWriter(logFile))
 	} else {
-		log = kitlog.NewJSONLogger(os.Stderr)
+		log = kitlog.NewLogfmtLogger(os.Stderr)
 	}
 }
 
-func runtunsrv() error {
+func runroomsrv() error {
 	// DEBUGGING
 	// runtime.SetMutexProfileFraction(1)
 	// runtime.SetBlockProfileRate(1)
@@ -118,28 +124,35 @@ func runtunsrv() error {
 		return errors.Wrap(err, "application key")
 	}
 
-	if !flagDisableUNIXSock {
-		// opts = append(opts, mktunsrv.LateOption(mktunsrv.WithUNIXSocket()))
+	opts := []roomsrv.Option{
+		roomsrv.WithLogger(log),
+		roomsrv.WithAppKey(ak),
+		roomsrv.WithRepoPath(repoDir),
+		roomsrv.WithListenAddr(listenAddr),
 	}
 
-	// if dbgLogDir != "" {
-	// 	opts = append(opts, mktunsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
-	// 		parts := strings.Split(conn.RemoteAddr().String(), "|")
+	if !flagDisableUNIXSock {
+		opts = append(opts, roomsrv.WithUNIXSocket())
+	}
 
-	// 		if len(parts) != 2 {
-	// 			return conn, nil
-	// 		}
+	if logToFile != "" {
+		opts = append(opts, roomsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
+			parts := strings.Split(conn.RemoteAddr().String(), "|")
 
-	// 		muxrpcDumpDir := filepath.Join(
-	// 			repoDir,
-	// 			dbgLogDir,
-	// 			parts[1], // key first
-	// 			parts[0],
-	// 		)
+			if len(parts) != 2 {
+				return conn, nil
+			}
 
-	// 		return debug.WrapDump(muxrpcDumpDir, conn)
-	// 	}))
-	// }
+			muxrpcDumpDir := filepath.Join(
+				repoDir,
+				logToFile,
+				parts[1], // key first
+				parts[0],
+			)
+
+			return debug.WrapDump(muxrpcDumpDir, conn)
+		}))
+	}
 
 	if debugAddr != "" {
 		go func() {
@@ -150,7 +163,7 @@ func runtunsrv() error {
 		}()
 	}
 
-	tunsrv, err := makeTunnelServer.New(opts...)
+	roomsrv, err := mksrv.New(opts...)
 	if err != nil {
 		return errors.Wrap(err, "failed to instantiate ssb server")
 	}
@@ -161,28 +174,28 @@ func runtunsrv() error {
 		sig := <-c
 		level.Warn(log).Log("event", "killed", "msg", "received signal, shutting down", "signal", sig.String())
 		cancel()
-		tunsrv.Shutdown()
+		roomsrv.Shutdown()
 		time.Sleep(2 * time.Second)
 
-		err := tunsrv.Close()
+		err := roomsrv.Close()
 		checkAndLog(err)
 
 		time.Sleep(2 * time.Second)
 		os.Exit(0)
 	}()
 
-	level.Info(log).Log("event", "serving", "ID", id.Ref(), "addr", listenAddr, "version", Version, "build", Build)
+	level.Info(log).Log("event", "serving", "ID", roomsrv.KeyPair.Feed.Ref(), "addr", listenAddr, "version", Version, "build", Build)
 	for {
 		// Note: This is where the serving starts ;)
-		err = tunsrv.Network.Serve(ctx)
+		err = roomsrv.Network.Serve(ctx)
 		if err != nil {
-			level.Warn(log).Log("event", "tunsrv node.Serve returned", "err", err)
+			level.Warn(log).Log("event", "roomsrv node.Serve returned", "err", err)
 		}
 
 		time.Sleep(1 * time.Second)
 		select {
 		case <-ctx.Done():
-			err := tunsrv.Close()
+			err := roomsrv.Close()
 			return err
 		default:
 		}
@@ -190,7 +203,7 @@ func runtunsrv() error {
 }
 
 func main() {
-	if err := runtunsrv(); err != nil {
+	if err := runroomsrv(); err != nil {
 		fmt.Fprintf(os.Stderr, "go-ssb-tunnel: %s\n", err)
 		os.Exit(1)
 	}
