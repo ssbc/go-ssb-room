@@ -9,6 +9,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 
 	refs "go.mindeco.de/ssb-refs"
+	"go.mindeco.de/ssb-rooms/handlers/tunnel"
 	"go.mindeco.de/ssb-rooms/handlers/whoami"
 	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
 	"go.mindeco.de/ssb-rooms/internal/network"
@@ -44,7 +45,12 @@ func (s *Server) initNetwork() error {
 	s.public.Register(whoami)
 	s.master.Register(whoami)
 
+	s.master.Register(manifestPlug)
+
 	// s.master.Register(replicate.NewPlug(s.Users))
+
+	tunnelPlug := tunnel.New(kitlog.With(s.logger, "unit", "tunnel"), s.keyPair.Feed)
+	s.public.Register(tunnelPlug)
 
 	// tcp+shs
 	opts := network.Options{

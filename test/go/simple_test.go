@@ -63,26 +63,41 @@ func TestTunnelServerSimple(t *testing.T) {
 	err = botB.Network.Connect(ctx, serv.Network.GetListenAddr())
 	r.NoError(err, "connect B to the Server") // we dont see an error because it just establishes the tcp connection
 
-	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
-	r.True(has, "botA has no endpoint for the server")
+	// t.Log("letting handshaking settle..")
+	// time.Sleep(1 * time.Second)
 
 	var srvWho struct {
 		ID refs.FeedRef
 	}
+
+	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
+	r.False(has, "botB has an endpoint for the server!")
+	if edpOfB != nil {
+		a.Nil(edpOfB, "should not have an endpoint on B")
+		err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+		r.Error(err)
+		t.Log(srvWho.ID.Ref())
+	}
+
+	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
+	r.True(has, "botA has no endpoint for the server")
+
 	err = edpOfA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
 	t.Log("server whoami:", srvWho.ID.Ref())
 	a.True(serv.Whoami().Equal(&srvWho.ID))
 
-	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
-	r.False(has, "botB has an endpoint for the server!")
-	if edpOfB != nil {
-		t.Error("should not have an endpoint on B")
-		err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
-		r.Error(err)
-		t.Log(srvWho.ID.Ref())
-	}
+	// start testing basic room stuff
+	var yes bool
+	err = edpOfA.Async(ctx, &yes, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	r.NoError(err)
+	a.True(yes, "srv is not a room?!")
+
+	var ts int
+	err = edpOfA.Async(ctx, &ts, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "ping"})
+	r.NoError(err)
+	t.Log("ping:", ts)
 
 	// cleanup
 	cancel()
