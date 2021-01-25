@@ -129,10 +129,7 @@ func runroomsrv() error {
 		roomsrv.WithAppKey(ak),
 		roomsrv.WithRepoPath(repoDir),
 		roomsrv.WithListenAddr(listenAddr),
-	}
-
-	if !flagDisableUNIXSock {
-		opts = append(opts, roomsrv.WithUNIXSocket())
+		roomsrv.WithUNIXSocket(!flagDisableUNIXSock),
 	}
 
 	if logToFile != "" {
@@ -184,7 +181,7 @@ func runroomsrv() error {
 		os.Exit(0)
 	}()
 
-	level.Info(log).Log("event", "serving", "ID", roomsrv.KeyPair.Feed.Ref(), "addr", listenAddr, "version", Version, "build", Build)
+	level.Info(log).Log("event", "serving", "ID", roomsrv.Whoami().Ref(), "addr", listenAddr, "version", Version, "build", Build)
 	for {
 		// Note: This is where the serving starts ;)
 		err = roomsrv.Network.Serve(ctx)
