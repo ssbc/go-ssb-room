@@ -1,0 +1,11 @@
+image: alpine/latest
+packages:
+  - go
+sources:
+  - https://git.sr.ht/~cryptix/go-ssb-rooms
+tasks:
+  - test: |
+      cd go-ssb-rooms
+      go build -i ./...
+      go test ./...
+      go test -race -failfast -count 25 ./...
