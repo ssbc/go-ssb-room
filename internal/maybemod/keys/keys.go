@@ -21,21 +21,21 @@ var SecretPerms = os.FileMode(0600)
 
 // KeyPair contains a seret handshake keypair and the assosicated feed
 type KeyPair struct {
-	Feed *refs.FeedRef
+	Feed refs.FeedRef
 	Pair secrethandshake.EdKeyPair
 }
 
 // the format of the .ssb/secret file as defined by the js implementations
 type ssbSecret struct {
-	Curve   string        `json:"curve"`
-	ID      *refs.FeedRef `json:"id"`
-	Private string        `json:"private"`
-	Public  string        `json:"public"`
+	Curve   string       `json:"curve"`
+	ID      refs.FeedRef `json:"id"`
+	Private string       `json:"private"`
+	Public  string       `json:"public"`
 }
 
 // IsValidFeedFormat checks if the passed FeedRef is for one of the two supported formats,
 // legacy/crapp or GabbyGrove.
-func IsValidFeedFormat(r *refs.FeedRef) error {
+func IsValidFeedFormat(r refs.FeedRef) error {
 	if r.Algo != refs.RefAlgoFeedSSB1 && r.Algo != refs.RefAlgoFeedGabby {
 		return fmt.Errorf("ssb: unsupported feed format:%s", r.Algo)
 	}
@@ -52,7 +52,10 @@ func NewKeyPair(r io.Reader) (*KeyPair, error) {
 	}
 
 	keyPair := KeyPair{
-		Feed: &refs.FeedRef{ID: kp.Public[:], Algo: refs.RefAlgoFeedSSB1},
+		Feed: refs.FeedRef{
+			ID:   kp.Public[:],
+			Algo: refs.RefAlgoFeedSSB1,
+		},
 		Pair: *kp,
 	}
 
@@ -61,7 +64,7 @@ func NewKeyPair(r io.Reader) (*KeyPair, error) {
 
 // SaveKeyPair serializes the passed KeyPair to path.
 // It errors if path already exists.
-func SaveKeyPair(kp *KeyPair, path string) error {
+func SaveKeyPair(kp KeyPair, path string) error {
 	if err := IsValidFeedFormat(kp.Feed); err != nil {
 		return err
 	}
@@ -89,7 +92,7 @@ func SaveKeyPair(kp *KeyPair, path string) error {
 }
 
 // EncodeKeyPairAsJSON serializes the passed Keypair into the writer w
-func EncodeKeyPairAsJSON(kp *KeyPair, w io.Writer) error {
+func EncodeKeyPairAsJSON(kp KeyPair, w io.Writer) error {
 	var sec = ssbSecret{
 		Curve:   "ed25519",
 		ID:      kp.Feed,

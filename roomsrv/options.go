@@ -11,6 +11,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/netwrap"
 	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
+	"go.mindeco.de/ssb-rooms/internal/network"
 	"go.mindeco.de/ssb-rooms/internal/repo"
 )
 
@@ -41,7 +42,7 @@ func WithNamedKeyPair(name string) Option {
 	return func(s *Server) error {
 		r := repo.New(s.repoPath)
 		var err error
-		s.KeyPair, err = repo.LoadKeyPair(r, name)
+		s.keyPair, err = repo.LoadKeyPair(r, name)
 		if err != nil {
 			return fmt.Errorf("loading named key-pair %q failed: %w", name, err)
 		}
@@ -54,7 +55,7 @@ func WithNamedKeyPair(name string) Option {
 func WithJSONKeyPair(blob string) Option {
 	return func(s *Server) error {
 		var err error
-		s.KeyPair, err = keys.ParseKeyPair(strings.NewReader(blob))
+		s.keyPair, err = keys.ParseKeyPair(strings.NewReader(blob))
 		if err != nil {
 			return fmt.Errorf("JSON KeyPair decode failed: %w", err)
 		}
@@ -65,7 +66,7 @@ func WithJSONKeyPair(blob string) Option {
 // WithKeyPair exepect a initialized ssb.KeyPair. Useful for testing.
 func WithKeyPair(kp *keys.KeyPair) Option {
 	return func(s *Server) error {
-		s.KeyPair = kp
+		s.keyPair = kp
 		return nil
 	}
 }
@@ -89,6 +90,23 @@ func WithContext(ctx context.Context) Option {
 }
 
 // TODO: remove all this network stuff and make them options on network
+
+// WithDialer changes the function that is used to dial remote peers.
+// This could be a sock5 connection builder to support tor proxying to hidden services.
+func WithDialer(dial netwrap.Dialer) Option {
+	return func(s *Server) error {
+		s.dialer = dial
+		return nil
+	}
+}
+
+// WithNetworkConnTracker changes the connection tracker. See network.NewLastWinsTracker and network.NewAcceptAllTracker.
+func WithNetworkConnTracker(ct network.ConnTracker) Option {
+	return func(s *Server) error {
+		s.networkConnTracker = ct
+		return nil
+	}
+}
 
 // WithListenAddr changes the muxrpc listener address. By default it listens to ':8008'.
 func WithListenAddr(addr string) Option {

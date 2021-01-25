@@ -24,7 +24,7 @@ func DefaultKeyPair(r Interface) (*keys.KeyPair, error) {
 		if err != nil {
 			return nil, fmt.Errorf("repo: no keypair but couldn't create one either: %w", err)
 		}
-		if err := keys.SaveKeyPair(keyPair, secPath); err != nil {
+		if err := keys.SaveKeyPair(*keyPair, secPath); err != nil {
 			return nil, fmt.Errorf("repo: error saving new identity file: %w", err)
 		}
 		log.Printf("saved identity %s to %s", keyPair.Feed.Ref(), secPath)
@@ -62,7 +62,7 @@ func newKeyPair(r Interface, name, algo string, seed io.Reader) (*keys.KeyPair, 
 		return nil, fmt.Errorf("repo: no keypair but couldn't create one either: %w", err)
 	}
 	keyPair.Feed.Algo = algo
-	if err := keys.SaveKeyPair(keyPair, secPath); err != nil {
+	if err := keys.SaveKeyPair(*keyPair, secPath); err != nil {
 		return nil, fmt.Errorf("repo: error saving new identity file: %w", err)
 	}
 	log.Printf("saved identity %s to %s", keyPair.Feed.Ref(), secPath)

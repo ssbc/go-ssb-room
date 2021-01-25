@@ -16,6 +16,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/netwrap"
 
+	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
 	"go.mindeco.de/ssb-rooms/internal/maybemod/multicloser"
 	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
@@ -37,10 +38,13 @@ type Server struct {
 	Network    network.Network
 	appKey     []byte
 	listenAddr net.Addr
+	wsAddr     string
 	dialer     netwrap.Dialer
 
+	loadUnixSock bool
+
 	repoPath string
-	KeyPair  *keys.KeyPair
+	keyPair  *keys.KeyPair
 
 	networkConnTracker network.ConnTracker
 	preSecureWrappers  []netwrap.ConnWrapper
@@ -49,7 +53,11 @@ type Server struct {
 	public maybemuxrpc.PluginManager
 	master maybemuxrpc.PluginManager
 
-	authorizer maybemuxrpc.Authorizer
+	authorizer listAuthorizer
+}
+
+func (s Server) Whoami() refs.FeedRef {
+	return s.keyPair.Feed
 }
 
 func New(opts ...Option) (*Server, error) {
@@ -102,16 +110,22 @@ func New(opts ...Option) (*Server, error) {
 
 	r := repo.New(s.repoPath)
 
-	if s.KeyPair == nil {
+	if s.keyPair == nil {
 		var err error
-		s.KeyPair, err = repo.DefaultKeyPair(r)
+		s.keyPair, err = repo.DefaultKeyPair(r)
 		if err != nil {
 			return nil, fmt.Errorf("sbot: failed to get keypair: %w", err)
 		}
 	}
 
-	if err := s.init(); err != nil {
+	if err := s.initNetwork(); err != nil {
 		return nil, err
+	}
+
+	if s.loadUnixSock {
+		if err := s.initUnixSock(); err != nil {
+			return nil, err
+		}
 	}
 
 	return &s, nil

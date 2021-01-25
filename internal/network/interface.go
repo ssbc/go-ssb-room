@@ -28,7 +28,7 @@ type Network interface {
 	GetListenAddr() net.Addr
 
 	GetAllEndpoints() []EndpointStat
-	GetEndpointFor(*refs.FeedRef) (muxrpc.Endpoint, bool)
+	GetEndpointFor(refs.FeedRef) (muxrpc.Endpoint, bool)
 
 	GetConnTracker() ConnTracker
 

@@ -14,7 +14,7 @@ import (
 
 func NewRelativeTimeLogger(w io.Writer) log.Logger {
 	if w == nil {
-		w = os.Stderr
+		w = log.NewSyncWriter(os.Stderr)
 	}
 
 	var rtl relTimeLogger

@@ -3,107 +3,93 @@ package go_test
 import (
 	"context"
 	"crypto/rand"
-	"net"
-	"os"
-	"path/filepath"
 	"testing"
+	"time"
 
-	"github.com/go-kit/kit/log"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2/debug"
+	"go.cryptoscope.co/muxrpc/v2"
 	"golang.org/x/sync/errgroup"
 
-	"go.mindeco.de/ssb-rooms/internal/maybemod/multicloser/testutils"
+	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/roomsrv"
 )
 
 func TestTunnelServerSimple(t *testing.T) {
-	// defer leakcheck.Check(t)
 	r := require.New(t)
-	if testing.Short() {
-		return
-	}
-	ctx, cancel := context.WithCancel(context.TODO())
+	a := assert.New(t)
+
+	// defer leakcheck.Check(t)
+	testInit(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
 	botgroup, ctx := errgroup.WithContext(ctx)
 
-	info := testutils.NewRelativeTimeLogger(nil)
-	bs := newBotServer(ctx, info)
-
-	os.RemoveAll("testrun")
+	bs := newBotServer(ctx, mainLog)
 
 	appKey := make([]byte, 32)
 	rand.Read(appKey)
-	hmacKey := make([]byte, 32)
-	rand.Read(hmacKey)
 
-	srvLog := log.With(info, "peer", "srv")
-	srv, err := roomsrv.New(
+	netOpts := []roomsrv.Option{
 		roomsrv.WithAppKey(appKey),
 		roomsrv.WithContext(ctx),
-		roomsrv.WithLogger(srvLog),
-		roomsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
-			return debug.WrapDump(filepath.Join("testrun", t.Name(), "muxdump"), conn)
-		}),
-		roomsrv.WithRepoPath(filepath.Join("testrun", t.Name(), "srv")),
-		roomsrv.WithListenAddr(":0"),
-	)
-	r.NoError(err)
-	botgroup.Go(bs.Serve(srv))
-
-	bobLog := log.With(info, "peer", "bob")
-	bob, err := roomsrv.New(
-		roomsrv.WithAppKey(appKey),
-		roomsrv.WithContext(ctx),
-		roomsrv.WithLogger(bobLog),
-		roomsrv.WithRepoPath(filepath.Join("testrun", t.Name(), "bob")),
-		roomsrv.WithListenAddr(":0"),
-	)
-	r.NoError(err)
-	botgroup.Go(bs.Serve(bob))
-
-	// TODO
-	// srv.Replicate(bob.KeyPair.Id)
-	// bob.Replicate(srv.KeyPair.Id)
-
-	sess := &simpleSession{
-		ctx: ctx,
-		srv: srv,
-		bob: bob,
-		redial: func(t *testing.T) {
-			t.Log("noop")
-		},
 	}
 
-	tests := []struct {
-		name string
-		tf   func(t *testing.T)
-	}{
-		{"empty", sess.simple},
-		// {"justMe", sess.wantFirst},
-		// {"eachOne", sess.eachOne},
-		// {"eachOneConnet", sess.eachOneConnet},
-		// {"eachOneBothWant", sess.eachOnBothWant},
-	}
+	serv := makeNamedTestBot(t, "srv", netOpts)
+	botgroup.Go(bs.Serve(serv))
 
-	// all on a single connection
+	botA := makeNamedTestBot(t, "B", netOpts)
+	botgroup.Go(bs.Serve(botA))
+
+	botB := makeNamedTestBot(t, "C", netOpts)
+	botgroup.Go(bs.Serve(botB))
+
+	theBots := []*roomsrv.Server{serv, botA, botB}
+
+	// only allow B to dial A
+	serv.Allow(botA.Whoami(), true)
+
+	// allow bots to dial the remote
+	botA.Allow(serv.Whoami(), true)
+	botB.Allow(serv.Whoami(), true)
+
+	// dial up B->A and C->A
+
+	// should work (we allowed A)
+	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())
+	r.NoError(err, "connect A to the Server")
+
+	// shouldn't work (we did not allowed A)
+	err = botB.Network.Connect(ctx, serv.Network.GetListenAddr())
+	r.NoError(err, "connect B to the Server") // we dont see an error because it just establishes the tcp connection
+
+	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
+	r.True(has, "botA has no endpoint for the server")
+
+	var srvWho struct {
+		ID refs.FeedRef
+	}
+	err = edpOfA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	for _, tc := range tests {
-		t.Run("noop/"+tc.name, tc.tf)
+
+	t.Log("server whoami:", srvWho.ID.Ref())
+	a.True(serv.Whoami().Equal(&srvWho.ID))
+
+	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
+	r.False(has, "botB has an endpoint for the server!")
+	if edpOfB != nil {
+		t.Error("should not have an endpoint on B")
+		err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+		r.Error(err)
+		t.Log(srvWho.ID.Ref())
 	}
 
-	srv.Shutdown()
-	bob.Shutdown()
+	// cleanup
 	cancel()
-
-	r.NoError(srv.Close())
-	r.NoError(bob.Close())
+	time.Sleep(1 * time.Second)
+	for _, bot := range theBots {
+		bot.Shutdown()
+		r.NoError(bot.Close())
+	}
 	r.NoError(botgroup.Wait())
-}
-
-type simpleSession struct {
-	ctx context.Context
-
-	redial func(t *testing.T)
-
-	srv, bob *roomsrv.Server
 }

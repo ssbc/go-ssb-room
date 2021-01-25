@@ -3,8 +3,9 @@ module go.mindeco.de/ssb-rooms
 go 1.15
 
 require (
+	github.com/cryptix/go v1.5.0
 	github.com/go-kit/kit v0.10.0
-	github.com/gorilla/websocket v1.4.1
+	github.com/gorilla/websocket v1.4.2
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.6.1
@@ -12,9 +13,9 @@ require (
 	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/secretstream v1.2.2
 	go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 )
 
 // We need our internal/extra25519 since agl pulled his repo recently.
