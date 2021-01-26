@@ -90,7 +90,7 @@ func TestJSServer(t *testing.T) {
 	// this might fail if the previous node process is still running...
 	// TODO: properly write cleanup
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	srvEdp, has := client.Network.GetEndpointFor(*alice)
 	r.True(has, "botA has no endpoint for the server")
@@ -123,13 +123,13 @@ func TestJSServer(t *testing.T) {
 	// a.EqualValues(1, ret.Members, "expected just one member")
 
 	select {
-	case <-time.After(10 * time.Second):
+	case <-time.After(3 * time.Second):
 		t.Error("timeout")
 	case got := <-newMemberChan:
 		t.Log("received join?")
 		t.Log(got)
 	}
-	time.Sleep(5 * time.Second)
+	time.Sleep(1 * time.Second)
 
 	err = srvEdp.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
@@ -138,13 +138,14 @@ func TestJSServer(t *testing.T) {
 	// a.EqualValues(0, ret.Members, "expected empty rooms")
 
 	select {
-	case <-time.After(10 * time.Second):
+	case <-time.After(3 * time.Second):
 		t.Error("timeout")
 	case got := <-newMemberChan:
 		t.Log("received leave?")
 		t.Log(got)
 	}
 
-	ts.wait()
+	srvEdp.Terminate()
 
+	ts.wait()
 }

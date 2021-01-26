@@ -16,14 +16,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kit/kit/log"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
-	"go.cryptoscope.co/netwrap"
 	refs "go.mindeco.de/ssb-refs"
 
 	"go.mindeco.de/ssb-rooms/internal/maybemod/testutils"
@@ -59,9 +58,9 @@ type testSession struct {
 	keySHS, keyHMAC []byte
 
 	// since we can't pass *testing.T to other goroutines, we use this to collect errors from background taskts
-	backgroundErrs []<-chan error
+	// backgroundErrs []<-chan error
 
-	gobot *roomsrv.Server
+	// gobot *roomsrv.Server
 
 	done errgroup.Group
 	// doneJS, doneGo <-chan struct{}
@@ -104,7 +103,7 @@ func newSession(t *testing.T, appKey, hmacKey []byte) *testSession {
 	return ts
 }
 
-func (ts *testSession) startGoServer(opts ...roomsrv.Option) {
+func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 	r := require.New(ts.t)
 
 	// prepend defaults
@@ -142,10 +141,7 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) {
 		return nil
 	})
 
-	ts.gobot = srv
-
-	// TODO: make muxrpc client and connect to whoami for _ready_ ?
-	return
+	return srv
 }
 
 var jsBotCnt = 0
@@ -168,10 +164,11 @@ func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.F
 		name = fmt.Sprint(ts.t.Name(), jsBotCnt)
 	}
 	jsBotCnt++
+	// TODO: pass goref's?
 	env := []string{
 		"TEST_NAME=" + name,
-		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
-		"TEST_GOADDR=" + netwrap.GetAddr(ts.gobot.Network.GetListenAddr(), "tcp").String(),
+		// "TEST_BOB=" + ts.gobot.Whoami().Ref(),
+		// "TEST_GOADDR=" + netwrap.GetAddr(ts.gobot.Network.GetListenAddr(), "tcp").String(),
 		"TEST_BEFORE=" + writeFile(ts.t, jsbefore),
 		"TEST_AFTER=" + writeFile(ts.t, jsafter),
 	}
@@ -185,7 +182,13 @@ func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.F
 	cmd.Env = env
 	r.NoError(cmd.Start(), "failed to init test js-sbot")
 
-	ts.done.Go(cmd.Wait)
+	ts.done.Go(func() error {
+		err := cmd.Wait()
+		if err != nil {
+			ts.t.Logf("node server %s: exited with %s", name, err)
+		}
+		return nil
+	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()
 	})
@@ -217,7 +220,7 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	env := []string{
 		"TEST_NAME=" + filepath.Join(ts.t.Name(), "jsbot-"+name),
-		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
+		// "TEST_BOB=" + ts.gobot.Whoami().Ref(),
 		fmt.Sprintf("TEST_PORT=%d", port),
 		"TEST_BEFORE=" + testScriptFileName,
 	}
@@ -228,7 +231,13 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	r.NoError(cmd.Start(), "failed to init test js-sbot")
 
-	ts.done.Go(cmd.Wait)
+	ts.done.Go(func() error {
+		err := cmd.Wait()
+		if err != nil {
+			ts.t.Logf("node server %s: exited with %s", name, err)
+		}
+		return nil
+	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()
 	})
@@ -243,19 +252,9 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 }
 
 func (ts *testSession) wait() {
-	closeErrc := make(chan error)
+	ts.gobot.Shutdown()
+	assert.NoError(ts.t, ts.gobot.Close())
+	ts.cancel()
 
-	go func() {
-		time.Sleep(15 * time.Second) // would be nice to get -test.timeout for this
-
-		ts.gobot.Shutdown()
-		closeErrc <- ts.gobot.Close()
-		close(closeErrc)
-	}()
-
-	for err := range testutils.MergeErrorChans(append(ts.backgroundErrs, closeErrc)...) {
-		require.NoError(ts.t, err)
-	}
-
-	require.NoError(ts.t, ts.done.Wait())
+	assert.NoError(ts.t, ts.done.Wait())
 }

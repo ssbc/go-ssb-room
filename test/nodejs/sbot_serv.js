@@ -67,7 +67,7 @@ tape(testName, function (t) {
   
   sbot.on("rpc:connect", (remote, isClient) => {
     t.comment("new connection: "+ remote.id)
-    testSession.after(sbot, remote)
+    testSession.after(sbot, remote, exit)
   })
 })
 
