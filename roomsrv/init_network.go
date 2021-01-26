@@ -41,7 +41,7 @@ func (s *Server) initNetwork() error {
 	}
 
 	// whoami
-	whoami := whoami.New(kitlog.With(s.logger, "unit", "whoami"), s.keyPair.Feed)
+	whoami := whoami.New(kitlog.With(s.logger, "unit", "whoami"), s.Whoami())
 	s.public.Register(whoami)
 	s.master.Register(whoami)
 
@@ -49,7 +49,7 @@ func (s *Server) initNetwork() error {
 
 	// s.master.Register(replicate.NewPlug(s.Users))
 
-	tunnelPlug := tunnel.New(kitlog.With(s.logger, "unit", "tunnel"), s.keyPair.Feed)
+	tunnelPlug := tunnel.New(kitlog.With(s.logger, "unit", "tunnel"), s.rootCtx)
 	s.public.Register(tunnelPlug)
 
 	// tcp+shs

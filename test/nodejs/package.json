@@ -1,0 +1,24 @@
+{
+  "name": "go-ssb-rooms-tests",
+  "version": "1.0.1",
+  "description": "tests between go and ssb-js",
+  "main": "sbot_client.js",
+  "scripts": {
+    "test": "go test"
+  },
+  "author": "cryptix",
+  "dependencies": {
+    "run-parallel": "^1.1.9",
+    "run-series": "^1.1.9",
+    "secret-stack": "^6.3.1",
+    "sodium-native": "^3.2.0",
+    "ssb-config": "^3.4.5",
+    "ssb-conn": "^0.19.1",
+    "ssb-db": "^20.3.0",
+    "ssb-gossip": "^1.1.1",
+    "ssb-keys": "^8.0.0",
+    "ssb-replicate": "^1.3.2",
+    "ssb-room": "^1.3.0",
+    "tape": "^5.0.1"
+  }
+}

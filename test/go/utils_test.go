@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"os"
 	"path/filepath"
 	"sync"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/stretchr/testify/require"
+	"go.cryptoscope.co/muxrpc/v2/debug"
 
 	"go.mindeco.de/ssb-rooms/internal/maybemod/testutils"
 	"go.mindeco.de/ssb-rooms/internal/network"
@@ -59,12 +61,16 @@ func (bs botServer) Serve(s *roomsrv.Server) func() error {
 func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv.Server {
 	r := require.New(t)
 	testPath := filepath.Join("testrun", t.Name(), "bot-"+name)
+	os.RemoveAll(testPath)
 
 	botOptions := append(opts,
 		roomsrv.WithLogger(log.With(mainLog, "bot", name)),
 		roomsrv.WithRepoPath(testPath),
 		roomsrv.WithListenAddr(":0"),
 		roomsrv.WithNetworkConnTracker(network.NewLastWinsTracker()),
+		roomsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
+			return debug.WrapDump(filepath.Join(testPath, "muxdump"), conn)
+		}),
 	)
 
 	theBot, err := roomsrv.New(botOptions...)

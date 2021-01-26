@@ -3,6 +3,7 @@ package go_test
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"testing"
 	"time"
 
@@ -15,14 +16,10 @@ import (
 	"go.mindeco.de/ssb-rooms/roomsrv"
 )
 
-func TestTunnelServerSimple(t *testing.T) {
-	r := require.New(t)
-	a := assert.New(t)
-
-	// defer leakcheck.Check(t)
+func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*roomsrv.Server {
 	testInit(t)
+	r := require.New(t)
 
-	ctx, cancel := context.WithCancel(context.Background())
 	botgroup, ctx := errgroup.WithContext(ctx)
 
 	bs := newBotServer(ctx, mainLog)
@@ -34,17 +31,42 @@ func TestTunnelServerSimple(t *testing.T) {
 		roomsrv.WithAppKey(appKey),
 		roomsrv.WithContext(ctx),
 	}
+	theBots := []*roomsrv.Server{}
 
 	serv := makeNamedTestBot(t, "srv", netOpts)
 	botgroup.Go(bs.Serve(serv))
+	theBots = append(theBots, serv)
 
-	botA := makeNamedTestBot(t, "B", netOpts)
-	botgroup.Go(bs.Serve(botA))
+	for i := uint(1); i < count+1; i++ {
+		botI := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
+		botgroup.Go(bs.Serve(botI))
+		theBots = append(theBots, botI)
+	}
 
-	botB := makeNamedTestBot(t, "C", netOpts)
-	botgroup.Go(bs.Serve(botB))
+	t.Cleanup(func() {
+		time.Sleep(1 * time.Second)
+		for _, bot := range theBots {
+			bot.Shutdown()
+			r.NoError(bot.Close())
+		}
+		r.NoError(botgroup.Wait())
+	})
 
-	theBots := []*roomsrv.Server{serv, botA, botB}
+	return theBots
+}
+
+func TestTunnelServerSimple(t *testing.T) {
+	// defer leakcheck.Check(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	theBots := createServerAndBots(t, ctx, 2)
+
+	r := require.New(t)
+	a := assert.New(t)
+
+	serv := theBots[0]
+
+	botA := theBots[1]
+	botB := theBots[2]
 
 	// only allow B to dial A
 	serv.Allow(botA.Whoami(), true)
@@ -101,10 +123,113 @@ func TestTunnelServerSimple(t *testing.T) {
 
 	// cleanup
 	cancel()
+
+}
+
+func TestRoomAnnounce(t *testing.T) {
+	// defer leakcheck.Check(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	theBots := createServerAndBots(t, ctx, 2)
+
+	r := require.New(t)
+	a := assert.New(t)
+
+	serv := theBots[0]
+
+	botA := theBots[1]
+	botB := theBots[2]
+
+	// only allow B to dial A
+	serv.Allow(botA.Whoami(), true)
+	serv.Allow(botB.Whoami(), true)
+
+	// allow bots to dial the remote
+	botA.Allow(serv.Whoami(), true)
+	botB.Allow(serv.Whoami(), true)
+
+	// should work (we allowed A)
+	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())
+	r.NoError(err, "connect A to the Server")
+
+	// shouldn't work (we did not allowed A)
+	err = botB.Network.Connect(ctx, serv.Network.GetListenAddr())
+	r.NoError(err, "connect B to the Server") // we dont see an error because it just establishes the tcp connection
+
+	t.Log("letting handshaking settle..")
 	time.Sleep(1 * time.Second)
-	for _, bot := range theBots {
-		bot.Shutdown()
-		r.NoError(bot.Close())
+
+	var srvWho struct {
+		ID refs.FeedRef
 	}
-	r.NoError(botgroup.Wait())
+	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
+	r.True(has, "botA has no endpoint for the server")
+
+	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
+	r.True(has, "botB has no endpoint for the server!")
+
+	err = edpOfA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	r.NoError(err)
+	a.True(serv.Whoami().Equal(&srvWho.ID))
+
+	err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	r.NoError(err)
+	a.True(serv.Whoami().Equal(&srvWho.ID))
+
+	// let B listen for changes
+	newRoomMember, err := edpOfB.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
+	r.NoError(err)
+
+	newMemberChan := make(chan string)
+
+	// read all the messages from endpoints and throw them over the channel
+	go func() {
+		for newRoomMember.Next(ctx) {
+
+			body, err := newRoomMember.Bytes()
+			if err != nil {
+				panic(err)
+			}
+
+			newMemberChan <- string(body)
+		}
+		close(newMemberChan)
+	}()
+
+	// announce A
+	var ret struct {
+		Action  string
+		Success bool
+		Members uint
+	}
+	err = edpOfA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
+	r.NoError(err)
+	a.Equal("joined", ret.Action)
+	a.True(ret.Success)
+	a.EqualValues(1, ret.Members, "expected just one member")
+
+	select {
+	case <-time.After(10 * time.Second):
+		t.Error("timeout")
+	case got := <-newMemberChan:
+		t.Log("received join?")
+		t.Log(got)
+	}
+	time.Sleep(5 * time.Second)
+
+	err = edpOfA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
+	r.NoError(err)
+	a.Equal("left", ret.Action)
+	a.True(ret.Success)
+	a.EqualValues(0, ret.Members, "expected empty rooms")
+
+	select {
+	case <-time.After(10 * time.Second):
+		t.Error("timeout")
+	case got := <-newMemberChan:
+		t.Log("received leave?")
+		t.Log(got)
+	}
+
+	// cleanup
+	cancel()
 }

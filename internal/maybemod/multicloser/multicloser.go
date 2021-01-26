@@ -5,8 +5,9 @@ package multicloser
 import (
 	"fmt"
 	"io"
-	"strings"
 	"sync"
+
+	"go.mindeco.de/ssb-rooms/internal/maybemod/multierror"
 )
 
 type Closer struct {
@@ -44,23 +45,5 @@ func (mc *Closer) Close() error {
 		return nil
 	}
 
-	return errList{errs: errs}
-}
-
-type errList struct {
-	errs []error
-}
-
-func (el errList) Error() string {
-	var str strings.Builder
-
-	if n := len(el.errs); n > 0 {
-		fmt.Fprintf(&str, "multiple errors(%d): ", n)
-	}
-	for i, err := range el.errs {
-		fmt.Fprintf(&str, "(%d): ", i)
-		str.WriteString(err.Error() + " - ")
-	}
-
-	return str.String()
+	return multierror.List{Errs: errs}
 }

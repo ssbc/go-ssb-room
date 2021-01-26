@@ -1,13 +1,14 @@
 package tunnel
 
 import (
+	"context"
 	"net"
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
-	refs "go.mindeco.de/ssb-refs"
+	"go.mindeco.de/ssb-rooms/internal/broadcasts"
 	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
 )
 
@@ -36,11 +37,18 @@ func (plugin) Authorize(net.Conn) bool   { return true }
 }
 */
 
-func New(log kitlog.Logger, self refs.FeedRef) maybemuxrpc.Plugin {
+func New(log kitlog.Logger, ctx context.Context) maybemuxrpc.Plugin {
 	mux := typemux.New(log)
 
-	var rs roomState
+	var rs = new(roomState)
 	rs.logger = log
+	rs.updater, rs.broadcaster = broadcasts.NewRoomChanger()
+	rs.rooms = make(roomsStateMap)
+
+	go rs.stateTicker(ctx)
+
+	// so far just lobby (v1 rooms)
+	rs.rooms["lobby"] = make(roomStateMap)
 
 	mux.RegisterAsync(append(method, "isRoom"), typemux.AsyncFunc(rs.isRoom))
 	mux.RegisterAsync(append(method, "ping"), typemux.AsyncFunc(rs.ping))
