@@ -1,11 +1,14 @@
 image: alpine/latest
 packages:
   - go
+  - nodejs
+  - npm
 sources:
   - https://git.sr.ht/~cryptix/go-ssb-rooms
 tasks:
   - test: |
       cd go-ssb-rooms
       go build -i ./...
+      cd tests/nodejs && npm i && cd ../..
       go test ./...
-      go test -race -failfast -count 25 ./...
+      go test -race -failfast -count 25 ./test/go
