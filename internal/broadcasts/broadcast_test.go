@@ -9,8 +9,8 @@ import (
 
 type testPrinter struct{}
 
-func (tp testPrinter) Update(rc RoomChange) error {
-	fmt.Println("test:", rc.Op, rc.Who.Ref())
+func (tp testPrinter) Update(members []string) error {
+	fmt.Printf("test: %d\n", len(members))
 	return nil
 }
 
@@ -27,15 +27,11 @@ func ExampleBroadcast() {
 	closeSink = bcast.Register(p2)
 	defer closeSink()
 
-	var rc RoomChange
-	rc.Who.Algo = "dummy"
-	rc.Who.ID = []byte{0, 0, 0, 0}
-	rc.Op = "joined"
-	sink.Update(rc)
+	sink.Update([]string{"whoop", "whoop"})
 
 	// Output:
-	// test: joined @AAAAAA==.dummy
-	// test: joined @AAAAAA==.dummy
+	// test: 2
+	// test: 2
 }
 
 func ExampleBroadcastCanceled() {
@@ -48,23 +44,18 @@ func ExampleBroadcastCanceled() {
 	defer closeSink()
 	closeSink = bcast.Register(p2)
 
-	var rc RoomChange
-	rc.Who.Algo = "dummy"
-	rc.Who.ID = []byte{0, 0, 0, 0}
-	rc.Op = "joined"
+	closeSink() // p2 never prints
 
-	closeSink()
-
-	sink.Update(rc)
+	sink.Update([]string{"hi"})
 
 	// Output:
-	// test: joined @AAAAAA==.dummy
+	// test: 1
 }
 
 type erroringPrinter struct{}
 
-func (tp erroringPrinter) Update(rc RoomChange) error {
-	fmt.Println("failed:", rc.Op, rc.Who.Ref())
+func (tp erroringPrinter) Update(m []string) error {
+	fmt.Printf("failed: %d\n", len(m))
 	return errors.New("nope")
 }
 
@@ -82,20 +73,14 @@ func ExampleBroadcastOneErrs() {
 	closeSink = bcast.Register(p2)
 	defer closeSink()
 
-	var rc RoomChange
-	rc.Who.Algo = "dummy"
-	rc.Who.ID = []byte{0, 0, 0, 0}
-	rc.Op = "joined"
+	sink.Update([]string{"run1"})
 
-	sink.Update(rc)
-
-	rc.Op = "left"
-	sink.Update(rc)
+	sink.Update([]string{"run", "2"})
 
 	// Output:
-	// test: joined @AAAAAA==.dummy
-	// failed: joined @AAAAAA==.dummy
-	// test: left @AAAAAA==.dummy
+	// test: 1
+	// failed: 1
+	// test: 2
 }
 
 /*

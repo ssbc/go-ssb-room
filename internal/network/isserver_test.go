@@ -75,8 +75,7 @@ func (th testHandler) HandleConnect(ctx context.Context, e muxrpc.Endpoint) {
 	require.Equal(th.t, th.wantServer, muxrpc.IsServer(e), "server assertion failed")
 }
 
-func (th testHandler) HandleCall(ctx context.Context, req *muxrpc.Request, edp muxrpc.Endpoint) {
-}
+func (th testHandler) HandleCall(ctx context.Context, req *muxrpc.Request) {}
 
 func makeServerHandler(t *testing.T, wantServer bool) func(net.Conn) (muxrpc.Handler, error) {
 	return func(_ net.Conn) (muxrpc.Handler, error) {
