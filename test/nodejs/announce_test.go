@@ -110,9 +110,7 @@ func TestJSServer(t *testing.T) {
 	var ret bool
 	err = srvEdp.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
 	r.NoError(err)
-	// a.Equal("joined", ret.Action)
 	a.False(ret, "would assume these are true but..?")
-	// a.EqualValues(1, ret.Members, "expected just one member")
 
 	select {
 	case <-time.After(3 * time.Second):
@@ -125,9 +123,7 @@ func TestJSServer(t *testing.T) {
 
 	err = srvEdp.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
-	// a.Equal("left", ret.Action)
 	a.False(ret, "would assume these are true but..?")
-	// a.EqualValues(0, ret.Members, "expected empty rooms")
 
 	select {
 	case <-time.After(3 * time.Second):
