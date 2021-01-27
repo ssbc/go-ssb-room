@@ -3,6 +3,7 @@ package nodejs_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"io/ioutil"
 	"net"
 	"os"
@@ -16,6 +17,57 @@ import (
 	"go.cryptoscope.co/netwrap"
 	"go.cryptoscope.co/secretstream"
 )
+
+// all js end-to-end test as a sanity check
+func TestAllJSEndToEnd(t *testing.T) {
+	// defer leakcheck.Check(t)
+	r := require.New(t)
+
+	ts := newRandomSession(t)
+	// ts := newSession(t, nil)
+
+	// alice is the server now
+	alice, port := ts.startJSBotAsServer("alice", "./testscripts/server.js")
+
+	aliceAddr := &net.TCPAddr{
+		IP:   net.ParseIP("127.0.0.1"),
+		Port: port,
+	}
+
+	bob := ts.startJSClient("bob", "./testscripts/simple_client.js",
+		aliceAddr,
+		*alice,
+	)
+
+	// claire wants to connect to bob through alice
+
+	// nasty multiserver-addr hack
+	var roomHandle bytes.Buffer
+	roomHandle.WriteString("tunnel:")
+	roomHandle.WriteString(alice.Ref())
+	roomHandle.WriteString(":")
+	roomHandle.WriteString(bob.Ref())
+	roomHandle.WriteString("~shs:")
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(bob.ID))
+
+	// write the handle to the testrun folder of the bot
+	handleFile := filepath.Join("testrun", t.Name(), "claire", "endpoint_through_room.txt")
+	os.MkdirAll(filepath.Dir(handleFile), 0700)
+	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
+	r.NoError(err)
+
+	time.Sleep(1000 * time.Millisecond)
+
+	claire := ts.startJSClient("claire", "./testscripts/simple_client_opening_tunnel.js",
+		aliceAddr,
+		*alice,
+	)
+	t.Log("this is claire:", claire.Ref())
+
+	time.Sleep(20 * time.Second)
+
+	ts.wait()
+}
 
 func TestJSClient(t *testing.T) {
 	// defer leakcheck.Check(t)
@@ -37,9 +89,8 @@ func TestJSClient(t *testing.T) {
 	roomHandle.WriteString(srv.Whoami().Ref())
 	roomHandle.WriteString(":")
 	roomHandle.WriteString(alice.Ref())
-	// nasty tunnel~shs: hack
-	// roomHandle.WriteString("~shs:")
-	// roomHandle.WriteString(base64.StdEncoding.EncodeToString(srv.Whoami().ID))
+	roomHandle.WriteString("~shs:")
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
 
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
@@ -88,9 +139,8 @@ func TestJSServer(t *testing.T) {
 	roomHandle.WriteString(alice.Ref())
 	roomHandle.WriteString(":")
 	roomHandle.WriteString(client.Whoami().Ref())
-	// nasty tunnel~shs: hack
-	// roomHandle.WriteString("~shs:")
-	// roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
+	roomHandle.WriteString("~shs:")
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(client.Whoami().ID))
 
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")

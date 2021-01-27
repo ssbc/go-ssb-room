@@ -13,8 +13,6 @@ if (testSHSappKey !== false) {
 
 const createSbot = theStack({caps: {shs: testAppkey } })
   .use(require('ssb-db'))
-  .use(require('ssb-gossip'))
-  .use(require('ssb-replicate'))
   .use(require('ssb-conn'))
   .use(require('ssb-room/tunnel/client'))
 
@@ -46,9 +44,10 @@ tape(testName, function (t) {
     }, timeoutLength*1.25)
     const to = `net:${testPeerAddr}~shs:${testPeerRef.substr(1).replace('.ed25519', '')}`
     t.comment('dialing:' + to)
-    sbot.connect(to, (err) => {
+    sbot.conn.connect(to, (err, rpc) => {
       t.error(err, 'connected')
-      testSession.after(sbot, exit)
+      t.comment('connected to: '+rpc.id)
+      testSession.after(sbot, rpc, exit)
     })
   }
 

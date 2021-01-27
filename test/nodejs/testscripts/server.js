@@ -10,13 +10,12 @@ module.exports = {
         )
 
         setTimeout(ready, 1000)
-        // ready()
     },
 
     after: (sbot, client, exit) => {
         // hrm.. this runs twice (for each connection)
         console.warn('server new connection:', client.id)
 
-        setTimeout(exit, 10000)
+        setTimeout(exit, 30000)
     }
 }

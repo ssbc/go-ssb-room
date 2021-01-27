@@ -153,7 +153,7 @@ func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr,
 		"TEST_PEERADDR=" + netwrap.GetAddr(peerAddr, "tcp").String(),
 		"TEST_PEERREF=" + peerRef.Ref(),
 		"TEST_SESSIONSCRIPT=" + testScript,
-		"DEBUG=ssb:room:tunnel:*",
+		// "DEBUG=ssb:room:tunnel:*",
 	}
 
 	if ts.keySHS != nil {
@@ -208,7 +208,7 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 		"TEST_REPO=" + cmd.Dir,
 		fmt.Sprintf("TEST_PORT=%d", port),
 		"TEST_SESSIONSCRIPT=" + testScriptFileName,
-		"DEBUG=ssb:room:tunnel:*",
+		// "DEBUG=ssb:room:tunnel:*",
 	}
 	if ts.keySHS != nil {
 		env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))
