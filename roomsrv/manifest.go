@@ -23,7 +23,7 @@ type manifestHandler string
 
 func (manifestHandler) HandleConnect(context.Context, muxrpc.Endpoint) {}
 
-func (h manifestHandler) HandleCall(ctx context.Context, req *muxrpc.Request, edp muxrpc.Endpoint) {
+func (h manifestHandler) HandleCall(ctx context.Context, req *muxrpc.Request) {
 	err := req.Return(ctx, json.RawMessage(h))
 	if err != nil {
 		fmt.Println("manifest err", err)

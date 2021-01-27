@@ -51,7 +51,7 @@ type handler struct {
 
 func (handler) HandleConnect(ctx context.Context, edp muxrpc.Endpoint) {}
 
-func (h handler) HandleCall(ctx context.Context, req *muxrpc.Request, edp muxrpc.Endpoint) {
+func (h handler) HandleCall(ctx context.Context, req *muxrpc.Request) {
 	// TODO: push manifest check into muxrpc
 	if req.Type == "" {
 		req.Type = "async"

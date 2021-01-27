@@ -303,6 +303,11 @@ go.cryptoscope.co/margaret v0.0.5/go.mod h1:W+Q6lvzHIrF8+Yt3dItHHsx2R9/Xvj/NkJGM
 go.cryptoscope.co/margaret v0.0.8/go.mod h1:VbP0bqavqW5osTmdNvgukrqtmqvZC5sXyPSBUW5rzv8=
 go.cryptoscope.co/margaret v0.0.12-0.20190912103626-34323ad497f4 h1:gLSldWRujtUOfdnpA1XKD71xcCp3Wz1URMnT6xpUPV4=
 go.cryptoscope.co/margaret v0.0.12-0.20190912103626-34323ad497f4/go.mod h1:3rt+RmZTFZEgfvFxz0ZPDBIWtLJOouWtzV6YbBl6sek=
+go.cryptoscope.co/muxrpc/v2 v2.0.0-20210125173825-b504fe615f90/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
+go.cryptoscope.co/muxrpc/v2 v2.0.0-20210127103034-f81955ef1d47 h1:p5y76xZAemZXlVh/iOJ694kOyID+/41Qw6vGbKClM+w=
+go.cryptoscope.co/muxrpc/v2 v2.0.0-20210127103034-f81955ef1d47/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
+go.cryptoscope.co/muxrpc/v2 v2.0.0-20210127103630-af1d494467a7 h1:mGsK7AoWNrSJFUFnY60TYonXkWjk411ABu9TFU9L7JI=
+go.cryptoscope.co/muxrpc/v2 v2.0.0-20210127103630-af1d494467a7/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
 go.cryptoscope.co/netwrap v0.1.0/go.mod h1:7zcYswCa4CT+ct54e9uH9+IIbYYETEMHKDNpzl8Ukew=
 go.cryptoscope.co/netwrap v0.1.1 h1:JLzzGKEvrUrkKzu3iM0DhpHmt+L/gYqmpcf1lJMUyFs=
 go.cryptoscope.co/netwrap v0.1.1/go.mod h1:7zcYswCa4CT+ct54e9uH9+IIbYYETEMHKDNpzl8Ukew=
@@ -310,6 +315,7 @@ go.cryptoscope.co/secretstream v1.2.2 h1:kPxsgWrTDFyS9ZklcD0si1KGljPLz6mmPKnFQjG
 go.cryptoscope.co/secretstream v1.2.2/go.mod h1:7nRGZ7fTqSgQAnv2Y4m8xQsS3MFxvB7I0C19reUNlXg=
 go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/etcd v0.0.0-20191023171146-3cf2f69b5738/go.mod h1:dnLIgRNXwCJa5e+c6mIZCrds/GIG4ncV9HhK5PX7jPg=
+go.mindeco.de v0.0.0-20191122233605-f02621a5bca7 h1:si0O0lnNT3SHzEBwuFfqWBaZlME/FnXWlxyZGdri3D8=
 go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870 h1:TCI3AefMAaOYECvppn30+CfEB0Fn8IES1SKvvacc3/c=
 go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870/go.mod h1:OnBnV02ux4lLsZ39LID6yYLqSDp+dqTHb/3miYPkQFs=
 go.opencensus.io v0.20.1/go.mod h1:6WKK9ahsWS3RSO+PY9ZHZUfv2irvY6gN279GOPZjmmk=

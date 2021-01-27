@@ -79,10 +79,9 @@ func (rs *roomState) announce(_ context.Context, req *muxrpc.Request) (interface
 	}
 
 	rs.roomsMu.Lock()
-
 	// add ref to lobby
 	rs.rooms["lobby"][ref.Ref()] = req.Endpoint()
-
+	// update all the connected tunnel.endpoints calls
 	rs.updater.Update(rs.rooms["lobby"].asList())
 	rs.roomsMu.Unlock()
 
@@ -98,14 +97,14 @@ func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{},
 	rs.roomsMu.Lock()
 	// remove ref from lobby
 	delete(rs.rooms["lobby"], ref.Ref())
-
+	// update all the connected tunnel.endpoints calls
 	rs.updater.Update(rs.rooms["lobby"].asList())
 	rs.roomsMu.Unlock()
 
 	return false, nil
 }
 
-func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink, edp muxrpc.Endpoint) error {
+func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
 	level.Debug(rs.logger).Log("called", "endpoints")
 	rs.broadcaster.Register(newForwarder(snk))
 	return nil
