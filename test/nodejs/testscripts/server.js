@@ -3,9 +3,9 @@ const pull = require('pull-stream')
 module.exports = {
     before: (sbot, ready) => {
         pull(
-            sbot.conn.peers(),
+            sbot.conn.hub().listen(),
             pull.drain((p) => {
-                console.warn('peer change:',p)
+                console.warn('peer change:',p.type, p.key)
             })
         )
 
@@ -14,8 +14,9 @@ module.exports = {
     },
 
     after: (sbot, client, exit) => {
-        console.warn('after:', sbot.id, client.id)
+        // hrm.. this runs twice (for each connection)
+        console.warn('server new connection:', client.id)
 
-        setTimeout(exit, 5000)
+        setTimeout(exit, 10000)
     }
 }

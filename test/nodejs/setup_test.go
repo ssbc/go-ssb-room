@@ -127,33 +127,33 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 
 var jsBotCnt = 0
 
-func (ts *testSession) startJSBot(testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
-	return ts.startJSBotWithName("", testScript, peerAddr, peerRef)
-}
-
 // returns the jsbots pubkey
-func (ts *testSession) startJSBotWithName(name, testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
+func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
 	ts.t.Log("starting client", name)
 	r := require.New(ts.t)
-	cmd := exec.CommandContext(ts.ctx, "node", "./sbot_client.js")
+	cmd := exec.CommandContext(ts.ctx, "node", "../../../sbot_client.js")
 	cmd.Stderr = os.Stderr
-
 	outrc, err := cmd.StdoutPipe()
 	r.NoError(err)
 
 	if name == "" {
-		name = fmt.Sprint(ts.t.Name(), jsBotCnt)
+		name = fmt.Sprintf("jsbot-%d", jsBotCnt)
 	}
 	jsBotCnt++
 
-	// ts.gobot.Network.GetListenAddr()
-	// ts.gobot.Whoami()
+	// copy test scripts (maybe later with templates if we need to)
+	cmd.Dir = filepath.Join("testrun", ts.t.Name(), name)
+	os.MkdirAll(cmd.Dir, 0700)
+	err = exec.Command("cp", "-r", "testscripts", cmd.Dir).Run()
+	r.NoError(err)
 
 	env := []string{
 		"TEST_NAME=" + name,
+		"TEST_REPO=" + cmd.Dir,
 		"TEST_PEERADDR=" + netwrap.GetAddr(peerAddr, "tcp").String(),
 		"TEST_PEERREF=" + peerRef.Ref(),
 		"TEST_SESSIONSCRIPT=" + testScript,
+		"DEBUG=ssb:room:tunnel:*",
 	}
 
 	if ts.keySHS != nil {
@@ -184,11 +184,9 @@ func (ts *testSession) startJSBotWithName(name, testScript string, peerAddr net.
 }
 
 func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*refs.FeedRef, int) {
-	ts.t.Log("starting srv", name)
 	r := require.New(ts.t)
-	cmd := exec.CommandContext(ts.ctx, "node", "./sbot_serv.js")
+	cmd := exec.CommandContext(ts.ctx, "node", "../../../sbot_serv.js")
 	cmd.Stderr = os.Stderr
-
 	outrc, err := cmd.StdoutPipe()
 	r.NoError(err)
 
@@ -197,12 +195,20 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 	}
 	jsBotCnt++
 
+	// copy test scripts (maybe later with templates if we need to)
+	cmd.Dir = filepath.Join("testrun", ts.t.Name(), name)
+	os.MkdirAll(cmd.Dir, 0700)
+	err = exec.Command("cp", "-r", "testscripts", cmd.Dir).Run()
+	r.NoError(err)
+
 	var port = 1024 + mrand.Intn(23000)
 
 	env := []string{
-		"TEST_NAME=" + filepath.Join(ts.t.Name(), "jsbot-"+name),
+		"TEST_NAME=jsbot-" + name,
+		"TEST_REPO=" + cmd.Dir,
 		fmt.Sprintf("TEST_PORT=%d", port),
 		"TEST_SESSIONSCRIPT=" + testScriptFileName,
+		"DEBUG=ssb:room:tunnel:*",
 	}
 	if ts.keySHS != nil {
 		env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))

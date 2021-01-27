@@ -14,11 +14,10 @@ if (testSHSappKey !== false) {
 // stackOpts = {appKey: require('ssb-caps').shs}
 stackOpts = {caps: {shs: testAppkey } }
 const createSbot = theStack(stackOpts)
-  .use(require('ssb-db'))  
-  .use(require('ssb-master'))
-  .use(require('ssb-logging'))
+  .use(require('ssb-db'))
   .use(require('ssb-conn'))
   .use(require('ssb-room/tunnel/server'))
+  // .use(require('ssb-logging'))
 
 const testName = process.env['TEST_NAME']
 const testPort = process.env['TEST_PORT']
@@ -31,8 +30,6 @@ tape(testName, function (t) {
 //     t.comment("test timeout")
 //     process.exit(1)
 //   }, 50000)
-  
-  
 
   function exit() { // call this when you're done
     sbot.close()
@@ -41,7 +38,8 @@ tape(testName, function (t) {
     t.end()
   }
 
-  const tempRepo = Path.join('testrun', testName)
+  const tempRepo = process.env['TEST_REPO']
+  console.warn("my repo:", tempRepo)
   const keys = loadOrCreateSync(Path.join(tempRepo, 'secret'))
   const sbot = createSbot({
     port: testPort,
@@ -55,7 +53,7 @@ tape(testName, function (t) {
   t.comment("sbot spawned, running before")
  
   function ready() {
-    console.warn('ready!', alice.id)
+    t.comment('server spawned. I am:' +  alice.id)
     console.log(alice.id) // tell go process who our pubkey
   }
   testSession.before(sbot, ready)

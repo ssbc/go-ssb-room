@@ -25,7 +25,7 @@ type roomState struct {
 }
 
 func (rs *roomState) stateTicker(ctx context.Context) {
-	tick := time.NewTicker(1 * time.Second)
+	tick := time.NewTicker(10 * time.Second)
 	for {
 		select {
 		case <-ctx.Done():

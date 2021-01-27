@@ -1,9 +1,12 @@
 package nodejs_test
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -16,21 +19,36 @@ import (
 
 func TestJSClient(t *testing.T) {
 	// defer leakcheck.Check(t)
-	// r := require.New(t)
+	r := require.New(t)
 
 	ts := newRandomSession(t)
 	// ts := newSession(t, nil)
 
 	srv := ts.startGoServer()
 
-	alice := ts.startJSBot("./testscripts/simple_client.js",
+	alice := ts.startJSClient("alice", "./testscripts/simple_client.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
 	srv.Allow(alice, true)
 
+	var roomHandle bytes.Buffer
+	roomHandle.WriteString("tunnel:")
+	roomHandle.WriteString(srv.Whoami().Ref())
+	roomHandle.WriteString(":")
+	roomHandle.WriteString(alice.Ref())
+	// nasty tunnel~shs: hack
+	// roomHandle.WriteString("~shs:")
+	// roomHandle.WriteString(base64.StdEncoding.EncodeToString(srv.Whoami().ID))
+
+	// write the handle to the testrun folder of the bot
+	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
+	os.MkdirAll(filepath.Dir(handleFile), 0700)
+	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
+	r.NoError(err)
+
 	time.Sleep(1500 * time.Millisecond)
-	bob := ts.startJSBot("./testscripts/simple_client.js",
+	bob := ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
@@ -61,21 +79,38 @@ func TestJSServer(t *testing.T) {
 		Port: port,
 	}
 
-	bob := ts.startJSBot("./testscripts/simple_client.js",
+	// now connect our go client
+	client := ts.startGoServer()
+	client.Allow(*alice, true)
+
+	var roomHandle bytes.Buffer
+	roomHandle.WriteString("tunnel:")
+	roomHandle.WriteString(alice.Ref())
+	roomHandle.WriteString(":")
+	roomHandle.WriteString(client.Whoami().Ref())
+	// nasty tunnel~shs: hack
+	// roomHandle.WriteString("~shs:")
+	// roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
+
+	// write the handle to the testrun folder of the bot
+	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
+	os.MkdirAll(filepath.Dir(handleFile), 0700)
+	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
+	r.NoError(err)
+
+	bob := ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
 		aliceAddr,
 		*alice,
 	)
 	t.Log("started bob:", bob.Ref())
 
-	// now connect our go client
-	client := ts.startGoServer()
-	client.Allow(*alice, true)
+	client.Allow(bob, true)
 
 	// connect to alice
 	aliceShsAddr := netwrap.WrapAddr(aliceAddr, secretstream.Addr{PubKey: alice.ID})
 
 	ctx, connCancel := context.WithCancel(context.TODO())
-	err := client.Network.Connect(ctx, aliceShsAddr)
+	err = client.Network.Connect(ctx, aliceShsAddr)
 	defer connCancel()
 	r.NoError(err, "connect #1 failed")
 

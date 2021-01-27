@@ -1,4 +1,5 @@
 const pull = require('pull-stream')
+const { readFileSync } = require('fs')
 
 module.exports = {
     before: (sbot, ready) => {
@@ -29,12 +30,13 @@ module.exports = {
                     console.warn('left failed')
                     throw err
                 })
-            }, 4000)
+            }, 9000)
         })
         ready()
     },
 
     after: (sbot, exit) => {
+        // now connected to the room   
         console.warn('after connect... exiting in 10s')
         setTimeout(exit, 10000)
     }

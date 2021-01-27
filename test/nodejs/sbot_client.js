@@ -60,13 +60,26 @@ tape(testName, function (t) {
     process.exit(0)
   }
 
-  const tempRepo = Path.join('testrun', testName)
+  const tempRepo = process.env['TEST_REPO']
+  console.warn(tempRepo)
   const keys = loadOrCreateSync(Path.join(tempRepo, 'secret'))
   const opts = {
     allowPrivate: true,
     path: tempRepo,
     keys: keys
   }
+
+  opts.connections = {
+    incoming: {
+      tunnel: [{scope: 'public', transform: 'shs'}],
+    },
+    outgoing: {
+      net: [{transform: 'shs'}],
+      // ws: [{transform: 'shs'}],
+      tunnel: [{transform: 'shs'}],
+    },
+  }
+
 
   if (testSHSappKey !== false) {
     opts.caps = opts.caps ? opts.caps : {}
@@ -75,8 +88,8 @@ tape(testName, function (t) {
 
   const sbot = createSbot(opts)
   const alice = sbot.whoami()
-
-  t.comment('sbot spawned, running before')
+  t.comment('client spawned. I am:' +  alice.id)
+  
   console.log(alice.id) // tell go process who's incoming
   testSession.before(sbot, ready)
 })
