@@ -1,6 +1,5 @@
 const Path = require('path')
 const tape = require('tape')
-const { readFileSync } = require('fs')
 const { loadOrCreateSync } = require('ssb-keys')
 const theStack = require('secret-stack')
 const ssbCaps = require('ssb-caps')
@@ -12,8 +11,8 @@ if (testSHSappKey !== false) {
   testAppkey = testSHSappKey
 }
 
-stackOpts = {appKey: require('ssb-caps').shs}
-// stackOpts = {caps: {shs: testAppkey } }
+// stackOpts = {appKey: require('ssb-caps').shs}
+stackOpts = {caps: {shs: testAppkey } }
 const createSbot = theStack(stackOpts)
   .use(require('ssb-db'))  
   .use(require('ssb-master'))
@@ -23,10 +22,7 @@ const createSbot = theStack(stackOpts)
 
 const testName = process.env['TEST_NAME']
 const testPort = process.env['TEST_PORT']
-
-const testSession = require(process.env['TEST_BEFORE'])
-// const scriptBefore = readFileSync(
-// const scriptAfter = readFileSync(process.env['TEST_AFTER']).toString()
+const testSession = require(process.env['TEST_SESSIONSCRIPT'])
 
 tape.createStream().pipe(process.stderr);
 tape(testName, function (t) {

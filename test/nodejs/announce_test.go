@@ -18,45 +18,21 @@ func TestJSClient(t *testing.T) {
 	// defer leakcheck.Check(t)
 	// r := require.New(t)
 
-	// ts := newRandomSession(t)
-	ts := newSession(t, nil)
+	ts := newRandomSession(t)
+	// ts := newSession(t, nil)
 
-	ts.startGoServer()
-	s := ts.gobot
+	srv := ts.startGoServer()
 
-	alice := ts.startJSBot(`
-	sbot.on('rpc:connect', rpc => {
-		var ret = rpc.tunnel.announce()
-		t.comment('announced')
-		console.warn(ret)
-		pull(
-			rpc.tunnel.endpoints(),
-			pull.drain(el => {
-				console.warn("from roomsrv:",el)
-			})
-		)
+	alice := ts.startJSBot("./testscripts/simple_client.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
 
-		setTimeout(() => {
-			ret = rpc.tunnel.leave()
-			t.comment('left')	
-			console.warn(ret)
-		}, 2500)
-
-		setTimeout(() => {
-			t.comment('shutting down')
-			exit()
-		}, 5000)
-	})
-	run()`, ``)
-
-	s.Allow(alice, true)
+	srv.Allow(alice, true)
 
 	time.Sleep(5 * time.Second)
 
 	ts.wait()
-
-	// TODO: check wantManager for this connection is stopped when the jsbot exited
-
 }
 
 func TestJSServer(t *testing.T) {
@@ -66,17 +42,17 @@ func TestJSServer(t *testing.T) {
 
 	os.RemoveAll("testrun")
 
-	// ts := newRandomSession(t)
-	ts := newSession(t, nil)
+	ts := newRandomSession(t)
+	// ts := newSession(t, nil)
 
-	ts.startGoServer()
-	client := ts.gobot
+	client := ts.startGoServer()
 
 	// alice is the server now
 	alice, port := ts.startJSBotAsServer("alice", "./testscripts/server.js")
 
 	client.Allow(*alice, true)
 
+	// connect to alice
 	wrappedAddr := netwrap.WrapAddr(&net.TCPAddr{
 		IP:   net.ParseIP("127.0.0.1"),
 		Port: port,

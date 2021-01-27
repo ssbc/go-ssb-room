@@ -8,8 +8,8 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	mrand "math/rand"
 	"net"
 	"os"
@@ -38,17 +38,6 @@ func init() {
 	}
 }
 
-func writeFile(t *testing.T, data string) string {
-	r := require.New(t)
-	f, err := ioutil.TempFile("testrun/"+t.Name(), "*.js")
-	r.NoError(err)
-	_, err = fmt.Fprintf(f, "%s", data)
-	r.NoError(err)
-	err = f.Close()
-	r.NoError(err)
-	return f.Name()
-}
-
 type testSession struct {
 	t *testing.T
 
@@ -57,9 +46,6 @@ type testSession struct {
 	repo string
 
 	keySHS []byte
-
-	// TODO: multiple by name?!
-	gobot *roomsrv.Server
 
 	done errgroup.Group
 
@@ -121,15 +107,15 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 
 	srv, err := roomsrv.New(opts...)
 	r.NoError(err, "failed to init tees a server")
-	ts.t.Logf("go server: %s", srv.Whoami())
+	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {
-		srv.Close()
+		ts.t.Log("bot close:", srv.Close())
 	})
-	ts.gobot = srv
+
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
-		if err != nil {
-			err = fmt.Errorf("node serve exited: %w", err)
+		if err != nil && !errors.Is(err, context.Canceled) {
+			err = fmt.Errorf("go server exited: %w", err)
 			ts.t.Log(err)
 			return err
 		}
@@ -141,12 +127,12 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 
 var jsBotCnt = 0
 
-func (ts *testSession) startJSBot(jsbefore, jsafter string) refs.FeedRef {
-	return ts.startJSBotWithName("", jsbefore, jsafter)
+func (ts *testSession) startJSBot(testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
+	return ts.startJSBotWithName("", testScript, peerAddr, peerRef)
 }
 
 // returns the jsbots pubkey
-func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.FeedRef {
+func (ts *testSession) startJSBotWithName(name, testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
 	ts.t.Log("starting client", name)
 	r := require.New(ts.t)
 	cmd := exec.CommandContext(ts.ctx, "node", "./sbot_client.js")
@@ -160,14 +146,14 @@ func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.F
 	}
 	jsBotCnt++
 
-	// TODO: pass goref's via function?
-	// TODO or nickname solution
+	// ts.gobot.Network.GetListenAddr()
+	// ts.gobot.Whoami()
+
 	env := []string{
 		"TEST_NAME=" + name,
-		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
-		"TEST_GOADDR=" + netwrap.GetAddr(ts.gobot.Network.GetListenAddr(), "tcp").String(),
-		"TEST_BEFORE=" + writeFile(ts.t, jsbefore),
-		"TEST_AFTER=" + writeFile(ts.t, jsafter),
+		"TEST_PEERADDR=" + netwrap.GetAddr(peerAddr, "tcp").String(),
+		"TEST_PEERREF=" + peerRef.Ref(),
+		"TEST_SESSIONSCRIPT=" + testScript,
 	}
 
 	if ts.keySHS != nil {
@@ -213,13 +199,10 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	var port = 1024 + mrand.Intn(23000)
 
-	// TODO: pass goref's via function?
-	// TODO or nickname solution
 	env := []string{
 		"TEST_NAME=" + filepath.Join(ts.t.Name(), "jsbot-"+name),
-		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
 		fmt.Sprintf("TEST_PORT=%d", port),
-		"TEST_BEFORE=" + testScriptFileName,
+		"TEST_SESSIONSCRIPT=" + testScriptFileName,
 	}
 	if ts.keySHS != nil {
 		env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))
@@ -249,8 +232,6 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 }
 
 func (ts *testSession) wait() {
-	ts.gobot.Shutdown()
-	assert.NoError(ts.t, ts.gobot.Close())
 	ts.cancel()
 
 	assert.NoError(ts.t, ts.done.Wait())
