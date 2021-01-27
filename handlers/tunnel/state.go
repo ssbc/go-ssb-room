@@ -51,6 +51,15 @@ type roomsStateMap map[string]roomStateMap
 // roomStateMap is a single room
 type roomStateMap map[string]muxrpc.Endpoint
 
+// copy map entries to list for broadcast update
+func (rsm roomStateMap) asList() []string {
+	memberList := make([]string, 0, len(rsm))
+	for m := range rsm {
+		memberList = append(memberList, m)
+	}
+	return memberList
+}
+
 func (rs *roomState) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
 	level.Debug(rs.logger).Log("called", "isRoom")
 	return true, nil
@@ -70,23 +79,14 @@ func (rs *roomState) announce(_ context.Context, req *muxrpc.Request) (interface
 	}
 
 	rs.roomsMu.Lock()
-	rs.updater.Update(broadcasts.RoomChange{
-		Op:  "joined",
-		Who: *ref,
-	})
 
 	// add ref to lobby
 	rs.rooms["lobby"][ref.Ref()] = req.Endpoint()
-	members := len(rs.rooms["lobby"])
+
+	rs.updater.Update(rs.rooms["lobby"].asList())
 	rs.roomsMu.Unlock()
 
-	return RoomUpdate{"joined", true, uint(members)}, nil
-}
-
-type RoomUpdate struct {
-	Action  string
-	Success bool
-	Members uint
+	return false, nil
 }
 
 func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
@@ -96,17 +96,13 @@ func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{},
 	}
 
 	rs.roomsMu.Lock()
-	rs.updater.Update(broadcasts.RoomChange{
-		Op:  "left",
-		Who: *ref,
-	})
-
-	// add ref to lobby
+	// remove ref from lobby
 	delete(rs.rooms["lobby"], ref.Ref())
-	members := len(rs.rooms["lobby"])
+
+	rs.updater.Update(rs.rooms["lobby"].asList())
 	rs.roomsMu.Unlock()
 
-	return RoomUpdate{"left", true, uint(members)}, nil
+	return false, nil
 }
 
 func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink, edp muxrpc.Endpoint) error {
@@ -129,8 +125,8 @@ func newForwarder(snk *muxrpc.ByteSink) updateForwarder {
 	}
 }
 
-func (uf updateForwarder) Update(rc broadcasts.RoomChange) error {
-	return uf.enc.Encode(rc)
+func (uf updateForwarder) Update(members []string) error {
+	return uf.enc.Encode(members)
 }
 
 func (uf updateForwarder) Close() error {

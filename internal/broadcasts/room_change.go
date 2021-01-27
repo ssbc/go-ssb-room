@@ -4,17 +4,11 @@ import (
 	"io"
 	"sync"
 
-	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/internal/maybemod/multierror"
 )
 
-type RoomChange struct {
-	Op  string
-	Who refs.FeedRef
-}
-
 type RoomChangeSink interface {
-	Update(value RoomChange) error
+	Update(members []string) error
 	io.Closer
 }
 
@@ -53,11 +47,11 @@ func (bcst *RoomChangeBroadcast) Register(sink RoomChangeSink) func() {
 type broadcastSink RoomChangeBroadcast
 
 // Pour implements the Sink interface.
-func (bcst *broadcastSink) Update(rc RoomChange) error {
+func (bcst *broadcastSink) Update(members []string) error {
 
 	bcst.mu.Lock()
 	for s := range bcst.sinks {
-		err := (*s).Update(rc)
+		err := (*s).Update(members)
 		if err != nil {
 			delete(bcst.sinks, s)
 		}

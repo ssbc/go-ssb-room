@@ -27,8 +27,15 @@ func TestJSClient(t *testing.T) {
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
-
 	srv.Allow(alice, true)
+
+	time.Sleep(1500 * time.Millisecond)
+	bob := ts.startJSBot("./testscripts/simple_client.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
+
+	srv.Allow(bob, true)
 
 	time.Sleep(5 * time.Second)
 
@@ -45,28 +52,37 @@ func TestJSServer(t *testing.T) {
 	ts := newRandomSession(t)
 	// ts := newSession(t, nil)
 
-	client := ts.startGoServer()
-
 	// alice is the server now
 	alice, port := ts.startJSBotAsServer("alice", "./testscripts/server.js")
 
+	// a 2nd js instance but as a client
+	aliceAddr := &net.TCPAddr{
+		IP:   net.ParseIP("127.0.0.1"),
+		Port: port,
+	}
+
+	bob := ts.startJSBot("./testscripts/simple_client.js",
+		aliceAddr,
+		*alice,
+	)
+	t.Log("started bob:", bob.Ref())
+
+	// now connect our go client
+	client := ts.startGoServer()
 	client.Allow(*alice, true)
 
 	// connect to alice
-	wrappedAddr := netwrap.WrapAddr(&net.TCPAddr{
-		IP:   net.ParseIP("127.0.0.1"),
-		Port: port,
-	}, secretstream.Addr{PubKey: alice.ID})
+	aliceShsAddr := netwrap.WrapAddr(aliceAddr, secretstream.Addr{PubKey: alice.ID})
 
 	ctx, connCancel := context.WithCancel(context.TODO())
-	err := client.Network.Connect(ctx, wrappedAddr)
+	err := client.Network.Connect(ctx, aliceShsAddr)
 	defer connCancel()
 	r.NoError(err, "connect #1 failed")
 
 	// this might fail if the previous node process is still running...
 	// TODO: properly write cleanup
 
-	time.Sleep(3 * time.Second)
+	time.Sleep(2 * time.Second)
 
 	srvEdp, has := client.Network.GetEndpointFor(*alice)
 	r.True(has, "botA has no endpoint for the server")
@@ -105,7 +121,7 @@ func TestJSServer(t *testing.T) {
 		t.Log("received join?")
 		t.Log(got)
 	}
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	err = srvEdp.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
