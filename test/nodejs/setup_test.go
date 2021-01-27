@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
+	"go.cryptoscope.co/netwrap"
 	refs "go.mindeco.de/ssb-refs"
 
 	"go.mindeco.de/ssb-rooms/internal/maybemod/testutils"
@@ -55,15 +56,12 @@ type testSession struct {
 
 	repo string
 
-	keySHS, keyHMAC []byte
+	keySHS []byte
 
-	// since we can't pass *testing.T to other goroutines, we use this to collect errors from background taskts
-	// backgroundErrs []<-chan error
-
-	// gobot *roomsrv.Server
+	// TODO: multiple by name?!
+	gobot *roomsrv.Server
 
 	done errgroup.Group
-	// doneJS, doneGo <-chan struct{}
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -75,14 +73,12 @@ type testSession struct {
 func newRandomSession(t *testing.T) *testSession {
 	appKey := make([]byte, 32)
 	rand.Read(appKey)
-	hmacKey := make([]byte, 32)
-	rand.Read(hmacKey)
-	return newSession(t, appKey, hmacKey)
+	return newSession(t, appKey)
 }
 
 // if appKey is nil, the default value is used
 // if hmac is nil, the object string is signed instead
-func newSession(t *testing.T, appKey, hmacKey []byte) *testSession {
+func newSession(t *testing.T, appKey []byte) *testSession {
 	repo := filepath.Join("testrun", t.Name())
 	err := os.RemoveAll(repo)
 	if err != nil {
@@ -90,11 +86,10 @@ func newSession(t *testing.T, appKey, hmacKey []byte) *testSession {
 	}
 
 	ts := &testSession{
-		info:    testutils.NewRelativeTimeLogger(nil),
-		repo:    repo,
-		t:       t,
-		keySHS:  appKey,
-		keyHMAC: hmacKey,
+		info:   testutils.NewRelativeTimeLogger(nil),
+		repo:   repo,
+		t:      t,
+		keySHS: appKey,
 	}
 
 	// todo: hook into deadline
@@ -130,7 +125,7 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 	ts.t.Cleanup(func() {
 		srv.Close()
 	})
-
+	ts.gobot = srv
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
 		if err != nil {
@@ -164,11 +159,13 @@ func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.F
 		name = fmt.Sprint(ts.t.Name(), jsBotCnt)
 	}
 	jsBotCnt++
-	// TODO: pass goref's?
+
+	// TODO: pass goref's via function?
+	// TODO or nickname solution
 	env := []string{
 		"TEST_NAME=" + name,
-		// "TEST_BOB=" + ts.gobot.Whoami().Ref(),
-		// "TEST_GOADDR=" + netwrap.GetAddr(ts.gobot.Network.GetListenAddr(), "tcp").String(),
+		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
+		"TEST_GOADDR=" + netwrap.GetAddr(ts.gobot.Network.GetListenAddr(), "tcp").String(),
 		"TEST_BEFORE=" + writeFile(ts.t, jsbefore),
 		"TEST_AFTER=" + writeFile(ts.t, jsafter),
 	}
@@ -176,9 +173,7 @@ func (ts *testSession) startJSBotWithName(name, jsbefore, jsafter string) refs.F
 	if ts.keySHS != nil {
 		env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))
 	}
-	if ts.keyHMAC != nil {
-		env = append(env, "TEST_HMACKEY="+base64.StdEncoding.EncodeToString(ts.keyHMAC))
-	}
+
 	cmd.Env = env
 	r.NoError(cmd.Start(), "failed to init test js-sbot")
 
@@ -218,15 +213,17 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	var port = 1024 + mrand.Intn(23000)
 
+	// TODO: pass goref's via function?
+	// TODO or nickname solution
 	env := []string{
 		"TEST_NAME=" + filepath.Join(ts.t.Name(), "jsbot-"+name),
-		// "TEST_BOB=" + ts.gobot.Whoami().Ref(),
+		"TEST_BOB=" + ts.gobot.Whoami().Ref(),
 		fmt.Sprintf("TEST_PORT=%d", port),
 		"TEST_BEFORE=" + testScriptFileName,
 	}
-	// if ts.keySHS != nil {
-	// 	env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))
-	// }
+	if ts.keySHS != nil {
+		env = append(env, "TEST_APPKEY="+base64.StdEncoding.EncodeToString(ts.keySHS))
+	}
 	cmd.Env = env
 
 	r.NoError(cmd.Start(), "failed to init test js-sbot")

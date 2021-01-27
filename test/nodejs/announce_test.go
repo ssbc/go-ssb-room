@@ -19,7 +19,7 @@ func TestJSClient(t *testing.T) {
 	// r := require.New(t)
 
 	// ts := newRandomSession(t)
-	ts := newSession(t, nil, nil)
+	ts := newSession(t, nil)
 
 	ts.startGoServer()
 	s := ts.gobot
@@ -67,7 +67,7 @@ func TestJSServer(t *testing.T) {
 	os.RemoveAll("testrun")
 
 	// ts := newRandomSession(t)
-	ts := newSession(t, nil, nil)
+	ts := newSession(t, nil)
 
 	ts.startGoServer()
 	client := ts.gobot
