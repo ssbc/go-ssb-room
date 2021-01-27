@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/cryptix/go/logging"
+	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
 
+	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
 )
 
@@ -18,15 +19,13 @@ var (
 	method = muxrpc.Method{"whoami"}
 )
 
-func checkAndLog(log logging.Interface, err error) {
+func checkAndLog(log kitlog.Logger, err error) {
 	if err != nil {
-		if err := logging.LogPanicWithStack(log, "checkAndLog", err); err != nil {
-			log.Log("event", "warning", "msg", "faild to write panic file", "err", err)
-		}
+		level.Warn(log).Log("event", "faild to write panic file", "err", err)
 	}
 }
 
-func New(log logging.Interface, id refs.FeedRef) maybemuxrpc.Plugin {
+func New(log kitlog.Logger, id refs.FeedRef) maybemuxrpc.Plugin {
 	return plugin{handler{
 		log: log,
 		id:  id,
@@ -46,7 +45,7 @@ func (wami plugin) Handler() muxrpc.Handler { return wami.h }
 func (plugin) Authorize(net.Conn) bool { return true }
 
 type handler struct {
-	log logging.Interface
+	log kitlog.Logger
 	id  refs.FeedRef
 }
 

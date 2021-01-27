@@ -4,8 +4,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
 	refs "go.mindeco.de/ssb-refs"
+	"go.mindeco.de/ssb-rooms/internal/maybemod/multierror"
 )
 
 type RoomChange struct {
@@ -81,8 +81,8 @@ func (bcst *broadcastSink) Close() error {
 	}
 
 	var (
-		wg   sync.WaitGroup
-		merr *multierror.Error
+		wg sync.WaitGroup
+		me multierror.List
 	)
 
 	// might be fine without the waitgroup and concurrency
@@ -94,12 +94,16 @@ func (bcst *broadcastSink) Close() error {
 
 			err := sink.Close()
 			if err != nil {
-				merr = multierror.Append(merr, err)
+				me.Errs = append(me.Errs, err)
 				return
 			}
 		}(sink_)
 	}
 	wg.Wait()
 
-	return merr.ErrorOrNil()
+	if len(me.Errs) == 0 {
+		return nil
+	}
+
+	return me
 }
