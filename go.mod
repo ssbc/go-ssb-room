@@ -8,7 +8,7 @@ require (
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.6.1
-	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210128095938-2eadaa75d05e
+	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210128140720-714356005f11
 	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/secretstream v1.2.2
 	go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870
