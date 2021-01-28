@@ -8,14 +8,12 @@ module.exports = {
                 console.warn('peer change:',p.type, p.key)
             })
         )
-
         setTimeout(ready, 1000)
     },
 
     after: (sbot, client, exit) => {
         // hrm.. this runs twice (for each connection)
         console.warn('server new connection:', client.id)
-
         setTimeout(exit, 30000)
     }
 }

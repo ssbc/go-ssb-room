@@ -49,7 +49,7 @@ func (s *Server) initNetwork() error {
 
 	// s.master.Register(replicate.NewPlug(s.Users))
 
-	tunnelPlug := tunnel.New(kitlog.With(s.logger, "unit", "tunnel"), s.rootCtx)
+	tunnelPlug := tunnel.New(kitlog.With(s.logger, "unit", "tunnel"), s.rootCtx, s.Whoami())
 	s.public.Register(tunnelPlug)
 
 	// tcp+shs

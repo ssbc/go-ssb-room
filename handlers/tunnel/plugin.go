@@ -8,6 +8,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
+	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/internal/broadcasts"
 	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
 )
@@ -37,10 +38,11 @@ func (plugin) Authorize(net.Conn) bool   { return true }
 }
 */
 
-func New(log kitlog.Logger, ctx context.Context) maybemuxrpc.Plugin {
+func New(log kitlog.Logger, ctx context.Context, self refs.FeedRef) maybemuxrpc.Plugin {
 	mux := typemux.New(log)
 
 	var rs = new(roomState)
+	rs.self = self
 	rs.logger = log
 	rs.updater, rs.broadcaster = broadcasts.NewRoomChanger()
 	rs.rooms = make(roomsStateMap)
@@ -58,8 +60,7 @@ func New(log kitlog.Logger, ctx context.Context) maybemuxrpc.Plugin {
 
 	mux.RegisterSource(append(method, "endpoints"), typemux.SourceFunc(rs.endpoints))
 
-	// TODO: patch typemux
-	// mux.RegisterDuplex(append(method, "connect"), typemux.DuplexFunc(rs.connect))
+	mux.RegisterDuplex(append(method, "connect"), typemux.DuplexFunc(rs.connect))
 
 	return plugin{
 		h: &mux,

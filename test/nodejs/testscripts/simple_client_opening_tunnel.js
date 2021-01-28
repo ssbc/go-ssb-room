@@ -50,7 +50,7 @@ module.exports = {
                 client.conn.connect(roomHandle, (err, tunneldRpc) => {
                     if (err) throw err
                     console.warn("got tunnel to:", tunneldRpc.id)
-                    
+
                     // check the tunnel connection works
                     tunneldRpc.tunnel.ping((err, id) => {
                         if (err) throw err

@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	refs "go.mindeco.de/ssb-refs"
 	"go.mindeco.de/ssb-rooms/internal/network"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -15,6 +16,8 @@ import (
 )
 
 type roomState struct {
+	self refs.FeedRef
+
 	logger kitlog.Logger
 
 	updater     broadcasts.RoomChangeSink
