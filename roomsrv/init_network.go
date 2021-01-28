@@ -1,11 +1,14 @@
 package roomsrv
 
 import (
+	"bufio"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 
 	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
 
 	refs "go.mindeco.de/ssb-refs"
@@ -17,6 +20,24 @@ import (
 
 func (s *Server) initNetwork() error {
 	s.authorizer.lst = make(map[string]struct{})
+
+	// simple authorized_keys file, new line delimited @feed.xzy
+	if f, err := os.Open(s.repo.GetPath("authorized_keys")); err == nil {
+		evtAuthedKeys := kitlog.With(s.logger, "event", "authorized_keys")
+		sc := bufio.NewScanner(f)
+		i := 0
+		for sc.Scan() {
+			fr, err := refs.ParseFeedRef(sc.Text())
+			if err != nil {
+				level.Warn(evtAuthedKeys).Log("skipping-line", i+1, "err", err)
+				continue
+			}
+			s.authorizer.Add(*fr)
+			i++
+		}
+		level.Info(evtAuthedKeys).Log("allowing", i)
+		f.Close()
+	}
 
 	// muxrpc handler creation and authoratization decider
 	mkHandler := func(conn net.Conn) (muxrpc.Handler, error) {

@@ -43,6 +43,7 @@ type Server struct {
 
 	loadUnixSock bool
 
+	repo     repo.Interface
 	repoPath string
 	keyPair  *keys.KeyPair
 
@@ -108,11 +109,11 @@ func New(opts ...Option) (*Server, error) {
 		s.rootCtx, s.Shutdown = context.WithCancel(context.Background())
 	}
 
-	r := repo.New(s.repoPath)
+	s.repo = repo.New(s.repoPath)
 
 	if s.keyPair == nil {
 		var err error
-		s.keyPair, err = repo.DefaultKeyPair(r)
+		s.keyPair, err = repo.DefaultKeyPair(s.repo)
 		if err != nil {
 			return nil, fmt.Errorf("sbot: failed to get keypair: %w", err)
 		}
