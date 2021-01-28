@@ -109,6 +109,22 @@ func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{},
 
 func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
 	level.Debug(rs.logger).Log("called", "endpoints")
+
+	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
+	if err != nil {
+		return err
+	}
+
+	rs.roomsMu.Lock()
+	// add ref to lobby
+	lobby := rs.rooms["lobby"]
+	if _, has := lobby[ref.Ref()]; !has {
+		lobby[ref.Ref()] = req.Endpoint()
+		rs.updater.Update(lobby.asList())
+		rs.rooms["lobby"] = lobby
+	}
+	rs.roomsMu.Unlock()
+
 	rs.broadcaster.Register(newForwarder(snk))
 	return nil
 }
