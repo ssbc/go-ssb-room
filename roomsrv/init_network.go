@@ -9,6 +9,7 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/keks/nocomment"
 	"go.cryptoscope.co/muxrpc/v2"
 
 	refs "go.mindeco.de/ssb-refs"
@@ -21,13 +22,22 @@ import (
 func (s *Server) initNetwork() error {
 	s.authorizer.lst = make(map[string]struct{})
 
+	// TODO: bake this into the authorizer and make it reloadable
+
 	// simple authorized_keys file, new line delimited @feed.xzy
 	if f, err := os.Open(s.repo.GetPath("authorized_keys")); err == nil {
 		evtAuthedKeys := kitlog.With(s.logger, "event", "authorized_keys")
-		sc := bufio.NewScanner(f)
+
+		// ignore lines starting with #
+		rd := nocomment.NewReader(f)
+		sc := bufio.NewScanner(rd)
 		i := 0
 		for sc.Scan() {
-			fr, err := refs.ParseFeedRef(sc.Text())
+			txt := sc.Text()
+			if txt == "" {
+				continue
+			}
+			fr, err := refs.ParseFeedRef(txt)
 			if err != nil {
 				level.Warn(evtAuthedKeys).Log("skipping-line", i+1, "err", err)
 				continue

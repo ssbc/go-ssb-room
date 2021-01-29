@@ -41,7 +41,7 @@ func (rs *roomState) stateTicker(ctx context.Context) {
 		for room, members := range rs.rooms {
 			level.Info(rs.logger).Log("room", room, "cnt", len(members))
 			for who := range members {
-				level.Info(rs.logger).Log("room", room, "feed", who)
+				level.Info(rs.logger).Log("room", room, "feed", who[1:5])
 			}
 		}
 		rs.roomsMu.Unlock()
