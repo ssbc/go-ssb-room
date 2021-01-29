@@ -110,22 +110,35 @@ func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{},
 func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
 	level.Debug(rs.logger).Log("called", "endpoints")
 
+	toPeer := newForwarder(snk)
+
+	// for future updates
+	rs.broadcaster.Register(toPeer)
+
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return err
 	}
 
 	rs.roomsMu.Lock()
-	// add ref to lobby
+
 	lobby := rs.rooms["lobby"]
-	if _, has := lobby[ref.Ref()]; !has {
+	// if the peer didn't call tunnel.announce()
+	if _, has := lobby[ref.Ref()]; has {
+		// just send the current state to the new peer
+		toPeer.Update(lobby.asList())
+	} else {
+		// register them as if they did
 		lobby[ref.Ref()] = req.Endpoint()
-		rs.updater.Update(lobby.asList())
 		rs.rooms["lobby"] = lobby
+
+		// update everyone
+		rs.updater.Update(lobby.asList())
 	}
+
+	// send the current state
 	rs.roomsMu.Unlock()
 
-	rs.broadcaster.Register(newForwarder(snk))
 	return nil
 }
 
