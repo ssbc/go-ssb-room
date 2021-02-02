@@ -21,6 +21,8 @@ func (np namedPlugin) Authorize(net.Conn) bool { return true }
 
 type manifestHandler string
 
+func (manifestHandler) Handled(m muxrpc.Method) bool { return m.String() == "manifest" }
+
 func (manifestHandler) HandleConnect(context.Context, muxrpc.Endpoint) {}
 
 func (h manifestHandler) HandleCall(ctx context.Context, req *muxrpc.Request) {

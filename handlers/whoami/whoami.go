@@ -49,6 +49,8 @@ type handler struct {
 	id  refs.FeedRef
 }
 
+func (handler) Handled(m muxrpc.Method) bool { return m.String() == "whoami" }
+
 func (handler) HandleConnect(ctx context.Context, edp muxrpc.Endpoint) {}
 
 func (h handler) HandleCall(ctx context.Context, req *muxrpc.Request) {
