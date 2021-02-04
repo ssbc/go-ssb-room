@@ -1,0 +1,20 @@
+{{ define "title" }}<title>News - Overview</title>{{ end }}
+{{ define "content" }}
+<div class="page-header">
+  <h1 id="welcome">Welcome!</h1>
+</div>
+<div class="row">
+<div class="col-md-12">
+{{range $index, $element := .}}
+
+
+<a href="{{urlTo "news:post" "PostID" $index}}">
+  <h2>{{$element.Name}}</h2>
+</a>
+
+<p>{{$element.Text}}</p>
+
+{{end}}
+</div>
+</div> <!-- /row -->
+{{end}}

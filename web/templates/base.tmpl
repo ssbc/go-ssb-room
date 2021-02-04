@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- complete base template -->
+  <meta charset="utf-8" />
+  <title>{{block "title" .}}Default Title{{end}}</title>
+</head>
+<body>
+  {{block "extra" .}}{{end}}
+  <div class="container">
+    {{ block "content" . }}{{end}}
+  </div>
+</body>
+</html>

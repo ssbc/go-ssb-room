@@ -1,0 +1,14 @@
+{{define "title"}}render - Error {{.StatusCode}}{{end}}
+{{define "content"}}
+<div class="page-header">
+  <h1>Error #{{.StatusCode}}<small> - {{.Status}}</small></h1>
+</div>
+<div class="row">
+  <div class="col-sm-12">
+    <pre id="errBody">{{.Err}}</pre>
+    <p>
+      <a href="javascript:history.back()" class="btn btn-primary">Back</a>
+    </p>
+  </div>
+</div>
+{{end}}
