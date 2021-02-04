@@ -10,13 +10,26 @@ import (
 )
 
 type Post struct {
+	ID         int
 	Name, Text string
 }
 
 var db = []Post{
-	Post{"Hello", "lot's of stuff"},
-	Post{"Testing", "yeeeeaaaahhhh..."},
-	Post{"WAT", "i have only a partial idea of what i'm doing"},
+	Post{
+		ID:   0,
+		Name: "Hello",
+		Text: "lot's of stuff",
+	},
+	Post{
+		ID:   1,
+		Name: "Testing",
+		Text: "yeeeeaaaahhhh...",
+	},
+	Post{
+		ID:   2,
+		Name: "WAT",
+		Text: "i have only a partial idea of what i'm doing",
+	},
 }
 
 func showOverview(w http.ResponseWriter, req *http.Request) (interface{}, error) {

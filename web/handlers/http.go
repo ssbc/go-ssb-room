@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,9 +23,7 @@ func New(m *mux.Router) (http.Handler, error) {
 			"/landing/index.tmpl",
 			"/landing/about.tmpl",
 			"/error.tmpl")...),
-		render.FuncMap(template.FuncMap{
-			"urlTo": web.NewURLTo(m),
-		}),
+		render.FuncMap(web.TemplateFuncs(m)),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)

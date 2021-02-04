@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"html/template"
 	"net/url"
 	"strconv"
 
@@ -9,6 +10,13 @@ import (
 	"github.com/gorilla/mux"
 	"go.mindeco.de/logging"
 )
+
+func TemplateFuncs(m *mux.Router) template.FuncMap {
+	return template.FuncMap{
+		"urlTo": NewURLTo(m),
+		"inc":   func(i int) int { return i + 1 },
+	}
+}
 
 func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 	l := logging.Logger("helper.URLTo") // TOOD: inject in a scoped way
