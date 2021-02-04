@@ -17,7 +17,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
-	gopkg.in/errgo.v1 v1.0.1
 )
 
 exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79

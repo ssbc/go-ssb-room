@@ -85,7 +85,7 @@ func initFlags() {
 	flag.StringVar(&repoDir, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "where to put the log and indexes")
 
 	flag.StringVar(&listenAddrDebug, "dbg", "localhost:6078", "listen addr for metrics and pprof HTTP server")
-	flag.StringVar(&logToFile, "path", "", "where to write debug output to (otherwise just stderr)")
+	flag.StringVar(&logToFile, "logs", "", "where to write debug output to (default is just stderr)")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
@@ -108,7 +108,6 @@ func initFlags() {
 }
 
 func runroomsrv() error {
-
 	initFlags()
 
 	if flagPrintVersion {
@@ -117,6 +116,7 @@ func runroomsrv() error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ak, err := base64.StdEncoding.DecodeString(appKey)
 	if err != nil {
@@ -159,23 +159,7 @@ func runroomsrv() error {
 		}()
 	}
 
-	dashboardH, err := handlers.New(nil)
-	if err != nil {
-		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
-	}
-
-	httpLis, err := net.Listen("tcp", listenAddrHTTP)
-	if err != nil {
-		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
-	}
-
-	go func() {
-		err = http.Serve(httpLis, dashboardH)
-		if err != nil {
-			level.Error(log).Log("event", "http serve failed", "err", err)
-		}
-	}()
-
+	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)
@@ -197,14 +181,36 @@ func runroomsrv() error {
 		os.Exit(0)
 	}()
 
+	// setup web dashboard handlers
+	dashboardH, err := handlers.New(nil)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
+	}
+
+	// open the HTTP listener
+	httpLis, err := net.Listen("tcp", listenAddrHTTP)
+	if err != nil {
+		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
+	}
+
 	level.Info(log).Log(
 		"event", "serving",
 		"ID", roomsrv.Whoami().Ref(),
 		"shsmuxaddr", listenAddrShsMux,
+		"httpaddr", listenAddrHTTP,
 		"version", Version,
 		"build", Build,
 	)
 
+	// start serving http connections
+	go func() {
+		err = http.Serve(httpLis, dashboardH)
+		if err != nil {
+			level.Error(log).Log("event", "http serve failed", "err", err)
+		}
+	}()
+
+	// start serving shs+muxrpc connections
 	for {
 		// Note: This is where the serving starts ;)
 		err = roomsrv.Network.Serve(ctx)
