@@ -8,7 +8,7 @@ It not only includes the secret-handshake+boxstream setup and muxrpc handlers fo
 
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
 * [ ] Sign-in with SSB
-* [x] Simple whitelisting
+* [x] Simple allow-listing
     Currently via `.ssb-go-rooms/authorized_keys`.
     To be replaced with a authorization list on the dashboard.
 * [ ] Alias managment
