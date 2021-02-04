@@ -13,10 +13,10 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 
 	refs "go.mindeco.de/ssb-refs"
-	"go.mindeco.de/ssb-rooms/handlers/tunnel/server"
-	"go.mindeco.de/ssb-rooms/handlers/whoami"
-	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
-	"go.mindeco.de/ssb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/gossb-rooms/handlers/tunnel/server"
+	"github.com/ssb-ngi-pointer/gossb-rooms/handlers/whoami"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
 )
 
 func (s *Server) initNetwork() error {

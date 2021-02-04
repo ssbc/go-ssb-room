@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
-	"go.mindeco.de/ssb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
 var HTMLTemplates = []string{

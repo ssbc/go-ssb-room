@@ -10,9 +10,9 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/netwrap"
-	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
-	"go.mindeco.de/ssb-rooms/internal/network"
-	"go.mindeco.de/ssb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 )
 
 type Option func(srv *Server) error

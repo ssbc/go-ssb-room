@@ -1,4 +1,4 @@
-module go.mindeco.de/ssb-rooms
+module github.com/ssb-ngi-pointer/gossb-rooms
 
 go 1.15
 

@@ -27,10 +27,10 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"go.mindeco.de/ssb-rooms/internal/repo"
-	"go.mindeco.de/ssb-rooms/roomsrv"
-	mksrv "go.mindeco.de/ssb-rooms/roomsrv"
-	"go.mindeco.de/ssb-rooms/web/handlers"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	mksrv "github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers"
 )
 
 var (

@@ -7,11 +7,11 @@ import (
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
 
-	"go.mindeco.de/ssb-rooms/internal/repo"
-	"go.mindeco.de/ssb-rooms/web"
-	"go.mindeco.de/ssb-rooms/web/handlers/news"
-	"go.mindeco.de/ssb-rooms/web/i18n"
-	"go.mindeco.de/ssb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/news"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/i18n"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
 func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"go.mindeco.de/ssb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
 func TestOverview(t *testing.T) {

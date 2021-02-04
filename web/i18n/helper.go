@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"go.mindeco.de/ssb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 	"golang.org/x/text/language"
 )
 

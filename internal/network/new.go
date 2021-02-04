@@ -19,7 +19,7 @@ import (
 	"go.cryptoscope.co/secretstream"
 
 	refs "go.mindeco.de/ssb-refs"
-	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
 )
 
 // DefaultPort is the default listening port for ScuttleButt.

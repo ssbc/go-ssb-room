@@ -9,8 +9,8 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
-	"go.mindeco.de/ssb-rooms/web"
-	"go.mindeco.de/ssb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
 var (

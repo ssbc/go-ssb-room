@@ -12,7 +12,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 
 	refs "go.mindeco.de/ssb-refs"
-	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemuxrpc"
 )
 
 var (

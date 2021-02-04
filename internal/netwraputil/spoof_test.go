@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
-	"go.mindeco.de/ssb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
 )
 
 func TestSpoof(t *testing.T) {
