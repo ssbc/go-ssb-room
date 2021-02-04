@@ -51,6 +51,8 @@ func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))
 
+	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
+
 	m.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(rw, "404: url not found")
 	})

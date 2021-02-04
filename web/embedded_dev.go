@@ -19,3 +19,5 @@ import (
 var pkgDir = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/gossb-rooms/web")
 
 var Templates http.FileSystem = http.Dir(filepath.Join(pkgDir, "templates"))
+
+var Assets http.FileSystem = http.Dir(filepath.Join(pkgDir, "assets"))

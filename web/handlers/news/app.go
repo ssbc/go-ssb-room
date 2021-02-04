@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"go.mindeco.de/http/render"
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"go.mindeco.de/http/render"
 )
 
 var HTMLTemplates = []string{

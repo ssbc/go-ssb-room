@@ -11,7 +11,7 @@ import (
 	"go.mindeco.de/logging"
 )
 
-//go:generate go run -tags=dev templates_generate.go
+//go:generate go run -tags=dev embedded_generate.go
 
 func TemplateFuncs(m *mux.Router) template.FuncMap {
 	return template.FuncMap{
