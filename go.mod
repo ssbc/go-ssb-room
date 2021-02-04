@@ -10,6 +10,8 @@ require (
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
+	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
+	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
 	github.com/stretchr/testify v1.6.1
 	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210202162901-fe642d405dc6
 	go.cryptoscope.co/netwrap v0.1.1

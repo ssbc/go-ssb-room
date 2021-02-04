@@ -17,7 +17,8 @@ func TestOverview(t *testing.T) {
 	a.Nil(err)
 	html, resp := testClient.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	a.Equal(html.Find("#welcome").Text(), "Welcome!")
+	// we dont test for the text values, just the i18n placeholders
+	a.Equal(html.Find("#welcome").Text(), "NewsWelcome")
 }
 
 func TestPost(t *testing.T) {

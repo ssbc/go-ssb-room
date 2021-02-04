@@ -42,6 +42,11 @@ Usage of ./server:
     	print version number and build date
 ```
 
+If you are working on the html templates or assets for them, build the server with `go build -tags dev`.
+This way it won't use the assets that are embedded in the binary but read them directly from the local filesystem.
+
+Once you are done with your changes run `go generate` in package web to update them.
+
 ## Testing
 
 ### Rooms

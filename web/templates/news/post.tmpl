@@ -1,4 +1,4 @@
-{{ define "title" }}<title>News - Post</title>{{ end }}
+{{ define "title" }}{{i18n "NewsTitle"}}: {{.Post.Name}}{{ end }}
 {{ define "content" }}
 <div class="page-header">
   <h1>{{.Post.Name}}</h1>

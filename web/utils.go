@@ -11,6 +11,8 @@ import (
 	"go.mindeco.de/logging"
 )
 
+//go:generate go run -tags=dev templates_generate.go
+
 func TemplateFuncs(m *mux.Router) template.FuncMap {
 	return template.FuncMap{
 		"urlTo": NewURLTo(m),

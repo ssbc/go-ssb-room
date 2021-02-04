@@ -14,6 +14,7 @@ import (
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
+// New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 	if m == nil {
 		m = router.CompleteApp()
@@ -24,13 +25,15 @@ func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 		return nil, err
 	}
 
-	r, err := render.New(web.Assets,
+	r, err := render.New(web.Templates,
 		render.BaseTemplates("/base.tmpl"),
 		render.AddTemplates(append(news.HTMLTemplates,
 			"/landing/index.tmpl",
 			"/landing/about.tmpl",
 			"/error.tmpl")...),
 		render.FuncMap(web.TemplateFuncs(m)),
+		// TODO: add plural and template data variants
+		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
 			lang := r.FormValue("lang")
 			accept := r.Header.Get("Accept-Language")

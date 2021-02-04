@@ -22,12 +22,16 @@ var (
 )
 
 func setup(t *testing.T) {
+
+	testFuncs := web.TemplateFuncs(testRouter)
+	testFuncs["i18n"] = func(msgID string) string { return msgID }
+
 	log, _ := logtest.KitLogger("feed", t)
 	r, err := render.New(testAssets, //TODO: embedd web.Assets,
 		render.SetLogger(log),
 		render.BaseTemplates("/testing/base.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "/error.tmpl")...),
-		render.FuncMap(web.TemplateFuncs(testRouter)),
+		render.FuncMap(testFuncs),
 	)
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "setup: render init failed"))
