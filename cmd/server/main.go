@@ -27,6 +27,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
+	"go.mindeco.de/ssb-rooms/internal/repo"
 	"go.mindeco.de/ssb-rooms/roomsrv"
 	mksrv "go.mindeco.de/ssb-rooms/roomsrv"
 	"go.mindeco.de/ssb-rooms/web/handlers"
@@ -182,7 +183,7 @@ func runroomsrv() error {
 	}()
 
 	// setup web dashboard handlers
-	dashboardH, err := handlers.New(nil)
+	dashboardH, err := handlers.New(nil, repo.New(repoDir))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
 	}
@@ -192,6 +193,8 @@ func runroomsrv() error {
 	if err != nil {
 		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
 	}
+
+	// TODO: setup other http goodies (such as CSRF and CSP)
 
 	level.Info(log).Log(
 		"event", "serving",

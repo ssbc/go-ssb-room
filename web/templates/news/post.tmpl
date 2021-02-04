@@ -1,13 +1,13 @@
 {{ define "title" }}<title>News - Post</title>{{ end }}
 {{ define "content" }}
 <div class="page-header">
-  <h1>{{.Name}}</h1>
+  <h1>{{.Post.Name}}</h1>
 </div>
 <div class="row">
 <div class="col-md-12">
-<p>{{.Text}}</p>
+<p>{{.Post.Text}}</p>
 </div>
 </div> <!-- /row -->
 <a href="{{urlTo "news:overview"}}" id="overview">Overview</a>
-<a href="{{urlTo "news:post" "PostID" (inc .ID)}}" id="next">Next...</a>
+<a href="{{urlTo "news:post" "PostID" (inc .Post.ID)}}" id="next">Next...</a>
 {{end}}

@@ -33,7 +33,9 @@ var db = []Post{
 }
 
 func showOverview(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-	return db, nil
+	return map[string]interface{}{
+		"AllPosts": db,
+	}, nil
 }
 
 func showPost(w http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -44,5 +46,7 @@ func showPost(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 	if i < 0 || i >= len(db) {
 		return nil, errors.New("db: not found")
 	}
-	return db[i], nil
+	return map[string]interface{}{
+		"Post": db[i],
+	}, nil
 }

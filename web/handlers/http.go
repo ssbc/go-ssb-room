@@ -7,14 +7,21 @@ import (
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
 
+	"go.mindeco.de/ssb-rooms/internal/repo"
 	"go.mindeco.de/ssb-rooms/web"
 	"go.mindeco.de/ssb-rooms/web/handlers/news"
+	"go.mindeco.de/ssb-rooms/web/i18n"
 	"go.mindeco.de/ssb-rooms/web/router"
 )
 
-func New(m *mux.Router) (http.Handler, error) {
+func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 	if m == nil {
 		m = router.CompleteApp()
+	}
+
+	locHelper, err := i18n.New(repo)
+	if err != nil {
+		return nil, err
 	}
 
 	r, err := render.New(web.Assets,
@@ -24,6 +31,12 @@ func New(m *mux.Router) (http.Handler, error) {
 			"/landing/about.tmpl",
 			"/error.tmpl")...),
 		render.FuncMap(web.TemplateFuncs(m)),
+		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
+			lang := r.FormValue("lang")
+			accept := r.Header.Get("Accept-Language")
+			loc := locHelper.NewLocalizer(lang, accept)
+			return loc.LocalizeSimple
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
@@ -38,5 +51,7 @@ func New(m *mux.Router) (http.Handler, error) {
 	m.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(rw, "404: url not found")
 	})
-	return m, nil
+
+	// TODO: disable in non-dev
+	return r.GetReloader()(m), nil
 }
