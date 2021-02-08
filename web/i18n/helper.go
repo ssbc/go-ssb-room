@@ -22,7 +22,7 @@ func New(r repo.Interface) (*Helper, error) {
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
-	// TODO: could additionally embedd the defaults together with the html assets and templates
+	// TODO: could additionally embedd the defaults like we do with the html assets and templates
 
 	err := filepath.Walk(r.GetPath("i18n"), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -44,8 +44,8 @@ func New(r repo.Interface) (*Helper, error) {
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
+	if err != nil && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("i18n: failed to iterate localizations: %w", err)
 	}
 
 	return &Helper{bundle: bundle}, nil

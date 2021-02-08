@@ -166,6 +166,16 @@ func runroomsrv() error {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)
 	}
 
+	// open the HTTP listener
+	httpLis, err := net.Listen("tcp", listenAddrHTTP)
+	if err != nil {
+		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
+	}
+
+	r := repo.New(repoDir)
+
+	db, err := sqlite.OpenOrCreate(r.GetPath("roomdb"))
+
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -173,6 +183,8 @@ func runroomsrv() error {
 		level.Warn(log).Log("event", "killed", "msg", "received signal, shutting down", "signal", sig.String())
 		cancel()
 		roomsrv.Shutdown()
+
+		httpLis.Close()
 		time.Sleep(2 * time.Second)
 
 		err := roomsrv.Close()
@@ -183,15 +195,12 @@ func runroomsrv() error {
 	}()
 
 	// setup web dashboard handlers
-	dashboardH, err := handlers.New(nil, repo.New(repoDir))
+	dashboardH, err := handlers.New(
+		nil,
+		repo.New(repoDir),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
-	}
-
-	// open the HTTP listener
-	httpLis, err := net.Listen("tcp", listenAddrHTTP)
-	if err != nil {
-		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
 	}
 
 	// TODO: setup other http goodies (such as CSRF and CSP)
@@ -207,7 +216,18 @@ func runroomsrv() error {
 
 	// start serving http connections
 	go func() {
-		err = http.Serve(httpLis, dashboardH)
+		srv := http.Server{
+			Addr: httpLis.Addr().String(),
+
+			// Good practice to set timeouts to avoid Slowloris attacks.
+			WriteTimeout: time.Second * 15,
+			ReadTimeout:  time.Second * 15,
+			IdleTimeout:  time.Second * 60,
+
+			Handler: dashboardH,
+		}
+
+		err = srv.Serve(httpLis)
 		if err != nil {
 			level.Error(log).Log("event", "http serve failed", "err", err)
 		}

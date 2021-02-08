@@ -15,6 +15,8 @@ import (
 	"go.mindeco.de/goutils"
 )
 
+const Production = false
+
 // absolute path of where this package is located
 var pkgDir = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/gossb-rooms/web")
 

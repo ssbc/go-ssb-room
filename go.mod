@@ -5,7 +5,9 @@ go 1.15
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/go-kit/kit v0.10.0
-	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/securecookie v1.1.1
+	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
@@ -22,6 +24,7 @@ require (
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f // indirect
 	golang.org/x/text v0.3.3
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79

@@ -17,8 +17,6 @@ var (
 	testMux    *http.ServeMux
 	testClient *tester.Tester
 	testRouter = router.News(nil)
-
-	testAssets = http.Dir("../../templates")
 )
 
 func setup(t *testing.T) {
@@ -27,7 +25,7 @@ func setup(t *testing.T) {
 	testFuncs["i18n"] = func(msgID string) string { return msgID }
 
 	log, _ := logtest.KitLogger("feed", t)
-	r, err := render.New(testAssets, //TODO: embedd web.Assets,
+	r, err := render.New(web.Templates,
 		render.SetLogger(log),
 		render.BaseTemplates("/testing/base.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "/error.tmpl")...),

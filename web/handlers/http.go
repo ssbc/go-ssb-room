@@ -1,21 +1,33 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
+	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 
+	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
 	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 	"github.com/ssb-ngi-pointer/gossb-rooms/web"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/admin"
+	roomsAuth "github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/auth"
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/news"
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/i18n"
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
-func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
+func New(
+	m *mux.Router,
+	repo repo.Interface,
+	as admindb.AuthService,
+	fs admindb.FallbackAuth,
+) (http.Handler, error) {
 	if m == nil {
 		m = router.CompleteApp()
 	}
@@ -27,10 +39,15 @@ func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 
 	r, err := render.New(web.Templates,
 		render.BaseTemplates("/base.tmpl"),
-		render.AddTemplates(append(news.HTMLTemplates,
-			"/landing/index.tmpl",
-			"/landing/about.tmpl",
-			"/error.tmpl")...),
+		render.AddTemplates(concatTemplates(
+			[]string{
+				"/landing/index.tmpl",
+				"/landing/about.tmpl",
+				"/error.tmpl",
+			},
+			news.HTMLTemplates,
+			admin.HTMLTemplates,
+		)...),
 		render.FuncMap(web.TemplateFuncs(m)),
 		// TODO: add plural and template data variants
 		// TODO: move these to the i18n helper pkg
@@ -45,7 +62,48 @@ func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
 	}
 
+	// TODO: generate & persist me
+	// repo.GetPath("web-cookie")
+	store := &sessions.CookieStore{
+		Codecs: securecookie.CodecsFromPairs(
+			bytes.Repeat([]byte("acab"), 8),
+			bytes.Repeat([]byte("beef"), 8),
+			// securecookie.GenerateRandomKey(32), // new key every time we startup
+			// securecookie.GenerateRandomKey(32),
+		),
+		Options: &sessions.Options{
+			Path:   "/",
+			MaxAge: 30,
+		},
+	}
+
+	notAuthorizedH := r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+		statusCode := http.StatusUnauthorized
+		rw.WriteHeader(statusCode)
+		return errorTemplateData{
+			statusCode,
+			"Unauthorized",
+			"you are not authorized to access the requested site",
+		}, nil
+	})
+
+	a, err := auth.NewHandler(fs,
+		auth.SetStore(store),
+		auth.SetNotAuthorizedHandler(notAuthorizedH),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
+	}
+
 	// hookup handlers to the router
+	roomsAuth.Handler(m, r, a)
+
+	adminRouter := m.PathPrefix("/admin").Subrouter()
+	adminRouter.Use(a.Authenticate)
+
+	// we dont strip path here because it somehow fucks with the middleware setup
+	adminRouter.PathPrefix("/").Handler(admin.Handler(adminRouter, r))
+
 	m.PathPrefix("/news").Handler(http.StripPrefix("/news", news.Handler(m, r)))
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
@@ -53,10 +111,34 @@ func New(m *mux.Router, repo repo.Interface) (http.Handler, error) {
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
-	m.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(rw, "404: url not found")
+	m.NotFoundHandler = r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+		rw.WriteHeader(http.StatusNotFound)
+		return errorTemplateData{http.StatusNotFound, "Not Found", "the requested page wasnt found.."}, nil
 	})
 
-	// TODO: disable in non-dev
+	if web.Production {
+		return m, nil
+	}
+
 	return r.GetReloader()(m), nil
+}
+
+// utils
+
+type errorTemplateData struct {
+	StatusCode int
+	Status     string
+	Err        string
+}
+
+func concatTemplates(lst ...[]string) []string {
+	var catted []string
+
+	for _, tpls := range lst {
+		for _, t := range tpls {
+			catted = append(catted, t)
+		}
+
+	}
+	return catted
 }

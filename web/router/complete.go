@@ -1,6 +1,8 @@
 package router
 
-import "github.com/gorilla/mux"
+import (
+	"github.com/gorilla/mux"
+)
 
 // constant names for the named routes
 const (
@@ -13,7 +15,7 @@ func CompleteApp() *mux.Router {
 	m := mux.NewRouter()
 
 	Auth(m.PathPrefix("/auth").Subrouter())
-	// Admin(m.PathPrefix("/profile").Subrouter())
+	Admin(m.PathPrefix("/admin").Subrouter())
 	News(m.PathPrefix("/news").Subrouter())
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
