@@ -5,7 +5,9 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-    <form action="POST">
+    <form method="POST" action={{urlTo "Auth:Fallback:SignIn"}}>
+        <input type="text" name="user">
+        <input type="password" name="pass">
         <input type="submit">
     </form>
     </div>

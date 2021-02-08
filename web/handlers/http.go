@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -25,8 +23,8 @@ import (
 func New(
 	m *mux.Router,
 	repo repo.Interface,
-	as admindb.AuthService,
-	fs admindb.FallbackAuth,
+	as admindb.AuthWithSSBService,
+	fs admindb.AuthFallbackService,
 ) (http.Handler, error) {
 	if m == nil {
 		m = router.CompleteApp()
@@ -46,6 +44,7 @@ func New(
 				"/error.tmpl",
 			},
 			news.HTMLTemplates,
+			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
 		)...),
 		render.FuncMap(web.TemplateFuncs(m)),
@@ -62,21 +61,20 @@ func New(
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
 	}
 
-	// TODO: generate & persist me
-	// repo.GetPath("web-cookie")
+	cookieCodec, err := web.LoadOrCreateCookieSecrets(repo)
+	if err != nil {
+		return nil, err
+	}
+
 	store := &sessions.CookieStore{
-		Codecs: securecookie.CodecsFromPairs(
-			bytes.Repeat([]byte("acab"), 8),
-			bytes.Repeat([]byte("beef"), 8),
-			// securecookie.GenerateRandomKey(32), // new key every time we startup
-			// securecookie.GenerateRandomKey(32),
-		),
+		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
 			MaxAge: 30,
 		},
 	}
 
+	// TODO: use r.Error?
 	notAuthorizedH := r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		statusCode := http.StatusUnauthorized
 		rw.WriteHeader(statusCode)

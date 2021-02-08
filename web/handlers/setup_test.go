@@ -20,8 +20,8 @@ var (
 	testRouter = router.CompleteApp()
 
 	// mocked dbs
-	testAuthDB         *mockdb.FakeAuthService
-	testAuthFallbackDB *mockdb.FakeFallbackAuth
+	testAuthDB         *mockdb.FakeAuthWithSSBService
+	testAuthFallbackDB *mockdb.FakeAuthFallbackService
 )
 
 func setup(t *testing.T) {
@@ -30,8 +30,8 @@ func setup(t *testing.T) {
 	os.RemoveAll(testRepoPath)
 	testRepo := repo.New(testRepoPath)
 
-	testAuthDB = new(mockdb.FakeAuthService)
-	testAuthFallbackDB = new(mockdb.FakeFallbackAuth)
+	testAuthDB = new(mockdb.FakeAuthWithSSBService)
+	testAuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 	h, err := New(
 		testRouter,
 		testRepo,
@@ -52,6 +52,6 @@ func setup(t *testing.T) {
 func teardown() {
 	testMux = nil
 	testClient = nil
-	testAuthFallbackDB = nil
+	testAuthDB = nil
 	testAuthFallbackDB = nil
 }

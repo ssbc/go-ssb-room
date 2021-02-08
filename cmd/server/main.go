@@ -25,8 +25,10 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	_ "github.com/mattn/go-sqlite3"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
+	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite"
 	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
@@ -174,7 +176,10 @@ func runroomsrv() error {
 
 	r := repo.New(repoDir)
 
-	db, err := sqlite.OpenOrCreate(r.GetPath("roomdb"))
+	db, err := sqlite.Open(r.GetPath("roomdb"))
+	if err != nil {
+		return fmt.Errorf("failed to initiate database: %w", err)
+	}
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -198,6 +203,8 @@ func runroomsrv() error {
 	dashboardH, err := handlers.New(
 		nil,
 		repo.New(repoDir),
+		db.AuthWithSSB,
+		db.AuthFallback,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)

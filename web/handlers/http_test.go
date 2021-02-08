@@ -30,7 +30,6 @@ func TestIndex(t *testing.T) {
 func TestAbout(t *testing.T) {
 	setup(t)
 	t.Cleanup(teardown)
-
 	a := assert.New(t)
 	r := require.New(t)
 
@@ -45,7 +44,6 @@ func TestAbout(t *testing.T) {
 func TestNotFound(t *testing.T) {
 	setup(t)
 	t.Cleanup(teardown)
-
 	a := assert.New(t)
 
 	html, resp := testClient.GetHTML("/some/random/ASDKLANZXC", nil)
@@ -57,7 +55,6 @@ func TestNotFound(t *testing.T) {
 func TestNewsRegisterd(t *testing.T) {
 	setup(t)
 	t.Cleanup(teardown)
-
 	a := assert.New(t)
 
 	html, resp := testClient.GetHTML("/news/", nil)
@@ -70,11 +67,21 @@ func TestNewsRegisterd(t *testing.T) {
 func TestRestricted(t *testing.T) {
 	setup(t)
 	t.Cleanup(teardown)
-
 	a := assert.New(t)
 
 	html, resp := testClient.GetHTML("/admin/", nil)
 	a.Equal(http.StatusUnauthorized, resp.Code, "wrong HTTP status code")
 	found := html.Find("h1").Text()
 	a.Equal("Error #401 - Unauthorized", found)
+}
+
+func TestLoginForm(t *testing.T) {
+	setup(t)
+	t.Cleanup(teardown)
+	a := assert.New(t)
+
+	html, resp := testClient.GetHTML(router.AuthFallbackSignInForm, nil)
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+	found := html.Find("title").Text()
+	a.Equal("Login Form", found)
 }

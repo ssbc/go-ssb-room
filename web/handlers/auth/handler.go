@@ -10,6 +10,10 @@ import (
 	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
 )
 
+var HTMLTemplates = []string{
+	"/auth/fallback_sign_in.tmpl",
+}
+
 func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
 	if m == nil {
 		m = router.Auth(nil)

@@ -4,13 +4,15 @@ import (
 	"go.mindeco.de/http/auth"
 )
 
-// FallbackAuth might be helpful for scenarios where one lost access to his ssb device or key
-type FallbackAuth interface {
+// AuthFallbackService might be helpful for scenarios where one lost access to his ssb device or key
+type AuthFallbackService interface {
 	auth.Auther
+
+	Create(user string, password []byte) error
 }
 
-// AuthService defines functions needed for the challange/response system of sign-in with ssb
-type AuthService interface{}
+// AuthWithSSBService defines functions needed for the challange/response system of sign-in with ssb
+type AuthWithSSBService interface{}
 
 // RoomService deals with changing the privacy modes and managing the allow/deny lists of the room
 type RoomService interface{}
@@ -20,9 +22,9 @@ type AliasService interface{}
 
 // for tests we use generated mocks from these interfaces created with https://github.com/maxbrunsfeld/counterfeiter
 
-//go:generate counterfeiter -o mockdb/auth.go . AuthService
+//go:generate counterfeiter -o mockdb/auth.go . AuthWithSSBService
 
-//go:generate counterfeiter -o mockdb/auth_fallback.go . FallbackAuth
+//go:generate counterfeiter -o mockdb/auth_fallback.go . AuthFallbackService
 
 //go:generate counterfeiter -o mockdb/room.go . RoomService
 

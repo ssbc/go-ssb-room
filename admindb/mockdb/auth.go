@@ -7,12 +7,12 @@ import (
 	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
 )
 
-type FakeAuthService struct {
+type FakeAuthWithSSBService struct {
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAuthService) Invocations() map[string][][]interface{} {
+func (fake *FakeAuthWithSSBService) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
@@ -22,7 +22,7 @@ func (fake *FakeAuthService) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeAuthService) recordInvocation(key string, args []interface{}) {
+func (fake *FakeAuthWithSSBService) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -34,4 +34,4 @@ func (fake *FakeAuthService) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ admindb.AuthService = new(FakeAuthService)
+var _ admindb.AuthWithSSBService = new(FakeAuthWithSSBService)

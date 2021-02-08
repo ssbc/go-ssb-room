@@ -47,6 +47,34 @@ This way it won't use the assets that are embedded in the binary but read them d
 
 Once you are done with your changes run `go generate` in package web to update them.
 
+## Tooling
+
+### mocks
+
+[counterfeiter](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update them run `go generate` in package admindb.
+
+TODO: automate setup of tool
+
+### No ORM
+
+We use [sqlboiler](github.com/volatiletech/sqlboiler) to generate type-safe Go code code directly from SQL statements and table definitions. This approach suits the programming language much more then classical ORM approaches, which usually rely havily on reflection for (un)packing structs.
+
+To generate them run the following commands. This will populate `admindb/sqlite/models`:
+
+
+```bash
+cd admindb/sqlite
+rm generate.db
+sqlite3 generate.db < schema-v1.sql
+sqlboiler sqlite3 --wipe
+```
+
+The generated package `admindb/sqlite/models` is then used to implemente the custom logic of the different services in `admindb/sqlite`
+
+TODO: automate this with `go generate`
+
+Aside: I would have used `sqlc` since it's a bit more minimal and uses hand written SQL queries instead of generic query builders but it [currently doesn't support sqlite](https://github.com/kyleconroy/sqlc/issues/161).
+
 ## Testing
 
 ### Rooms
