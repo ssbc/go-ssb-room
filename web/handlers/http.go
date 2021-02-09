@@ -56,9 +56,7 @@ func New(
 		// TODO: add plural and template data variants
 		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
-			lang := r.FormValue("lang")
-			accept := r.Header.Get("Accept-Language")
-			loc := locHelper.NewLocalizer(lang, accept)
+			loc := localizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
 		}),
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
@@ -102,7 +100,24 @@ func New(
 		},
 	}
 
-	// TODO: use r.Error?
+	authErrH := func(rw http.ResponseWriter, req *http.Request, err error, code int) {
+		msg := err.Error()
+
+		// localize some specific error messages
+		if err == auth.ErrBadLogin {
+			msg = localizerFromRequest(locHelper, req).LocalizeSimple("AuthErrorBadLogin")
+		}
+
+		r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+			return errorTemplateData{
+				Err: msg,
+				// TODO: localize?
+				Status:     http.StatusText(code),
+				StatusCode: code,
+			}, nil
+		}).ServeHTTP(rw, req)
+	}
+
 	notAuthorizedH := r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		statusCode := http.StatusUnauthorized
 		rw.WriteHeader(statusCode)
@@ -115,6 +130,7 @@ func New(
 
 	a, err = auth.NewHandler(fs,
 		auth.SetStore(store),
+		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
 	)
 	if err != nil {
@@ -167,4 +183,10 @@ func concatTemplates(lst ...[]string) []string {
 
 	}
 	return catted
+}
+
+func localizerFromRequest(helper *i18n.Helper, r *http.Request) *i18n.Localizer {
+	lang := r.FormValue("lang")
+	accept := r.Header.Get("Accept-Language")
+	return helper.NewLocalizer(lang, accept)
 }
