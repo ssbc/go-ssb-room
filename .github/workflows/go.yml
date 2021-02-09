@@ -1,0 +1,39 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Node (for interop testing)
+      uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+    
+    - name: Get dependencies
+      run: go get -v -t -d ./...
+
+    - name: Build smoke test
+      run: go build ./cmd/server
+
+    - name: install node ssb-stack
+      run: |
+        pushd test/nodejs
+        npm ci
+        popd
+
+    - name: All the Test
+      run: go test ./...
