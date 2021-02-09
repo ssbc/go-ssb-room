@@ -4,9 +4,7 @@
 package models
 
 var TableNames = struct {
-	Aliases      string
 	AuthFallback string
 }{
-	Aliases:      "aliases",
 	AuthFallback: "auth_fallback",
 }

@@ -176,7 +176,8 @@ func runroomsrv() error {
 
 	r := repo.New(repoDir)
 
-	db, err := sqlite.Open(r.GetPath("roomdb"))
+	// open the sqlite version of the admindb
+	db, err := sqlite.Open(r)
 	if err != nil {
 		return fmt.Errorf("failed to initiate database: %w", err)
 	}

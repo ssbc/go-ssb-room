@@ -80,10 +80,13 @@ func TestRestricted(t *testing.T) {
 func TestLoginForm(t *testing.T) {
 	setup(t)
 	t.Cleanup(teardown)
-	a := assert.New(t)
+	a, r := assert.New(t), require.New(t)
 
-	html, resp := testClient.GetHTML(router.AuthFallbackSignInForm, nil)
+	url, err := testRouter.Get(router.AuthFallbackSignInForm).URL()
+	r.Nil(err)
+	html, resp := testClient.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+
 	found := html.Find("title").Text()
-	a.Equal("Login Form", found)
+	a.Equal("fallback sign-in", found)
 }

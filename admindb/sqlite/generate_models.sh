@@ -1,7 +1,7 @@
 #!/bin/sh
 
-dbName=generated.db
+set -e
 
-test -f $dbName && rm $dbName
-sqlite3 $dbName < schema-v1.sql
+go test
 sqlboiler sqlite3 --wipe
+echo "all done!"
