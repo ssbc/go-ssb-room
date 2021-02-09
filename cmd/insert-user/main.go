@@ -4,9 +4,12 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"syscall"
+
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/ssh/terminal"
@@ -17,12 +20,14 @@ import (
 func main() {
 
 	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s <file.db> <user-name>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s <repo-location> <user-name>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "repo-location: default is $HOME/.ssb-go-room\n")
 		os.Exit(1)
 		return
 	}
 
-	db, err := sqlite.Open(os.Args[1])
+	r := repo.New(os.Args[1])
+	db, err := sqlite.Open(r)
 	check(err)
 	defer db.Close()
 
@@ -39,8 +44,8 @@ func main() {
 		os.Exit(1)
 		return
 	}
-
-	err = db.AuthFallback.Create(os.Args[2], bytePassword)
+	ctx := context.Background()
+	err = db.AuthFallback.Create(ctx, os.Args[2], bytePassword)
 	check(err)
 }
 
