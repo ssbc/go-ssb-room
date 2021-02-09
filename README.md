@@ -73,6 +73,8 @@ The generated package `admindb/sqlite/models` is then used to implemente the cus
 
 TODO: automate this with `go generate`
 
+TODO: we still need to incorporate automatic migrations. Until then use this workaround before starting the server: `mkdir $HOME/.ssb-go-room; sqlite3 $HOME/.ssb-go-room/roomdb < $src/admindb/sqlite/schema-v1.sql`.
+
 Aside: I would have used `sqlc` since it's a bit more minimal and uses hand written SQL queries instead of generic query builders but it [currently doesn't support sqlite](https://github.com/kyleconroy/sqlc/issues/161).
 
 ## Testing
