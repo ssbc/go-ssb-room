@@ -16,7 +16,7 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"go.mindeco.de/logging"
 )
 

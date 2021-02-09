@@ -11,10 +11,10 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite/models"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite/models"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 )
 
 // make sure to implement interfaces correctly

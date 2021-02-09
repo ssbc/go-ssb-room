@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 )
 
 type FakeAuthFallbackService struct {

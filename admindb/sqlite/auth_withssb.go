@@ -5,7 +5,7 @@ package sqlite
 import (
 	"database/sql"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 )
 
 // make sure to implement interfaces correctly

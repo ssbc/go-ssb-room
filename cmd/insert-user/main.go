@@ -9,12 +9,12 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
 )
 
 func main() {

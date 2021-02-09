@@ -9,7 +9,7 @@ import (
 
 	"github.com/shurcooL/vfsgen"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
 )
 
 func main() {

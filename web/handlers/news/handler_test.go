@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 func TestOverview(t *testing.T) {

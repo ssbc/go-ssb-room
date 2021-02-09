@@ -10,7 +10,7 @@ import (
 
 	"github.com/shurcooL/vfsgen"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 )
 
 func main() {

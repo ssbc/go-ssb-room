@@ -12,14 +12,14 @@ import (
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/admin"
-	roomsAuth "github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/auth"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers/news"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/i18n"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
+	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/news"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.

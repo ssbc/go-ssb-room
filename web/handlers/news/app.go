@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"go.mindeco.de/http/render"
 )
 

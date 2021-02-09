@@ -17,11 +17,11 @@ import (
 	"go.cryptoscope.co/netwrap"
 
 	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/multicloser"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemuxrpc"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
 type Server struct {

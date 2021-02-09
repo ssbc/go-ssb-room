@@ -9,7 +9,7 @@ import (
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 var HTMLTemplates = []string{

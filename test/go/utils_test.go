@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/testutils"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
-	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 
 var (

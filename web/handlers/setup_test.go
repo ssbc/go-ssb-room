@@ -11,9 +11,9 @@ import (
 	"github.com/pkg/errors"
 	"go.mindeco.de/http/tester"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/mockdb"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 var (

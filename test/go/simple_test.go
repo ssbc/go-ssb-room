@@ -15,7 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 
 func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*roomsrv.Server {
