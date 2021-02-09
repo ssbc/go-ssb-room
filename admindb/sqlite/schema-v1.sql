@@ -1,3 +1,5 @@
+-- TODO: unify user table of auth_fallback and auth_signin_with_ssb
+
 DROP TABLE IF EXISTS auth_fallback;
 CREATE TABLE auth_fallback (
   id   int PRIMARY KEY NOT NULL,

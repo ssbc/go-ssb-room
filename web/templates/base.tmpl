@@ -7,6 +7,24 @@
 </head>
 <body>
   {{block "extra" .}}{{end}}
+
+  <div id="silly-nav">
+    {{$user := is_logged_in}}
+    {{if $user}}
+      <p>
+        Hello {{$user.Name}}!
+      </p>
+      <ul id="nav">
+        <li><a href="{{urlTo "admin:dashboard"}}">Dashboard</a></li>
+        <li><a href="{{urlTo "auth:fallback:logout"}}">LogOut</a></li>
+      </ul>
+    {{else}}
+      <ul id="nav">
+        <li><a href="{{urlTo "auth:fallback:signin:form"}}">Log in</li>
+      </ul>
+    {{end}}
+  </div>
+
   <div class="container">
     {{ block "content" . }}{{end}}
   </div>

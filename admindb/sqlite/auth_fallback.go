@@ -37,7 +37,7 @@ func (ah AuthFallback) Check(name, password string) (interface{}, error) {
 	return found.ID, nil
 }
 
-func (ah AuthFallback) Create(name string, password []byte) error {
+func (ah AuthFallback) Create(ctx context.Context, name string, password []byte) error {
 	var u models.AuthFallback
 	u.Name = name
 
@@ -48,11 +48,21 @@ func (ah AuthFallback) Create(name string, password []byte) error {
 
 	u.PasswordHash = hashed
 
-	ctx := context.Background()
 	err = u.Insert(ctx, ah.db, boil.Infer())
 	if err != nil {
 		return fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
 	}
 
 	return nil
+}
+
+func (ah AuthFallback) GetByID(ctx context.Context, uid int64) (*admindb.User, error) {
+	modelU, err := models.FindAuthFallback(ctx, ah.db, uid)
+	if err != nil {
+		return nil, err
+	}
+	return &admindb.User{
+		ID:   modelU.ID,
+		Name: modelU.Name,
+	}, nil
 }

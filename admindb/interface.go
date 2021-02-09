@@ -1,6 +1,8 @@
 package admindb
 
 import (
+	"context"
+
 	"go.mindeco.de/http/auth"
 )
 
@@ -8,7 +10,8 @@ import (
 type AuthFallbackService interface {
 	auth.Auther
 
-	Create(user string, password []byte) error
+	Create(ctx context.Context, user string, password []byte) error
+	GetByID(ctx context.Context, uid int64) (*User, error)
 }
 
 // AuthWithSSBService defines functions needed for the challange/response system of sign-in with ssb

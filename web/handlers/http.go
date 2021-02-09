@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
@@ -35,6 +36,8 @@ func New(
 		return nil, err
 	}
 
+	var a *auth.Handler
+
 	r, err := render.New(web.Templates,
 		render.BaseTemplates("/base.tmpl"),
 		render.AddTemplates(concatTemplates(
@@ -56,6 +59,29 @@ func New(
 			loc := locHelper.NewLocalizer(lang, accept)
 			return loc.LocalizeSimple
 		}),
+		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
+			no := func() *admindb.User { return nil }
+
+			v, err := a.AuthenticateRequest(r)
+			if err != nil {
+				fmt.Println(err)
+				return no
+			}
+			uid, ok := v.(int64)
+			if !ok {
+				// TODO: hook up logging
+				fmt.Fprintf(os.Stderr, "warning: not the expected ID type: %T\n", v)
+				return no
+			}
+
+			user, err := fs.GetByID(r.Context(), uid)
+			if err != nil {
+				return no
+			}
+
+			yes := func() *admindb.User { return user }
+			return yes
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
@@ -70,7 +96,7 @@ func New(
 		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
-			MaxAge: 30,
+			MaxAge: 2 * 60 * 60, // two hours in seconds
 		},
 	}
 
@@ -85,7 +111,7 @@ func New(
 		}, nil
 	})
 
-	a, err := auth.NewHandler(fs,
+	a, err = auth.NewHandler(fs,
 		auth.SetStore(store),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
 	)

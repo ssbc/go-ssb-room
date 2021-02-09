@@ -6,8 +6,8 @@ import (
 
 // constant names for the named routes
 const (
-	CompleteIndex = "Complete:index"
-	CompleteAbout = "Complete:about"
+	CompleteIndex = "complete:index"
+	CompleteAbout = "complete:about"
 )
 
 // CompleteApp constructs a mux.Router containing the routes for batch Complete html frontend
