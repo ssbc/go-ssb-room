@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 // Package i18n wraps around github.com/nicksnyder/go-i18n mostly so that we don't have to deal with i18n.LocalizeConfig struct literals everywhere.
 package i18n
 

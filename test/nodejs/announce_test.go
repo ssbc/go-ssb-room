@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package nodejs_test
 
 import (

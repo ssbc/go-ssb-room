@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package admindb
 
 // It's important to wrap all the model generated types into these since we don't want the admindb interfaces to depend on them.
