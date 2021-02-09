@@ -1,6 +1,7 @@
 [sqlite3]
-dbname = "generated.db"
-
+# go test in the admindb/sqlite package will create this
+dbname = "testrun/TestSimple/roomdb"
+blacklist = ["gorp_migrations"]
 
 # TODO: fix unsupported type error
 # need to add https://pkg.go.dev/database/sql/driver#Valuer

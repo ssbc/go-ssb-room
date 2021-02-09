@@ -5,8 +5,14 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+
+	migrate "github.com/rubenv/sql-migrate"
 
 	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
 )
 
 type Database struct {
@@ -20,14 +26,32 @@ type Database struct {
 }
 
 // Open looks for a database file 'fname'
-func Open(fname string) (*Database, error) {
+func Open(r repo.Interface) (*Database, error) {
+	fname := r.GetPath("roomdb")
+
+	if dir := filepath.Dir(fname); dir != "" {
+		err := os.MkdirAll(dir, 0700)
+		if err != nil && !os.IsExist(err) {
+			return nil, fmt.Errorf("admindb: failed to create folder for database (%q): %w", dir, err)
+		}
+	}
+
 	db, err := sql.Open("sqlite3", fname)
 	if err != nil {
-		return nil, fmt.Errorf("sqlite/open failed: %w", err)
+		return nil, fmt.Errorf("admindb: failed to open sqlite database: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("sqlite/open: ping failed: %w", err)
+		return nil, fmt.Errorf("admindb: sqlite ping failed: %w", err)
+	}
+
+	n, err := migrate.Exec(db, "sqlite3", migrationSource, migrate.Up)
+	if err != nil {
+		return nil, fmt.Errorf("admindb: failed to apply database mirations: %w", err)
+	}
+	if n > 0 {
+		// TODO: hook up logging
+		log.Printf("admindb: applied %d migrations", n)
 	}
 
 	admindb := &Database{

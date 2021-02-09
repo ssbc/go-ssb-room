@@ -1,0 +1,9 @@
+# the binaries
+cmd/server/server
+cmd/insert-user/insert-user
+
+# testrun contains repos that were use for tests
+test/go/testrun
+test/nodejs/testrun
+web/handlers/testrun
+admindb/sqlite/testrun

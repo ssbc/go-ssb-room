@@ -12,63 +12,50 @@ import "testing"
 // It does NOT run each operation group in parallel.
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
-	t.Run("Aliases", testAliases)
 	t.Run("AuthFallbacks", testAuthFallbacks)
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Aliases", testAliasesDelete)
 	t.Run("AuthFallbacks", testAuthFallbacksDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
-	t.Run("Aliases", testAliasesQueryDeleteAll)
 	t.Run("AuthFallbacks", testAuthFallbacksQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
-	t.Run("Aliases", testAliasesSliceDeleteAll)
 	t.Run("AuthFallbacks", testAuthFallbacksSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
-	t.Run("Aliases", testAliasesExists)
 	t.Run("AuthFallbacks", testAuthFallbacksExists)
 }
 
 func TestFind(t *testing.T) {
-	t.Run("Aliases", testAliasesFind)
 	t.Run("AuthFallbacks", testAuthFallbacksFind)
 }
 
 func TestBind(t *testing.T) {
-	t.Run("Aliases", testAliasesBind)
 	t.Run("AuthFallbacks", testAuthFallbacksBind)
 }
 
 func TestOne(t *testing.T) {
-	t.Run("Aliases", testAliasesOne)
 	t.Run("AuthFallbacks", testAuthFallbacksOne)
 }
 
 func TestAll(t *testing.T) {
-	t.Run("Aliases", testAliasesAll)
 	t.Run("AuthFallbacks", testAuthFallbacksAll)
 }
 
 func TestCount(t *testing.T) {
-	t.Run("Aliases", testAliasesCount)
 	t.Run("AuthFallbacks", testAuthFallbacksCount)
 }
 
 func TestHooks(t *testing.T) {
-	t.Run("Aliases", testAliasesHooks)
 	t.Run("AuthFallbacks", testAuthFallbacksHooks)
 }
 
 func TestInsert(t *testing.T) {
-	t.Run("Aliases", testAliasesInsert)
-	t.Run("Aliases", testAliasesInsertWhitelist)
 	t.Run("AuthFallbacks", testAuthFallbacksInsert)
 	t.Run("AuthFallbacks", testAuthFallbacksInsertWhitelist)
 }
@@ -114,26 +101,21 @@ func TestToManySet(t *testing.T) {}
 func TestToManyRemove(t *testing.T) {}
 
 func TestReload(t *testing.T) {
-	t.Run("Aliases", testAliasesReload)
 	t.Run("AuthFallbacks", testAuthFallbacksReload)
 }
 
 func TestReloadAll(t *testing.T) {
-	t.Run("Aliases", testAliasesReloadAll)
 	t.Run("AuthFallbacks", testAuthFallbacksReloadAll)
 }
 
 func TestSelect(t *testing.T) {
-	t.Run("Aliases", testAliasesSelect)
 	t.Run("AuthFallbacks", testAuthFallbacksSelect)
 }
 
 func TestUpdate(t *testing.T) {
-	t.Run("Aliases", testAliasesUpdate)
 	t.Run("AuthFallbacks", testAuthFallbacksUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
-	t.Run("Aliases", testAliasesSliceUpdateAll)
 	t.Run("AuthFallbacks", testAuthFallbacksSliceUpdateAll)
 }

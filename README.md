@@ -42,10 +42,10 @@ Usage of ./server:
     	print version number and build date
 ```
 
-If you are working on the html templates or assets for them, build the server with `go build -tags dev`.
+If you are working on the sqlite migrations, html templates or website assets, build the server with `go build -tags dev`.
 This way it won't use the assets that are embedded in the binary but read them directly from the local filesystem.
 
-Once you are done with your changes run `go generate` in package web to update them.
+Once you are done with your changes run `go generate` in the changed packages to update them.
 
 ## Tooling
 
@@ -53,30 +53,32 @@ Once you are done with your changes run `go generate` in package web to update t
 
 [counterfeiter](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update them run `go generate` in package admindb.
 
-TODO: automate setup of tool
+TODO: setup tool as dependency (no manual install)
+
+
+### Database schema
+
+This project uses [sql-migrate](https://github.com/rubenv/sql-migrate) to upgrate the sqlite database when necessary.
+
+Just create a new file in `admindb/sqlite/migrations` with your changes but be reminded: Similar to the web assets, you need to use `go test -tags dev` to test them. Afterwards run `go generate` to embedd them in the code and thus the resulting server binary.
 
 ### No ORM
 
 We use [sqlboiler](github.com/volatiletech/sqlboiler) to generate type-safe Go code code directly from SQL statements and table definitions. This approach suits the programming language much more then classical ORM approaches, which usually rely havily on reflection for (un)packing structs.
 
 To generate them run the following commands. This will populate `admindb/sqlite/models`:
-
+ (TODO: automate this with `go generate`)
 
 ```bash
+# also included as generate_models.sh
 cd admindb/sqlite
-rm generate.db
-sqlite3 generate.db < schema-v1.sql
+go test
 sqlboiler sqlite3 --wipe
 ```
 
-The generated package `admindb/sqlite/models` is then used to implemente the custom logic of the different services in `admindb/sqlite`
-
-TODO: automate this with `go generate`
-
-TODO: we still need to incorporate automatic migrations. Until then use this workaround before starting the server: `mkdir $HOME/.ssb-go-room; sqlite3 $HOME/.ssb-go-room/roomdb < $src/admindb/sqlite/schema-v1.sql`.
+The generated package `admindb/sqlite/models` is then used to implemente the custom logic of the different services in `admindb/sqlite`.
 
 Aside: I would have used `sqlc` since it's a bit more minimal and uses hand written SQL queries instead of generic query builders but it [currently doesn't support sqlite](https://github.com/kyleconroy/sqlc/issues/161).
-
 
 ### Development user creation
 
