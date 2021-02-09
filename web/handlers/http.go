@@ -64,7 +64,6 @@ func New(
 
 			v, err := a.AuthenticateRequest(r)
 			if err != nil {
-				fmt.Println(err)
 				return no
 			}
 			uid, ok := v.(int64)
