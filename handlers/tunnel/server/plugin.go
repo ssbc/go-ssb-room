@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package server
 
 import (
@@ -9,8 +11,8 @@ import (
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
 	refs "go.mindeco.de/ssb-refs"
-	"go.mindeco.de/ssb-rooms/internal/broadcasts"
-	"go.mindeco.de/ssb-rooms/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/broadcasts"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemuxrpc"
 )
 
 const name = "tunnel"

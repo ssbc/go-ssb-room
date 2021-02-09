@@ -26,8 +26,8 @@ import (
 	"go.cryptoscope.co/netwrap"
 	refs "go.mindeco.de/ssb-refs"
 
-	"go.mindeco.de/ssb-rooms/internal/maybemod/testutils"
-	"go.mindeco.de/ssb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/testutils"
+	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
 )
 
 func init() {

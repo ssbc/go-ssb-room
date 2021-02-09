@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package go_test
 
 import (
@@ -15,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"go.mindeco.de/ssb-rooms/internal/maybemod/testutils"
-	"go.mindeco.de/ssb-rooms/internal/network"
-	"go.mindeco.de/ssb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/testutils"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
 )
 
 var (

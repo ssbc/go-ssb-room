@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package go_test
 
 import (
@@ -13,7 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	refs "go.mindeco.de/ssb-refs"
-	"go.mindeco.de/ssb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
 )
 
 func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*roomsrv.Server {

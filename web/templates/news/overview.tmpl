@@ -1,0 +1,20 @@
+{{ define "title" }}<title>{{i18n "NewsOverview"}}</title>{{ end }}
+{{ define "content" }}
+<div class="page-header">
+  <h1 id="welcome">{{i18n "NewsWelcome"}}</h1>
+</div>
+<div class="row">
+<div class="col-md-12">
+{{range $index, $element := .AllPosts}}
+
+
+<a href="{{urlTo "news:post" "PostID" $index}}">
+  <h2>{{$element.Name}}</h2>
+</a>
+
+<p>{{$element.Text}}</p>
+
+{{end}}
+</div>
+</div> <!-- /row -->
+{{end}}

@@ -25,21 +25,26 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/pkg/errors"
+	_ "github.com/mattn/go-sqlite3"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"go.mindeco.de/ssb-rooms/roomsrv"
-	mksrv "go.mindeco.de/ssb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	mksrv "github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
+	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers"
 )
 
 var (
 	// flags
 	flagDisableUNIXSock bool
 
-	listenAddr string
-	debugAddr  string
-	logToFile  string
-	repoDir    string
+	listenAddrShsMux string
+	listenAddrHTTP   string
+
+	listenAddrDebug string
+	logToFile       string
+	repoDir         string
 
 	// helper
 	log kitlog.Logger
@@ -75,14 +80,15 @@ func initFlags() {
 
 	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key (or capability)")
 
-	flag.StringVar(&listenAddr, "l", ":8008", "address to listen on")
+	flag.StringVar(&listenAddrShsMux, "lismux", ":8008", "address to listen on for secret-handshake+muxrpc")
+	flag.StringVar(&listenAddrHTTP, "lishttp", ":3000", "address to listen on for HTTP requests")
 
 	flag.BoolVar(&flagDisableUNIXSock, "nounixsock", false, "disable the UNIX socket RPC interface")
 
 	flag.StringVar(&repoDir, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "where to put the log and indexes")
 
-	flag.StringVar(&debugAddr, "dbg", "localhost:6078", "listen addr for metrics and pprof HTTP server")
-	flag.StringVar(&logToFile, "path", "", "where to write debug output to (otherwise just stderr)")
+	flag.StringVar(&listenAddrDebug, "dbg", "localhost:6078", "listen addr for metrics and pprof HTTP server")
+	flag.StringVar(&logToFile, "logs", "", "where to write debug output to (default is just stderr)")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
@@ -105,11 +111,6 @@ func initFlags() {
 }
 
 func runroomsrv() error {
-	// DEBUGGING
-	// runtime.SetMutexProfileFraction(1)
-	// runtime.SetBlockProfileRate(1)
-	// DEBUGGING
-
 	initFlags()
 
 	if flagPrintVersion {
@@ -118,17 +119,18 @@ func runroomsrv() error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	ak, err := base64.StdEncoding.DecodeString(appKey)
 	if err != nil {
-		return errors.Wrap(err, "application key")
+		return fmt.Errorf("application key: %w", err)
 	}
 
 	opts := []roomsrv.Option{
 		roomsrv.WithLogger(log),
 		roomsrv.WithAppKey(ak),
 		roomsrv.WithRepoPath(repoDir),
-		roomsrv.WithListenAddr(listenAddr),
+		roomsrv.WithListenAddr(listenAddrShsMux),
 		roomsrv.WithUNIXSocket(!flagDisableUNIXSock),
 	}
 
@@ -151,18 +153,32 @@ func runroomsrv() error {
 		}))
 	}
 
-	if debugAddr != "" {
+	if listenAddrDebug != "" {
 		go func() {
 			// http.Handle("/metrics", promhttp.Handler())
-			log.Log("starting", "metrics", "addr", debugAddr)
-			err := http.ListenAndServe(debugAddr, nil)
+			level.Debug(log).Log("starting", "metrics", "addr", listenAddrDebug)
+			err := http.ListenAndServe(listenAddrDebug, nil)
 			checkAndLog(err)
 		}()
 	}
 
+	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(opts...)
 	if err != nil {
-		return errors.Wrap(err, "failed to instantiate ssb server")
+		return fmt.Errorf("failed to instantiate ssb server: %w", err)
+	}
+
+	// open the HTTP listener
+	httpLis, err := net.Listen("tcp", listenAddrHTTP)
+	if err != nil {
+		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
+	}
+
+	r := repo.New(repoDir)
+
+	db, err := sqlite.Open(r.GetPath("roomdb"))
+	if err != nil {
+		return fmt.Errorf("failed to initiate database: %w", err)
 	}
 
 	c := make(chan os.Signal)
@@ -172,6 +188,8 @@ func runroomsrv() error {
 		level.Warn(log).Log("event", "killed", "msg", "received signal, shutting down", "signal", sig.String())
 		cancel()
 		roomsrv.Shutdown()
+
+		httpLis.Close()
 		time.Sleep(2 * time.Second)
 
 		err := roomsrv.Close()
@@ -181,7 +199,48 @@ func runroomsrv() error {
 		os.Exit(0)
 	}()
 
-	level.Info(log).Log("event", "serving", "ID", roomsrv.Whoami().Ref(), "addr", listenAddr, "version", Version, "build", Build)
+	// setup web dashboard handlers
+	dashboardH, err := handlers.New(
+		nil,
+		repo.New(repoDir),
+		db.AuthWithSSB,
+		db.AuthFallback,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
+	}
+
+	// TODO: setup other http goodies (such as CSRF and CSP)
+
+	level.Info(log).Log(
+		"event", "serving",
+		"ID", roomsrv.Whoami().Ref(),
+		"shsmuxaddr", listenAddrShsMux,
+		"httpaddr", listenAddrHTTP,
+		"version", Version,
+		"build", Build,
+	)
+
+	// start serving http connections
+	go func() {
+		srv := http.Server{
+			Addr: httpLis.Addr().String(),
+
+			// Good practice to set timeouts to avoid Slowloris attacks.
+			WriteTimeout: time.Second * 15,
+			ReadTimeout:  time.Second * 15,
+			IdleTimeout:  time.Second * 60,
+
+			Handler: dashboardH,
+		}
+
+		err = srv.Serve(httpLis)
+		if err != nil {
+			level.Error(log).Log("event", "http serve failed", "err", err)
+		}
+	}()
+
+	// start serving shs+muxrpc connections
 	for {
 		// Note: This is where the serving starts ;)
 		err = roomsrv.Network.Serve(ctx)

@@ -1,10 +1,12 @@
+// SPDX-License-Identifier: MIT
+
 package broadcasts
 
 import (
 	"io"
 	"sync"
 
-	"go.mindeco.de/ssb-rooms/internal/maybemod/multierror"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/multierror"
 )
 
 type RoomChangeSink interface {

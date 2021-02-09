@@ -1,0 +1,21 @@
+[sqlite3]
+dbname = "generated.db"
+
+
+# TODO: fix unsupported type error
+# need to add https://pkg.go.dev/database/sql/driver#Valuer
+# and https://pkg.go.dev/database/sql#Scanner
+# for the full story, see https://husobee.github.io/golang/database/2015/06/12/scanner-valuer.html 
+#[[types]]
+#   # marshal pub_key strings ala @asdjjasd as feed references.
+#  [types.match]
+#    type = "string"
+#    #tables = ['fallback_auth']
+#    name = "pub_key"
+#    nullable = false
+#
+#  [types.replace]
+#    type = "refs.FeedRef"
+#
+#  [types.imports]
+#    third_party = ['"go.mindeco.de/ssb-refs"']

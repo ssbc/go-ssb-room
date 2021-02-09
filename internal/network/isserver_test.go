@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package network_test
 
 import (
@@ -8,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"go.mindeco.de/ssb-rooms/internal/maybemod/keys"
-	"go.mindeco.de/ssb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
 
 	"go.cryptoscope.co/muxrpc/v2"
 
