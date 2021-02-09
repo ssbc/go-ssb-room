@@ -77,6 +77,19 @@ TODO: we still need to incorporate automatic migrations. Until then use this wor
 
 Aside: I would have used `sqlc` since it's a bit more minimal and uses hand written SQL queries instead of generic query builders but it [currently doesn't support sqlite](https://github.com/kyleconroy/sqlc/issues/161).
 
+
+### Development user creation
+
+`cmd/insert-user` contains code to create a fallback user. Build it and point it too your database with a username, like so:
+
+```bash
+cd $src/cmd/insert-user
+go build
+./insert-user $HOME/.ssb-go-room/roomdb my-user
+```
+
+Then repeat your password twice and you are all set for development.
+
 ## Testing
 
 ### Rooms
