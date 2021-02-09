@@ -12,8 +12,8 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/netwraputil"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/netwraputil"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
 // WithUNIXSocket enables listening for muxrpc connections on a unix socket files ($repo/socket).

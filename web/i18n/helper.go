@@ -11,7 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"golang.org/x/text/language"
 )
 

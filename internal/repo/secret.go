@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 
 	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 )
 
 func DefaultKeyPair(r Interface) (*keys.KeyPair, error) {

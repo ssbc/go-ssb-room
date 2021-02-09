@@ -11,8 +11,8 @@ import (
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
 	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/broadcasts"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
 )
 
 const name = "tunnel"

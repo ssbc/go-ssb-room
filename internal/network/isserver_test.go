@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/go-kit/kit/log"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 
 	"go.cryptoscope.co/muxrpc/v2"
 

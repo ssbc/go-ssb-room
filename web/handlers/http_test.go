@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 func TestIndex(t *testing.T) {

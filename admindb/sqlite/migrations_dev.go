@@ -18,6 +18,6 @@ import (
 )
 
 // absolute path of where this package is located
-var pkgDir = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite")
+var pkgDir = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite")
 
 var Migrations http.FileSystem = http.Dir(filepath.Join(pkgDir, "migrations"))

@@ -1,4 +1,4 @@
-# Go-SSB Rooms
+# Go-SSB Room
 
 This repository contains code for a [Secure-Scuttlebutt Room v2](github.com/ssb-ngi-pointer/rooms2/) server writen in Go.
 

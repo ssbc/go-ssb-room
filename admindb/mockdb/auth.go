@@ -4,7 +4,7 @@ package mockdb
 import (
 	"sync"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 )
 
 type FakeAuthWithSSBService struct {

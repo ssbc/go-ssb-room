@@ -9,12 +9,12 @@ import (
 	"time"
 
 	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/broadcasts"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
 )
 
 type roomState struct {

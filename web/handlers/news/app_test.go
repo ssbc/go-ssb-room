@@ -11,8 +11,8 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/web"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 var (

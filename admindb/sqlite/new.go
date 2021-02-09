@@ -11,8 +11,8 @@ import (
 
 	migrate "github.com/rubenv/sql-migrate"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
 type Database struct {

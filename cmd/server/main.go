@@ -28,11 +28,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/admindb/sqlite"
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/repo"
-	"github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
-	mksrv "github.com/ssb-ngi-pointer/gossb-rooms/roomsrv"
-	"github.com/ssb-ngi-pointer/gossb-rooms/web/handlers"
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers"
 )
 
 var (

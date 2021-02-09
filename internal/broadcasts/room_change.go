@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/gossb-rooms/internal/maybemod/multierror"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multierror"
 )
 
 type RoomChangeSink interface {
