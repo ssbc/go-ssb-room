@@ -8,7 +8,10 @@ AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 AdminDashboardWelcome = "Welcome to your dashboard"
-AdminDashboardTitle = "Room Dashboard"
+AdminDashboardTitle = "Room Admin Dashboard"
+
+NavAdminDashboard = "Admin Dasboard"
+
 
 [AdminRoomCount]
 description = "The number of people in a room"

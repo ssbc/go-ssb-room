@@ -19,13 +19,15 @@ type Manager struct {
 	updater     broadcasts.RoomChangeSink
 	broadcaster *broadcasts.RoomChangeBroadcast
 
-	roomMu sync.Mutex
+	roomMu *sync.Mutex
 	room   roomStateMap
 }
 
 func NewManager(ctx context.Context, log kitlog.Logger) *Manager {
 	var m Manager
+	m.logger = log
 	m.updater, m.broadcaster = broadcasts.NewRoomChanger()
+	m.roomMu = new(sync.Mutex)
 	m.room = make(roomStateMap)
 
 	go m.stateTicker(ctx)
@@ -48,6 +50,7 @@ func (m *Manager) stateTicker(ctx context.Context) {
 
 		cnt := len(m.room)
 		if cnt == last {
+			m.roomMu.Unlock()
 			continue
 		}
 		last = cnt

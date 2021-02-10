@@ -11,6 +11,7 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
@@ -25,11 +26,12 @@ func setup(t *testing.T) {
 
 	testFuncs := web.TemplateFuncs(testRouter)
 	testFuncs["i18n"] = func(msgID string) string { return msgID }
+	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
 
 	log, _ := logtest.KitLogger("feed", t)
 	r, err := render.New(web.Templates,
 		render.SetLogger(log),
-		render.BaseTemplates("/testing/base.tmpl"),
+		render.BaseTemplates("/base.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "/error.tmpl")...),
 		render.FuncMap(testFuncs),
 	)
