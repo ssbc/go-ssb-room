@@ -14,6 +14,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
@@ -26,6 +27,7 @@ import (
 func New(
 	m *mux.Router,
 	repo repo.Interface,
+	roomState *roomstate.Manager,
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
 ) (http.Handler, error) {
@@ -53,8 +55,11 @@ func New(
 			admin.HTMLTemplates,
 		)...),
 		render.FuncMap(web.TemplateFuncs(m)),
-		// TODO: add plural and template data variants
 		// TODO: move these to the i18n helper pkg
+		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
+			loc := localizerFromRequest(locHelper, r)
+			return loc.LocalizePlurals
+		}),
 		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
 			loc := localizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
@@ -143,7 +148,7 @@ func New(
 	adminRouter.Use(a.Authenticate)
 
 	// we dont strip path here because it somehow fucks with the middleware setup
-	adminRouter.PathPrefix("/").Handler(admin.Handler(adminRouter, r))
+	adminRouter.PathPrefix("/").Handler(admin.Handler(adminRouter, r, roomState))
 
 	m.PathPrefix("/news").Handler(http.StripPrefix("/news", news.Handler(m, r)))
 

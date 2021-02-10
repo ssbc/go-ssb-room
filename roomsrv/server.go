@@ -12,16 +12,18 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/netwrap"
 
-	refs "go.mindeco.de/ssb-refs"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 type Server struct {
@@ -55,6 +57,8 @@ type Server struct {
 	master maybemuxrpc.PluginManager
 
 	authorizer listAuthorizer
+
+	StateManager *roomstate.Manager
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -118,6 +122,8 @@ func New(opts ...Option) (*Server, error) {
 			return nil, fmt.Errorf("sbot: failed to get keypair: %w", err)
 		}
 	}
+
+	s.StateManager = roomstate.NewManager(s.rootCtx, s.logger)
 
 	if err := s.initNetwork(); err != nil {
 		return nil, err

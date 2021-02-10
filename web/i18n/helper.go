@@ -119,6 +119,9 @@ func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:   messageID,
 		PluralCount: pluralCount,
+		TemplateData: map[string]int{
+			"Count": pluralCount,
+		},
 	})
 	if err == nil {
 		return msg

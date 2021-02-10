@@ -3,16 +3,15 @@
 package server
 
 import (
-	"context"
 	"net"
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
-	refs "go.mindeco.de/ssb-refs"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 const name = "tunnel"
@@ -40,29 +39,23 @@ func (plugin) Authorize(net.Conn) bool   { return true }
 }
 */
 
-func New(log kitlog.Logger, ctx context.Context, self refs.FeedRef) maybemuxrpc.Plugin {
+func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager) maybemuxrpc.Plugin {
 	mux := typemux.New(log)
 
-	var rs = new(roomState)
-	rs.self = self
-	rs.logger = log
-	rs.updater, rs.broadcaster = broadcasts.NewRoomChanger()
-	rs.rooms = make(roomsStateMap)
+	var h = new(handler)
+	h.self = self
+	h.logger = log
+	h.state = m
 
-	go rs.stateTicker(ctx)
+	mux.RegisterAsync(append(method, "isRoom"), typemux.AsyncFunc(h.isRoom))
+	mux.RegisterAsync(append(method, "ping"), typemux.AsyncFunc(h.ping))
 
-	// so far just lobby (v1 rooms)
-	rs.rooms["lobby"] = make(roomStateMap)
+	mux.RegisterAsync(append(method, "announce"), typemux.AsyncFunc(h.announce))
+	mux.RegisterAsync(append(method, "leave"), typemux.AsyncFunc(h.leave))
 
-	mux.RegisterAsync(append(method, "isRoom"), typemux.AsyncFunc(rs.isRoom))
-	mux.RegisterAsync(append(method, "ping"), typemux.AsyncFunc(rs.ping))
+	mux.RegisterSource(append(method, "endpoints"), typemux.SourceFunc(h.endpoints))
 
-	mux.RegisterAsync(append(method, "announce"), typemux.AsyncFunc(rs.announce))
-	mux.RegisterAsync(append(method, "leave"), typemux.AsyncFunc(rs.leave))
-
-	mux.RegisterSource(append(method, "endpoints"), typemux.SourceFunc(rs.endpoints))
-
-	mux.RegisterDuplex(append(method, "connect"), typemux.DuplexFunc(rs.connect))
+	mux.RegisterDuplex(append(method, "connect"), typemux.DuplexFunc(h.connect))
 
 	return plugin{
 		h: &mux,

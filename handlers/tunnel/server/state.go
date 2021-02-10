@@ -5,142 +5,76 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"sync"
 	"time"
 
-	refs "go.mindeco.de/ssb-refs"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	refs "go.mindeco.de/ssb-refs"
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
 )
 
-type roomState struct {
-	self refs.FeedRef
-
+type handler struct {
 	logger kitlog.Logger
+	self   refs.FeedRef
 
-	updater     broadcasts.RoomChangeSink
-	broadcaster *broadcasts.RoomChangeBroadcast
-
-	roomsMu sync.Mutex
-	rooms   roomsStateMap
+	state *roomstate.Manager
 }
 
-func (rs *roomState) stateTicker(ctx context.Context) {
-	tick := time.NewTicker(10 * time.Second)
-	for {
-		select {
-		case <-ctx.Done():
-			tick.Stop()
-			return
-
-		case <-tick.C:
-		}
-		rs.roomsMu.Lock()
-		for room, members := range rs.rooms {
-			level.Info(rs.logger).Log("room", room, "cnt", len(members))
-			for who := range members {
-				level.Info(rs.logger).Log("room", room, "feed", who[1:5])
-			}
-		}
-		rs.roomsMu.Unlock()
-	}
-}
-
-// layout is map[room-name]map[canonical feedref]client-handle
-type roomsStateMap map[string]roomStateMap
-
-// roomStateMap is a single room
-type roomStateMap map[string]muxrpc.Endpoint
-
-// copy map entries to list for broadcast update
-func (rsm roomStateMap) asList() []string {
-	memberList := make([]string, 0, len(rsm))
-	for m := range rsm {
-		memberList = append(memberList, m)
-	}
-	return memberList
-}
-
-func (rs *roomState) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
-	level.Debug(rs.logger).Log("called", "isRoom")
+func (h *handler) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
+	level.Debug(h.logger).Log("called", "isRoom")
 	return true, nil
 }
 
-func (rs *roomState) ping(context.Context, *muxrpc.Request) (interface{}, error) {
+func (h *handler) ping(context.Context, *muxrpc.Request) (interface{}, error) {
 	now := time.Now().UnixNano() / 1000
-	level.Debug(rs.logger).Log("called", "ping")
+	level.Debug(h.logger).Log("called", "ping")
 	return now, nil
 }
 
-func (rs *roomState) announce(_ context.Context, req *muxrpc.Request) (interface{}, error) {
-	level.Debug(rs.logger).Log("called", "announce")
+func (h *handler) announce(_ context.Context, req *muxrpc.Request) (interface{}, error) {
+	level.Debug(h.logger).Log("called", "announce")
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return nil, err
 	}
 
-	rs.roomsMu.Lock()
-	// add ref to lobby
-	rs.rooms["lobby"][ref.Ref()] = req.Endpoint()
-	// update all the connected tunnel.endpoints calls
-	rs.updater.Update(rs.rooms["lobby"].asList())
-	rs.roomsMu.Unlock()
+	h.state.AddEndpoint(*ref, req.Endpoint())
 
 	return false, nil
 }
 
-func (rs *roomState) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
+func (h *handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return nil, err
 	}
 
-	rs.roomsMu.Lock()
-	// remove ref from lobby
-	delete(rs.rooms["lobby"], ref.Ref())
-	// update all the connected tunnel.endpoints calls
-	rs.updater.Update(rs.rooms["lobby"].asList())
-	rs.roomsMu.Unlock()
+	h.state.Remove(*ref)
 
 	return false, nil
 }
 
-func (rs *roomState) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
-	level.Debug(rs.logger).Log("called", "endpoints")
+func (h *handler) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
+	level.Debug(h.logger).Log("called", "endpoints")
 
 	toPeer := newForwarder(snk)
 
 	// for future updates
-	rs.broadcaster.Register(toPeer)
+	h.state.Register(toPeer)
 
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return err
 	}
 
-	rs.roomsMu.Lock()
-
-	lobby := rs.rooms["lobby"]
-	// if the peer didn't call tunnel.announce()
-	if _, has := lobby[ref.Ref()]; has {
+	has := h.state.AlreadyAdded(*ref, req.Endpoint())
+	if !has {
 		// just send the current state to the new peer
-		toPeer.Update(lobby.asList())
-	} else {
-		// register them as if they did
-		lobby[ref.Ref()] = req.Endpoint()
-		rs.rooms["lobby"] = lobby
-
-		// update everyone
-		rs.updater.Update(lobby.asList())
+		toPeer.Update(h.state.List())
 	}
-
-	// send the current state
-	rs.roomsMu.Unlock()
-
 	return nil
 }
 

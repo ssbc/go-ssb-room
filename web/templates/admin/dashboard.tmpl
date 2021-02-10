@@ -1,11 +1,16 @@
-{{ define "title" }}{{i18n "AdminDashboard"}}{{ end }}
+{{ define "title" }}{{i18n "AdminDashboardTitle"}}{{ end }}
 {{ define "content" }}
 <div class="page-header">
-  <h1 id="welcome">{{i18n "AdminWelcome"}}</h1>
+  <h1 id="welcome">{{i18n "AdminDashboardWelcome"}}</h1>
 </div>
 <div class="row">
     <div class="col-md-12">
-    <p>super cool dashboard!</p>
+    <p id="roomCount">{{i18npl "AdminRoomCount" .Count}}</p>
+    <ul>
+    {{range .Clients}}
+     <li>{{.}}</li>
+    {{end}}
+    </ul>
     </div>
 </div> <!-- /row -->
 {{end}}
