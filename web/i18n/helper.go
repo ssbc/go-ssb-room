@@ -5,15 +5,21 @@ package i18n
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/shurcooL/httpfs/vfsutil"
 	"golang.org/x/text/language"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
+
+//go:generate go run -tags=dev defaults_generate.go
 
 type Helper struct {
 	bundle *i18n.Bundle
@@ -24,9 +30,8 @@ func New(r repo.Interface) (*Helper, error) {
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
-	// TODO: could additionally embedd the defaults like we do with the html assets and templates
-
-	err := filepath.Walk(r.GetPath("i18n"), func(path string, info os.FileInfo, err error) error {
+	// parse toml files and add them to the bundle
+	walkFn := func(path string, info os.FileInfo, rs io.ReadSeeker, err error) error {
 		if err != nil {
 			return err
 		}
@@ -39,9 +44,43 @@ func New(r repo.Interface) (*Helper, error) {
 			return nil
 		}
 
-		_, err = bundle.LoadMessageFile(path)
+		mfb, err := ioutil.ReadAll(rs)
+		if err != nil {
+			return err
+		}
+		_, err = bundle.ParseMessageFileBytes(mfb, path)
 		if err != nil {
 			return fmt.Errorf("i18n: failed to parse file %s: %w", path, err)
+		}
+		fmt.Println("loaded", path)
+		return nil
+	}
+
+	// walk the embedded defaults
+	err := vfsutil.WalkFiles(Defaults, "/", walkFn)
+	if err != nil { // && !os.IsNotExist(err) {
+		return nil, fmt.Errorf("i18n: failed to iterate localizations: %w", err)
+	}
+
+	// walk the local filesystem for overrides and additions
+	err = filepath.Walk(r.GetPath("i18n"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		rs, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer rs.Close()
+
+		err = walkFn(path, info, rs, err)
+		if err != nil {
+			return err
 		}
 
 		return nil
@@ -73,9 +112,7 @@ func (l Localizer) LocalizeSimple(messageID string) string {
 		return msg
 	}
 
-	// TODO: could panic() and let the http recovery handle this?
-	// might also be easier to catch in testing
-	return fmt.Sprintf("i18n/error: failed to localize %s: %s", messageID, err)
+	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
 func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
@@ -87,9 +124,7 @@ func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
 		return msg
 	}
 
-	// TODO: could panic() and let the http recovery handle this?
-	// might also be easier to catch in testing
-	return fmt.Sprintf("i18n/error: failed to localize %s: %s", messageID, err)
+	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
 func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tplData map[string]string) string {
@@ -102,7 +137,5 @@ func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tp
 		return msg
 	}
 
-	// TODO: could panic() and let the http recovery handle this?
-	// might also be easier to catch in testing
-	return fmt.Sprintf("i18n/error: failed to localize %s: %s", messageID, err)
+	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }

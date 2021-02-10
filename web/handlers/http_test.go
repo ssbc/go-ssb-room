@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -23,7 +24,12 @@ func TestIndex(t *testing.T) {
 	r.Nil(err)
 	html, resp := testClient.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	a.Equal("Index landing page", html.Find("#welcome").Text())
+	assertLocalized(t, html, []localizedElement{
+		{"#welcome", "LandingWelcome"},
+		{"title", "LandingTitle"},
+		// {"#nav", "FooBar"},
+	})
+
 	val, has := html.Find("#logo").Attr("src")
 	a.True(has, "logo src attribute not found")
 	a.Equal("/assets/img/test-hermie.png", val)
@@ -61,9 +67,10 @@ func TestNewsRegisterd(t *testing.T) {
 
 	html, resp := testClient.GetHTML("/news/", nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	found := html.Find("h1").Text()
-	t.Log(found)
-	// a.Equal("fooo", found)
+	assertLocalized(t, html, []localizedElement{
+		{"#welcome", "NewsWelcome"},
+		{"title", "NewsTitle"},
+	})
 }
 
 func TestRestricted(t *testing.T) {
@@ -87,6 +94,21 @@ func TestLoginForm(t *testing.T) {
 	html, resp := testClient.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	found := html.Find("title").Text()
-	a.Equal("fallback sign-in", found)
+	assertLocalized(t, html, []localizedElement{
+		{"#welcome", "AuthFallbackWelcome"},
+		{"title", "AuthFallbackTitle"},
+	})
+}
+
+// utils
+
+type localizedElement struct {
+	Selector, Label string
+}
+
+func assertLocalized(t *testing.T, html *goquery.Document, elems []localizedElement) {
+	a := assert.New(t)
+	for i, pair := range elems {
+		a.Equal(pair.Label, html.Find(pair.Selector).Text(), "localized pair %d failed", i+1)
+	}
 }
