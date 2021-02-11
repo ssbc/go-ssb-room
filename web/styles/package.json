@@ -2,8 +2,8 @@
   "name": "css-go-ssb-room",
   "version": "1.0.0",
   "scripts": {
-    "compile-dev": "postcss input.css -o ../assets/styles/compiled.dev.css",
-    "compile-prod": "NODE_ENV=production postcss input.css -o ../assets/styles/compiled.prod.css"
+    "compile-dev": "postcss input.css -o ../assets/style.css",
+    "compile-prod": "NODE_ENV=production postcss input.css -o ../assets/style.css"
   },
   "engines": {
     "node": ">=12"

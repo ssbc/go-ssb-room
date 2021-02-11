@@ -4,11 +4,7 @@
   <!-- complete base template -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  {{if is_production}}
-    <link href="/assets/styles/compiled.prod.css" rel="stylesheet">
-  {{else}}
-    <link href="/assets/styles/compiled.dev.css" rel="stylesheet">
-  {{end}}
+  <link href="/assets/style.css" rel="stylesheet">
   <title>{{block "title" .}}Go-SSB Room Server{{end}}</title>
 </head>
 <body>
