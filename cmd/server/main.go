@@ -162,8 +162,16 @@ func runroomsrv() error {
 		}()
 	}
 
+	r := repo.New(repoDir)
+
+	// open the sqlite version of the admindb
+	db, err := sqlite.Open(r)
+	if err != nil {
+		return fmt.Errorf("failed to initiate database: %w", err)
+	}
+
 	// create the shs+muxrpc server
-	roomsrv, err := mksrv.New(opts...)
+	roomsrv, err := mksrv.New(db.AllowList, opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)
 	}
@@ -172,14 +180,6 @@ func runroomsrv() error {
 	httpLis, err := net.Listen("tcp", listenAddrHTTP)
 	if err != nil {
 		return fmt.Errorf("failed to open listener for HTTPdashboard: %w", err)
-	}
-
-	r := repo.New(repoDir)
-
-	// open the sqlite version of the admindb
-	db, err := sqlite.Open(r)
-	if err != nil {
-		return fmt.Errorf("failed to initiate database: %w", err)
 	}
 
 	c := make(chan os.Signal)
@@ -207,6 +207,7 @@ func runroomsrv() error {
 		roomsrv.StateManager,
 		db.AuthWithSSB,
 		db.AuthFallback,
+		db.AllowList,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)

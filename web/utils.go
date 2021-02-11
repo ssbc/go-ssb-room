@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	refs "go.mindeco.de/ssb-refs"
+
 	"github.com/gorilla/securecookie"
 
 	"github.com/go-kit/kit/log/level"
@@ -47,9 +49,10 @@ func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 				params = append(params, strconv.Itoa(v))
 			case int64:
 				params = append(params, strconv.FormatInt(v, 10))
-
+			case refs.FeedRef:
+				params = append(params, v.Ref())
 			default:
-				level.Error(l).Log("msg", "invalid param type", "param", p, "route", routeName)
+				level.Error(l).Log("msg", "invalid param type", "param", fmt.Sprintf("%T", p), "route", routeName)
 				logging.CheckFatal(errors.New("invalid param"))
 			}
 		}

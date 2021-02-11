@@ -14,8 +14,8 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"golang.org/x/sync/errgroup"
 
-	refs "go.mindeco.de/ssb-refs"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*roomsrv.Server {

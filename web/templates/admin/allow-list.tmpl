@@ -1,0 +1,22 @@
+{{ define "title" }}{{i18n "AdminAllowListTitle"}}{{ end }}
+{{ define "content" }}
+<div class="page-header">
+  <h1 id="welcome">{{i18n "AdminAllowListWelcome"}}</h1>
+</div>
+<div class="row">
+    <div class="col-md-12">
+    <p id="allowListCount">{{i18npl "ListCount" .Count}}</p>
+    <ul id="theList">
+    {{range .Entries}}
+     <li>{{.Ref}} (<a href="{{urlTo "admin:allow-list:remove:ask" "Entry" .}}">Remove</a>) </li>
+    {{end}}
+    </ul>
+    </div>
+    
+    <h3>{{i18n "AdminAllowListAdd"}}</h3>
+    <form action="{{urlTo "admin:allow-list:add"}}" method="POST">
+      <input type="text" name="pub_key">
+      <input type="submit" value="{{i18n "AdminAllowListAdd"}}">
+    </form>
+</div> <!-- /row -->
+{{end}}

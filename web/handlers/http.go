@@ -30,6 +30,7 @@ func New(
 	roomState *roomstate.Manager,
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
+	al admindb.AllowListService,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -141,12 +142,16 @@ func New(
 		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
 	}
 
+	// this router is a bit of a qurik
+	// TODO: explain problem between gorilla/mux named routers and authentication
+	mainMux := &http.ServeMux{}
+
 	// hookup handlers to the router
 	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState))
-	m.PathPrefix("/admin").Handler(adminHandler)
+	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
+	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))
@@ -158,9 +163,11 @@ func New(
 		return errorTemplateData{http.StatusNotFound, "Not Found", "the requested page wasnt found.."}, nil
 	})
 
-	var finalHandler http.Handler = m
+	mainMux.Handle("/", m)
 
-	finalHandler = logging.InjectHandler(logger)(m)
+	var finalHandler http.Handler = mainMux
+
+	finalHandler = logging.InjectHandler(logger)(finalHandler)
 
 	if web.Production {
 		return finalHandler, nil
