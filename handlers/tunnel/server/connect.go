@@ -23,7 +23,7 @@ type connectWithOriginArg struct {
 	Origin refs.FeedRef `json:"origin"` // this should be clear from the shs session already
 }
 
-func (rs *roomState) connect(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
+func (h *handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
 	// unpack arguments
 
 	var args []connectArg
@@ -38,27 +38,26 @@ func (rs *roomState) connect(ctx context.Context, req *muxrpc.Request, peerSrc *
 	arg := args[0]
 
 	// see if we have and endpoint for the target
-	rs.roomsMu.Lock()
 
-	edp, has := rs.rooms["lobby"][arg.Target.Ref()]
+	edp, has := h.state.Has(arg.Target)
 	if !has {
-		rs.roomsMu.Unlock()
 		return fmt.Errorf("no such endpoint")
 	}
 
 	// call connect on them
 	var argWorigin connectWithOriginArg
 	argWorigin.connectArg = arg
-	argWorigin.Origin = rs.self
+	argWorigin.Origin = h.self
 
 	targetSrc, targetSnk, err := edp.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"tunnel", "connect"}, argWorigin)
 	if err != nil {
-		delete(rs.rooms["lobby"], arg.Target.Ref())
-		rs.updater.Update(rs.rooms["lobby"].asList())
-		rs.roomsMu.Unlock()
+		h.state.Remove(arg.Target)
+		// TODO: the call could fail because of an error with the caller, too.
+		// if we remove the wrong one, tho others might get confused
+		// h.state.Remove(caller)
+
 		return fmt.Errorf("failed to init connect call with target: %w", err)
 	}
-	rs.roomsMu.Unlock()
 
 	// pipe data
 	var cpy muxrpcDuplexCopy

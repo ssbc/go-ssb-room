@@ -15,13 +15,13 @@
         Hello {{$user.Name}}!
       </p>
       <ul id="nav">
-        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsOverview"}}</a></li>
-        <li><a href="{{urlTo "admin:dashboard"}}">{{i18n "AdminDashboard"}}</a></li>
+        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
+        <li><a href="{{urlTo "admin:dashboard"}}">{{i18n "NavAdminDashboard"}}</a></li>
         <li><a href="{{urlTo "auth:fallback:logout"}}">{{i18n "AuthSignOut"}}</a></li>
       </ul>
     {{else}}
       <ul id="nav">
-        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsOverview"}}</a></li>
+        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
         <li><a href="{{urlTo "auth:fallback:signin:form"}}">{{i18n "AuthSignIn"}}</a></li>
       </ul>
     {{end}}

@@ -26,10 +26,10 @@ func WithUNIXSocket(yes bool) Option {
 }
 
 func (s *Server) initUnixSock() error {
-	// this races because sbot might not be done with init yet
+	// this races because roomsrv might not be done with init yet
 	// TODO: refactor network peer code and make unixsock implement that (those will be inited late anyway)
 	if s.keyPair == nil {
-		return fmt.Errorf("sbot/unixsock: keypair is nil. please use unixSocket with LateOption")
+		return fmt.Errorf("roomsrv/unixsock: keypair is nil. please use unixSocket with LateOption")
 	}
 	spoofWrapper := netwraputil.SpoofRemoteAddress(s.keyPair.Feed.ID)
 
@@ -40,7 +40,7 @@ func (s *Server) initUnixSock() error {
 	c, err := net.Dial("unix", sockPath)
 	if err == nil {
 		c.Close()
-		return fmt.Errorf("sbot: repo already in use, socket accepted connection")
+		return fmt.Errorf("roomsrv: repo already in use, socket accepted connection")
 	}
 	os.Remove(sockPath)
 	os.MkdirAll(filepath.Dir(sockPath), 0700)

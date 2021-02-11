@@ -204,6 +204,7 @@ func runroomsrv() error {
 	dashboardH, err := handlers.New(
 		nil,
 		repo.New(repoDir),
+		roomsrv.StateManager,
 		db.AuthWithSSB,
 		db.AuthFallback,
 	)

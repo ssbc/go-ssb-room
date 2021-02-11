@@ -14,11 +14,11 @@ import (
 	"github.com/keks/nocomment"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	refs "go.mindeco.de/ssb-refs"
 	"github.com/ssb-ngi-pointer/go-ssb-room/handlers/tunnel/server"
 	"github.com/ssb-ngi-pointer/go-ssb-room/handlers/whoami"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 func (s *Server) initNetwork() error {
@@ -82,7 +82,11 @@ func (s *Server) initNetwork() error {
 
 	// s.master.Register(replicate.NewPlug(s.Users))
 
-	tunnelPlug := server.New(kitlog.With(s.logger, "unit", "tunnel"), s.rootCtx, s.Whoami())
+	tunnelPlug := server.New(
+		kitlog.With(s.logger, "unit", "tunnel"),
+		s.Whoami(),
+		s.StateManager,
+	)
 	s.public.Register(tunnelPlug)
 
 	// tcp+shs
