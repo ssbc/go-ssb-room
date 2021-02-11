@@ -71,6 +71,7 @@ func New(
 			if err != nil {
 				return no
 			}
+
 			uid, ok := v.(int64)
 			if !ok {
 				// TODO: hook up logging
@@ -142,15 +143,11 @@ func New(
 	}
 
 	// hookup handlers to the router
+	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminRouter := m.PathPrefix("/admin").Subrouter()
-	adminRouter.Use(a.Authenticate)
-
-	// we dont strip path here because it somehow fucks with the middleware setup
-	adminRouter.PathPrefix("/").Handler(admin.Handler(adminRouter, r, roomState))
-
-	m.PathPrefix("/news").Handler(http.StripPrefix("/news", news.Handler(m, r)))
+	adminHandler := a.Authenticate(admin.Handler(r, roomState))
+	m.PathPrefix("/admin").Handler(adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))

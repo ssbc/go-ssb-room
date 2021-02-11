@@ -15,9 +15,8 @@ func Admin(m *mux.Router) *mux.Router {
 		m = mux.NewRouter()
 	}
 
-	// we dont strip path here because it somehow fucks with the middleware setup
-	m.Path("/admin").Methods("GET").Name(AdminDashboard)
-	// m.Path("/admin/settings").Methods("GET").Name(AdminSettings)
+	m.Path("/").Methods("GET").Name(AdminDashboard)
+	// m.Path("/settings").Methods("GET").Name(AdminSettings)
 
 	return m
 }

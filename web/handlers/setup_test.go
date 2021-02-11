@@ -12,33 +12,34 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
-
 	"github.com/BurntSushi/toml"
+	"github.com/gorilla/mux"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
-var (
-	testMux    *http.ServeMux
-	testClient *tester.Tester
-	testRouter = router.CompleteApp()
+type testSession struct {
+	Mux    *http.ServeMux
+	Client *tester.Tester
+	Router *mux.Router
 
 	// mocked dbs
-	testAuthDB         *mockdb.FakeAuthWithSSBService
-	testAuthFallbackDB *mockdb.FakeAuthFallbackService
+	AuthDB         *mockdb.FakeAuthWithSSBService
+	AuthFallbackDB *mockdb.FakeAuthFallbackService
 
-	testRoomState *roomstate.Manager
+	RoomState *roomstate.Manager
+}
 
-	testI18N = justTheKeys()
-)
+var testI18N = justTheKeys()
 
-func setup(t *testing.T) {
+func setup(t *testing.T) *testSession {
+	var ts testSession
 
 	testRepoPath := filepath.Join("testrun", t.Name())
 	os.RemoveAll(testRepoPath)
@@ -51,35 +52,31 @@ func setup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testAuthDB = new(mockdb.FakeAuthWithSSBService)
-	testAuthFallbackDB = new(mockdb.FakeAuthFallbackService)
+	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
+	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 
 	log, _ := logtest.KitLogger("complete", t)
 	ctx := context.TODO()
-	testRoomState = roomstate.NewManager(ctx, log)
+	ts.RoomState = roomstate.NewManager(ctx, log)
+
+	ts.Router = router.CompleteApp()
 
 	h, err := New(
-		testRouter,
+		ts.Router,
 		testRepo,
-		testRoomState,
-		testAuthDB,
-		testAuthFallbackDB,
+		ts.RoomState,
+		ts.AuthDB,
+		ts.AuthFallbackDB,
 	)
 	if err != nil {
 		t.Fatal("setup: handler init failed:", err)
 	}
 
-	testMux = http.NewServeMux()
-	testMux.Handle("/", h)
-	testClient = tester.New(testMux, t)
-}
+	ts.Mux = http.NewServeMux()
+	ts.Mux.Handle("/", h)
+	ts.Client = tester.New(ts.Mux, t)
 
-func teardown() {
-	testMux = nil
-	testClient = nil
-	testAuthDB = nil
-	testAuthFallbackDB = nil
-	testRoomState = nil
+	return &ts
 }
 
 // auto generate from defaults a list of Label = "Label"
