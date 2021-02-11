@@ -62,7 +62,7 @@ func setup(t *testing.T) *testSession {
 	ts.Router = router.CompleteApp()
 
 	h, err := New(
-		ts.Router,
+		log,
 		testRepo,
 		ts.RoomState,
 		ts.AuthDB,

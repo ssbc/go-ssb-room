@@ -202,7 +202,7 @@ func runroomsrv() error {
 
 	// setup web dashboard handlers
 	dashboardH, err := handlers.New(
-		nil,
+		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
 		roomsrv.StateManager,
 		db.AuthWithSSB,
@@ -262,7 +262,7 @@ func runroomsrv() error {
 
 func main() {
 	if err := runroomsrv(); err != nil {
-		fmt.Fprintf(os.Stderr, "go-ssb-tunnel: %s\n", err)
+		fmt.Fprintf(os.Stderr, "go-ssb-room: %s\n", err)
 		os.Exit(1)
 	}
 }
