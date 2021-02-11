@@ -3,31 +3,37 @@
 <head>
   <!-- complete base template -->
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {{if is_production}}
+    <link href="/assets/styles/compiled.prod.css" rel="stylesheet">
+  {{else}}
+    <link href="/assets/styles/compiled.dev.css" rel="stylesheet">
+  {{end}}
   <title>{{block "title" .}}Go-SSB Room Server{{end}}</title>
 </head>
 <body>
   {{block "extra" .}}{{end}}
 
-  <div id="silly-nav">
+  <div>
     {{$user := is_logged_in}}
     {{if $user}}
       <p>
         Hello {{$user.Name}}!
       </p>
-      <ul id="nav">
+      <ul>
         <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
         <li><a href="{{urlTo "admin:dashboard"}}">{{i18n "NavAdminDashboard"}}</a></li>
         <li><a href="{{urlTo "auth:fallback:logout"}}">{{i18n "AuthSignOut"}}</a></li>
       </ul>
     {{else}}
-      <ul id="nav">
+      <ul>
         <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
         <li><a href="{{urlTo "auth:fallback:signin:form"}}">{{i18n "AuthSignIn"}}</a></li>
       </ul>
     {{end}}
   </div>
 
-  <div class="container">
+  <div>
     {{ block "content" . }}{{end}}
   </div>
 </body>

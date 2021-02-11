@@ -24,8 +24,9 @@ import (
 
 func TemplateFuncs(m *mux.Router) template.FuncMap {
 	return template.FuncMap{
-		"urlTo": NewURLTo(m),
-		"inc":   func(i int) int { return i + 1 },
+		"urlTo":         NewURLTo(m),
+		"inc":           func(i int) int { return i + 1 },
+		"is_production": func() bool { return Production },
 	}
 }
 
