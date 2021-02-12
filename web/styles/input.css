@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix Flash-of-unstyled-content */
+html {
+  visibility: visible;
+  opacity: 1;
+}
