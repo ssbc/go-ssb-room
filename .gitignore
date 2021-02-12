@@ -7,3 +7,7 @@ test/go/testrun
 test/nodejs/testrun
 web/handlers/testrun
 admindb/sqlite/testrun
+
+# build artifacts from node.js project web/styles
+node_modules
+web/assets/styles/compiled.*
