@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
+	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
@@ -25,15 +25,13 @@ import (
 
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
-	m *mux.Router,
+	logger logging.Interface,
 	repo repo.Interface,
 	roomState *roomstate.Manager,
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
 ) (http.Handler, error) {
-	if m == nil {
-		m = router.CompleteApp()
-	}
+	m := router.CompleteApp()
 
 	locHelper, err := i18n.New(repo)
 	if err != nil {
@@ -43,6 +41,7 @@ func New(
 	var a *auth.Handler
 
 	r, err := render.New(web.Templates,
+		render.SetLogger(logger),
 		render.BaseTemplates("/base.tmpl"),
 		render.AddTemplates(concatTemplates(
 			[]string{
@@ -159,11 +158,15 @@ func New(
 		return errorTemplateData{http.StatusNotFound, "Not Found", "the requested page wasnt found.."}, nil
 	})
 
+	var finalHandler http.Handler = m
+
+	finalHandler = logging.InjectHandler(logger)(m)
+
 	if web.Production {
-		return m, nil
+		return finalHandler, nil
 	}
 
-	return r.GetReloader()(m), nil
+	return r.GetReloader()(finalHandler), nil
 }
 
 // utils
