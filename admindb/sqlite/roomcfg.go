@@ -85,7 +85,6 @@ func (l AllowList) List(ctx context.Context) (admindb.ListEntries, error) {
 
 	var asRefs = make(admindb.ListEntries, len(all))
 	for i, allowed := range all {
-		fmt.Println(allowed.PubKey.Ref())
 
 		asRefs[i] = admindb.ListEntry{
 			ID:     allowed.ID,

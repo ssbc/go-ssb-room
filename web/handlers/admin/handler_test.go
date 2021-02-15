@@ -22,8 +22,7 @@ func TestDashoard(t *testing.T) {
 
 	html, resp := ts.Client.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	// we dont test for the text values, just the i18n placeholders
-	a.Equal(html.Find("#welcome").Text(), "AdminDashboardWelcome")
+
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
@@ -41,7 +40,6 @@ func TestAllowListEmpty(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	// a.Equal(html.Find("h1").Text(), db[1].Name)
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
@@ -61,12 +59,9 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	// url, err := router.News(nil).Get(router.NewsPost).URL("PostID", "1")
-	// a.Nil(err)
 	html, resp := ts.Client.GetHTML("/allow-list", nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	// a.Equal(html.Find("h1").Text(), db[1].Name)
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
@@ -80,12 +75,9 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	// url, err := router.News(nil).Get(router.NewsPost).URL("PostID", "1")
-	// a.Nil(err)
 	html, resp = ts.Client.GetHTML("/allow-list", nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	// a.Equal(html.Find("h1").Text(), db[1].Name)
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
@@ -93,7 +85,6 @@ func TestAllowList(t *testing.T) {
 	})
 
 	a.EqualValues(html.Find("#theList").Children().Length(), 1)
-
 }
 
 // utils
@@ -102,6 +93,7 @@ type localizedElement struct {
 	Selector, Label string
 }
 
+// we dont test for the text values, just the i18n placeholders
 func assertLocalized(t *testing.T, html *goquery.Document, elems []localizedElement) {
 	a := assert.New(t)
 	for i, pair := range elems {

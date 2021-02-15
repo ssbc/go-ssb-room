@@ -23,9 +23,6 @@ var HTMLTemplates = []string{
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
 func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowListService) http.Handler {
-	// mux := router.Admin(nil)
-	// mux.Get(router.AdminDashboard).HandlerFunc
-	// mux.Get(router.AdminAllowListOverview).HandlerFunc
 	mux := &http.ServeMux{}
 
 	mux.HandleFunc("/dashboard", r.HTML("/admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -46,7 +43,6 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 	mux.HandleFunc("/allow-list/remove/confirm", r.HTML("/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/allow-list/remove", ah.remove)
 
-	// return mux
 	return customStripPrefix("/admin", mux)
 }
 

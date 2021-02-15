@@ -72,13 +72,12 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 		return nil, err
 	}
 
-	if !h.al.HasID(req.Context(), id) {
-		http.Redirect(rw, req, "/admin/allow-list", http.StatusFound)
-		return nil, ErrRedirected
-	}
-
 	entry, err := h.al.GetByID(req.Context(), id)
 	if err != nil {
+		if errors.Is(err, admindb.ErrNotFound) {
+			http.Redirect(rw, req, "/admin/allow-list", http.StatusFound)
+			return nil, ErrRedirected
+		}
 		return nil, err
 	}
 

@@ -77,73 +77,12 @@ func (s *Server) initNetwork() error {
 	return nil
 }
 
-func (srv *Server) Allow(r refs.FeedRef, yes bool) {
+// Allow adds (if yes==true) the passed reference to the list of peers that are allowed to connect to the server,
+// yes==false removes it.
+func (s *Server) Allow(r refs.FeedRef, yes bool) {
 	if yes {
-		srv.authorizer.Add(srv.rootCtx, r)
+		s.authorizer.Add(s.rootCtx, r)
 	} else {
-		srv.authorizer.RemoveFeed(srv.rootCtx, r)
+		s.authorizer.RemoveFeed(s.rootCtx, r)
 	}
 }
-
-/*
-s.authorizer.lst = make(map[string]struct{})
-
-// TODO: bake this into the authorizer and make it reloadable
-
-// simple authorized_keys file, new line delimited @feed.xzy
-if f, err := os.Open(s.repo.GetPath("authorized_keys")); err == nil {
-	evtAuthedKeys := kitlog.With(s.logger, "event", "authorized_keys")
-
-	// ignore lines starting with #
-	rd := nocomment.NewReader(f)
-	sc := bufio.NewScanner(rd)
-	i := 0
-	for sc.Scan() {
-		txt := sc.Text()
-		if txt == "" {
-			continue
-		}
-		fr, err := refs.ParseFeedRef(txt)
-		if err != nil {
-			level.Warn(evtAuthedKeys).Log("skipping-line", i+1, "err", err)
-			continue
-		}
-		s.authorizer.Add(*fr)
-		i++
-	}
-	level.Info(evtAuthedKeys).Log("allowing", i)
-	f.Close()
-}
-
-type listAuthorizer struct {
-	mu  sync.Mutex
-	lst map[string]struct{}
-}
-
-var _ maybemuxrpc.Authorizer = (*listAuthorizer)(nil)
-
-func (a *listAuthorizer) Add(feed refs.FeedRef) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.lst[feed.Ref()] = struct{}{}
-}
-
-func (a *listAuthorizer) Remove(feed refs.FeedRef) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	delete(a.lst, feed.Ref())
-}
-
-func (a *listAuthorizer) Authorize(remote net.Conn) bool {
-	remoteID, err := network.GetFeedRefFromAddr(remote.RemoteAddr())
-	if err != nil {
-		return false
-	}
-
-	a.mu.Lock()
-	defer a.mu.Unlock()
-
-	_, has := a.lst[remoteID.Ref()]
-	return has
-}
-*/
