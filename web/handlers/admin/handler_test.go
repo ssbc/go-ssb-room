@@ -45,7 +45,7 @@ func TestAllowListEmpty(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "AdminListCountPlural"},
+		{"#allowListCount", "ListCountPlural"},
 	})
 
 }
@@ -70,7 +70,7 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "AdminListCountPlural"},
+		{"#allowListCount", "ListCountPlural"},
 	})
 
 	a.EqualValues(html.Find("#theList").Children().Length(), 3)
@@ -89,7 +89,7 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "AdminListCountPlural"},
+		{"#allowListCount", "ListCountPlural"},
 	})
 
 	a.EqualValues(html.Find("#theList").Children().Length(), 1)
