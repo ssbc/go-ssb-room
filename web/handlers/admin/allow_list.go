@@ -41,13 +41,16 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 
 	err = h.al.Add(req.Context(), *newEntryParsed)
 	if err != nil {
+		code := http.StatusInternalServerError
 		var aa admindb.ErrAlreadyAdded
 		if errors.As(err, &aa) {
-			h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
-			return
+			code = http.StatusBadRequest
+			// TODO: localized error pages
+			// h.r.Error(w, req, http.StatusBadRequest, weberrors.Localize())
+			// return
 		}
 
-		h.r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("maybe exists?: %w", err))
+		h.r.Error(w, req, code, err)
 		return
 	}
 

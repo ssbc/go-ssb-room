@@ -9,7 +9,7 @@ const (
 	AdminDashboard = "admin:dashboard"
 
 	AdminAllowListOverview      = "admin:allow-list:overview"
-	AdminAllowListRemoveAdd     = "admin:allow-list:add"
+	AdminAllowListAdd           = "admin:allow-list:add"
 	AdminAllowListRemoveConfirm = "admin:allow-list:remove:confirm"
 	AdminAllowListRemove        = "admin:allow-list:remove"
 )
@@ -23,7 +23,7 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
 
 	m.Path("/allow-list").Methods("GET").Name(AdminAllowListOverview)
-	m.Path("/allow-list/add").Methods("POST").Name(AdminAllowListRemoveAdd)
+	m.Path("/allow-list/add").Methods("POST").Name(AdminAllowListAdd)
 	m.Path("/allow-list/remove/confirm").Methods("GET").Name(AdminAllowListRemoveConfirm)
 	m.Path("/allow-list/remove").Methods("POST").Name(AdminAllowListRemove)
 
