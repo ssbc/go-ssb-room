@@ -11,3 +11,4 @@ admindb/sqlite/testrun
 # build artifacts from node.js project web/styles
 node_modules
 web/assets/styles/compiled.*
+web/assets/style.css
