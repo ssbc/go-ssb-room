@@ -81,10 +81,16 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "ListCountPlural"},
+		{"#allowListCount", "ListCountPlural"}, // TODO: should be singular - template func testing stub might have a qurik
 	})
 
-	a.EqualValues(html.Find("#theList").Children().Length(), 1)
+	elems := html.Find("#theList").Children()
+	a.EqualValues(elems.Length(), 1)
+
+	// check for link to remove confirm link
+	link, yes := elems.ContentsFiltered("a").Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/allow-list/remove/confirm?id=666", link)
 }
 
 // utils
