@@ -3,14 +3,21 @@
 package broadcasts
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"testing"
 )
 
-type testPrinter struct{}
+type testPrinter struct {
+	w io.Writer
+}
 
 func (tp testPrinter) Update(members []string) error {
-	fmt.Printf("test: %d\n", len(members))
+	fmt.Fprintf(tp.w, "test: %d\n", len(members))
 	return nil
 }
 
@@ -21,6 +28,8 @@ func ExampleBroadcast() {
 	defer sink.Close()
 
 	var p1, p2 testPrinter
+	p1.w = os.Stdout
+	p2.w = os.Stdout
 
 	closeSink := bcast.Register(p1)
 	defer closeSink()
@@ -39,6 +48,8 @@ func ExampleBroadcastCanceled() {
 	defer sink.Close()
 
 	var p1, p2 testPrinter
+	p1.w = os.Stdout
+	p2.w = os.Stdout
 
 	closeSink := bcast.Register(p1)
 	defer closeSink()
@@ -52,21 +63,29 @@ func ExampleBroadcastCanceled() {
 	// test: 1
 }
 
-type erroringPrinter struct{}
+type erroringPrinter struct {
+	w io.Writer
+}
 
 func (tp erroringPrinter) Update(m []string) error {
-	fmt.Printf("failed: %d\n", len(m))
+	fmt.Fprintf(tp.w, "failed: %d\n", len(m))
+	// time.Sleep(1 * time.Second)
 	return errors.New("nope")
 }
 
 func (tp erroringPrinter) Close() error { return nil }
 
-func ExampleBroadcastOneErrs() {
+func TestBroadcastOneErrs(t *testing.T) {
+	var buf = &bytes.Buffer{}
+
 	sink, bcast := NewRoomChanger()
 	defer sink.Close()
 
 	var p1 testPrinter
+	p1.w = buf
+
 	var p2 erroringPrinter
+	p2.w = buf
 
 	closeSink := bcast.Register(p1)
 	defer closeSink()
@@ -77,10 +96,26 @@ func ExampleBroadcastOneErrs() {
 
 	sink.Update([]string{"run", "2"})
 
-	// Output:
-	// test: 1
-	// failed: 1
-	// test: 2
+	output := buf.String()
+
+	expectedContains := []string{
+		"test: 1\n",
+		"failed: 1\n",
+		"test: 2\n",
+	}
+
+	for i, exp := range expectedContains {
+		if !strings.Contains(output, exp) {
+			t.Errorf("expected %d in ouput but it didn't", i+1)
+			t.Log(output)
+		}
+	}
+
+	lines := strings.Split(output, "\n")
+	if n := len(lines); n != 4 { // 3 and one empty one
+		t.Errorf("expected 4 lines of output but got %d", n)
+		t.Log(output)
+	}
 }
 
 /*
