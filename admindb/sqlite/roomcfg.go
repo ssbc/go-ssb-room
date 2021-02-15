@@ -5,9 +5,10 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
+	"github.com/friendsofgo/errors"
+	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
@@ -35,7 +36,12 @@ func (l AllowList) Add(ctx context.Context, a refs.FeedRef) error {
 	entry.PubKey.FeedRef = a
 	err := entry.Insert(ctx, l.db, boil.Whitelist("pub_key"))
 	if err != nil {
-		return fmt.Errorf("allow-list: failed to insert new entry %s: %w", entry.PubKey, err)
+		var sqlErr sqlite3.Error
+		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return admindb.ErrAlreadyAdded{Ref: a}
+		}
+
+		return fmt.Errorf("allow-list: failed to insert new entry %s: %w - type:%T", entry.PubKey, err, err)
 	}
 
 	return nil

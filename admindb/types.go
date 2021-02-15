@@ -21,6 +21,14 @@ type User struct {
 	Name string
 }
 
+type ErrAlreadyAdded struct {
+	Ref refs.FeedRef
+}
+
+func (aa ErrAlreadyAdded) Error() string {
+	return fmt.Sprintf("admindb: the item (%s) is already on the list", aa.Ref.Ref())
+}
+
 // ListEntry values are returned by Allow- and DenyListServices
 type ListEntry struct {
 	ID     int64

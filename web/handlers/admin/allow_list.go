@@ -34,7 +34,6 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 	newEntry := req.Form.Get("pub_key")
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
-		fmt.Println("failed to parse: ", err)
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
 		return
@@ -42,7 +41,12 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 
 	err = h.al.Add(req.Context(), *newEntryParsed)
 	if err != nil {
-		// TODO: proper error type
+		var aa admindb.ErrAlreadyAdded
+		if errors.As(err, &aa) {
+			h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+			return
+		}
+
 		h.r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("maybe exists?: %w", err))
 		return
 	}
