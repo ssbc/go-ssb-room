@@ -25,14 +25,20 @@ type AllowListService interface {
 	// Add adds the feed to the list.
 	Add(context.Context, refs.FeedRef) error
 
-	// Has returns true if a feed is on the list.
-	Has(context.Context, refs.FeedRef) bool
+	// HasFeed returns true if a feed is on the list.
+	HasFeed(context.Context, refs.FeedRef) bool
+
+	// HasFeed returns true if a feed is on the list.
+	HasID(context.Context, int64) bool
 
 	// List returns a list of all the feeds.
-	List(context.Context) ([]refs.FeedRef, error)
+	List(context.Context) (ListEntries, error)
 
-	// Remove removes the feed from the list.
-	Remove(context.Context, refs.FeedRef) error
+	// RemoveFeed removes the feed from the list.
+	RemoveFeed(context.Context, refs.FeedRef) error
+
+	// RemoveID removes the feed for the ID from the list.
+	RemoveID(context.Context, int64) error
 }
 
 // AliasService manages alias handle registration and lookup

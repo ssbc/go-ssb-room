@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite/models"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/stretchr/testify/require"
@@ -42,13 +44,13 @@ func TestAllowList(t *testing.T) {
 	r.NoError(err)
 	r.Len(lst, 1)
 
-	yes := db.AllowList.Has(ctx, okFeed)
+	yes := db.AllowList.HasFeed(ctx, okFeed)
 	r.True(yes)
 
-	yes = db.AllowList.Has(ctx, tf)
+	yes = db.AllowList.HasFeed(ctx, tf)
 	r.False(yes)
 
-	err = db.AllowList.Remove(ctx, okFeed)
+	err = db.AllowList.RemoveFeed(ctx, okFeed)
 	r.NoError(err)
 
 	count, err = models.AllowLists().Count(ctx, db.AllowList.(AllowList).db)
@@ -59,7 +61,7 @@ func TestAllowList(t *testing.T) {
 	r.NoError(err)
 	r.Len(lst, 0)
 
-	yes = db.AllowList.Has(ctx, okFeed)
+	yes = db.AllowList.HasFeed(ctx, okFeed)
 	r.False(yes)
 
 	r.NoError(db.Close())
@@ -89,4 +91,41 @@ func TestAllowListUnique(t *testing.T) {
 	r.Len(lst, 1)
 
 	r.NoError(db.Close())
+}
+
+func TestAllowListByID(t *testing.T) {
+	r := require.New(t)
+	ctx := context.Background()
+
+	testRepo := filepath.Join("testrun", t.Name())
+	os.RemoveAll(testRepo)
+
+	tr := repo.New(testRepo)
+
+	db, err := Open(tr)
+	require.NoError(t, err)
+
+	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
+	err = db.AllowList.Add(ctx, feedA)
+	r.NoError(err)
+
+	lst, err := db.AllowList.List(ctx)
+	r.NoError(err)
+	r.Len(lst, 1)
+
+	yes := db.AllowList.HasID(ctx, lst[0].ID)
+	r.True(yes)
+
+	yes = db.AllowList.HasID(ctx, 666)
+	r.False(yes)
+
+	err = db.AllowList.RemoveID(ctx, 666)
+	r.Error(err)
+	r.EqualError(err, admindb.ErrNotFound.Error())
+
+	err = db.AllowList.RemoveID(ctx, lst[0].ID)
+	r.NoError(err)
+
+	yes = db.AllowList.HasID(ctx, lst[0].ID)
+	r.False(yes)
 }

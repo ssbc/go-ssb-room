@@ -4,10 +4,14 @@ package admindb
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 
 	refs "go.mindeco.de/ssb-refs"
 )
+
+// ErrNotFound is returned by the admin db if an object couldn't be found.
+var ErrNotFound = errors.New("admindb: object not found")
 
 // It's important to wrap all the model generated types into these since we don't want the admindb interfaces to depend on them.
 
@@ -16,6 +20,15 @@ type User struct {
 	ID   int64
 	Name string
 }
+
+// ListEntry values are returned by Allow- and DenyListServices
+type ListEntry struct {
+	ID     int64
+	PubKey refs.FeedRef
+}
+
+// ListEntries is a slice of ListEntries
+type ListEntries []ListEntry
 
 // DBFeedRef wraps a feed reference and implements the SQL marshaling interfaces.
 type DBFeedRef struct{ refs.FeedRef }
