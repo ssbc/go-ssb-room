@@ -8,7 +8,7 @@
     <p id="allowListCount">{{i18npl "ListCount" .Count}}</p>
     <ul id="theList">
     {{range .Entries}}
-     <li>{{.Ref}} (<a href="{{urlTo "admin:allow-list:remove:ask" "Entry" .}}">Remove</a>) </li>
+      <li>{{.PubKey.Ref}} (<a href="{{urlTo "admin:allow-list:remove:confirm" "id" .ID}}">Remove</a>) </li>
     {{end}}
     </ul>
     </div>

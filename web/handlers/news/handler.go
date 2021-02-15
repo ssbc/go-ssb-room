@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type Post struct {
@@ -41,7 +39,7 @@ func showOverview(w http.ResponseWriter, req *http.Request) (interface{}, error)
 }
 
 func showPost(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-	i, err := strconv.Atoi(mux.Vars(req)["PostID"])
+	i, err := strconv.Atoi(req.URL.Query().Get("id"))
 	if err != nil {
 		return nil, fmt.Errorf("argument parsing failed: %w", err)
 	}

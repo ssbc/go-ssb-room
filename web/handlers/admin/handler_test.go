@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/PuerkitoBio/goquery"
@@ -53,10 +54,10 @@ func TestAllowList(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	lst := []refs.FeedRef{
-		{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"},
-		{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"},
-		{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"},
+	lst := admindb.ListEntries{
+		{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
+		{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
+		{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
@@ -74,8 +75,8 @@ func TestAllowList(t *testing.T) {
 
 	a.EqualValues(html.Find("#theList").Children().Length(), 3)
 
-	lst = []refs.FeedRef{
-		{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"},
+	lst = admindb.ListEntries{
+		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 

@@ -1,14 +1,25 @@
+Confirm = "Confirm"
+PageNotFound = "The requested page was not found."
+
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
+
 NewsWelcome = "so, what happend (recently)"
 NewsTitle = "News"
 NewsOverview = "News - Overview"
+
 AuthFallbackWelcome = "You really shouldn't be here.... Let's get you through this."
 AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
+
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
+AdminAllowListTitle = "List of allowed people"
+AdminAllowListWelcome = "Here you can see the whole list and add or remove people from it."
+AdminAllowListAdd = "Add to list"
+AdminAllowListRemoveConfirmWelcome = "Just to verify that this is the entry you want deleted"
+AdminAllowListRemoveConfirmTitle = "Really remove this Entry from the Allow list?"
 
 NavAdminDashboard = "Admin Dasboard"
 

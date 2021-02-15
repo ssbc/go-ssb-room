@@ -1,24 +1,25 @@
 // SPDX-License-Identifier: MIT
 
+// Package errors defines some well defined errors, like incomplete/wrong request data or object not found(404), for the purpose of internationalization.
 package errors
 
 import (
 	"fmt"
 )
 
-type NotFound struct {
+type ErrNotFound struct {
 	What string
 }
 
-func (nf NotFound) Error() string {
+func (nf ErrNotFound) Error() string {
 	return fmt.Sprintf("rooms/web: item not found: %s", nf.What)
 }
 
-type BadRequest struct {
+type ErrBadRequest struct {
 	Where   string
 	Details error
 }
 
-func (br BadRequest) Error() string {
+func (br ErrBadRequest) Error() string {
 	return fmt.Sprintf("rooms/web: bad request error: %s", br.Details)
 }

@@ -160,7 +160,8 @@ func New(
 
 	m.NotFoundHandler = r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		rw.WriteHeader(http.StatusNotFound)
-		return errorTemplateData{http.StatusNotFound, "Not Found", "the requested page wasnt found.."}, nil
+		msg := localizerFromRequest(locHelper, req).LocalizeSimple("PageNotFound")
+		return errorTemplateData{http.StatusNotFound, "Not Found", msg}, nil
 	})
 
 	mainMux.Handle("/", m)

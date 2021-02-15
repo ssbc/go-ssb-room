@@ -17,6 +17,7 @@ import (
 var HTMLTemplates = []string{
 	"/admin/dashboard.tmpl",
 	"/admin/allow-list.tmpl",
+	"/admin/allow-list-remove-confirm.tmpl",
 }
 
 // Handler supplies the elevated access pages to known users.
@@ -42,6 +43,8 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 
 	mux.HandleFunc("/allow-list", r.HTML("/admin/allow-list.tmpl", ah.overview))
 	mux.HandleFunc("/allow-list/add", ah.add)
+	mux.HandleFunc("/allow-list/remove/confirm", r.HTML("/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
+	mux.HandleFunc("/allow-list/remove", ah.remove)
 
 	// return mux
 	return customStripPrefix("/admin", mux)

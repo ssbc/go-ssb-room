@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -78,7 +80,8 @@ func TestJSClient(t *testing.T) {
 	ts := newRandomSession(t)
 	// ts := newSession(t, nil)
 
-	srv := ts.startGoServer()
+	var al = &mockdb.FakeAllowListService{}
+	srv := ts.startGoServer(al)
 
 	alice := ts.startJSClient("alice", "./testscripts/simple_client.js",
 		srv.Network.GetListenAddr(),
@@ -107,6 +110,7 @@ func TestJSClient(t *testing.T) {
 	)
 
 	srv.Allow(bob, true)
+	al.HasFeedReturns(true)
 
 	time.Sleep(5 * time.Second)
 
@@ -133,8 +137,10 @@ func TestJSServer(t *testing.T) {
 	}
 
 	// now connect our go client
-	client := ts.startGoServer()
+	var al = &mockdb.FakeAllowListService{}
+	client := ts.startGoServer(al)
 	client.Allow(*alice, true)
+	al.HasFeedReturns(true)
 
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")

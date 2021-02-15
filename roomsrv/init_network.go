@@ -30,7 +30,7 @@ func (s *Server) initNetwork() error {
 			return s.master.MakeHandler(conn)
 		}
 
-		if s.authorizer.Has(s.rootCtx, *remote) {
+		if s.authorizer.HasFeed(s.rootCtx, *remote) {
 			return s.public.MakeHandler(conn)
 		}
 
@@ -81,7 +81,7 @@ func (srv *Server) Allow(r refs.FeedRef, yes bool) {
 	if yes {
 		srv.authorizer.Add(srv.rootCtx, r)
 	} else {
-		srv.authorizer.Remove(srv.rootCtx, r)
+		srv.authorizer.RemoveFeed(srv.rootCtx, r)
 	}
 }
 
