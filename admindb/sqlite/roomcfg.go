@@ -59,6 +59,23 @@ func (l AllowList) HasID(ctx context.Context, id int64) bool {
 	return true
 }
 
+// GetByID returns the entry if a feed with that ID is on the list.
+func (l AllowList) GetByID(ctx context.Context, id int64) (admindb.ListEntry, error) {
+	var le admindb.ListEntry
+	entry, err := models.FindAllowList(ctx, l.db, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return le, admindb.ErrNotFound
+		}
+		return le, err
+	}
+
+	le.ID = entry.ID
+	le.PubKey = entry.PubKey.FeedRef
+
+	return le, nil
+}
+
 // List returns a list of all the feeds.
 func (l AllowList) List(ctx context.Context) (admindb.ListEntries, error) {
 	all, err := models.AllowLists().All(ctx, l.db)

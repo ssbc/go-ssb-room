@@ -22,6 +22,20 @@ type FakeAllowListService struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
+	GetByIDStub        func(context.Context, int64) (admindb.ListEntry, error)
+	getByIDMutex       sync.RWMutex
+	getByIDArgsForCall []struct {
+		arg1 context.Context
+		arg2 int64
+	}
+	getByIDReturns struct {
+		result1 admindb.ListEntry
+		result2 error
+	}
+	getByIDReturnsOnCall map[int]struct {
+		result1 admindb.ListEntry
+		result2 error
+	}
 	HasFeedStub        func(context.Context, refs.FeedRef) bool
 	hasFeedMutex       sync.RWMutex
 	hasFeedArgsForCall []struct {
@@ -147,6 +161,71 @@ func (fake *FakeAllowListService) AddReturnsOnCall(i int, result1 error) {
 	fake.addReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeAllowListService) GetByID(arg1 context.Context, arg2 int64) (admindb.ListEntry, error) {
+	fake.getByIDMutex.Lock()
+	ret, specificReturn := fake.getByIDReturnsOnCall[len(fake.getByIDArgsForCall)]
+	fake.getByIDArgsForCall = append(fake.getByIDArgsForCall, struct {
+		arg1 context.Context
+		arg2 int64
+	}{arg1, arg2})
+	stub := fake.GetByIDStub
+	fakeReturns := fake.getByIDReturns
+	fake.recordInvocation("GetByID", []interface{}{arg1, arg2})
+	fake.getByIDMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeAllowListService) GetByIDCallCount() int {
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
+	return len(fake.getByIDArgsForCall)
+}
+
+func (fake *FakeAllowListService) GetByIDCalls(stub func(context.Context, int64) (admindb.ListEntry, error)) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = stub
+}
+
+func (fake *FakeAllowListService) GetByIDArgsForCall(i int) (context.Context, int64) {
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
+	argsForCall := fake.getByIDArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeAllowListService) GetByIDReturns(result1 admindb.ListEntry, result2 error) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = nil
+	fake.getByIDReturns = struct {
+		result1 admindb.ListEntry
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAllowListService) GetByIDReturnsOnCall(i int, result1 admindb.ListEntry, result2 error) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = nil
+	if fake.getByIDReturnsOnCall == nil {
+		fake.getByIDReturnsOnCall = make(map[int]struct {
+			result1 admindb.ListEntry
+			result2 error
+		})
+	}
+	fake.getByIDReturnsOnCall[i] = struct {
+		result1 admindb.ListEntry
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeAllowListService) HasFeed(arg1 context.Context, arg2 refs.FeedRef) bool {
@@ -466,6 +545,8 @@ func (fake *FakeAllowListService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
 	fake.hasFeedMutex.RLock()
 	defer fake.hasFeedMutex.RUnlock()
 	fake.hasIDMutex.RLock()

@@ -20,7 +20,7 @@ type AuthFallbackService interface {
 // AuthWithSSBService defines functions needed for the challange/response system of sign-in with ssb
 type AuthWithSSBService interface{}
 
-// AllowListService deals with changing the privacy modes and managing the allow/deny lists of the room
+// AllowListService changes the lists of people that are allowed to get into the room
 type AllowListService interface {
 	// Add adds the feed to the list.
 	Add(context.Context, refs.FeedRef) error
@@ -30,6 +30,9 @@ type AllowListService interface {
 
 	// HasFeed returns true if a feed is on the list.
 	HasID(context.Context, int64) bool
+
+	// GetByID returns the list entry for that ID or an error
+	GetByID(context.Context, int64) (ListEntry, error)
 
 	// List returns a list of all the feeds.
 	List(context.Context) (ListEntries, error)
