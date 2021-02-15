@@ -110,9 +110,15 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	status := http.StatusFound
 	err = h.al.RemoveID(req.Context(), id)
 	if err != nil {
-		// TODO "flash" errors
+		if !errors.Is(err, admindb.ErrNotFound) {
+			// TODO "flash" errors
+			h.r.Error(rw, req, http.StatusInternalServerError, err)
+			return
+		}
+		status = http.StatusNotFound
 	}
-	http.Redirect(rw, req, "/admin/allow-list", http.StatusFound)
+	http.Redirect(rw, req, "/admin/allow-list", status)
 }
