@@ -21,6 +21,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/shurcooL/vfsgen v0.0.0-20200824052919-0d455de96546 // indirect
 	github.com/stretchr/testify v1.6.1
+	github.com/unrolled/secure v1.0.8
 	github.com/volatiletech/sqlboiler/v4 v4.4.0
 	github.com/volatiletech/strmangle v0.0.1
 	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210202162901-fe642d405dc6
