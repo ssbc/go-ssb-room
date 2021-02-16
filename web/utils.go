@@ -140,3 +140,38 @@ func LoadOrCreateCookieSecrets(repo repo.Interface) ([]securecookie.Codec, error
 	sc := securecookie.CodecsFromPairs(pairs...)
 	return sc, nil
 }
+
+const csrfKeyLength = 32
+
+// LoadOrCreateCSRFSecret either loads the bytes from $repo/web/csrf-secret or creates a new file with suitable keys in it
+func LoadOrCreateCSRFSecret(repo repo.Interface) ([]byte, error) {
+	secretPath := repo.GetPath("web", "csrf-secret")
+	err := os.MkdirAll(filepath.Dir(secretPath), 0700)
+	if err != nil && !os.IsExist(err) {
+		return nil, fmt.Errorf("failed to create folder for csrf secret: %w", err)
+	}
+
+	// load the existing data
+	secret, err := ioutil.ReadFile(secretPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, fmt.Errorf("failed to load csrf secrets: %w", err)
+		}
+
+		// create a new key, save and return it
+		freshKey := securecookie.GenerateRandomKey(csrfKeyLength)
+
+		err = ioutil.WriteFile(secretPath, freshKey, 0600)
+		if err != nil {
+			return nil, err
+		}
+
+		return freshKey, nil
+	}
+
+	if n := len(secret); csrfKeyLength != n {
+		return nil, fmt.Errorf("expected %d bytes csrf secert but got %d", csrfKeyLength, n)
+	}
+
+	return secret, nil
+}
