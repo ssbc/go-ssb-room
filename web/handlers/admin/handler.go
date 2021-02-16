@@ -15,9 +15,9 @@ import (
 )
 
 var HTMLTemplates = []string{
-	"/admin/dashboard.tmpl",
-	"/admin/allow-list.tmpl",
-	"/admin/allow-list-remove-confirm.tmpl",
+	"templates/admin/dashboard.tmpl",
+	"templates/admin/allow-list.tmpl",
+	"templates/admin/allow-list-remove-confirm.tmpl",
 }
 
 // Handler supplies the elevated access pages to known users.

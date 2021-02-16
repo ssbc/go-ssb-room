@@ -11,8 +11,8 @@ import (
 )
 
 var HTMLTemplates = []string{
-	"/news/overview.tmpl",
-	"/news/post.tmpl",
+	"templates/news/overview.tmpl",
+	"templates/news/post.tmpl",
 }
 
 // Handler creates a http.Handler with all the archives routes attached to it

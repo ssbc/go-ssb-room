@@ -16,7 +16,7 @@ import (
 )
 
 var HTMLTemplates = []string{
-	"/auth/fallback_sign_in.tmpl",
+	"templates/auth/fallback_sign_in.tmpl",
 }
 
 func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
