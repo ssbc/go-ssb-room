@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
@@ -103,7 +104,7 @@ func New(
 		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
-			MaxAge: 2 * 60 * 60, // two hours in seconds
+			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
 		},
 	}
 
@@ -153,6 +154,7 @@ func New(
 		auth.SetStore(store),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
+		auth.SetLifetime(2*time.Hour), // TODO: configure
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
