@@ -26,6 +26,7 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
@@ -41,6 +42,10 @@ var (
 
 	listenAddrShsMux string
 	listenAddrHTTP   string
+
+	httpsDomain string
+
+	development bool
 
 	listenAddrDebug string
 	logToFile       string
@@ -90,6 +95,9 @@ func initFlags() {
 	flag.StringVar(&listenAddrDebug, "dbg", "localhost:6078", "listen addr for metrics and pprof HTTP server")
 	flag.StringVar(&logToFile, "logs", "", "where to write debug output to (default is just stderr)")
 
+	flag.StringVar(&httpsDomain, "https-domain", "", "which domain to use for TLS and AllowedHosts checks")
+	flag.BoolVar(&development, "development", false, "enable development mode (disable security checks)")
+
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
 	flag.Parse()
@@ -116,6 +124,10 @@ func runroomsrv() error {
 	if flagPrintVersion {
 		log.Log("version", Version, "build", Build)
 		return nil
+	}
+
+	if httpsDomain == "" && !development {
+		return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -213,7 +225,22 @@ func runroomsrv() error {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
 	}
 
-	// TODO: setup other http goodies (such as CSRF and CSP)
+	// setup CSP and HTTPS redirects
+	// TODO: STS yes or no?
+	secureMiddleware := secure.New(secure.Options{
+		IsDevelopment: development,
+
+		AllowedHosts: []string{httpsDomain},
+
+		// TLS stuff
+		SSLRedirect:       true,
+		SSLHost:           httpsDomain,
+		HostsProxyHeaders: []string{"X-Forwarded-Hosts"},
+
+		BrowserXssFilter:   true,
+		ContentTypeNosniff: true,
+		FrameDeny:          true,
+	})
 
 	level.Info(log).Log(
 		"event", "serving",
@@ -234,7 +261,7 @@ func runroomsrv() error {
 			ReadTimeout:  time.Second * 15,
 			IdleTimeout:  time.Second * 60,
 
-			Handler: dashboardH,
+			Handler: secureMiddleware.Handler(dashboardH),
 		}
 
 		err = srv.Serve(httpLis)
