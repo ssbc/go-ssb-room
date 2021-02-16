@@ -8,7 +8,7 @@
 {{range $index, $element := .AllPosts}}
 
 
-<a href="{{urlTo "news:post" "PostID" $index}}">
+<a href="{{urlTo "news:post" "id" $index}}">
   <h2>{{$element.Name}}</h2>
 </a>
 

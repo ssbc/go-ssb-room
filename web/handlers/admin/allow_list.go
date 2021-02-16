@@ -120,5 +120,6 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 		}
 		status = http.StatusNotFound
 	}
+
 	http.Redirect(rw, req, "/admin/allow-list", status)
 }

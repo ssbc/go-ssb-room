@@ -108,7 +108,7 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "ListCountPlural"}, // TODO: should be singular - template func testing stub might have a qurik
+		{"#allowListCount", "ListCountSingular"},
 	})
 
 	elems := html.Find("#theList").Children()

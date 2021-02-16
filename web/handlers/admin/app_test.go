@@ -43,10 +43,16 @@ func newSession(t *testing.T) *testSession {
 	ts.Router = router.Admin(nil)
 
 	// setup rendering
+
+	// TODO: make testing utils and move these there
 	testFuncs := web.TemplateFuncs(ts.Router)
 	testFuncs["i18n"] = func(msgID string) string { return msgID }
-	testFuncs["i18npl"] = func(msgID string, _ ...interface{}) string { return msgID + "Plural" }
-
+	testFuncs["i18npl"] = func(msgID string, count int, _ ...interface{}) string {
+		if count == 1 {
+			return msgID + "Singular"
+		}
+		return msgID + "Plural"
+	}
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
 
 	r, err := render.New(web.Templates,
