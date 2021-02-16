@@ -21,7 +21,7 @@ func TestAllowListEmpty(t *testing.T) {
 	url, err := ts.Router.Get(router.AdminAllowListOverview).URL()
 	a.Nil(err)
 
-	html, resp := ts.Client.GetHTML(url.String(), nil)
+	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
@@ -38,7 +38,7 @@ func TestAllowListAdd(t *testing.T) {
 	listURL, err := ts.Router.Get(router.AdminAllowListOverview).URL()
 	a.NoError(err)
 
-	html, resp := ts.Client.GetHTML(listURL.String(), nil)
+	html, resp := ts.Client.GetHTML(listURL.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	formSelection := html.Find("form#add-entry")
@@ -86,7 +86,7 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/members", nil)
+	html, resp := ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
@@ -102,7 +102,7 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/members", nil)
+	html, resp = ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
@@ -132,7 +132,7 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 	urlRemoveConfirm := urlTo(router.AdminAllowListRemoveConfirm, "id", 3)
 
-	html, resp := ts.Client.GetHTML(urlRemoveConfirm.String(), nil)
+	html, resp := ts.Client.GetHTML(urlRemoveConfirm.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
