@@ -22,10 +22,10 @@ func Admin(m *mux.Router) *mux.Router {
 
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
 
-	m.Path("/allow-list").Methods("GET").Name(AdminAllowListOverview)
-	m.Path("/allow-list/add").Methods("POST").Name(AdminAllowListAdd)
-	m.Path("/allow-list/remove/confirm").Methods("GET").Name(AdminAllowListRemoveConfirm)
-	m.Path("/allow-list/remove").Methods("POST").Name(AdminAllowListRemove)
+	m.Path("/members").Methods("GET").Name(AdminAllowListOverview)
+	m.Path("/members/add").Methods("POST").Name(AdminAllowListAdd)
+	m.Path("/members/remove/confirm").Methods("GET").Name(AdminAllowListRemoveConfirm)
+	m.Path("/members/remove").Methods("POST").Name(AdminAllowListRemove)
 
 	return m
 }

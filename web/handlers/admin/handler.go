@@ -38,10 +38,10 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 		al: al,
 	}
 
-	mux.HandleFunc("/allow-list", r.HTML("/admin/allow-list.tmpl", ah.overview))
-	mux.HandleFunc("/allow-list/add", ah.add)
-	mux.HandleFunc("/allow-list/remove/confirm", r.HTML("/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
-	mux.HandleFunc("/allow-list/remove", ah.remove)
+	mux.HandleFunc("/members", r.HTML("/admin/allow-list.tmpl", ah.overview))
+	mux.HandleFunc("/members/add", ah.add)
+	mux.HandleFunc("/members/remove/confirm", r.HTML("/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
+	mux.HandleFunc("/members/remove", ah.remove)
 
 	return customStripPrefix("/admin", mux)
 }

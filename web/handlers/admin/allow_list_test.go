@@ -86,7 +86,7 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/allow-list", nil)
+	html, resp := ts.Client.GetHTML("/members", nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
@@ -102,7 +102,7 @@ func TestAllowList(t *testing.T) {
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/allow-list", nil)
+	html, resp = ts.Client.GetHTML("/members", nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
@@ -117,7 +117,7 @@ func TestAllowList(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/allow-list/remove/confirm?id=666", link)
+	a.Equal("/members/remove/confirm?id=666", link)
 }
 
 func TestAllowListRemoveConfirmation(t *testing.T) {
