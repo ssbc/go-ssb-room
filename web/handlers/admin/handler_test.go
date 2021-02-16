@@ -16,7 +16,7 @@ func TestDashoard(t *testing.T) {
 	url, err := ts.Router.Get(router.AdminDashboard).URL()
 	a.Nil(err)
 
-	html, resp := ts.Client.GetHTML(url.String(), nil)
+	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	assertLocalized(t, html, []localizedElement{
