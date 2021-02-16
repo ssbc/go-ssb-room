@@ -9,6 +9,7 @@ import (
 	"go.mindeco.de/http/render"
 	refs "go.mindeco.de/ssb-refs"
 
+	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
@@ -65,10 +66,11 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 		return nil, err
 	}
 
-	return struct {
-		Entries admindb.ListEntries
-		Count   int
-	}{lst, len(lst)}, nil
+	return map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(req),
+		"Entries":        lst,
+		"Count":          len(lst),
+	}, nil
 }
 
 // TODO: move to render package so that we can decide to not render a page during the controller
@@ -89,10 +91,10 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 		}
 		return nil, err
 	}
-
-	return struct {
-		Entry admindb.ListEntry
-	}{entry}, nil
+	return map[string]interface{}{
+		"Entry":          entry,
+		csrf.TemplateTag: csrf.TemplateField(req),
+	}, nil
 }
 
 func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {

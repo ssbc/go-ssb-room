@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -157,6 +158,20 @@ func New(
 		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
 	}
 
+	// Cross Site Request Forgery prevention middleware
+	csrfKey, err := web.LoadOrCreateCSRFSecret(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	CSRF := csrf.Protect(csrfKey,
+		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			err := csrf.FailureReason(req)
+			// TODO: localize error?
+			r.Error(w, req, http.StatusForbidden, err)
+		})),
+	)
+
 	// this router is a bit of a qurik
 	// TODO: explain problem between gorilla/mux named routers and authentication
 	mainMux := &http.ServeMux{}
@@ -181,9 +196,10 @@ func New(
 
 	mainMux.Handle("/", m)
 
+	// apply middleware
 	var finalHandler http.Handler = mainMux
-
 	finalHandler = logging.InjectHandler(logger)(finalHandler)
+	finalHandler = CSRF(finalHandler)
 
 	if web.Production {
 		return finalHandler, nil
