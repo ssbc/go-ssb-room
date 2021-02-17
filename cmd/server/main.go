@@ -233,13 +233,16 @@ func runroomsrv() error {
 		AllowedHosts: []string{httpsDomain},
 
 		// TLS stuff
-		SSLRedirect:       true,
-		SSLHost:           httpsDomain,
-		HostsProxyHeaders: []string{"X-Forwarded-Hosts"},
+		SSLRedirect: true,
+		SSLHost:     httpsDomain,
 
-		BrowserXssFilter:   true,
-		ContentTypeNosniff: true,
-		FrameDeny:          true,
+		// Important for reverse-proxy setups (when nginx or similar does the TLS termination)
+		SSLProxyHeaders:   map[string]string{"X-Forwarded-Proto": "https"},
+		HostsProxyHeaders: []string{"X-Forwarded-Host"},
+
+		BrowserXssFilter: true,
+		FrameDeny:        true,
+		//ContentTypeNosniff: true, // TODO: fix Content-Type headers served from assets
 	})
 
 	level.Info(log).Log(
