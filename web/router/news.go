@@ -17,7 +17,7 @@ func News(m *mux.Router) *mux.Router {
 	}
 
 	m.Path("/").Methods("GET").Name(NewsOverview)
-	m.Path("/post/{PostID:[0-9]+}").Methods("GET").Name(NewsPost)
+	m.Path("/post").Methods("GET").Name(NewsPost)
 
 	return m
 }

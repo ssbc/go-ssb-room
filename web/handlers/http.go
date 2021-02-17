@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -30,6 +31,7 @@ func New(
 	roomState *roomstate.Manager,
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
+	al admindb.AllowListService,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -56,11 +58,11 @@ func New(
 		render.FuncMap(web.TemplateFuncs(m)),
 		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
-			loc := localizerFromRequest(locHelper, r)
+			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizePlurals
 		}),
 		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
-			loc := localizerFromRequest(locHelper, r)
+			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
 		}),
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
@@ -104,12 +106,26 @@ func New(
 		},
 	}
 
+	// TODO: this is just the error handler for http/auth, not render
 	authErrH := func(rw http.ResponseWriter, req *http.Request, err error, code int) {
+		var ih = i18n.LocalizerFromRequest(locHelper, req)
+
+		// default, unlocalized message
 		msg := err.Error()
 
 		// localize some specific error messages
-		if err == auth.ErrBadLogin {
-			msg = localizerFromRequest(locHelper, req).LocalizeSimple("AuthErrorBadLogin")
+		var (
+			aa admindb.ErrAlreadyAdded
+		)
+		switch {
+		case err == auth.ErrBadLogin:
+			msg = ih.LocalizeSimple("AuthErrorBadLogin")
+
+		case errors.Is(err, admindb.ErrNotFound):
+			msg = ih.LocalizeSimple("ErrorNotFound")
+
+		case errors.As(err, &aa):
+			msg = ih.LocalizeSimple("ErrorAlreadyAdded")
 		}
 
 		r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -141,12 +157,16 @@ func New(
 		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
 	}
 
+	// this router is a bit of a qurik
+	// TODO: explain problem between gorilla/mux named routers and authentication
+	mainMux := &http.ServeMux{}
+
 	// hookup handlers to the router
 	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState))
-	m.PathPrefix("/admin").Handler(adminHandler)
+	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
+	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))
@@ -155,12 +175,15 @@ func New(
 
 	m.NotFoundHandler = r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		rw.WriteHeader(http.StatusNotFound)
-		return errorTemplateData{http.StatusNotFound, "Not Found", "the requested page wasnt found.."}, nil
+		msg := i18n.LocalizerFromRequest(locHelper, req).LocalizeSimple("PageNotFound")
+		return errorTemplateData{http.StatusNotFound, "Not Found", msg}, nil
 	})
 
-	var finalHandler http.Handler = m
+	mainMux.Handle("/", m)
 
-	finalHandler = logging.InjectHandler(logger)(m)
+	var finalHandler http.Handler = mainMux
+
+	finalHandler = logging.InjectHandler(logger)(finalHandler)
 
 	if web.Production {
 		return finalHandler, nil
@@ -187,10 +210,4 @@ func concatTemplates(lst ...[]string) []string {
 
 	}
 	return catted
-}
-
-func localizerFromRequest(helper *i18n.Helper, r *http.Request) *i18n.Localizer {
-	lang := r.FormValue("lang")
-	accept := r.Header.Get("Accept-Language")
-	return helper.NewLocalizer(lang, accept)
 }

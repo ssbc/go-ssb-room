@@ -17,6 +17,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+
 	"golang.org/x/sync/errgroup"
 
 	"github.com/go-kit/kit/log"
@@ -84,7 +86,7 @@ func newSession(t *testing.T, appKey []byte) *testSession {
 	return ts
 }
 
-func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
+func (ts *testSession) startGoServer(al admindb.AllowListService, opts ...roomsrv.Option) *roomsrv.Server {
 	r := require.New(ts.t)
 
 	// prepend defaults
@@ -105,7 +107,7 @@ func (ts *testSession) startGoServer(opts ...roomsrv.Option) *roomsrv.Server {
 		}),
 	)
 
-	srv, err := roomsrv.New(opts...)
+	srv, err := roomsrv.New(al, opts...)
 	r.NoError(err, "failed to init tees a server")
 	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {

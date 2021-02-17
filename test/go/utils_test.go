@@ -14,11 +14,14 @@ import (
 
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 
@@ -75,7 +78,13 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv
 		}),
 	)
 
-	theBot, err := roomsrv.New(botOptions...)
+	// could also use the mocks
+	db, err := sqlite.Open(repo.New(testPath))
+	r.NoError(err)
+	t.Cleanup(func() {
+		db.Close()
+	})
+	theBot, err := roomsrv.New(db.AllowList, botOptions...)
 	r.NoError(err)
 	return theBot
 }

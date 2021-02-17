@@ -4,7 +4,9 @@
 package models
 
 var TableNames = struct {
+	AllowList    string
 	AuthFallback string
 }{
+	AllowList:    "allow_list",
 	AuthFallback: "auth_fallback",
 }

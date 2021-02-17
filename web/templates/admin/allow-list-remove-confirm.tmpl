@@ -1,0 +1,13 @@
+{{ define "title" }}{{i18n "AdminAllowListRemoveConfirmTitle"}}{{ end }}
+{{ define "content" }}
+<h1 id="welcome">{{i18n "AdminAllowListRemoveConfirmWelcome"}}</h1>
+
+<pre id="verify">{{.Entry.PubKey.Ref}}</pre>
+
+
+<form id="confirm" action="{{urlTo "admin:allow-list:remove"}}" method="POST">
+  <input type="hidden" name="id" value={{.Entry.ID}}>
+  <input type="submit" value="{{i18n "Confirm"}}">
+</form>
+
+{{end}}

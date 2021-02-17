@@ -12,35 +12,34 @@ import (
 )
 
 func TestOverview(t *testing.T) {
-	setup(t)
-	defer teardown()
+	ts := newSession(t)
 	a := assert.New(t)
 	url, err := router.News(nil).Get(router.NewsOverview).URL()
 	a.Nil(err)
-	html, resp := testClient.GetHTML(url.String(), nil)
+	html, resp := ts.Client.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	// we dont test for the text values, just the i18n placeholders
 	a.Equal(html.Find("#welcome").Text(), "NewsWelcome")
 }
 
 func TestPost(t *testing.T) {
-	setup(t)
-	defer teardown()
+	ts := newSession(t)
 	a := assert.New(t)
-	url, err := router.News(nil).Get(router.NewsPost).URL("PostID", "1")
+	url, err := router.News(nil).Get(router.NewsPost).URL()
 	a.Nil(err)
-	html, resp := testClient.GetHTML(url.String(), nil)
+	url.RawQuery = "id=1"
+	html, resp := ts.Client.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	a.Equal(html.Find("h1").Text(), db[1].Name)
 }
 
 func TestURLTo(t *testing.T) {
-	setup(t)
-	defer teardown()
+	ts := newSession(t)
 	a := assert.New(t)
-	url, err := router.News(nil).Get(router.NewsPost).URL("PostID", "1")
+	url, err := router.News(nil).Get(router.NewsPost).URL()
 	a.Nil(err)
-	html, resp := testClient.GetHTML(url.String(), nil)
+	url.RawQuery = "id=1"
+	html, resp := ts.Client.GetHTML(url.String(), nil)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	a.Equal(html.Find("h1").Text(), db[1].Name)
 	lnk, ok := html.Find("#overview").Attr("href")
@@ -48,5 +47,5 @@ func TestURLTo(t *testing.T) {
 	a.Equal("/", lnk)
 	lnk, ok = html.Find("#next").Attr("href")
 	a.True(ok, "did not find href attribute")
-	a.Equal("/post/2", lnk)
+	a.Equal("/post?id=2", lnk)
 }

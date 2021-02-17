@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -56,7 +58,7 @@ type Server struct {
 	public maybemuxrpc.PluginManager
 	master maybemuxrpc.PluginManager
 
-	authorizer listAuthorizer
+	authorizer admindb.AllowListService
 
 	StateManager *roomstate.Manager
 }
@@ -65,8 +67,9 @@ func (s Server) Whoami() refs.FeedRef {
 	return s.keyPair.Feed
 }
 
-func New(opts ...Option) (*Server, error) {
+func New(allow admindb.AllowListService, opts ...Option) (*Server, error) {
 	var s Server
+	s.authorizer = allow
 
 	s.public = maybemuxrpc.NewPluginManager()
 	s.master = maybemuxrpc.NewPluginManager()

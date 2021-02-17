@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -141,4 +142,13 @@ func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tp
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
+}
+
+// LocalizerFromRequest returns a new Localizer for the passed helper,
+// using form value 'lang' and Accept-Language http header from the passed request.
+// TODO: user settings/cookie values?
+func LocalizerFromRequest(helper *Helper, r *http.Request) *Localizer {
+	lang := r.FormValue("lang")
+	accept := r.Header.Get("Accept-Language")
+	return helper.NewLocalizer(lang, accept)
 }

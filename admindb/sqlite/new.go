@@ -21,8 +21,8 @@ type Database struct {
 	AuthWithSSB  admindb.AuthWithSSBService
 	AuthFallback admindb.AuthFallbackService
 
-	Rooms   admindb.RoomService
-	Aliases admindb.AliasService
+	AllowList admindb.AllowListService
+	Aliases   admindb.AliasService
 }
 
 // Open looks for a database file 'fname'
@@ -58,7 +58,7 @@ func Open(r repo.Interface) (*Database, error) {
 		db:           db,
 		AuthWithSSB:  AuthWithSSB{db},
 		AuthFallback: AuthFallback{db},
-		Rooms:        Rooms{db},
+		AllowList:    AllowList{db},
 		Aliases:      Aliases{db},
 	}
 

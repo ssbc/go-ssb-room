@@ -3,7 +3,6 @@
 package web
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -11,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/gorilla/securecookie"
 
@@ -22,6 +24,7 @@ import (
 
 //go:generate go run -tags=dev embedded_generate.go
 
+// TemplateFuncs returns a map of template functions
 func TemplateFuncs(m *mux.Router) template.FuncMap {
 	return template.FuncMap{
 		"urlTo": NewURLTo(m),
@@ -29,12 +32,22 @@ func TemplateFuncs(m *mux.Router) template.FuncMap {
 	}
 }
 
+// NewURLTo returns a template helper function for a router.
+// It is usually called with one parameter, the route name, which should be defined in the router package.
+// If it's called with more then one, it has a to be a pair of two values. (1, 3, 5, 7, etc.)
+// The first value of such a pair is the placeholder name in the router (i.e. in '/our/routes/{id:[0-9]+}/test' it would be id )
+// and the 2nd value is the actual value that should be put in place of the placeholder.
 func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 	l := logging.Logger("helper.URLTo") // TOOD: inject in a scoped way
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)
 		if route == nil {
-			level.Warn(l).Log("msg", "no such route", "route", routeName, "params", ps)
+			level.Warn(l).Log("msg", "no such route", "route", routeName, "params", fmt.Sprintf("%v", ps))
+			return &url.URL{}
+		}
+
+		if len(ps)%2 != 0 {
+			level.Warn(l).Log("msg", "expected even number of params (name-value pairs)", "route", routeName, "params", fmt.Sprintf("%v", ps))
 			return &url.URL{}
 		}
 
@@ -47,14 +60,15 @@ func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 				params = append(params, strconv.Itoa(v))
 			case int64:
 				params = append(params, strconv.FormatInt(v, 10))
-
+			case refs.FeedRef:
+				params = append(params, v.Ref())
 			default:
-				level.Error(l).Log("msg", "invalid param type", "param", p, "route", routeName)
-				logging.CheckFatal(errors.New("invalid param"))
+				level.Error(l).Log("msg", "invalid param type", "param", fmt.Sprintf("%T", p), "route", routeName)
 			}
 		}
 
-		u, err := route.URLPath(params...)
+		// named vars in routes don't work because we cant use the mux.router with middleware correctly
+		u, err := route.URLPath()
 		if err != nil {
 			level.Error(l).Log("msg", "failed to create URL",
 				"route", routeName,
@@ -62,6 +76,16 @@ func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 				"error", err)
 			return &url.URL{}
 		}
+
+		urlVals := u.Query()
+		n := len(params)
+		for i := 0; i < n; i += 2 {
+			key, value := strings.ToLower(params[i]), params[i+1]
+			urlVals.Set(key, value)
+		}
+
+		u.RawQuery = urlVals.Encode()
+
 		return u
 	}
 }

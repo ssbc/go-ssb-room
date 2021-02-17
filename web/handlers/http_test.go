@@ -152,10 +152,11 @@ func TestFallbackAuth(t *testing.T) {
 	a.NotEqual("", theCookie, "should have a new cookie")
 	h.Set("Cookie", theCookie)
 	// t.Log(h)
-	// durl := dashboardURL.String()
-	durl := "http://localhost/admin"
-	// durl := "/admin"
+	durl := dashboardURL.String()
 	t.Log(durl)
+	// durl = "http://localhost/admin/dashboard"
+	// durl := "/admin"
+	// t.Log(durl)
 	html, resp := ts.Client.GetHTML(durl, &h)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
