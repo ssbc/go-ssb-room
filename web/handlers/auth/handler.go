@@ -24,7 +24,7 @@ func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
 		m = router.Auth(nil)
 	}
 
-	m.Get(router.AuthFallbackSignInForm).Handler(r.HTML("/auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+	m.Get(router.AuthFallbackSignInForm).Handler(r.HTML("templates/auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{
 			csrf.TemplateTag: csrf.TemplateField(req),
 		}, nil

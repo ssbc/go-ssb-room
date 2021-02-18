@@ -25,7 +25,7 @@ var HTMLTemplates = []string{
 func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowListService) http.Handler {
 	mux := &http.ServeMux{}
 
-	mux.HandleFunc("/dashboard", r.HTML("/admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	mux.HandleFunc("/dashboard", r.HTML("templates/admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		lst := roomState.List()
 		return struct {
 			Clients []string
@@ -38,9 +38,9 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 		al: al,
 	}
 
-	mux.HandleFunc("/members", r.HTML("/admin/allow-list.tmpl", ah.overview))
+	mux.HandleFunc("/members", r.HTML("templates/admin/allow-list.tmpl", ah.overview))
 	mux.HandleFunc("/members/add", ah.add)
-	mux.HandleFunc("/members/remove/confirm", r.HTML("/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
+	mux.HandleFunc("/members/remove/confirm", r.HTML("templates/admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/members/remove", ah.remove)
 
 	return customStripPrefix("/admin", mux)

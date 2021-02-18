@@ -61,7 +61,7 @@ func New(r repo.Interface) (*Helper, error) {
 	}
 
 	// walk the embedded defaults
-	err := fs.WalkDir(Defaults, "/defaults", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(Defaults, "defaults", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}

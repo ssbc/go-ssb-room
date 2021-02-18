@@ -200,8 +200,8 @@ func New(
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
 	mainMux.Handle("/admin/", adminHandler)
 
-	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
-	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))
+	m.Get(router.CompleteIndex).Handler(r.StaticHTML("templates/landing/index.tmpl"))
+	m.Get(router.CompleteAbout).Handler(r.StaticHTML("templates/landing/about.tmpl"))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.FS(web.Assets))))
 
