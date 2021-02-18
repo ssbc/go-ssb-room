@@ -47,3 +47,6 @@ exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79
 // Background: https://github.com/agl/ed25519/issues/27#issuecomment-591073699
 // The branch in use: https://github.com/cryptix/golang_x_crypto/tree/non-internal-edwards
 replace golang.org/x/crypto => github.com/cryptix/golang_x_crypto v0.0.0-20200924101112-886946aabeb8
+
+// https://github.com/rubenv/sql-migrate/pull/189
+replace github.com/rubenv/sql-migrate => github.com/cryptix/go-sql-migrate v0.0.0-20210218132118-3a09ec3cfca0

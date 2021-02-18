@@ -65,6 +65,8 @@ github.com/cryptix/go v1.3.2/go.mod h1:mFQotm9rTzptzvNjJM+1vSIDa/rVOVqMu0889GIXg
 github.com/cryptix/go v1.4.0/go.mod h1:bopBFzjGB7Oqrsvt7HaPZSOX1gJW7hgIb84XNhnOhOY=
 github.com/cryptix/go v1.5.0 h1:2+g9oKxiTc5ELGISY2E4Q4E7X8FwP3cXyKbb93EUaZY=
 github.com/cryptix/go v1.5.0/go.mod h1:bopBFzjGB7Oqrsvt7HaPZSOX1gJW7hgIb84XNhnOhOY=
+github.com/cryptix/go-sql-migrate v0.0.0-20210218132118-3a09ec3cfca0 h1:Zz6+8kcOrkemVC/7ZsYMkNYe/Yq6HYpEWL1VzEcZxBg=
+github.com/cryptix/go-sql-migrate v0.0.0-20210218132118-3a09ec3cfca0/go.mod h1:DCgfY80j8GYL7MLEfvcpSFvjD0L5yZq/aZUJmhZklyg=
 github.com/cryptix/golang_x_crypto v0.0.0-20200924101112-886946aabeb8 h1:eJ+NZ2KeNYBPYvshzkPxxKvaWM+h0CgpDyJw0aa6W1Y=
 github.com/cryptix/golang_x_crypto v0.0.0-20200924101112-886946aabeb8/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

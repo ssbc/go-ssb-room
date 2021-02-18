@@ -1,9 +1,17 @@
 package sqlite
 
-import migrate "github.com/rubenv/sql-migrate"
+import (
+	"embed"
 
-//go:generate go run -tags=dev migrations_generate.go
+	migrate "github.com/rubenv/sql-migrate"
+)
 
-var migrationSource = &migrate.HttpFileSystemMigrationSource{
-	FileSystem: Migrations,
+// migrations is an embedded filesystem containing the sqlite migration files
+//go:embed migrations/*
+var migrations embed.FS
+
+// needs https://github.com/rubenv/sql-migrate/pull/189 merged, using my branch until then
+var migrationSource = &migrate.EmbedFileSystemMigrationSource{
+	FileSystem: migrations,
+	Root:       "migrations",
 }
