@@ -62,3 +62,31 @@ func (r *DBFeedRef) Scan(src interface{}) error {
 func (r DBFeedRef) Value() (driver.Value, error) {
 	return driver.Value(r.Ref()), nil
 }
+
+// PinnedNoticeName holds a name of a well known part of the page with a fixed location.
+// These also double as the i18n labels.
+type PinnedNoticeName string
+
+// These are the well known names that the room page will display
+const (
+	NoticeDescription   PinnedNoticeName = "NoticeDescription"
+	NoticeNews          PinnedNoticeName = "NoticeNews"
+	NoticePrivacyPolicy PinnedNoticeName = "NoticePrivacyPolicy"
+	NoticeCodeOfConduct PinnedNoticeName = "NoticeCodeOfConduct"
+)
+
+// Valid returns true if the page name is well known.
+func (fpn PinnedNoticeName) Valid() bool {
+	return fpn == NoticeNews ||
+		fpn == NoticeDescription ||
+		fpn == NoticePrivacyPolicy ||
+		fpn == NoticeCodeOfConduct
+}
+
+// Notice holds the title and content of a page that is user generated
+type Notice struct {
+	ID       int64
+	Title    string
+	Content  string
+	Language string
+}

@@ -23,6 +23,9 @@ type Database struct {
 
 	AllowList admindb.AllowListService
 	Aliases   admindb.AliasService
+
+	PinnedNotices admindb.PinnedNoticesService
+	Notices       admindb.NoticesService
 }
 
 // Open looks for a database file 'fname'
@@ -55,11 +58,13 @@ func Open(r repo.Interface) (*Database, error) {
 	}
 
 	admindb := &Database{
-		db:           db,
-		AuthWithSSB:  AuthWithSSB{db},
-		AuthFallback: AuthFallback{db},
-		AllowList:    AllowList{db},
-		Aliases:      Aliases{db},
+		db:            db,
+		AuthWithSSB:   AuthWithSSB{db},
+		AuthFallback:  AuthFallback{db},
+		AllowList:     AllowList{db},
+		Aliases:       Aliases{db},
+		PinnedNotices: PinnedNotices{db},
+		Notices:       Notices{db},
 	}
 
 	return admindb, nil

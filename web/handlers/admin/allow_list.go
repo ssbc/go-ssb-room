@@ -151,7 +151,7 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
-		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
 		http.Redirect(rw, req, redirectTo, http.StatusFound)
 		return

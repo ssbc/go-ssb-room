@@ -47,6 +47,26 @@ type AllowListService interface {
 // AliasService manages alias handle registration and lookup
 type AliasService interface{}
 
+// PinnedNoticesService allows an admin to assign Notices to specific placeholder pages.
+// TODO: better name then _fixed_
+// like updates, privacy policy, code of conduct
+// TODO: enum these
+type PinnedNoticesService interface {
+	// Set assigns a fixed page name to an page ID and a language to allow for multiple translated versions of the same page.
+	Set(name PinnedNoticeName, id int64, lang string) error
+}
+
+type NoticesService interface {
+	// GetByID returns the page for that ID or an error
+	GetByID(context.Context, int64) (Notice, error)
+
+	// Save updates the passed page or creates it if it's ID is zero
+	Save(context.Context, *Notice) error
+
+	// RemoveID removes the page for that ID.
+	RemoveID(context.Context, int64) error
+}
+
 // for tests we use generated mocks from these interfaces created with https://github.com/maxbrunsfeld/counterfeiter
 
 //go:generate counterfeiter -o mockdb/auth.go . AuthWithSSBService
@@ -56,3 +76,7 @@ type AliasService interface{}
 //go:generate counterfeiter -o mockdb/allow.go . AllowListService
 
 //go:generate counterfeiter -o mockdb/alias.go . AliasService
+
+//go:generate counterfeiter -o mockdb/fixed_pages.go . PinnedNoticesService
+
+//go:generate counterfeiter -o mockdb/pages.go . NoticesService

@@ -1,4 +1,6 @@
 Confirm = "Confirm"
+Save = "Save"
+Preview = "Preview"
 PageNotFound = "The requested page was not found."
 
 LandingTitle = "ohai my room"
@@ -32,6 +34,8 @@ NavAdminDashboard = "Dashboard"
 description = "Number of members"
 one = "1 member"
 other =  "{{.Count}} members"
+
+NoticeEditTitle = "Edit Notice"
 
 [ListCount]
 description = "generic list"

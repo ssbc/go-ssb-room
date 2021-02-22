@@ -25,6 +25,13 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
+var HTMLTempaltes = []string{
+	"landing/index.tmpl",
+	"landing/about.tmpl",
+	"notice.tmpl",
+	"error.tmpl",
+}
+
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
 	logger logging.Interface,
@@ -33,6 +40,7 @@ func New(
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
 	al admindb.AllowListService,
+	ns admindb.NoticesService,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -47,11 +55,7 @@ func New(
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(concatTemplates(
-			[]string{
-				"landing/index.tmpl",
-				"landing/about.tmpl",
-				"error.tmpl",
-			},
+			HTMLTempaltes,
 			news.HTMLTemplates,
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
@@ -189,11 +193,15 @@ func New(
 	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
+	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns))
 	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
+
+	var nr noticeRenderer
+	nr.notices = ns
+	m.Get(router.CompleteNotice).Handler(r.HTML("notice.tmpl", nr.render))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 

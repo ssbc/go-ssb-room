@@ -217,6 +217,7 @@ func runroomsrv() error {
 		db.AuthWithSSB,
 		db.AuthFallback,
 		db.AllowList,
+		db.Notices,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
