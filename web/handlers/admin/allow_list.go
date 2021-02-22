@@ -65,6 +65,10 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 	if err != nil {
 		return nil, err
 	}
+	// Reverse the slice to provide recent-to-oldest results
+	for i, j := 0, len(lst)-1; i < j; i, j = i+1, j-1 {
+		lst[i], lst[j] = lst[j], lst[i]
+	}
 
 	return map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(req),
