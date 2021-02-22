@@ -8,31 +8,29 @@
   <link href="/assets/style.css" rel="stylesheet">
   <title>{{block "title" .}}Go-SSB Room Server{{end}}</title>
 </head>
-<body>
+<body class="bg-gray-100">
   {{block "extra" .}}{{end}}
 
-  <div>
-    {{$user := is_logged_in}}
-    {{if $user}}
-      <p>
-        Hello {{$user.Name}}!
-      </p>
-      <ul>
-        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
-        <li><a href="{{urlTo "admin:dashboard"}}">{{i18n "NavAdminDashboard"}}</a></li>
-        <li><a href="{{urlTo "admin:allow-list:overview"}}">{{i18n "AdminAllowListTitle"}}</a></li>
-        <li><a href="{{urlTo "auth:fallback:logout"}}">{{i18n "AuthSignOut"}}</a></li>
-      </ul>
-    {{else}}
-      <ul>
-        <li><a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a></li>
-        <li><a href="{{urlTo "auth:fallback:signin:form"}}">{{i18n "AuthSignIn"}}</a></li>
-      </ul>
-    {{end}}
-  </div>
+  <div class="sm:mx-auto sm:container">
+    <div class="flex flex-row justify-end space-x-4 my-4 pr-4">
+      {{$user := is_logged_in}}
+      {{if $user}}
+      <a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a>
+      <a href="{{urlTo "admin:dashboard"}}">{{i18n "NavAdminDashboard"}}</a>
+      <a href="{{urlTo "admin:allow-list:overview"}}">{{i18n "AdminAllowListTitle"}}</a>
+      <div class="inline">
+        ({{$user.Name}})
+        <a href="{{urlTo "auth:fallback:logout"}}">{{i18n "AuthSignOut"}}</a>
+      </div>
+      {{else}}
+      <a href="{{urlTo "news:overview"}}">{{i18n "NewsTitle"}}</a>
+      <a href="{{urlTo "auth:fallback:signin:form"}}">{{i18n "AuthSignIn"}}</a>
+      {{end}}
+    </div>
 
-  <div>
-    {{ block "content" . }}{{end}}
+    <div class="bg-gray-50 rounded-2xl p-4 shadow-xl mb-16">
+      {{ block "content" . }}{{end}}
+    </div>
   </div>
 </body>
 </html>
