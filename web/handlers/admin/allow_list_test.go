@@ -4,9 +4,13 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
@@ -73,6 +77,33 @@ func TestAllowListAdd(t *testing.T) {
 	a.Equal(1, ts.AllowListDB.AddCallCount())
 	_, added := ts.AllowListDB.AddArgsForCall(0)
 	a.Equal(newKey, added.Ref())
+}
+
+func TestAllowListDontAddInvalid(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+	r := require.New(t)
+
+	addURL, err := ts.Router.Get(router.AdminAllowListAdd).URL()
+	a.NoError(err)
+
+	newKey := "@some-garbage"
+	addVals := url.Values{
+		"pub_key": []string{newKey},
+	}
+	rec := ts.Client.PostForm(addURL.String(), addVals)
+	a.Equal(http.StatusBadRequest, rec.Code)
+
+	a.Equal(0, ts.AllowListDB.AddCallCount())
+
+	doc, err := goquery.NewDocumentFromReader(rec.Body)
+	r.NoError(err)
+
+	expErr := `bad request: feedRef: couldn't parse "@some-garbage"`
+	gotMsg := doc.Find("#errBody").Text()
+	if !a.True(strings.HasPrefix(gotMsg, expErr), "did not find errBody") {
+		t.Log(gotMsg)
+	}
 }
 
 func TestAllowList(t *testing.T) {
