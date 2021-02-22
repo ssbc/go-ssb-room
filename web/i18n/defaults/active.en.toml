@@ -13,6 +13,9 @@ AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
+GenericConfirm = "Yes"
+GenericGoBack = "Back"
+
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 
@@ -20,7 +23,7 @@ AdminAllowListTitle = "Members"
 AdminAllowListWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
 AdminAllowListAdd = "Add"
 AdminAllowListRemove = "Remove"
-AdminAllowListRemoveConfirmWelcome = "Just to verify that this is the member you want removed"
+AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 NavAdminDashboard = "Admin Dasboard"
