@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -78,9 +77,7 @@ func New(
 
 			uid, ok := v.(int64)
 			if !ok {
-				// TODO: hook up logging
-				fmt.Fprintf(os.Stderr, "warning: not the expected ID type: %T\n", v)
-				return no
+				panic(fmt.Sprintf("warning: not the expected ID type from authenticated session: %T\n", v))
 			}
 
 			user, err := fs.GetByID(r.Context(), uid)
