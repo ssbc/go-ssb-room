@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -44,34 +43,20 @@ func New(
 
 	var a *auth.Handler
 
-	embeddedFS := web.Templates
-
-	// f, err := embeddedFS.Open("templates/base.tmpl")
-	// if err != nil {
-	// 	etr, err := embeddedFS.ReadDir("templates")
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	for i, e := range etr {
-	// 		fmt.Println(i, e)
-	// 	}
-	// 	return nil, fmt.Errorf("couldn't open base: %w", err)
-	// }
-	// f.Close()
-
-	r, err := render.New(http.FS(embeddedFS),
+	r, err := render.New(web.Templates,
 		render.SetLogger(logger),
-		render.BaseTemplates("templates/base.tmpl"),
+		render.BaseTemplates("base.tmpl"),
 		render.AddTemplates(concatTemplates(
 			[]string{
-				"templates/landing/index.tmpl",
-				"templates/landing/about.tmpl",
-				"templates/error.tmpl",
+				"landing/index.tmpl",
+				"landing/about.tmpl",
+				"error.tmpl",
 			},
 			news.HTMLTemplates,
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
 		)...),
+		render.ErrorTemplate("error.tmpl"),
 		render.FuncMap(web.TemplateFuncs(m)),
 		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
@@ -92,9 +77,7 @@ func New(
 
 			uid, ok := v.(int64)
 			if !ok {
-				// TODO: hook up logging
-				fmt.Fprintf(os.Stderr, "warning: not the expected ID type: %T\n", v)
-				return no
+				panic(fmt.Sprintf("warning: not the expected ID type from authenticated session: %T\n", v))
 			}
 
 			user, err := fs.GetByID(r.Context(), uid)
@@ -145,7 +128,7 @@ func New(
 			msg = ih.LocalizeSimple("ErrorAlreadyAdded")
 		}
 
-		r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+		r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 			return errorTemplateData{
 				Err: msg,
 				// TODO: localize?
@@ -155,7 +138,7 @@ func New(
 		}).ServeHTTP(rw, req)
 	}
 
-	notAuthorizedH := r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	notAuthorizedH := r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		statusCode := http.StatusUnauthorized
 		rw.WriteHeader(statusCode)
 		return errorTemplateData{
@@ -200,12 +183,12 @@ func New(
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
 	mainMux.Handle("/admin/", adminHandler)
 
-	m.Get(router.CompleteIndex).Handler(r.StaticHTML("templates/landing/index.tmpl"))
-	m.Get(router.CompleteAbout).Handler(r.StaticHTML("templates/landing/about.tmpl"))
+	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
+	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
-	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.FS(web.Assets))))
+	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
-	m.NotFoundHandler = r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	m.NotFoundHandler = r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		rw.WriteHeader(http.StatusNotFound)
 		msg := i18n.LocalizerFromRequest(locHelper, req).LocalizeSimple("PageNotFound")
 		return errorTemplateData{http.StatusNotFound, "Not Found", msg}, nil

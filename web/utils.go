@@ -3,7 +3,6 @@
 package web
 
 import (
-	"embed"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -22,12 +21,6 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"go.mindeco.de/logging"
 )
-
-//go:embed templates/*
-var Templates embed.FS
-
-//go:embed assets/*
-var Assets embed.FS
 
 // TemplateFuncs returns a map of template functions
 func TemplateFuncs(m *mux.Router) template.FuncMap {

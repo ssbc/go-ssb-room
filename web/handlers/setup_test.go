@@ -87,7 +87,7 @@ func setup(t *testing.T) *testSession {
 // (at least all the globals before starting with nested plurals)
 // also replaces 'one' and 'other' in plurals
 func justTheKeys() []byte {
-	f, err := i18n.Defaults.Open("defaults/active.en.toml")
+	f, err := i18n.Defaults.Open("active.en.toml")
 	if err != nil {
 		panic(err)
 	}

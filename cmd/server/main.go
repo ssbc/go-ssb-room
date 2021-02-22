@@ -45,8 +45,6 @@ var (
 
 	httpsDomain string
 
-	development bool
-
 	listenAddrDebug string
 	logToFile       string
 	repoDir         string
@@ -96,7 +94,6 @@ func initFlags() {
 	flag.StringVar(&logToFile, "logs", "", "where to write debug output to (default is just stderr)")
 
 	flag.StringVar(&httpsDomain, "https-domain", "", "which domain to use for TLS and AllowedHosts checks")
-	flag.BoolVar(&development, "development", false, "enable development mode (disable security checks)")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
