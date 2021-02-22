@@ -55,7 +55,7 @@ func newSession(t *testing.T) *testSession {
 	}
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
 
-	r, err := render.New(http.FS(web.Templates),
+	r, err := render.New(web.Templates,
 		render.SetLogger(log),
 		render.BaseTemplates("templates/base.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "templates/error.tmpl")...),
