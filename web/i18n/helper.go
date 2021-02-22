@@ -4,7 +4,6 @@
 package i18n
 
 import (
-	"embed"
 	"fmt"
 	"io"
 	"io/fs"
@@ -20,10 +19,6 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
-
-// Defaults is an embedded filesystem containing translation defaults.
-//go:embed defaults/*
-var Defaults embed.FS
 
 type Helper struct {
 	bundle *i18n.Bundle
@@ -61,7 +56,7 @@ func New(r repo.Interface) (*Helper, error) {
 	}
 
 	// walk the embedded defaults
-	err := fs.WalkDir(Defaults, "defaults", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(Defaults, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
