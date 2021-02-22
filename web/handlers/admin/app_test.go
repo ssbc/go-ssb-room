@@ -59,6 +59,7 @@ func newSession(t *testing.T) *testSession {
 		render.SetLogger(log),
 		render.BaseTemplates("base.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "error.tmpl")...),
+		render.ErrorTemplate("error.tmpl"),
 		render.FuncMap(testFuncs),
 	)
 	if err != nil {

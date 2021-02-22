@@ -57,6 +57,7 @@ func New(
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
 		)...),
+		render.ErrorTemplate("error.tmpl"),
 		render.FuncMap(web.TemplateFuncs(m)),
 		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
