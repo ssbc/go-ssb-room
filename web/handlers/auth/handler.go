@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/log/level"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -23,7 +24,12 @@ func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
 		m = router.Auth(nil)
 	}
 
-	m.Get(router.AuthFallbackSignInForm).Handler(r.StaticHTML("/auth/fallback_sign_in.tmpl"))
+	m.Get(router.AuthFallbackSignInForm).Handler(r.HTML("/auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		return map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(req),
+		}, nil
+	}))
+
 	m.Get(router.AuthFallbackSignIn).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		logger := logging.FromContext(req.Context())
 		level.Info(logger).Log("event", "authorize request")

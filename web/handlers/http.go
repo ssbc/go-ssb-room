@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -102,7 +104,7 @@ func New(
 		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
-			MaxAge: 2 * 60 * 60, // two hours in seconds
+			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
 		},
 	}
 
@@ -152,10 +154,25 @@ func New(
 		auth.SetStore(store),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
+		auth.SetLifetime(2*time.Hour), // TODO: configure
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to init fallback auth system: %w", err)
 	}
+
+	// Cross Site Request Forgery prevention middleware
+	csrfKey, err := web.LoadOrCreateCSRFSecret(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	CSRF := csrf.Protect(csrfKey,
+		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			err := csrf.FailureReason(req)
+			// TODO: localize error?
+			r.Error(w, req, http.StatusForbidden, err)
+		})),
+	)
 
 	// this router is a bit of a qurik
 	// TODO: explain problem between gorilla/mux named routers and authentication
@@ -181,9 +198,10 @@ func New(
 
 	mainMux.Handle("/", m)
 
+	// apply middleware
 	var finalHandler http.Handler = mainMux
-
 	finalHandler = logging.InjectHandler(logger)(finalHandler)
+	finalHandler = CSRF(finalHandler)
 
 	if web.Production {
 		return finalHandler, nil

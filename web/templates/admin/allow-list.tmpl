@@ -15,6 +15,7 @@
     
     <h3>{{i18n "AdminAllowListAdd"}}</h3>
     <form id="add-entry" action="{{urlTo "admin:allow-list:add"}}" method="POST">
+      {{ .csrfField }}
       <input type="text" name="pub_key">
       <input type="submit" value="{{i18n "AdminAllowListAdd"}}">
     </form>

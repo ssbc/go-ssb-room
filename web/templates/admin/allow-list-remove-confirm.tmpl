@@ -6,6 +6,7 @@
 
 
 <form id="confirm" action="{{urlTo "admin:allow-list:remove"}}" method="POST">
+  {{ .csrfField }}
   <input type="hidden" name="id" value={{.Entry.ID}}>
   <input type="submit" value="{{i18n "Confirm"}}">
 </form>
