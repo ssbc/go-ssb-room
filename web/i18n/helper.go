@@ -4,8 +4,10 @@
 package i18n
 
 import (
+	"embed"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,13 +16,14 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/shurcooL/httpfs/vfsutil"
 	"golang.org/x/text/language"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
-//go:generate go run -tags=dev defaults_generate.go
+// Defaults is an embedded filesystem containing translation defaults.
+//go:embed defaults/*
+var Defaults embed.FS
 
 type Helper struct {
 	bundle *i18n.Bundle
@@ -32,7 +35,7 @@ func New(r repo.Interface) (*Helper, error) {
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
 	// parse toml files and add them to the bundle
-	walkFn := func(path string, info os.FileInfo, rs io.ReadSeeker, err error) error {
+	walkFn := func(path string, info os.FileInfo, rs io.Reader, err error) error {
 		if err != nil {
 			return err
 		}
@@ -58,8 +61,33 @@ func New(r repo.Interface) (*Helper, error) {
 	}
 
 	// walk the embedded defaults
-	err := vfsutil.WalkFiles(Defaults, "/", walkFn)
-	if err != nil { // && !os.IsNotExist(err) {
+	err := fs.WalkDir(Defaults, "defaults", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+
+		r, err := Defaults.Open(path)
+		if err != nil {
+			return err
+		}
+
+		err = walkFn(path, info, r, err)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, fmt.Errorf("i18n: failed to iterate localizations: %w", err)
 	}
 
@@ -73,13 +101,13 @@ func New(r repo.Interface) (*Helper, error) {
 			return nil
 		}
 
-		rs, err := os.Open(path)
+		r, err := os.Open(path)
 		if err != nil {
 			return err
 		}
-		defer rs.Close()
+		defer r.Close()
 
-		err = walkFn(path, info, rs, err)
+		err = walkFn(path, info, r, err)
 		if err != nil {
 			return err
 		}

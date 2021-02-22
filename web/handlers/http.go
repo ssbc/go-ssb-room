@@ -44,14 +44,29 @@ func New(
 
 	var a *auth.Handler
 
-	r, err := render.New(web.Templates,
+	embeddedFS := web.Templates
+
+	// f, err := embeddedFS.Open("templates/base.tmpl")
+	// if err != nil {
+	// 	etr, err := embeddedFS.ReadDir("templates")
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+	// 	for i, e := range etr {
+	// 		fmt.Println(i, e)
+	// 	}
+	// 	return nil, fmt.Errorf("couldn't open base: %w", err)
+	// }
+	// f.Close()
+
+	r, err := render.New(http.FS(embeddedFS),
 		render.SetLogger(logger),
-		render.BaseTemplates("/base.tmpl"),
+		render.BaseTemplates("templates/base.tmpl"),
 		render.AddTemplates(concatTemplates(
 			[]string{
-				"/landing/index.tmpl",
-				"/landing/about.tmpl",
-				"/error.tmpl",
+				"templates/landing/index.tmpl",
+				"templates/landing/about.tmpl",
+				"templates/error.tmpl",
 			},
 			news.HTMLTemplates,
 			roomsAuth.HTMLTemplates,
@@ -130,7 +145,7 @@ func New(
 			msg = ih.LocalizeSimple("ErrorAlreadyAdded")
 		}
 
-		r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+		r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 			return errorTemplateData{
 				Err: msg,
 				// TODO: localize?
@@ -140,7 +155,7 @@ func New(
 		}).ServeHTTP(rw, req)
 	}
 
-	notAuthorizedH := r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	notAuthorizedH := r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		statusCode := http.StatusUnauthorized
 		rw.WriteHeader(statusCode)
 		return errorTemplateData{
@@ -185,12 +200,12 @@ func New(
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
 	mainMux.Handle("/admin/", adminHandler)
 
-	m.Get(router.CompleteIndex).Handler(r.StaticHTML("/landing/index.tmpl"))
-	m.Get(router.CompleteAbout).Handler(r.StaticHTML("/landing/about.tmpl"))
+	m.Get(router.CompleteIndex).Handler(r.StaticHTML("templates/landing/index.tmpl"))
+	m.Get(router.CompleteAbout).Handler(r.StaticHTML("templates/landing/about.tmpl"))
 
-	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
+	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(http.FS(web.Assets))))
 
-	m.NotFoundHandler = r.HTML("/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	m.NotFoundHandler = r.HTML("templates/error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		rw.WriteHeader(http.StatusNotFound)
 		msg := i18n.LocalizerFromRequest(locHelper, req).LocalizeSimple("PageNotFound")
 		return errorTemplateData{http.StatusNotFound, "Not Found", msg}, nil

@@ -32,10 +32,10 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
 
 	log, _ := logtest.KitLogger("feed", t)
-	r, err := render.New(web.Templates,
+	r, err := render.New(http.FS(web.Templates),
 		render.SetLogger(log),
-		render.BaseTemplates("/base.tmpl"),
-		render.AddTemplates(append(HTMLTemplates, "/error.tmpl")...),
+		render.BaseTemplates("templates/base.tmpl"),
+		render.AddTemplates(append(HTMLTemplates, "templates/error.tmpl")...),
 		render.FuncMap(testFuncs),
 	)
 	if err != nil {

@@ -3,6 +3,7 @@
 package web
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -22,7 +23,11 @@ import (
 	"go.mindeco.de/logging"
 )
 
-//go:generate go run -tags=dev embedded_generate.go
+//go:embed templates/*
+var Templates embed.FS
+
+//go:embed assets/*
+var Assets embed.FS
 
 // TemplateFuncs returns a map of template functions
 func TemplateFuncs(m *mux.Router) template.FuncMap {
