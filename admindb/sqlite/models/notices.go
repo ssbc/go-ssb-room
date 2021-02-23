@@ -59,14 +59,14 @@ var NoticeWhere = struct {
 
 // NoticeRels is where relationship names are stored.
 var NoticeRels = struct {
-	PinnedNotice string
+	Pins string
 }{
-	PinnedNotice: "PinnedNotice",
+	Pins: "Pins",
 }
 
 // noticeR is where relationships are stored.
 type noticeR struct {
-	PinnedNotice *PinnedNotice `boil:"PinnedNotice" json:"PinnedNotice" toml:"PinnedNotice" yaml:"PinnedNotice"`
+	Pins PinSlice `boil:"Pins" json:"Pins" toml:"Pins" yaml:"Pins"`
 }
 
 // NewStruct creates a new relationship struct
@@ -359,23 +359,31 @@ func (q noticeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
-// PinnedNotice pointed to by the foreign key.
-func (o *Notice) PinnedNotice(mods ...qm.QueryMod) pinnedNoticeQuery {
-	queryMods := []qm.QueryMod{
-		qm.Where("\"notice_id\" = ?", o.ID),
+// Pins retrieves all the pin's Pins with an executor.
+func (o *Notice) Pins(mods ...qm.QueryMod) pinQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
 	}
 
-	queryMods = append(queryMods, mods...)
+	queryMods = append(queryMods,
+		qm.InnerJoin("\"pin_notices\" on \"pins\".\"id\" = \"pin_notices\".\"pin_id\""),
+		qm.Where("\"pin_notices\".\"notice_id\"=?", o.ID),
+	)
 
-	query := PinnedNotices(queryMods...)
-	queries.SetFrom(query.Query, "\"pinned_notices\"")
+	query := Pins(queryMods...)
+	queries.SetFrom(query.Query, "\"pins\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"pins\".*"})
+	}
 
 	return query
 }
 
-// LoadPinnedNotice allows an eager lookup of values, cached into the
-// loaded structs of the objects. This is for a 1-1 relationship.
-func (noticeL) LoadPinnedNotice(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNotice interface{}, mods queries.Applicator) error {
+// LoadPins allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (noticeL) LoadPins(ctx context.Context, e boil.ContextExecutor, singular bool, maybeNotice interface{}, mods queries.Applicator) error {
 	var slice []*Notice
 	var object *Notice
 
@@ -413,8 +421,10 @@ func (noticeL) LoadPinnedNotice(ctx context.Context, e boil.ContextExecutor, sin
 	}
 
 	query := NewQuery(
-		qm.From(`pinned_notices`),
-		qm.WhereIn(`pinned_notices.notice_id in ?`, args...),
+		qm.Select("\"pins\".id, \"pins\".name, \"a\".\"notice_id\""),
+		qm.From("\"pins\""),
+		qm.InnerJoin("\"pin_notices\" as \"a\" on \"pins\".\"id\" = \"a\".\"pin_id\""),
+		qm.WhereIn("\"a\".\"notice_id\" in ?", args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -422,50 +432,62 @@ func (noticeL) LoadPinnedNotice(ctx context.Context, e boil.ContextExecutor, sin
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load PinnedNotice")
+		return errors.Wrap(err, "failed to eager load pins")
 	}
 
-	var resultSlice []*PinnedNotice
-	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice PinnedNotice")
+	var resultSlice []*Pin
+
+	var localJoinCols []int64
+	for results.Next() {
+		one := new(Pin)
+		var localJoinCol int64
+
+		err = results.Scan(&one.ID, &one.Name, &localJoinCol)
+		if err != nil {
+			return errors.Wrap(err, "failed to scan eager loaded results for pins")
+		}
+		if err = results.Err(); err != nil {
+			return errors.Wrap(err, "failed to plebian-bind eager loaded slice pins")
+		}
+
+		resultSlice = append(resultSlice, one)
+		localJoinCols = append(localJoinCols, localJoinCol)
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for pinned_notices")
+		return errors.Wrap(err, "failed to close results in eager load on pins")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for pinned_notices")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for pins")
 	}
 
-	if len(noticeAfterSelectHooks) != 0 {
+	if len(pinAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
 			}
 		}
 	}
-
-	if len(resultSlice) == 0 {
+	if singular {
+		object.R.Pins = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &pinR{}
+			}
+			foreign.R.Notices = append(foreign.R.Notices, object)
+		}
 		return nil
 	}
 
-	if singular {
-		foreign := resultSlice[0]
-		object.R.PinnedNotice = foreign
-		if foreign.R == nil {
-			foreign.R = &pinnedNoticeR{}
-		}
-		foreign.R.Notice = object
-	}
-
-	for _, local := range slice {
-		for _, foreign := range resultSlice {
-			if local.ID == foreign.NoticeID {
-				local.R.PinnedNotice = foreign
+	for i, foreign := range resultSlice {
+		localJoinCol := localJoinCols[i]
+		for _, local := range slice {
+			if local.ID == localJoinCol {
+				local.R.Pins = append(local.R.Pins, foreign)
 				if foreign.R == nil {
-					foreign.R = &pinnedNoticeR{}
+					foreign.R = &pinR{}
 				}
-				foreign.R.Notice = local
+				foreign.R.Notices = append(foreign.R.Notices, local)
 				break
 			}
 		}
@@ -474,55 +496,144 @@ func (noticeL) LoadPinnedNotice(ctx context.Context, e boil.ContextExecutor, sin
 	return nil
 }
 
-// SetPinnedNotice of the notice to the related item.
-// Sets o.R.PinnedNotice to related.
-// Adds o to related.R.Notice.
-func (o *Notice) SetPinnedNotice(ctx context.Context, exec boil.ContextExecutor, insert bool, related *PinnedNotice) error {
+// AddPins adds the given related objects to the existing relationships
+// of the notice, optionally inserting them as new records.
+// Appends related to o.R.Pins.
+// Sets related.R.Notices appropriately.
+func (o *Notice) AddPins(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Pin) error {
 	var err error
-
-	if insert {
-		related.NoticeID = o.ID
-
-		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
-			return errors.Wrap(err, "failed to insert into foreign table")
+	for _, rel := range related {
+		if insert {
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
 		}
-	} else {
-		updateQuery := fmt.Sprintf(
-			"UPDATE \"pinned_notices\" SET %s WHERE %s",
-			strmangle.SetParamNames("\"", "\"", 0, []string{"notice_id"}),
-			strmangle.WhereClause("\"", "\"", 0, pinnedNoticePrimaryKeyColumns),
-		)
-		values := []interface{}{o.ID, related.Name, related.Language}
+	}
+
+	for _, rel := range related {
+		query := "insert into \"pin_notices\" (\"notice_id\", \"pin_id\") values (?, ?)"
+		values := []interface{}{o.ID, rel.ID}
 
 		if boil.IsDebug(ctx) {
 			writer := boil.DebugWriterFrom(ctx)
-			fmt.Fprintln(writer, updateQuery)
+			fmt.Fprintln(writer, query)
 			fmt.Fprintln(writer, values)
 		}
-		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
-			return errors.Wrap(err, "failed to update foreign table")
+		_, err = exec.ExecContext(ctx, query, values...)
+		if err != nil {
+			return errors.Wrap(err, "failed to insert into join table")
 		}
-
-		related.NoticeID = o.ID
-
 	}
-
 	if o.R == nil {
 		o.R = &noticeR{
-			PinnedNotice: related,
+			Pins: related,
 		}
 	} else {
-		o.R.PinnedNotice = related
+		o.R.Pins = append(o.R.Pins, related...)
 	}
 
-	if related.R == nil {
-		related.R = &pinnedNoticeR{
-			Notice: o,
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &pinR{
+				Notices: NoticeSlice{o},
+			}
+		} else {
+			rel.R.Notices = append(rel.R.Notices, o)
 		}
-	} else {
-		related.R.Notice = o
 	}
 	return nil
+}
+
+// SetPins removes all previously related items of the
+// notice replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Notices's Pins accordingly.
+// Replaces o.R.Pins with related.
+// Sets related.R.Notices's Pins accordingly.
+func (o *Notice) SetPins(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Pin) error {
+	query := "delete from \"pin_notices\" where \"notice_id\" = ?"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	removePinsFromNoticesSlice(o, related)
+	if o.R != nil {
+		o.R.Pins = nil
+	}
+	return o.AddPins(ctx, exec, insert, related...)
+}
+
+// RemovePins relationships from objects passed in.
+// Removes related items from R.Pins (uses pointer comparison, removal does not keep order)
+// Sets related.R.Notices.
+func (o *Notice) RemovePins(ctx context.Context, exec boil.ContextExecutor, related ...*Pin) error {
+	var err error
+	query := fmt.Sprintf(
+		"delete from \"pin_notices\" where \"notice_id\" = ? and \"pin_id\" in (%s)",
+		strmangle.Placeholders(dialect.UseIndexPlaceholders, len(related), 2, 1),
+	)
+	values := []interface{}{o.ID}
+	for _, rel := range related {
+		values = append(values, rel.ID)
+	}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err = exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+	removePinsFromNoticesSlice(o, related)
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Pins {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Pins)
+			if ln > 1 && i < ln-1 {
+				o.R.Pins[i] = o.R.Pins[ln-1]
+			}
+			o.R.Pins = o.R.Pins[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+func removePinsFromNoticesSlice(o *Notice, related []*Pin) {
+	for _, rel := range related {
+		if rel.R == nil {
+			continue
+		}
+		for i, ri := range rel.R.Notices {
+			if o.ID != ri.ID {
+				continue
+			}
+
+			ln := len(rel.R.Notices)
+			if ln > 1 && i < ln-1 {
+				rel.R.Notices[i] = rel.R.Notices[ln-1]
+			}
+			rel.R.Notices = rel.R.Notices[:ln-1]
+			break
+		}
+	}
 }
 
 // Notices retrieves all the records using an executor.

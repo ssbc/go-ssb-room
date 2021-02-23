@@ -1,0 +1,18 @@
+{{ define "title" }}{{i18n "NoticeList"}}{{ end }}
+{{ define "content" }}
+<div class="container mx-auto">
+  <h1 class="text-lg">{{i18n "NoticeList"}}</h1>
+  
+  <ul id="theList">
+  {{range .Entries}}
+  <li>
+     
+     <a href="{{urlTo "complete:notice:show" "id" .ID}}">
+      Title: {{.Title}}
+     </a>
+     
+  </li>
+  {{end}}
+  </ul>
+</div>
+{{end}}

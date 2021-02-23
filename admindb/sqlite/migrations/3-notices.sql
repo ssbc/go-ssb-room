@@ -1,4 +1,10 @@
 -- +migrate Up
+CREATE TABLE pins (
+  id integer NOT NULL PRIMARY KEY,
+  name text NOT NULL UNIQUE
+);
+
+
 CREATE TABLE notices (
   id   integer PRIMARY KEY AUTOINCREMENT NOT NULL,
   title text NOT NULL,
@@ -6,16 +12,23 @@ CREATE TABLE notices (
   language text NOT NULL
 );
 
-CREATE TABLE pinned_notices (
-  name text NOT NULL,
-  notice_id   integer NOT NULL UNIQUE,
-  language text NOT NULL,
-
-  PRIMARY KEY (name, language),
+-- n:m relation table
+CREATE TABLE pin_notices (
+  notice_id integer NOT NULL,
+  pin_id integer NOT NULL,
   
-  -- make sure the notices exist
-  FOREIGN KEY ( notice_id ) REFERENCES notices( "id" )
+  PRIMARY KEY (notice_id, pin_id),
+
+  FOREIGN KEY ( notice_id ) REFERENCES notices( "id" ),
+  FOREIGN KEY ( pin_id ) REFERENCES pins( "id" )
 );
+
+-- TODO: find a better way to insert the defaults
+INSERT INTO pins (name) VALUES
+('NoticeDescription'),
+('NoticeNews'),
+('NoticeCodeOfConduct'),
+('NoticePrivacyPolicy');
 
 INSERT INTO notices (title, content, language)  VALUES
 ('Description', 'Basic description of this Room.', 'en-GB'),
@@ -31,14 +44,15 @@ INSERT INTO notices (title, content, language)  VALUES
 ('Datenschutzrichtlinien', 'Bitte aktualisieren', 'de-DE'),
 ('Beschreibung', 'Allgemeine beschreibung des Raumes.', 'de-DE');
 
-INSERT INTO pinned_notices (name, notice_id, language) VALUES
-('NoticeDescription', 1, 'en-GB'),
-('NoticeNews', 2, 'en-GB'),
-('NoticeCodeOfConduct', 3, 'en-GB'),
-('NoticePrivacyPolicy', 4, 'en-GB'),
-('NoticePrivacyPolicy', 5, 'de-DE'),
-('NoticeDescription', 6, 'de-DE');
+INSERT INTO pin_notices (notice_id, pin_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 4),
+(6, 1);
 
 -- +migrate Down
 DROP TABLE notices;
-DROP TABLE pinned_notices;
+DROP TABLE pins;
+DROP TABLE pin_notices;

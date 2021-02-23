@@ -35,19 +35,17 @@ type FakeNoticesService struct {
 	removeIDReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SaveStub        func(context.Context, admindb.Notice) (int64, error)
+	SaveStub        func(context.Context, *admindb.Notice) error
 	saveMutex       sync.RWMutex
 	saveArgsForCall []struct {
 		arg1 context.Context
-		arg2 admindb.Notice
+		arg2 *admindb.Notice
 	}
 	saveReturns struct {
-		result1 int64
-		result2 error
+		result1 error
 	}
 	saveReturnsOnCall map[int]struct {
-		result1 int64
-		result2 error
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -180,12 +178,12 @@ func (fake *FakeNoticesService) RemoveIDReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeNoticesService) Save(arg1 context.Context, arg2 admindb.Notice) (int64, error) {
+func (fake *FakeNoticesService) Save(arg1 context.Context, arg2 *admindb.Notice) error {
 	fake.saveMutex.Lock()
 	ret, specificReturn := fake.saveReturnsOnCall[len(fake.saveArgsForCall)]
 	fake.saveArgsForCall = append(fake.saveArgsForCall, struct {
 		arg1 context.Context
-		arg2 admindb.Notice
+		arg2 *admindb.Notice
 	}{arg1, arg2})
 	stub := fake.SaveStub
 	fakeReturns := fake.saveReturns
@@ -195,9 +193,9 @@ func (fake *FakeNoticesService) Save(arg1 context.Context, arg2 admindb.Notice) 
 		return stub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
 func (fake *FakeNoticesService) SaveCallCount() int {
@@ -206,43 +204,40 @@ func (fake *FakeNoticesService) SaveCallCount() int {
 	return len(fake.saveArgsForCall)
 }
 
-func (fake *FakeNoticesService) SaveCalls(stub func(context.Context, admindb.Notice) (int64, error)) {
+func (fake *FakeNoticesService) SaveCalls(stub func(context.Context, *admindb.Notice) error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = stub
 }
 
-func (fake *FakeNoticesService) SaveArgsForCall(i int) (context.Context, admindb.Notice) {
+func (fake *FakeNoticesService) SaveArgsForCall(i int) (context.Context, *admindb.Notice) {
 	fake.saveMutex.RLock()
 	defer fake.saveMutex.RUnlock()
 	argsForCall := fake.saveArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeNoticesService) SaveReturns(result1 int64, result2 error) {
+func (fake *FakeNoticesService) SaveReturns(result1 error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
 	fake.saveReturns = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeNoticesService) SaveReturnsOnCall(i int, result1 int64, result2 error) {
+func (fake *FakeNoticesService) SaveReturnsOnCall(i int, result1 error) {
 	fake.saveMutex.Lock()
 	defer fake.saveMutex.Unlock()
 	fake.SaveStub = nil
 	if fake.saveReturnsOnCall == nil {
 		fake.saveReturnsOnCall = make(map[int]struct {
-			result1 int64
-			result2 error
+			result1 error
 		})
 	}
 	fake.saveReturnsOnCall[i] = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeNoticesService) Invocations() map[string][][]interface{} {

@@ -11,30 +11,43 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
-type noticeRenderer struct {
+type noticeHandler struct {
+	pinned  admindb.PinnedNoticesService
 	notices admindb.NoticesService
 }
 
-type noticeData struct {
+func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+
+	lst, err := h.pinned.List(req.Context())
+	if err != nil {
+		return nil, err
+	}
+
+	return struct {
+		Entries admindb.SortedPinnedNotices
+	}{lst.Sorted()}, nil
+}
+
+type noticeShowData struct {
 	ID              int64
 	Title, Language string
 	Content         template.HTML
 }
 
-func (pr noticeRenderer) render(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h noticeHandler) show(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	noticeID, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		return nil, errors.ErrBadRequest{Where: "notice ID", Details: err}
 	}
 
-	notice, err := pr.notices.GetByID(req.Context(), noticeID)
+	notice, err := h.notices.GetByID(req.Context(), noticeID)
 	if err != nil {
 		return nil, err
 	}
 
 	markdown := blackfriday.Run([]byte(notice.Content), blackfriday.WithNoExtensions())
 
-	return noticeData{
+	return noticeShowData{
 		ID:       noticeID,
 		Title:    notice.Title,
 		Content:  template.HTML(markdown),

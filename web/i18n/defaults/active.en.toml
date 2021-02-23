@@ -1,6 +1,8 @@
-Confirm = "Confirm"
-Save = "Save"
-Preview = "Preview"
+GenericConfirm = "Yes"
+GenericGoBack = "Back"
+GenericSave = "Save"
+GenericPreview = "Preview"
+
 PageNotFound = "The requested page was not found."
 
 LandingTitle = "ohai my room"
@@ -15,9 +17,6 @@ AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
-GenericConfirm = "Yes"
-GenericGoBack = "Back"
-
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 
@@ -30,12 +29,13 @@ AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 NavAdminDashboard = "Dashboard"
 
+NoticeEditTitle = "Edit Notice"
+NoticeList = "List of notices"
+
 [MemberCount]
 description = "Number of members"
 one = "1 member"
 other =  "{{.Count}} members"
-
-NoticeEditTitle = "Edit Notice"
 
 [ListCount]
 description = "generic list"

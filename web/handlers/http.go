@@ -28,7 +28,8 @@ import (
 var HTMLTempaltes = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
-	"notice.tmpl",
+	"notice/list.tmpl",
+	"notice/show.tmpl",
 	"error.tmpl",
 }
 
@@ -41,6 +42,7 @@ func New(
 	fs admindb.AuthFallbackService,
 	al admindb.AllowListService,
 	ns admindb.NoticesService,
+	ps admindb.PinnedNoticesService,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -199,9 +201,11 @@ func New(
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
-	var nr noticeRenderer
+	var nr noticeHandler
 	nr.notices = ns
-	m.Get(router.CompleteNotice).Handler(r.HTML("notice.tmpl", nr.render))
+	nr.pinned = ps
+	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nr.list))
+	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nr.show))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 

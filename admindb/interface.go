@@ -48,14 +48,19 @@ type AllowListService interface {
 type AliasService interface{}
 
 // PinnedNoticesService allows an admin to assign Notices to specific placeholder pages.
-// TODO: better name then _fixed_
 // like updates, privacy policy, code of conduct
-// TODO: enum these
 type PinnedNoticesService interface {
+	// List returns a list of all the pinned notices with their corrosponding notices and languges
+	List(context.Context) (PinnedNotices, error)
+
 	// Set assigns a fixed page name to an page ID and a language to allow for multiple translated versions of the same page.
-	Set(name PinnedNoticeName, id int64, lang string) error
+	Set(ctx context.Context, name PinnedNoticeName, id int64) error
+
+	// Get returns a single notice for a name and a language
+	Get(ctx context.Context, name PinnedNoticeName, language string) (*Notice, error)
 }
 
+// NoticesService is the low level store to manage single notices
 type NoticesService interface {
 	// GetByID returns the page for that ID or an error
 	GetByID(context.Context, int64) (Notice, error)
