@@ -1,18 +1,29 @@
 {{ define "title" }}{{i18n "AuthFallbackTitle"}}{{ end }}
 {{ define "content" }}
-<div id="page-header">
-  <h1 id="welcome" class="text-lg">{{i18n "AuthFallbackWelcome"}}</h1>
-</div>
-<div class="">
-  <form method="POST" action={{urlTo "auth:fallback:signin"}} class="flex flex-row items-end">
-    {{ .csrfField }}
-    <div class="w-96 grid grid-cols-2 gap-x-4 gap-y-1 mr-4">
-      <label>Username</label>
-      <label>Password</label>
-      <input class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent" type="text" name="user">
-      <input class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent" type="password" name="pass">
-    </div>
-    <button type="submit" class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50">Enter</button>
-  </form>
-</div> <!-- /row -->
+      <div id="page-header">
+        <h1 id="welcome" class="text-lg">{{i18n "AuthFallbackWelcome"}}</h1>
+      </div>
+      <div>
+        <form method="POST" action={{urlTo "auth:fallback:signin" }} class="flex flex-row items-end">
+          {{ .csrfField }}
+          <div class="w-96 grid grid-cols-2 gap-x-4 gap-y-1 mr-4">
+            <label>Username</label>
+            <label>Password</label>
+            <input
+              type="text"
+              name="user"
+              class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+            >
+            <input
+              type="password"
+              name="pass"
+              class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
+            >
+          </div>
+          <button
+            type="submit"
+            class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+          >Enter</button>
+        </form>
+      </div>
 {{end}}
