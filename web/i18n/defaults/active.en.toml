@@ -26,7 +26,7 @@ AdminAllowListRemove = "Remove"
 AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
-NavAdminDashboard = "Admin Dasboard"
+NavAdminDashboard = "Dashboard"
 
 [MemberCount]
 description = "Number of members"
