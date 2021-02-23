@@ -31,7 +31,7 @@ func TestAllowListEmpty(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "ListCountPlural"},
+		{"#allowListCount", "MemberCountPlural"},
 	})
 }
 
@@ -123,10 +123,10 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "ListCountPlural"},
+		{"#allowListCount", "MemberCountPlural"},
 	})
 
-	a.EqualValues(html.Find("#theList").Children().Length(), 3)
+	a.EqualValues(html.Find("#theList li").Length(), 3)
 
 	lst = admindb.ListEntries{
 		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
@@ -139,10 +139,10 @@ func TestAllowList(t *testing.T) {
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "ListCountSingular"},
+		{"#allowListCount", "MemberCountSingular"},
 	})
 
-	elems := html.Find("#theList").Children()
+	elems := html.Find("#theList li")
 	a.EqualValues(elems.Length(), 1)
 
 	// check for link to remove confirm link
