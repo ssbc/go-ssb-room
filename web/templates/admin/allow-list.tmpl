@@ -1,23 +1,48 @@
 {{ define "title" }}{{i18n "AdminAllowListTitle"}}{{ end }}
 {{ define "content" }}
-<div class="page-header">
-  <h1 id="welcome">{{i18n "AdminAllowListWelcome"}}</h1>
-</div>
-<div class="row">
-    <div class="col-md-12">
-    <p id="allowListCount">{{i18npl "ListCount" .Count}}</p>
-    <ul id="theList">
-    {{range .Entries}}
-      <li>{{.PubKey.Ref}} (<a href="{{urlTo "admin:allow-list:remove:confirm" "id" .ID}}">Remove</a>) </li>
-    {{end}}
-    </ul>
-    </div>
-    
-    <h3>{{i18n "AdminAllowListAdd"}}</h3>
-    <form id="add-entry" action="{{urlTo "admin:allow-list:add"}}" method="POST">
-      {{ .csrfField }}
-      <input type="text" name="pub_key">
-      <input type="submit" value="{{i18n "AdminAllowListAdd"}}">
-    </form>
-</div> <!-- /row -->
+      <h1
+        class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
+      >{{i18n "AdminAllowListTitle"}}</h1>
+
+      <p id="welcome" class="my-4">{{i18n "AdminAllowListWelcome"}}</p>
+
+      <p
+        id="allowListCount"
+        class="text-lg font-bold my-2"
+      >{{i18npl "MemberCount" .Count}}</p>
+
+      <ul id="theList" class="divide-y pb-4">
+        <form
+          id="add-entry"
+          action="{{urlTo "admin:allow-list:add"}}"
+          method="POST"
+        >
+          {{ .csrfField }}
+          <div class="flex flex-row items-center h-12">
+            <input
+              type="text"
+              name="pub_key"
+              placeholder="@                                            .ed25519"
+              class="font-mono truncate flex-auto tracking-wider h-12 text-black focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+            >
+            <input
+              type="submit"
+              value="{{i18n "AdminAllowListAdd"}}"
+              class="pl-4 w-20 py-2 text-center text-green-500 hover:text-green-600 font-bold bg-transparent cursor-pointer"
+            >
+          </div>
+        </form>
+        {{range .Entries}}
+        <li class="flex flex-row items-center h-12">
+          <span
+            class="font-mono truncate flex-auto text-gray-600 tracking-wider"
+          >{{.PubKey.Ref}}</span>
+
+          <a
+            href="{{urlTo "admin:allow-list:remove:confirm" "id" .ID}}"
+            class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+          >{{i18n "AdminAllowListRemove"}}</a>
+        </li>
+        {{end}}
+      </ul>
 {{end}}

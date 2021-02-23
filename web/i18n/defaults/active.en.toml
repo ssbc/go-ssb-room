@@ -13,17 +13,25 @@ AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
+GenericConfirm = "Yes"
+GenericGoBack = "Back"
+
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 
-AdminAllowListTitle = "List of room members"
-AdminAllowListWelcome = "Here you can see all the members of the room and ways to add new ones or remove exising ones."
-AdminAllowListAdd = "Add member"
-AdminAllowListRemoveConfirmWelcome = "Just to verify that this is the member you want removed"
+AdminAllowListTitle = "Members"
+AdminAllowListWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
+AdminAllowListAdd = "Add"
+AdminAllowListRemove = "Remove"
+AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 NavAdminDashboard = "Admin Dasboard"
 
+[MemberCount]
+description = "Number of members"
+one = "1 member"
+other =  "{{.Count}} members"
 
 [ListCount]
 description = "generic list"

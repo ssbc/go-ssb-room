@@ -1,14 +1,31 @@
 {{ define "title" }}{{i18n "AdminAllowListRemoveConfirmTitle"}}{{ end }}
 {{ define "content" }}
-<h1 id="welcome">{{i18n "AdminAllowListRemoveConfirmWelcome"}}</h1>
+    <div class="flex flex-col justify-center items-center h-64">
 
-<pre id="verify">{{.Entry.PubKey.Ref}}</pre>
+      <span
+        id="welcome"
+        class="text-center"
+      >{{i18n "AdminAllowListRemoveConfirmWelcome"}}</span>
 
+      <pre
+        id="verify"
+        class="my-4 font-mono truncate max-w-full text-lg text-gray-700"
+      >{{.Entry.PubKey.Ref}}</pre>
 
-<form id="confirm" action="{{urlTo "admin:allow-list:remove"}}" method="POST">
-  {{ .csrfField }}
-  <input type="hidden" name="id" value={{.Entry.ID}}>
-  <input type="submit" value="{{i18n "Confirm"}}">
-</form>
+      <form id="confirm" action="{{urlTo "admin:allow-list:remove"}}" method="POST">
+        {{ .csrfField }}
+        <input type="hidden" name="id" value={{.Entry.ID}}>
+        <div class="grid grid-cols-2 gap-4">
+          <a
+            href="javascript:history.back()"
+            class="px-4 h-8 shadow rounded flex flex-row justify-center items-center bg-white align-middle text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50"
+          >{{i18n "GenericGoBack"}}</a>
 
+          <button
+            type="submit"
+            class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+          >{{i18n "GenericConfirm"}}</button>
+        </div>
+      </form>
+    </div>
 {{end}}
