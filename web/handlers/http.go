@@ -45,7 +45,7 @@ func New(
 
 	r, err := render.New(web.Templates,
 		render.SetLogger(logger),
-		render.BaseTemplates("base.tmpl"),
+		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(concatTemplates(
 			[]string{
 				"landing/index.tmpl",

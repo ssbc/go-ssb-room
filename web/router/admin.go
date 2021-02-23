@@ -7,6 +7,7 @@ import "github.com/gorilla/mux"
 // constant names for the named routes
 const (
 	AdminDashboard = "admin:dashboard"
+	AdminMenu      = "admin:menu"
 
 	AdminAllowListOverview      = "admin:allow-list:overview"
 	AdminAllowListAdd           = "admin:allow-list:add"
@@ -21,6 +22,7 @@ func Admin(m *mux.Router) *mux.Router {
 	}
 
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
+	m.Path("/menu").Methods("GET").Name(AdminMenu)
 
 	m.Path("/members").Methods("GET").Name(AdminAllowListOverview)
 	m.Path("/members/add").Methods("POST").Name(AdminAllowListAdd)
