@@ -30,6 +30,9 @@ func newSession(t *testing.T) *testSession {
 	testFuncs := web.TemplateFuncs(ts.Router)
 	testFuncs["i18n"] = func(msgID string) string { return msgID }
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
+	testFuncs["current_page_is"] = func(routeName string) bool {
+		return true
+	}
 
 	log, _ := logtest.KitLogger("feed", t)
 	r, err := render.New(web.Templates,

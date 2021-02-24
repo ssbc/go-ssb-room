@@ -67,6 +67,15 @@ func New(
 			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
 		}),
+		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
+			return func(routeName string) bool {
+				url, err := router.CompleteApp().Get(routeName).URLPath()
+				if err != nil {
+					return false
+				}
+				return r.RequestURI == url.Path
+			}
+		}),
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
 			no := func() *admindb.User { return nil }
 

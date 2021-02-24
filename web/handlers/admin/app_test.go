@@ -53,6 +53,9 @@ func newSession(t *testing.T) *testSession {
 		}
 		return msgID + "Plural"
 	}
+	testFuncs["current_page_is"] = func(routeName string) bool {
+		return true
+	}
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
 
 	r, err := render.New(web.Templates,
