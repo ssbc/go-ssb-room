@@ -16,6 +16,7 @@ import (
 
 var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
+	"admin/menu.tmpl",
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
 }
@@ -31,6 +32,9 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 			Clients []string
 			Count   int
 		}{lst, len(lst)}, nil
+	}))
+	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		return map[string]interface{}{}, nil
 	}))
 
 	var ah = allowListH{
