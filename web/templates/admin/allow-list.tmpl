@@ -23,7 +23,7 @@
               type="text"
               name="pub_key"
               placeholder="@                                            .ed25519"
-              class="font-mono truncate flex-auto tracking-wider h-12 text-black focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+              class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
             >
             <input
               type="submit"
@@ -45,4 +45,45 @@
         </li>
         {{end}}
       </ul>
+
+      {{$pageNums := .Paginator.PageNums}}
+      {{$view := .View}}
+      {{if gt $pageNums 1}}
+      <div class="flex flex-row justify-center">
+        {{if not .FirstInView}}
+          <a
+            href="{{urlTo "admin:allow-list:overview"}}?page=1"
+            class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+          >1</a>
+          <span
+            class="px-3 py-2 text-gray-400 border-2 border-transparent"
+          >..</span>
+        {{end}}
+
+        {{range $view.Pages}}
+          {{if le . $pageNums}}
+            {{if eq . $view.Current}}
+              <span
+                class="px-3 py-2 cursor-default text-gray-500 border-2 border-transparent"
+              >{{.}}</span>
+            {{else}}
+              <a
+                href="{{urlTo "admin:allow-list:overview"}}?page={{.}}"
+                class="rounded px-3 py-2 mx-1 text-pink-600 border-transparent hover:border-pink-400 border-2"
+              >{{.}}</a>
+            {{end}}
+          {{end}}
+        {{end}}
+
+        {{if not .LastInView}}
+          <span
+            class="px-3 py-2 text-gray-400 border-2 border-transparent"
+          >..</span>
+          <a
+            href="{{urlTo "admin:allow-list:overview"}}?page={{$view.Last}}"
+            class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+          >{{$view.Last}}</a>
+        {{end}}
+      </div>
+      {{end}}
 {{end}}
