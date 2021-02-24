@@ -90,20 +90,20 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 
 	var entries admindb.ListEntries
 	if err = paginator.Results(&entries); err != nil {
-		panic(err)
+		return nil, fmt.Errorf("paginator failed with %w", err)
 	}
 
 	view := view.New(paginator)
 	pagesSlice, err := view.Pages()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("paginator view.Pages failed with %w", err)
 	}
 	if len(pagesSlice) == 0 {
 		pagesSlice = []int{1}
 	}
 	last, err := view.Last()
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("paginator view.Last failed with %w", err)
 	}
 	firstInView := pagesSlice[0] == 1
 	lastInView := false
