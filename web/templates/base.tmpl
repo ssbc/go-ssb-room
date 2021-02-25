@@ -72,6 +72,19 @@
       </div>
     </div>
     {{end}}
+
+    {{block "footer" .}}
+    {{$cocUrl := urlToNotice "NoticeCodeOfConduct"}}
+    {{$ppUrl := urlToNotice "NoticePrivacyPolicy"}}
+    <footer>
+      {{if $cocUrl}}
+      <a href="{{$cocUrl}}">{{i18n "NoticeCodeOfConduct"}}</a>
+      {{end}}
+      {{if $ppUrl}}
+      <a href="{{$ppUrl}}">{{i18n "NoticePrivacyPolicy"}}</a>
+      {{end}}
+    </footer>
+    {{end}}
   </div>
 </body>
 </html>

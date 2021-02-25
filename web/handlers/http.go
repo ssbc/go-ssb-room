@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/csrf"
@@ -78,6 +80,31 @@ func New(
 					return false
 				}
 				return r.RequestURI == url.Path
+			}
+		}),
+		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
+			return func(name string) *url.URL {
+				noticeName := admindb.PinnedNoticeName(name)
+				if !noticeName.Valid() {
+					return nil
+				}
+				notice, err := ps.Get(r.Context(), noticeName, "en-GB")
+				if err != nil {
+					return nil
+				}
+				route := router.CompleteApp().GetRoute(router.CompleteNoticeShow)
+				if route == nil {
+					return nil
+				}
+				u, err := route.URLPath()
+				if err != nil {
+					return nil
+				}
+				noticeID := strconv.FormatInt(notice.ID, 10)
+				q := u.Query()
+				q.Add("id", noticeID)
+				u.RawQuery = q.Encode()
+				return u
 			}
 		}),
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
