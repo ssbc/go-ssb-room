@@ -1,8 +1,8 @@
-{{ define "title" }}{{i18n "LandingTitle"}}{{ end }}
+{{ define "title" }}{{.Title}}{{ end }}
 {{ define "content" }}
-<div class="container mx-auto">
-  <h1>{{i18n "LandingWelcome"}}</h1>
+  <h1
+    class="text-3xl self-start rounded-full py-4 px-6 tracking-tight font-black text-white mt-2 mb-4 bg-gradient-to-r from-pink-400 to-red-400"
+  >{{.Title}}</h1>
 
   {{.Content}}
-</div>
 {{end}}
