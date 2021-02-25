@@ -63,19 +63,6 @@ func TestNotFound(t *testing.T) {
 	a.Equal("Error #404 - Not Found", found)
 }
 
-func TestNewsRegisterd(t *testing.T) {
-	ts := setup(t)
-
-	a := assert.New(t)
-
-	html, resp := ts.Client.GetHTML("/news/")
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	assertLocalized(t, html, []localizedElement{
-		{"#welcome", "NewsWelcome"},
-		{"title", "NewsTitle"},
-	})
-}
-
 func TestRestricted(t *testing.T) {
 	ts := setup(t)
 

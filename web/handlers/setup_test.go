@@ -33,6 +33,8 @@ type testSession struct {
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
 	AllowListDB    *mockdb.FakeAllowListService
+	PinnedDB       *mockdb.FakePinnedNoticesService
+	NoticeDB       *mockdb.FakeNoticesService
 
 	RoomState *roomstate.Manager
 }
@@ -56,6 +58,8 @@ func setup(t *testing.T) *testSession {
 	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
+	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
+	ts.NoticeDB = new(mockdb.FakeNoticesService)
 
 	log, _ := logtest.KitLogger("complete", t)
 	ctx := context.TODO()
@@ -70,6 +74,8 @@ func setup(t *testing.T) *testSession {
 		ts.AuthDB,
 		ts.AuthFallbackDB,
 		ts.AllowListDB,
+		ts.NoticeDB,
+		ts.PinnedDB,
 	)
 	if err != nil {
 		t.Fatal("setup: handler init failed:", err)

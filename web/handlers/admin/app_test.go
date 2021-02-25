@@ -26,6 +26,8 @@ type testSession struct {
 	Router *mux.Router
 
 	AllowListDB *mockdb.FakeAllowListService
+	PinnedDB    *mockdb.FakePinnedNoticesService
+	NoticeDB    *mockdb.FakeNoticesService
 
 	RoomState *roomstate.Manager
 }
@@ -35,6 +37,8 @@ func newSession(t *testing.T) *testSession {
 
 	// fake dbs
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
+	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
+	ts.NoticeDB = new(mockdb.FakeNoticesService)
 
 	log, _ := logtest.KitLogger("admin", t)
 	ctx := context.TODO()
@@ -70,7 +74,7 @@ func newSession(t *testing.T) *testSession {
 	}
 
 	ts.Mux = http.NewServeMux()
-	ts.Mux.Handle("/", Handler(r, ts.RoomState, ts.AllowListDB))
+	ts.Mux.Handle("/", Handler(r, ts.RoomState, ts.AllowListDB, ts.NoticeDB, ts.PinnedDB))
 	ts.Client = tester.New(ts.Mux, t)
 
 	return &ts
