@@ -25,7 +25,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
-var HTMLTempaltes = []string{
+var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
 	"notice/list.tmpl",
@@ -57,7 +57,7 @@ func New(
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(concatTemplates(
-			HTMLTempaltes,
+			HTMLTemplates,
 			news.HTMLTemplates,
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
