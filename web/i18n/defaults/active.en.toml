@@ -28,8 +28,9 @@ NavAdminDashboard = "Dashboard"
 NavAdminNotices = "Notices"
 
 NoticeEditTitle = "Edit Notice"
-NoticeList = "List of notices"
-NoticeAddTranslation = "Add translation"
+NoticeList = "Notices"
+NoticeListWelcome = "Here you can manage the contents of the landing page and other important documents such as code of conduct and privacy policy."
+NoticeAddTranslation = "Add"
 
 NoticeCodeOfConduct = "Code of Conduct"
 NoticeNews = "News"

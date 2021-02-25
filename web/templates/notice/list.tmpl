@@ -1,23 +1,30 @@
 {{ define "title" }}{{i18n "NoticeList"}}{{ end }}
 {{ define "content" }}
 <div class="container mx-auto">
-  <h1 class="text-lg">{{i18n "NoticeList"}}</h1>
+  <h1
+    class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
+  >{{i18n "NoticeList"}}</h1>
+
+  <p id="welcome" class="my-2">{{i18n "NoticeListWelcome"}}</p>
 
   {{range .AllNotices}}
-    <h3>{{i18n .Name.String }}</h3>
+    <div class="my-4">
+      <h3 class="text-xl text-black">{{i18n .Name.String}}</h3>
 
-    {{range .Notices}}
-      (<a 
-        href="{{urlTo "complete:notice:show" "id" .ID}}"
-      >{{.Language}}</a>)
-    {{end}}
+      {{range .Notices}}
+        <a
+          href="{{urlTo "complete:notice:show" "id" .ID}}"
+          class="inline-block rounded-full py-1 px-3 text-sm font-bold text-white my-2 bg-blue-500 hover:bg-blue-700"
+        >{{.Language}}</a>
+      {{end}}
 
-    {{if is_logged_in}}
-      (<a 
-        href="{{urlTo "admin:notice:translation:draft" "name" .Name.String}}"
-      >{{i18n "NoticeAddTranslation"}}</a>)
-    {{end}}
-
+      {{if is_logged_in}}
+        <a
+          href="{{urlTo "admin:notice:translation:draft" "name" .Name.String}}"
+          class="inline-block rounded-full py-1 px-3 text-sm text-gray-500 font-bold border-2 border-dashed box-content border-gray-200 hover:border-transparent hover:bg-white hover:shadow"
+        >{{i18n "NoticeAddTranslation"}}</a>
+      {{end}}
+    </div>
   {{end}}
 </div>
 {{end}}
