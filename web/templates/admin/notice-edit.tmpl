@@ -41,13 +41,14 @@
         cols="20"
         class="resize border rounded-md"
       >{{.Notice.Content}}</textarea>
-      <p class="text-red-100">TODO: make me a dropdown</p>
+      <br>
       <label>Language</label>
       <input
         type="text"
         name="language"
         value="{{if not .PinnedName}}{{.Notice.Language}}{{end}}"
         class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent">
+      <p class="text-red-100">TODO: make languages a dropdown</p>
     </div>
     <button
       type="submit"
@@ -55,6 +56,8 @@
     >{{i18n "GenericSave"}}</button>
   </form>
 </div> 
+
+{{if not .PinnedName}}
 <div>
   <h1>{{i18n "GenericPreview"}}</h1>
   {{.ContentPreview}}
@@ -71,5 +74,6 @@
   <pre>{{.DebugHex}}</pre>
 </div>
 -->
+{{end}}
 
 {{end}}
