@@ -68,6 +68,10 @@ func (r DBFeedRef) Value() (driver.Value, error) {
 // These also double as the i18n labels.
 type PinnedNoticeName string
 
+func (n PinnedNoticeName) String() string {
+	return string(n)
+}
+
 // These are the well known names that the room page will display
 const (
 	NoticeDescription   PinnedNoticeName = "NoticeDescription"
@@ -77,11 +81,11 @@ const (
 )
 
 // Valid returns true if the page name is well known.
-func (fpn PinnedNoticeName) Valid() bool {
-	return fpn == NoticeNews ||
-		fpn == NoticeDescription ||
-		fpn == NoticePrivacyPolicy ||
-		fpn == NoticeCodeOfConduct
+func (n PinnedNoticeName) Valid() bool {
+	return n == NoticeNews ||
+		n == NoticeDescription ||
+		n == NoticePrivacyPolicy ||
+		n == NoticeCodeOfConduct
 }
 
 type PinnedNotices map[PinnedNoticeName][]Notice

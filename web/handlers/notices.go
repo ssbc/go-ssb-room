@@ -24,7 +24,7 @@ func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interfac
 	}
 
 	return struct {
-		Entries admindb.SortedPinnedNotices
+		AllNotices admindb.SortedPinnedNotices
 	}{lst.Sorted()}, nil
 }
 

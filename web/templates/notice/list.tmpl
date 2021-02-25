@@ -2,17 +2,22 @@
 {{ define "content" }}
 <div class="container mx-auto">
   <h1 class="text-lg">{{i18n "NoticeList"}}</h1>
-  
-  <ul id="theList">
-  {{range .Entries}}
-  <li>
-     
-     <a href="{{urlTo "complete:notice:show" "id" .ID}}">
-      Title: {{.Title}}
-     </a>
-     
-  </li>
+
+  {{range .AllNotices}}
+    <h3>{{i18n .Name.String }}</h3>
+
+    {{range .Notices}}
+      (<a 
+        href="{{urlTo "complete:notice:show" "id" .ID}}"
+      >{{.Language}}</a>)
+    {{end}}
+
+    {{if is_logged_in}}
+      (<a 
+        href="{{urlTo "admin:notice:add" "name" .Name.String}}"
+      >{{i18n "NoticeAddTranslation"}}</a>)
+    {{end}}
+
   {{end}}
-  </ul>
 </div>
 {{end}}

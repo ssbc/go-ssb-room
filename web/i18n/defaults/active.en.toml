@@ -31,6 +31,12 @@ NavAdminDashboard = "Dashboard"
 
 NoticeEditTitle = "Edit Notice"
 NoticeList = "List of notices"
+NoticeAddTranslation = "Add translation"
+
+NoticeCodeOfConduct = "Code of Conduct"
+NoticeNews = "News"
+NoticeDescription = "Description"
+NoticePrivacyPolicy = "Privacy Policy"
 
 [MemberCount]
 description = "Number of members"
