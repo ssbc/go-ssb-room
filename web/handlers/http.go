@@ -20,7 +20,6 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/news"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
@@ -58,7 +57,6 @@ func New(
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(concatTemplates(
 			HTMLTemplates,
-			news.HTMLTemplates,
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
 		)...),
@@ -192,7 +190,6 @@ func New(
 	mainMux := &http.ServeMux{}
 
 	// hookup handlers to the router
-	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))

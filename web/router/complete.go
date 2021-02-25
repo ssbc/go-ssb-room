@@ -21,7 +21,6 @@ func CompleteApp() *mux.Router {
 
 	Auth(m.PathPrefix("/auth").Subrouter())
 	Admin(m.PathPrefix("/admin").Subrouter())
-	News(m.PathPrefix("/news").Subrouter())
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
 	m.Path("/about").Methods("GET").Name(CompleteAbout)

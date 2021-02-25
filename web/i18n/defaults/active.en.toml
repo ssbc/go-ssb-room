@@ -8,10 +8,6 @@ PageNotFound = "The requested page was not found."
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-NewsWelcome = "so, what happend (recently)"
-NewsTitle = "News"
-NewsOverview = "News - Overview"
-
 AuthFallbackWelcome = "You really shouldn't be here.... Let's get you through this."
 AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
