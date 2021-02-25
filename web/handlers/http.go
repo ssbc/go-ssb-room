@@ -5,6 +5,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
@@ -222,7 +224,19 @@ func New(
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
 	mainMux.Handle("/admin/", adminHandler)
 
-	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
+	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		notice, err := ps.Get(req.Context(), admindb.NoticeDescription, "en-GB")
+		if err != nil {
+			return nil, fmt.Errorf("failed to find description: %w", err)
+		}
+		markdown := blackfriday.Run([]byte(notice.Content), blackfriday.WithNoExtensions())
+		return noticeShowData{
+			ID:       notice.ID,
+			Title:    notice.Title,
+			Content:  template.HTML(markdown),
+			Language: notice.Language,
+		}, nil
+	}))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
 	var nr noticeHandler
