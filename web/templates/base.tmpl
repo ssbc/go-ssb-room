@@ -14,11 +14,17 @@
       {{$user := is_logged_in}}
       {{if $user}}
       <div class="ml-4 flex-1 sm:hidden flex flex-row items-center">
+        {{if current_page_is "admin:menu"}}
+        <svg class="w-6 h-6 text-gray-200" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+        </svg>
+        {{else}}
         <a href="{{urlTo "admin:menu"}}">
           <svg class="w-6 h-6 text-gray-700" viewBox="0 0 24 24">
             <path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
           </svg>
         </a>
+        {{end}}
       </div>
       <span class="flex flex-row items-center divide-x divide-gray-300">
         <div class="flex flex-row items-center pr-3">
