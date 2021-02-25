@@ -23,7 +23,9 @@ AdminAllowListRemove = "Remove"
 AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
+NavAdminLanding = "Home"
 NavAdminDashboard = "Dashboard"
+NavAdminNotices = "Notices"
 
 NoticeEditTitle = "Edit Notice"
 NoticeList = "List of notices"

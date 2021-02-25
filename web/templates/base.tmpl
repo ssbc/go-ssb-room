@@ -13,14 +13,6 @@
     <div class="flex flex-row justify-end space-x-4 my-4">
       {{$user := is_logged_in}}
       {{if $user}}
-      <a
-        href="{{urlTo "complete:notice:list"}}"
-        class="{{if current_page_is "complete:notice:list"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
-      >
-        <svg class="text-pink-700 w-4 h-4 mr-1" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M20 5L20 19L4 19L4 5H20M20 3H4C2.89 3 2 3.89 2 5V19C2 20.11 2.89 21 4 21H20C21.11 21 22 20.11 22 19V5C22 3.89 21.11 3 20 3M18 15H6V17H18V15M10 7H6V13H10V7M12 9H18V7H12V9M18 11H12V13H18V11Z" />
-        </svg>‍{{i18n "NoticeList"}}
-      </a>
       <div class="ml-4 flex-1 sm:hidden flex flex-row items-center">
         <a href="{{urlTo "admin:menu"}}">
           <svg class="w-6 h-6 text-gray-700" viewBox="0 0 24 24">
@@ -41,14 +33,6 @@
         >{{i18n "AuthSignOut"}}</a>
       </span>
       {{else}}
-      <a
-        href="{{urlTo "complete:notice:list"}}"
-        class="{{if current_page_is "complete:notice:list"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
-      >
-        <svg class="text-pink-700 w-4 h-4 mr-1" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M20 5L20 19L4 19L4 5H20M20 3H4C2.89 3 2 3.89 2 5V19C2 20.11 2.89 21 4 21H20C21.11 21 22 20.11 22 19V5C22 3.89 21.11 3 20 3M18 15H6V17H18V15M10 7H6V13H10V7M12 9H18V7H12V9M18 11H12V13H18V11Z" />
-        </svg>‍{{i18n "NoticeList"}}
-      </a>
       <a
         href="{{urlTo "auth:fallback:signin:form"}}"
         class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-green-600"
