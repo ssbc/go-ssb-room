@@ -14,7 +14,7 @@
 
     {{if is_logged_in}}
       (<a 
-        href="{{urlTo "admin:notice:add" "name" .Name.String}}"
+        href="{{urlTo "admin:notice:translation:draft" "name" .Name.String}}"
       >{{i18n "NoticeAddTranslation"}}</a>)
     {{end}}
 

@@ -25,6 +25,7 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
 	m.Path("/about").Methods("GET").Name(CompleteAbout)
+
 	m.Path("/notice/show").Methods("GET").Name(CompleteNoticeShow)
 	m.Path("/notice/list").Methods("GET").Name(CompleteNoticeList)
 

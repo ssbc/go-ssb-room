@@ -31,6 +31,7 @@ func Handler(
 	roomState *roomstate.Manager,
 	al admindb.AllowListService,
 	ndb admindb.NoticesService,
+	pdb admindb.PinnedNoticesService,
 ) http.Handler {
 	mux := &http.ServeMux{}
 	// TODO: configure 404 handler
@@ -57,10 +58,13 @@ func Handler(
 	mux.HandleFunc("/members/remove", ah.remove)
 
 	var nh = noticeHandler{
-		r:  r,
-		db: ndb,
+		r:        r,
+		noticeDB: ndb,
+		pinnedDB: pdb,
 	}
 	mux.HandleFunc("/notice/edit", r.HTML("admin/notice-edit.tmpl", nh.edit))
+	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
+	mux.HandleFunc("/notice/translation/add", nh.addTranslation)
 	mux.HandleFunc("/notice/save", nh.save)
 
 	return customStripPrefix("/admin", mux)

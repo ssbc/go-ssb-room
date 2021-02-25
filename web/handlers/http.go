@@ -195,7 +195,7 @@ func New(
 	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns))
+	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
 	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
