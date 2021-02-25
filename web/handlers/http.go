@@ -20,10 +20,17 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/news"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
+
+var HTMLTemplates = []string{
+	"landing/index.tmpl",
+	"landing/about.tmpl",
+	"notice/list.tmpl",
+	"notice/show.tmpl",
+	"error.tmpl",
+}
 
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
@@ -33,6 +40,8 @@ func New(
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
 	al admindb.AllowListService,
+	ns admindb.NoticesService,
+	ps admindb.PinnedNoticesService,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -47,12 +56,7 @@ func New(
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(concatTemplates(
-			[]string{
-				"landing/index.tmpl",
-				"landing/about.tmpl",
-				"error.tmpl",
-			},
-			news.HTMLTemplates,
+			HTMLTemplates,
 			roomsAuth.HTMLTemplates,
 			admin.HTMLTemplates,
 		)...),
@@ -186,14 +190,19 @@ func New(
 	mainMux := &http.ServeMux{}
 
 	// hookup handlers to the router
-	news.Handler(m, r)
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState, al))
+	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
 	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
+
+	var nr noticeHandler
+	nr.notices = ns
+	nr.pinned = ps
+	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nr.list))
+	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nr.show))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 

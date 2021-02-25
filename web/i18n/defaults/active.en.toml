@@ -1,20 +1,17 @@
-Confirm = "Confirm"
+GenericConfirm = "Yes"
+GenericGoBack = "Back"
+GenericSave = "Save"
+GenericPreview = "Preview"
+
 PageNotFound = "The requested page was not found."
 
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-NewsWelcome = "so, what happend (recently)"
-NewsTitle = "News"
-NewsOverview = "News - Overview"
-
 AuthFallbackWelcome = "You really shouldn't be here.... Let's get you through this."
 AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
-
-GenericConfirm = "Yes"
-GenericGoBack = "Back"
 
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
@@ -27,6 +24,15 @@ AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this membe
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 NavAdminDashboard = "Dashboard"
+
+NoticeEditTitle = "Edit Notice"
+NoticeList = "List of notices"
+NoticeAddTranslation = "Add translation"
+
+NoticeCodeOfConduct = "Code of Conduct"
+NoticeNews = "News"
+NoticeDescription = "Description"
+NoticePrivacyPolicy = "Privacy Policy"
 
 [MemberCount]
 description = "Number of members"

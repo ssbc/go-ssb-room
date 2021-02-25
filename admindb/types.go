@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"sort"
 
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -61,4 +62,73 @@ func (r *DBFeedRef) Scan(src interface{}) error {
 // https://pkg.go.dev/database/sql/driver#Valuer
 func (r DBFeedRef) Value() (driver.Value, error) {
 	return driver.Value(r.Ref()), nil
+}
+
+// PinnedNoticeName holds a name of a well known part of the page with a fixed location.
+// These also double as the i18n labels.
+type PinnedNoticeName string
+
+func (n PinnedNoticeName) String() string {
+	return string(n)
+}
+
+// These are the well known names that the room page will display
+const (
+	NoticeDescription   PinnedNoticeName = "NoticeDescription"
+	NoticeNews          PinnedNoticeName = "NoticeNews"
+	NoticePrivacyPolicy PinnedNoticeName = "NoticePrivacyPolicy"
+	NoticeCodeOfConduct PinnedNoticeName = "NoticeCodeOfConduct"
+)
+
+// Valid returns true if the page name is well known.
+func (n PinnedNoticeName) Valid() bool {
+	return n == NoticeNews ||
+		n == NoticeDescription ||
+		n == NoticePrivacyPolicy ||
+		n == NoticeCodeOfConduct
+}
+
+type PinnedNotices map[PinnedNoticeName][]Notice
+
+// Notice holds the title and content of a page that is user generated
+type Notice struct {
+	ID       int64
+	Title    string
+	Content  string
+	Language string
+}
+
+type PinnedNotice struct {
+	Name    PinnedNoticeName
+	Notices []Notice
+}
+
+type SortedPinnedNotices []PinnedNotice
+
+// Sorted returns a sorted list of the map, by the key names
+func (pn PinnedNotices) Sorted() SortedPinnedNotices {
+
+	lst := make(SortedPinnedNotices, 0, len(pn))
+
+	for name, notices := range pn {
+		lst = append(lst, PinnedNotice{
+			Name:    name,
+			Notices: notices,
+		})
+	}
+
+	sort.Sort(lst)
+	return lst
+}
+
+var _ sort.Interface = (SortedPinnedNotices)(nil)
+
+func (byName SortedPinnedNotices) Len() int { return len(byName) }
+
+func (byName SortedPinnedNotices) Less(i, j int) bool {
+	return byName[i].Name < byName[j].Name
+}
+
+func (byName SortedPinnedNotices) Swap(i, j int) {
+	byName[i], byName[j] = byName[j], byName[i]
 }

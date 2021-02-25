@@ -1,15 +1,6 @@
 {{ define "menu" }}
 <div class="flex flex-col my-4 w-40 px-2 sm:pl-0">
   <a
-    href="{{urlTo "news:overview"}}"
-    class="{{if current_page_is "news:overview"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
-  >
-    <svg class="text-pink-700 w-4 h-4 mr-1" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M20 5L20 19L4 19L4 5H20M20 3H4C2.89 3 2 3.89 2 5V19C2 20.11 2.89 21 4 21H20C21.11 21 22 20.11 22 19V5C22 3.89 21.11 3 20 3M18 15H6V17H18V15M10 7H6V13H10V7M12 9H18V7H12V9M18 11H12V13H18V11Z" />
-    </svg>‍{{i18n "NewsTitle"}}
-  </a>
-
-  <a
     href="{{urlTo "admin:dashboard"}}"
     class="{{if current_page_is "admin:dashboard"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
   >

@@ -17,14 +17,24 @@ import (
 var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
 	"admin/menu.tmpl",
+
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
+
+	"admin/notice-edit.tmpl",
 }
 
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
-func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowListService) http.Handler {
+func Handler(
+	r *render.Renderer,
+	roomState *roomstate.Manager,
+	al admindb.AllowListService,
+	ndb admindb.NoticesService,
+	pdb admindb.PinnedNoticesService,
+) http.Handler {
 	mux := &http.ServeMux{}
+	// TODO: configure 404 handler
 
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		lst := roomState.List()
@@ -46,6 +56,16 @@ func Handler(r *render.Renderer, roomState *roomstate.Manager, al admindb.AllowL
 	mux.HandleFunc("/members/add", ah.add)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/members/remove", ah.remove)
+
+	var nh = noticeHandler{
+		r:        r,
+		noticeDB: ndb,
+		pinnedDB: pdb,
+	}
+	mux.HandleFunc("/notice/edit", r.HTML("admin/notice-edit.tmpl", nh.edit))
+	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
+	mux.HandleFunc("/notice/translation/add", nh.addTranslation)
+	mux.HandleFunc("/notice/save", nh.save)
 
 	return customStripPrefix("/admin", mux)
 }

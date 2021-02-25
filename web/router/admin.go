@@ -13,6 +13,11 @@ const (
 	AdminAllowListAdd           = "admin:allow-list:add"
 	AdminAllowListRemoveConfirm = "admin:allow-list:remove:confirm"
 	AdminAllowListRemove        = "admin:allow-list:remove"
+
+	AdminNoticeEdit             = "admin:notice:edit"
+	AdminNoticeSave             = "admin:notice:save"
+	AdminNoticeDraftTranslation = "admin:notice:translation:draft"
+	AdminNoticeAddTranslation   = "admin:notice:translation:add"
 )
 
 // Admin constructs a mux.Router containing the routes for the admin dashboard and settings pages
@@ -28,6 +33,11 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/members/add").Methods("POST").Name(AdminAllowListAdd)
 	m.Path("/members/remove/confirm").Methods("GET").Name(AdminAllowListRemoveConfirm)
 	m.Path("/members/remove").Methods("POST").Name(AdminAllowListRemove)
+
+	m.Path("/notice/edit").Methods("GET").Name(AdminNoticeEdit)
+	m.Path("/notice/translation/draft").Methods("GET").Name(AdminNoticeDraftTranslation)
+	m.Path("/notice/translation/add").Methods("POST").Name(AdminNoticeAddTranslation)
+	m.Path("/notice/save").Methods("POST").Name(AdminNoticeSave)
 
 	return m
 }
