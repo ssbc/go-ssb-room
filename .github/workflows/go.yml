@@ -37,3 +37,17 @@ jobs:
 
     - name: All the Test
       run: go test ./...
+
+    - name: update style.css
+      run: |
+        pushd web/styles
+        npm ci
+        npm run compile-prod
+        popd
+
+    - name: push updated style.css
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: update production style.css
+        file_pattern: web/assets/style.css
+
