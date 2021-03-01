@@ -28,14 +28,13 @@ func TestIndex(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	assertLocalized(t, html, []localizedElement{
-		{"h1", "LandingWelcome"},
-		{"title", "LandingTitle"},
+		{"h1", "Default Notice Title"},
+		{"title", "Default Notice Title"},
 		// {"#nav", "FooBar"},
 	})
 
-	val, has := html.Find("img").Attr("src")
-	a.True(has, "logo src attribute not found")
-	a.Equal("/assets/img/test-hermie.png", val)
+	content := html.Find("p").Text()
+	a.Equal("Default Notice Content", content)
 }
 
 func TestAbout(t *testing.T) {
