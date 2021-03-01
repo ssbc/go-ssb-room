@@ -5,11 +5,15 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
@@ -78,6 +82,31 @@ func New(
 					return false
 				}
 				return r.RequestURI == url.Path
+			}
+		}),
+		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
+			return func(name string) *url.URL {
+				noticeName := admindb.PinnedNoticeName(name)
+				if !noticeName.Valid() {
+					return nil
+				}
+				notice, err := ps.Get(r.Context(), noticeName, "en-GB")
+				if err != nil {
+					return nil
+				}
+				route := router.CompleteApp().GetRoute(router.CompleteNoticeShow)
+				if route == nil {
+					return nil
+				}
+				u, err := route.URLPath()
+				if err != nil {
+					return nil
+				}
+				noticeID := strconv.FormatInt(notice.ID, 10)
+				q := u.Query()
+				q.Add("id", noticeID)
+				u.RawQuery = q.Encode()
+				return u
 			}
 		}),
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
@@ -195,7 +224,19 @@ func New(
 	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
 	mainMux.Handle("/admin/", adminHandler)
 
-	m.Get(router.CompleteIndex).Handler(r.StaticHTML("landing/index.tmpl"))
+	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		notice, err := ps.Get(req.Context(), admindb.NoticeDescription, "en-GB")
+		if err != nil {
+			return nil, fmt.Errorf("failed to find description: %w", err)
+		}
+		markdown := blackfriday.Run([]byte(notice.Content), blackfriday.WithNoExtensions())
+		return noticeShowData{
+			ID:       notice.ID,
+			Title:    notice.Title,
+			Content:  template.HTML(markdown),
+			Language: notice.Language,
+		}, nil
+	}))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
 	var nr noticeHandler

@@ -17,6 +17,7 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
@@ -59,6 +60,11 @@ func setup(t *testing.T) *testSession {
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
+	defaultNotice := &admindb.Notice{
+		Title:   "Default Notice Title",
+		Content: "Default Notice Content",
+	}
+	ts.PinnedDB.GetReturns(defaultNotice, nil)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
 
 	log, _ := logtest.KitLogger("complete", t)
