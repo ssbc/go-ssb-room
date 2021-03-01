@@ -7,3 +7,59 @@ html {
   visibility: visible;
   opacity: 1;
 }
+
+.markdown h1 {
+  @apply text-3xl tracking-tight font-black text-black mt-2 mb-4;
+}
+
+.markdown h2 {
+  @apply text-2xl tracking-tight font-black text-black mt-2 mb-3;
+}
+
+.markdown h3 {
+  @apply text-xl tracking-tight font-black text-black mt-2 mb-3;
+}
+
+.markdown h4 {
+  @apply text-lg tracking-tight font-black text-black mt-2 mb-3;
+}
+
+.markdown h5 {
+  @apply text-base tracking-tight font-black text-black mt-2 mb-3;
+}
+
+.markdown h6 {
+  @apply text-sm tracking-tight font-black text-black mt-2 mb-3;
+}
+
+.markdown p {
+  @apply my-3;
+}
+
+.markdown a {
+  @apply text-pink-600 underline;
+}
+
+.markdown ul {
+  @apply my-3 list-disc ml-6;
+}
+
+.markdown ul ul {
+  @apply my-0;
+}
+
+.markdown ol {
+  @apply my-3 list-decimal ml-6;
+}
+
+.markdown ol ol {
+  @apply my-0;
+}
+
+.markdown blockquote {
+  @apply my-3 rounded-r-3xl px-3 py-1 bg-gray-100 text-gray-600;
+}
+
+.markdown hr {
+  @apply my-5;
+}
