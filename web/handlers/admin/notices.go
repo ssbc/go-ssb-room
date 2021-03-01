@@ -156,5 +156,5 @@ func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(rw, req, redirect, http.StatusTemporaryRedirect)
+	http.Redirect(rw, req, redirect, http.StatusSeeOther)
 }

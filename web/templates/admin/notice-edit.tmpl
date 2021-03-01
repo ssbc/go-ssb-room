@@ -1,11 +1,7 @@
 {{ define "title" }}{{i18n "NoticeEditTitle"}}{{ end }}
 {{ define "content" }}
-<div id="page-header">
-  <h1 id="welcome" class="text-lg">{{i18n "NoticeEditTitle"}}: <small>{{.Notice.Title}}</small></h1>
-</div>
-<div class="">
-  <form method="POST" action={{urlTo .SubmitAction }} class="flex flex-row items-end">
-    {{ .csrfField }}
+  <form method="POST" action={{urlTo .SubmitAction}} class="flex flex-col items-stretch">
+    {{.csrfField}}
 
     {{if .PinnedName}}
       <input
@@ -24,56 +20,36 @@
       <input
         type="hidden"
         name="redirect"
-        value="{{urlTo "admin:notice:edit" "id" .Notice.ID}}">
+        value="{{urlTo "complete:notice:show" "id" .Notice.ID}}">
     {{end}}
 
-    <div class="w-96 grid grid-cols-2 gap-x-4 gap-y-1 mr-4">
-      <label>Title</label>
-      <input
-        type="text"
-        name="title"
-        value="{{.Notice.Title}}"
-        class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent">
-      <textarea
-        name="content"
-        id="notice-content"
-        rows="10"
-        cols="20"
-        class="resize border rounded-md"
-      >{{.Notice.Content}}</textarea>
-      <br>
-      <label>Language</label>
+    <input
+      type="text"
+      name="title"
+      value="{{.Notice.Title}}"
+      class="text-3xl tracking-tight shadow-sm font-black text-black py-2 mb-2 focus:outline-none focus:ring-1 focus:ring-pink-300 focus:border-transparent placeholder-gray-300"
+    >
+    <textarea
+      id="notice-content"
+      name="content"
+      rows="10"
+      cols="20"
+      class="resize-y shadow-sm focus:outline-none focus:ring-1 focus:ring-pink-300 focus:border-transparent placeholder-gray-300"
+    >{{.Notice.Content}}</textarea>
+
+    <div class="my-4 flex flex-row items-center justify-start">
+      <label class="mr-2">Language</label>
       <input
         type="text"
         name="language"
         value="{{if not .PinnedName}}{{.Notice.Language}}{{end}}"
         class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent">
-      <p class="text-red-100">TODO: make languages a dropdown</p>
+      <span class="ml-2 text-red-400">TODO: make this a dropdown</span>
     </div>
+
     <button
       type="submit"
-      class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+      class="self-start shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
     >{{i18n "GenericSave"}}</button>
   </form>
-</div> 
-
-{{if not .PinnedName}}
-<div>
-  <h1>{{i18n "GenericPreview"}}</h1>
-  {{.ContentPreview}}
-</div>
-
-<!--
-<div>
-  <h1>Debug</h1>
-  <pre>{{.Debug}}</pre>
-</div>
-
-<div>
-  <h1>Debug Input</h1>
-  <pre>{{.DebugHex}}</pre>
-</div>
--->
-{{end}}
-
 {{end}}
