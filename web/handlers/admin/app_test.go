@@ -61,6 +61,7 @@ func newSession(t *testing.T) *testSession {
 		return true
 	}
 	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
+	testFuncs["urlToNotice"] = func(name string) string { return "" }
 
 	r, err := render.New(web.Templates,
 		render.SetLogger(log),
