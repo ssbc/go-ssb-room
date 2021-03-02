@@ -63,3 +63,7 @@ html {
 .markdown hr {
   @apply my-5;
 }
+
+.markdown code {
+  @apply break-all;
+}
