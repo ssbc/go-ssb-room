@@ -4,7 +4,9 @@
     class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
   >{{.Title}}</h1>
 
-  {{.Content}}
+  <div class="markdown">
+    {{.Content}}
+  </div>
 
   <div class="h-10"></div>
   {{if is_logged_in}}
