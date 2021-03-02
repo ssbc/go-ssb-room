@@ -22,6 +22,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/unrolled/secure v1.0.8
 	github.com/vcraescu/go-paginator/v2 v2.0.0
+	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20200618013359-a93887c09a14 // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.4.0
 	github.com/volatiletech/strmangle v0.0.1
 	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210202162901-fe642d405dc6

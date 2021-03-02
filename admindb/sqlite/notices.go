@@ -13,7 +13,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite/models"
 )
 
-// make sure to implement interfaces correctly
+// compiler assertion to ensure the struct fullfills the interface
 var _ admindb.PinnedNoticesService = (*PinnedNotices)(nil)
 
 type PinnedNotices struct {
@@ -112,7 +112,7 @@ func (pn PinnedNotices) Set(ctx context.Context, name admindb.PinnedNoticeName, 
 	return nil
 }
 
-// make sure to implement interfaces correctly
+// compiler assertion to ensure the struct fullfills the interface
 var _ admindb.NoticesService = (*Notices)(nil)
 
 type Notices struct {

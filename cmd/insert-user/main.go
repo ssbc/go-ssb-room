@@ -9,12 +9,11 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
 func main() {
@@ -44,9 +43,12 @@ func main() {
 		os.Exit(1)
 		return
 	}
+
 	ctx := context.Background()
-	err = db.AuthFallback.Create(ctx, os.Args[2], bytePassword)
+	uid, err := db.AuthFallback.Create(ctx, os.Args[2], bytePassword)
 	check(err)
+
+	fmt.Fprintln(os.Stderr, "created user with ID", uid)
 }
 
 func check(err error) {

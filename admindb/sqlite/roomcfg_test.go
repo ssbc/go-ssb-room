@@ -36,7 +36,10 @@ func TestAllowList(t *testing.T) {
 	err = db.AllowList.Add(ctx, okFeed)
 	r.NoError(err)
 
-	count, err := models.AllowLists().Count(ctx, db.AllowList.(AllowList).db)
+	// hack into the interface to get the concrete database/sql instance
+	sqlDB := db.AllowList.(*AllowList).db
+
+	count, err := models.AllowLists().Count(ctx, sqlDB)
 	r.NoError(err)
 	r.EqualValues(count, 1)
 
@@ -53,7 +56,7 @@ func TestAllowList(t *testing.T) {
 	err = db.AllowList.RemoveFeed(ctx, okFeed)
 	r.NoError(err)
 
-	count, err = models.AllowLists().Count(ctx, db.AllowList.(AllowList).db)
+	count, err = models.AllowLists().Count(ctx, sqlDB)
 	r.NoError(err)
 	r.EqualValues(count, 0)
 

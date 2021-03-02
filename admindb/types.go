@@ -14,8 +14,6 @@ import (
 // ErrNotFound is returned by the admin db if an object couldn't be found.
 var ErrNotFound = errors.New("admindb: object not found")
 
-// It's important to wrap all the model generated types into these since we don't want the admindb interfaces to depend on them.
-
 // User holds all the information an authenticated user of the site has.
 type User struct {
 	ID   int64
@@ -28,6 +26,16 @@ type ErrAlreadyAdded struct {
 
 func (aa ErrAlreadyAdded) Error() string {
 	return fmt.Sprintf("admindb: the item (%s) is already on the list", aa.Ref.Ref())
+}
+
+// Invite is a combination of an invite id, who created it and an (optional) alias suggestion.
+// The token itself is only visible from the db.Create function and stored hashed in the database
+type Invite struct {
+	ID int64
+
+	CreatedBy User
+
+	AliasSuggestion string
 }
 
 // ListEntry values are returned by Allow- and DenyListServices

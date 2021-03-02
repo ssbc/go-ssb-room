@@ -23,7 +23,7 @@ type FakeAuthFallbackService struct {
 		result1 interface{}
 		result2 error
 	}
-	CreateStub        func(context.Context, string, []byte) error
+	CreateStub        func(context.Context, string, []byte) (int64, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 context.Context
@@ -31,10 +31,12 @@ type FakeAuthFallbackService struct {
 		arg3 []byte
 	}
 	createReturns struct {
-		result1 error
+		result1 int64
+		result2 error
 	}
 	createReturnsOnCall map[int]struct {
-		result1 error
+		result1 int64
+		result2 error
 	}
 	GetByIDStub        func(context.Context, int64) (*admindb.User, error)
 	getByIDMutex       sync.RWMutex
@@ -119,7 +121,7 @@ func (fake *FakeAuthFallbackService) CheckReturnsOnCall(i int, result1 interface
 	}{result1, result2}
 }
 
-func (fake *FakeAuthFallbackService) Create(arg1 context.Context, arg2 string, arg3 []byte) error {
+func (fake *FakeAuthFallbackService) Create(arg1 context.Context, arg2 string, arg3 []byte) (int64, error) {
 	var arg3Copy []byte
 	if arg3 != nil {
 		arg3Copy = make([]byte, len(arg3))
@@ -140,9 +142,9 @@ func (fake *FakeAuthFallbackService) Create(arg1 context.Context, arg2 string, a
 		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeAuthFallbackService) CreateCallCount() int {
@@ -151,7 +153,7 @@ func (fake *FakeAuthFallbackService) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeAuthFallbackService) CreateCalls(stub func(context.Context, string, []byte) error) {
+func (fake *FakeAuthFallbackService) CreateCalls(stub func(context.Context, string, []byte) (int64, error)) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = stub
@@ -164,27 +166,30 @@ func (fake *FakeAuthFallbackService) CreateArgsForCall(i int) (context.Context, 
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeAuthFallbackService) CreateReturns(result1 error) {
+func (fake *FakeAuthFallbackService) CreateReturns(result1 int64, result2 error) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	fake.createReturns = struct {
-		result1 error
-	}{result1}
+		result1 int64
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeAuthFallbackService) CreateReturnsOnCall(i int, result1 error) {
+func (fake *FakeAuthFallbackService) CreateReturnsOnCall(i int, result1 int64, result2 error) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
-			result1 error
+			result1 int64
+			result2 error
 		})
 	}
 	fake.createReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
+		result1 int64
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeAuthFallbackService) GetByID(arg1 context.Context, arg2 int64) (*admindb.User, error) {
