@@ -22,8 +22,9 @@ func TestSimple(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := context.Background()
-	err = db.AuthFallback.Create(ctx, "testUser", []byte("super-cheesy-password-12345"))
+	uid, err := db.AuthFallback.Create(ctx, "testUser", []byte("super-cheesy-password-12345"))
 	require.NoError(t, err)
+	require.NotEqual(t, 0, uid)
 
 	err = db.Close()
 	require.NoError(t, err)

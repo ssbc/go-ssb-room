@@ -17,7 +17,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 )
 
-// make sure to implement interfaces correctly
+// compiler assertion to ensure the struct fullfills the interface
 var _ admindb.AuthFallbackService = (*AuthFallback)(nil)
 
 type AuthFallback struct {
@@ -39,23 +39,23 @@ func (ah AuthFallback) Check(name, password string) (interface{}, error) {
 	return found.ID, nil
 }
 
-func (ah AuthFallback) Create(ctx context.Context, name string, password []byte) error {
+func (ah AuthFallback) Create(ctx context.Context, name string, password []byte) (int64, error) {
 	var u models.AuthFallback
 	u.Name = name
 
 	hashed, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {
-		return fmt.Errorf("auth/fallback: failed to hash password for new user")
+		return -1, fmt.Errorf("auth/fallback: failed to hash password for new user")
 	}
 
 	u.PasswordHash = hashed
 
 	err = u.Insert(ctx, ah.db, boil.Infer())
 	if err != nil {
-		return fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
+		return -1, fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
 	}
 
-	return nil
+	return u.ID, nil
 }
 
 func (ah AuthFallback) GetByID(ctx context.Context, uid int64) (*admindb.User, error) {

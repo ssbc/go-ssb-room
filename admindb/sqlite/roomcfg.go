@@ -17,7 +17,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-// make sure to implement interfaces correctly
+// compiler assertion to ensure the struct fullfills the interface
 var _ admindb.AllowListService = (*AllowList)(nil)
 
 type AllowList struct {
@@ -26,6 +26,14 @@ type AllowList struct {
 
 // Add adds the feed to the list.
 func (l AllowList) Add(ctx context.Context, a refs.FeedRef) error {
+	// single insert transaction but this makes it easier to re-use in invites.Consume
+	return transact(l.db, func(tx *sql.Tx) error {
+		return l.add(ctx, tx, a)
+	})
+}
+
+// this add is not exported and for internal use with transactions.
+func (l AllowList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
 	// TODO: better valid
 	if _, err := refs.ParseFeedRef(a.Ref()); err != nil {
 		return err
@@ -34,7 +42,7 @@ func (l AllowList) Add(ctx context.Context, a refs.FeedRef) error {
 	var entry models.AllowList
 
 	entry.PubKey.FeedRef = a
-	err := entry.Insert(ctx, l.db, boil.Whitelist("pub_key"))
+	err := entry.Insert(ctx, tx, boil.Whitelist("pub_key"))
 	if err != nil {
 		var sqlErr sqlite3.Error
 		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
