@@ -14,6 +14,9 @@ const (
 	AdminAllowListRemoveConfirm = "admin:allow-list:remove:confirm"
 	AdminAllowListRemove        = "admin:allow-list:remove"
 
+	AdminInvitesOverview = "admin:invites:overview"
+	AdminInvitesCreate   = "admin:invites:create"
+
 	AdminNoticeEdit             = "admin:notice:edit"
 	AdminNoticeSave             = "admin:notice:save"
 	AdminNoticeDraftTranslation = "admin:notice:translation:draft"
@@ -38,6 +41,9 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/notice/translation/draft").Methods("GET").Name(AdminNoticeDraftTranslation)
 	m.Path("/notice/translation/add").Methods("POST").Name(AdminNoticeAddTranslation)
 	m.Path("/notice/save").Methods("POST").Name(AdminNoticeSave)
+
+	m.Path("/invites").Methods("GET").Name(AdminInvitesOverview)
+	m.Path("/invites/create").Methods("POST").Name(AdminInvitesCreate)
 
 	return m
 }

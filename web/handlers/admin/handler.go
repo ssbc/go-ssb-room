@@ -21,6 +21,8 @@ var HTMLTemplates = []string{
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
 
+	"admin/invites.tmpl",
+
 	"admin/notice-edit.tmpl",
 }
 
@@ -30,6 +32,7 @@ func Handler(
 	r *render.Renderer,
 	roomState *roomstate.Manager,
 	al admindb.AllowListService,
+	is admindb.InviteService,
 	ndb admindb.NoticesService,
 	pdb admindb.PinnedNoticesService,
 ) http.Handler {
@@ -56,6 +59,13 @@ func Handler(
 	mux.HandleFunc("/members/add", ah.add)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/members/remove", ah.remove)
+
+	var ih = invitesH{
+		r:  r,
+		db: is,
+	}
+
+	mux.HandleFunc("/invites", r.HTML("admin/invites.tmpl", ih.overview))
 
 	var nh = noticeHandler{
 		r:        r,

@@ -113,6 +113,8 @@ func TestFallbackAuth(t *testing.T) {
 	doc, resp := ts.Client.GetHTML(signInFormURL.String())
 	a.Equal(http.StatusOK, resp.Code)
 
+	assertCSRFTokenPresent(t, doc.Find("form"))
+
 	csrfCookie := resp.Result().Cookies()
 	a.Len(csrfCookie, 1, "should have one cookie for CSRF protection validation")
 	t.Log(csrfCookie)
@@ -232,4 +234,14 @@ func assertLocalized(t *testing.T, html *goquery.Document, elems []localizedElem
 	for i, pair := range elems {
 		a.Equal(pair.Label, html.Find(pair.Selector).Text(), "localized pair %d failed", i+1)
 	}
+}
+
+func assertCSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
+	a := assert.New(t)
+
+	csrfField := sel.Find("input[name=gorilla.csrf.Token]")
+	a.EqualValues(1, csrfField.Length(), "no csrf-token input tag")
+	tipe, ok := csrfField.Attr("type")
+	a.True(ok, "csrf input has a type")
+	a.Equal("hidden", tipe, "wrong type on csrf field")
 }

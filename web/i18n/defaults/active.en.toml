@@ -23,8 +23,14 @@ AdminAllowListRemove = "Remove"
 AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
+AdminInvitesTitle = "Invites"
+AdminInvitesWelcome = "Here ytou can create invite tokens for people who are not yet members of this room."
+AdminInvitesAliasSuggestion = "Suggested alias (optional)"
+AdminInvitesRevoke = "Revoke"
+
 NavAdminLanding = "Home"
 NavAdminDashboard = "Dashboard"
+NavAdminInvites = "Invites"
 NavAdminNotices = "Notices"
 
 NoticeEditTitle = "Edit Notice"

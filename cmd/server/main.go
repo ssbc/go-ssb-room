@@ -217,6 +217,7 @@ func runroomsrv() error {
 		db.AuthWithSSB,
 		db.AuthFallback,
 		db.AllowList,
+		db.Invites,
 		db.Notices,
 		db.PinnedNotices,
 	)

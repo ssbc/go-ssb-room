@@ -64,6 +64,7 @@ func TestAllowListAdd(t *testing.T) {
 	a.EqualValues(1, inputSelection.Length())
 
 	name, ok := inputSelection.Attr("name")
+	a.True(ok, "field has a name")
 	a.Equal("pub_key", name, "wrong name on input field")
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"

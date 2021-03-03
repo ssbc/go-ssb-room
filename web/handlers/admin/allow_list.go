@@ -76,6 +76,8 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 	}
 	count := len(lst)
 
+	// TODO: generalize paginator code
+
 	num, err := strconv.ParseInt(req.URL.Query().Get("page"), 10, 32)
 	if err != nil {
 		num = 1

@@ -44,6 +44,7 @@ func New(
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
 	al admindb.AllowListService,
+	is admindb.InviteService,
 	ns admindb.NoticesService,
 	ps admindb.PinnedNoticesService,
 ) (http.Handler, error) {
@@ -221,7 +222,12 @@ func New(
 	// hookup handlers to the router
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
+	adminHandler := a.Authenticate(admin.Handler(r,
+		roomState,
+		al,
+		is,
+		ns,
+		ps))
 	mainMux.Handle("/admin/", adminHandler)
 
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
