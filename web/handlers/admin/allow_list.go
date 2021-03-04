@@ -20,7 +20,7 @@ type allowListH struct {
 	al admindb.AllowListService
 }
 
-const redirectTo = "/admin/members"
+const redirectToMembers = "/admin/members"
 
 func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
@@ -57,7 +57,7 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, redirectTo, http.StatusFound)
+	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
 func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -93,7 +93,7 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 	entry, err := h.al.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, admindb.ErrNotFound) {
-			http.Redirect(rw, req, redirectTo, http.StatusFound)
+			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 			return nil, ErrRedirected
 		}
 		return nil, err
@@ -109,7 +109,7 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectTo, http.StatusFound)
+		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectTo, http.StatusFound)
+		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
@@ -132,5 +132,5 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 		status = http.StatusNotFound
 	}
 
-	http.Redirect(rw, req, redirectTo, status)
+	http.Redirect(rw, req, redirectToMembers, status)
 }
