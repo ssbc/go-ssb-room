@@ -15,7 +15,7 @@ It not only includes the secret-handshake+boxstream setup and muxrpc handlers fo
 
 ## Development
 
-The basics just need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
+To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
 
 To build the server and see a list of it's options, run the following:
 
