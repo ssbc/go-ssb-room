@@ -213,6 +213,7 @@ func runroomsrv() error {
 	dashboardH, err := handlers.New(
 		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
+		httpsDomain,
 		roomsrv.StateManager,
 		db.AuthWithSSB,
 		db.AuthFallback,

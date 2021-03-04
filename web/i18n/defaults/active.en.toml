@@ -24,14 +24,30 @@ AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this membe
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 AdminInvitesTitle = "Invites"
-AdminInvitesWelcome = "Here ytou can create invite tokens for people who are not yet members of this room."
+AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room."
 AdminInvitesAliasSuggestion = "Suggested alias (optional)"
-AdminInvitesRevoke = "Revoke"
+AdminInviteRevoke = "Revoke"
+AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
+AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
+
+# TODO: add placeholder support to the template helpers (https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60)
+AdminInviteCreatedBy = "Created by:"
+AdminInviteSuggestedAliasIs = "The suggested alias is:"
+AdminInviteSuggestedAliasIsShort = "Alias:"
+
+AdminInviteCreatedTitle = "Invite created successfully"
+AdminInviteCreatedWelcome = "Here is the invite you created. Please copy it before closing the page or it will be lost."
+
 
 NavAdminLanding = "Home"
 NavAdminDashboard = "Dashboard"
 NavAdminInvites = "Invites"
 NavAdminNotices = "Notices"
+
+InviteAccept = "Accept invite"
+InviteAcceptTitle = "Accept Invite
+InviteAcceptWelcome = "elaborate welcome message for a new member with good words and stuff."
+InviteAcceptAliasSuggestion = "The persone who created thought you might like this alias:"
 
 NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"

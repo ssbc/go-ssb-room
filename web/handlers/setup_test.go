@@ -34,6 +34,7 @@ type testSession struct {
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
 	AllowListDB    *mockdb.FakeAllowListService
+	InvitesDB      *mockdb.FakeInviteService
 	PinnedDB       *mockdb.FakePinnedNoticesService
 	NoticeDB       *mockdb.FakeNoticesService
 
@@ -59,6 +60,7 @@ func setup(t *testing.T) *testSession {
 	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
+	ts.InvitesDB = new(mockdb.FakeInviteService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	defaultNotice := &admindb.Notice{
 		Title:   "Default Notice Title",
@@ -76,10 +78,12 @@ func setup(t *testing.T) *testSession {
 	h, err := New(
 		log,
 		testRepo,
+		"localhost",
 		ts.RoomState,
 		ts.AuthDB,
 		ts.AuthFallbackDB,
 		ts.AllowListDB,
+		ts.InvitesDB,
 		ts.NoticeDB,
 		ts.PinnedDB,
 	)

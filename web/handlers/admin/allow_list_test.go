@@ -149,7 +149,7 @@ func TestAllowList(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/members/remove/confirm?id=666", link)
+	a.Equal("/admin/members/remove/confirm?id=666", link)
 }
 
 func TestAllowListRemoveConfirmation(t *testing.T) {

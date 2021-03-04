@@ -9,13 +9,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/vcraescu/go-paginator/v2"
 	"github.com/vcraescu/go-paginator/v2/adapter"
 	"github.com/vcraescu/go-paginator/v2/view"
-
 	"go.mindeco.de/http/render"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 )
 
@@ -26,7 +25,9 @@ var HTMLTemplates = []string{
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
 
-	"admin/invites.tmpl",
+	"admin/invite-list.tmpl",
+	"admin/invite-revoke-confirm.tmpl",
+	"admin/invite-created.tmpl",
 
 	"admin/notice-edit.tmpl",
 }
@@ -34,6 +35,7 @@ var HTMLTemplates = []string{
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
 func Handler(
+	domainName string,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
 	al admindb.AllowListService,
@@ -67,9 +69,13 @@ func Handler(
 	var ih = invitesHandler{
 		r:  r,
 		db: is,
+
+		domainName: domainName,
 	}
-	mux.HandleFunc("/invites", r.HTML("admin/invites.tmpl", ih.overview))
-	mux.HandleFunc("/invites/create", ih.create)
+	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))
+	mux.HandleFunc("/invites/create", r.HTML("admin/invite-created.tmpl", ih.create))
+	mux.HandleFunc("/invites/revoke/confirm", r.HTML("admin/invite-revoke-confirm.tmpl", ih.revokeConfirm))
+	mux.HandleFunc("/invites/revoke", ih.revoke)
 
 	var nh = noticeHandler{
 		r:        r,

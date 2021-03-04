@@ -98,6 +98,7 @@ func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Reques
 		}
 		return nil, err
 	}
+
 	return map[string]interface{}{
 		"Entry":          entry,
 		csrf.TemplateTag: csrf.TemplateField(req),

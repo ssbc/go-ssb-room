@@ -32,6 +32,8 @@ import (
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
+	"invite/accept.tmpl",
+	"invite/consumed.tmpl",
 	"notice/list.tmpl",
 	"notice/show.tmpl",
 	"error.tmpl",
@@ -41,6 +43,7 @@ var HTMLTemplates = []string{
 func New(
 	logger logging.Interface,
 	repo repo.Interface,
+	domainName string,
 	roomState *roomstate.Manager,
 	as admindb.AuthWithSSBService,
 	fs admindb.AuthFallbackService,
@@ -201,7 +204,9 @@ func New(
 	// hookup handlers to the router
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r,
+	adminHandler := a.Authenticate(admin.Handler(
+		domainName,
+		r,
 		roomState,
 		al,
 		is,
@@ -224,11 +229,18 @@ func New(
 	}))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
-	var nr noticeHandler
-	nr.notices = ns
-	nr.pinned = ps
-	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nr.list))
-	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nr.show))
+	var nh = noticeHandler{
+		notices: ns,
+		pinned:  ps,
+	}
+	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
+	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
+
+	var ih = inviteHandler{
+		invites: is,
+	}
+	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
+	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 

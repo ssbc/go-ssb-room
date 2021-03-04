@@ -4,6 +4,7 @@ package admin
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
 	"testing"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 type testSession struct {
@@ -29,6 +31,10 @@ type testSession struct {
 	PinnedDB    *mockdb.FakePinnedNoticesService
 	NoticeDB    *mockdb.FakeNoticesService
 	InvitesDB   *mockdb.FakeInviteService
+
+	User *admindb.User
+
+	Domain string
 
 	RoomState *roomstate.Manager
 }
@@ -46,7 +52,15 @@ func newSession(t *testing.T) *testSession {
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
 
-	ts.Router = router.Admin(nil)
+	ts.Router = router.CompleteApp()
+
+	ts.Domain = randomString(10)
+
+	// fake user
+	ts.User = &admindb.User{
+		ID:   1234,
+		Name: "room mate",
+	}
 
 	// setup rendering
 
@@ -77,14 +91,34 @@ func newSession(t *testing.T) *testSession {
 	}
 
 	ts.Mux = http.NewServeMux()
-	ts.Mux.Handle("/", Handler(r,
+
+	handler := Handler(
+		ts.Domain,
+		r,
 		ts.RoomState,
 		ts.AllowListDB,
 		ts.InvitesDB,
 		ts.NoticeDB,
 		ts.PinnedDB,
-	))
+	)
+
+	handler = user.MiddlewareForTests(ts.User)(handler)
+
+	ts.Mux.Handle("/", handler)
+
 	ts.Client = tester.New(ts.Mux, t)
 
 	return &ts
+}
+
+// utils
+
+func randomString(n int) string {
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+	s := make([]rune, n)
+	for i := range s {
+		s[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(s)
 }

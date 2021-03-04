@@ -68,7 +68,6 @@ func TestRestricted(t *testing.T) {
 	a := assert.New(t)
 
 	testURLs := []string{
-		// "/admin/",
 		"/admin/admin",
 		"/admin/admin/",
 	}
@@ -113,12 +112,12 @@ func TestFallbackAuth(t *testing.T) {
 	doc, resp := ts.Client.GetHTML(signInFormURL.String())
 	a.Equal(http.StatusOK, resp.Code)
 
-	assertCSRFTokenPresent(t, doc.Find("form"))
-
 	csrfCookie := resp.Result().Cookies()
 	a.Len(csrfCookie, 1, "should have one cookie for CSRF protection validation")
-	t.Log(csrfCookie)
+
 	jar.SetCookies(signInFormURL, csrfCookie)
+
+	assertCSRFTokenPresent(t, doc.Find("form"))
 
 	csrfTokenElem := doc.Find("input[type=hidden]")
 	a.Equal(1, csrfTokenElem.Length())
@@ -136,8 +135,6 @@ func TestFallbackAuth(t *testing.T) {
 		csrfName: []string{csrfValue},
 	}
 	ts.AuthFallbackDB.CheckReturns(int64(23), nil)
-
-	t.Log(loginVals)
 
 	signInURL, err := ts.Router.Get(router.AuthFallbackSignIn).URL()
 	r.Nil(err)
@@ -214,7 +211,6 @@ func TestFallbackAuth(t *testing.T) {
 	html, resp = ts.Client.GetHTML(durl)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	t.Log(html.Find("body").Text())
 	assertLocalized(t, html, []localizedElement{
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
@@ -224,7 +220,6 @@ func TestFallbackAuth(t *testing.T) {
 }
 
 // utils
-
 type localizedElement struct {
 	Selector, Label string
 }
@@ -238,8 +233,7 @@ func assertLocalized(t *testing.T, html *goquery.Document, elems []localizedElem
 
 func assertCSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
 	a := assert.New(t)
-
-	csrfField := sel.Find("input[name=gorilla.csrf.Token]")
+	csrfField := sel.Find("input[name='gorilla.csrf.Token']")
 	a.EqualValues(1, csrfField.Length(), "no csrf-token input tag")
 	tipe, ok := csrfField.Attr("type")
 	a.True(ok, "csrf input has a type")

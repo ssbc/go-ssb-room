@@ -36,12 +36,18 @@
     <li class="flex flex-row items-center h-12">
       <span
         class="font-mono truncate flex-auto text-gray-600 tracking-wider"
-      >{{.CreatedBy.Name}}</span>
+      >
+      <!-- https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60 -->
+      {{i18n "AdminInviteCreatedBy"}} {{.CreatedBy.Name}}
+      {{if ne .AliasSuggestion ""}}
+        ({{i18n "AdminInviteSuggestedAliasIsShort"}} {{.AliasSuggestion}})
+      {{end}}
+      </span>
 
       <a
         href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
         class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
-      >{{i18n "AdminInvitesRevoke"}}</a>
+      >{{i18n "AdminInviteRevoke"}}</a>
     </li>
     {{end}}
   </ul>
