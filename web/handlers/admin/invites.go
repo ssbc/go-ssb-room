@@ -50,6 +50,12 @@ func (h invitesH) create(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	user := user.FromContext(req.Context())
+	if user == nil {
+		err := fmt.Errorf("warning: no user session for elevated access request")
+		h.r.Error(w, req, http.StatusInternalServerError, err)
+		return
+	}
 
 	aliasSuggestion := req.Form.Get("alias_suggestion")
 

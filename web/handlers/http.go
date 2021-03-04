@@ -26,6 +26,7 @@ import (
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 var HTMLTemplates = []string{
@@ -108,27 +109,7 @@ func New(
 				return u
 			}
 		}),
-		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
-			no := func() *admindb.User { return nil }
-
-			v, err := a.AuthenticateRequest(r)
-			if err != nil {
-				return no
-			}
-
-			uid, ok := v.(int64)
-			if !ok {
-				panic(fmt.Sprintf("warning: not the expected ID type from authenticated session: %T\n", v))
-			}
-
-			user, err := fs.GetByID(r.Context(), uid)
-			if err != nil {
-				return no
-			}
-
-			yes := func() *admindb.User { return user }
-			return yes
-		}),
+		render.InjectTemplateFunc("is_logged_in", user.TemplateHelper()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
@@ -259,16 +240,23 @@ func New(
 
 	mainMux.Handle("/", m)
 
-	// apply middleware
-	var finalHandler http.Handler = mainMux
-	finalHandler = logging.InjectHandler(logger)(finalHandler)
-	finalHandler = CSRF(finalHandler)
-
-	if web.Production {
-		return finalHandler, nil
+	// apply HTTP middleware
+	middlewares := []func(http.Handler) http.Handler{
+		logging.InjectHandler(logger),
+		user.ContextInjecter(fs, a),
+		CSRF,
 	}
 
-	return r.GetReloader()(finalHandler), nil
+	if !web.Production {
+		middlewares = append(middlewares, r.GetReloader())
+	}
+
+	var finalHandler http.Handler = mainMux
+	for _, mw := range middlewares {
+		finalHandler = mw(finalHandler)
+	}
+
+	return finalHandler, nil
 }
 
 // utils
