@@ -55,7 +55,7 @@ func Handler(
 		return map[string]interface{}{}, nil
 	}))
 
-	var ah = allowListH{
+	var ah = allowListHandler{
 		r:  r,
 		al: al,
 	}
@@ -64,7 +64,7 @@ func Handler(
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/members/remove", ah.remove)
 
-	var ih = invitesH{
+	var ih = invitesHandler{
 		r:  r,
 		db: is,
 	}

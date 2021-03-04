@@ -11,13 +11,13 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
-type invitesH struct {
+type invitesHandler struct {
 	r *render.Renderer
 
 	db admindb.InviteService
 }
 
-func (h invitesH) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h invitesHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	lst, err := h.db.List(req.Context())
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (h invitesH) overview(rw http.ResponseWriter, req *http.Request) (interface
 	return pageData, nil
 }
 
-func (h invitesH) create(w http.ResponseWriter, req *http.Request) {
+func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))

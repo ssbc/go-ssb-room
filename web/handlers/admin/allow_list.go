@@ -14,7 +14,7 @@ import (
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
-type allowListH struct {
+type allowListHandler struct {
 	r *render.Renderer
 
 	al admindb.AllowListService
@@ -22,7 +22,7 @@ type allowListH struct {
 
 const redirectToMembers = "/admin/members"
 
-func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
+func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
@@ -60,7 +60,7 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
-func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h allowListHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	lst, err := h.al.List(req.Context())
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 // TODO: move to render package so that we can decide to not render a page during the controller
 var ErrRedirected = errors.New("render: not rendered but redirected")
 
-func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
@@ -104,7 +104,7 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 	}, nil
 }
 
-func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
+func (h allowListHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
