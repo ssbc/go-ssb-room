@@ -55,8 +55,6 @@ func New(
 		return nil, err
 	}
 
-	var a *auth.Handler
-
 	r, err := render.New(web.Templates,
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
@@ -191,7 +189,7 @@ func New(
 		}, nil
 	})
 
-	a, err = auth.NewHandler(fs,
+	a, err := auth.NewHandler(fs,
 		auth.SetStore(store),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),

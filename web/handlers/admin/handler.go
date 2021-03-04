@@ -3,11 +3,16 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/vcraescu/go-paginator/v2"
+	"github.com/vcraescu/go-paginator/v2/adapter"
+	"github.com/vcraescu/go-paginator/v2/view"
 
 	"go.mindeco.de/http/render"
 
@@ -78,6 +83,63 @@ func Handler(
 	mux.HandleFunc("/notice/save", nh.save)
 
 	return customStripPrefix("/admin", mux)
+}
+
+// how many elements does a paginated page have by default
+const defaultPageSize = 20
+
+// paginate receives the total slice and it's length/count, a URL query for the 'limit' and which 'page'.
+//
+// The members of the map are:
+//	Entries: the paginated slice
+//	Count: the total number of the whole, unpaginated list
+//	FirstInView: a bool thats true if you render the first page
+//	LastInView: a bool thats true if you render the last page
+//	Paginator and View: helpers for rendering the page accessor (see github.com/vcraescu/go-paginator)
+//
+// TODO: we could return a struct instead but then need to re-think how we embedd it into all the pages where we need it.
+//  Maybe renderData["Pages"] = paginatedData
+func paginate(total interface{}, count int, qry url.Values) (map[string]interface{}, error) {
+	pageSize, err := strconv.Atoi(qry.Get("limit"))
+	if err != nil {
+		pageSize = defaultPageSize
+	}
+
+	page, err := strconv.Atoi(qry.Get("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	paginator := paginator.New(adapter.NewSliceAdapter(total), pageSize)
+	paginator.SetPage(page)
+
+	var entries []interface{}
+	if err = paginator.Results(&entries); err != nil {
+		return nil, fmt.Errorf("paginator failed with %w", err)
+	}
+
+	view := view.New(paginator)
+	pagesSlice, err := view.Pages()
+	if err != nil {
+		return nil, fmt.Errorf("paginator view.Pages failed with %w", err)
+	}
+	if len(pagesSlice) == 0 {
+		pagesSlice = []int{1}
+	}
+
+	last, err := view.Last()
+	if err != nil {
+		return nil, fmt.Errorf("paginator view.Last failed with %w", err)
+	}
+
+	return map[string]interface{}{
+		"Entries":     entries,
+		"Count":       count,
+		"Paginator":   paginator,
+		"View":        view,
+		"FirstInView": pagesSlice[0] == 1,
+		"LastInView":  pagesSlice[len(pagesSlice)-1] == last,
+	}, nil
 }
 
 // trim prefix if exists (workaround for named router problem)
