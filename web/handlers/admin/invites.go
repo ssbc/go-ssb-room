@@ -1,12 +1,14 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 
 	"go.mindeco.de/http/render"
 
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 type invitesH struct {
@@ -34,4 +36,30 @@ func (h invitesH) overview(rw http.ResponseWriter, req *http.Request) (interface
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
 
 	return pageData, nil
+}
+
+func (h invitesH) create(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		return
+	}
+	if err := req.ParseForm(); err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		return
+	}
+
+
+	aliasSuggestion := req.Form.Get("alias_suggestion")
+
+	token, err := h.db.Create(req.Context(), user.ID, aliasSuggestion)
+	if err != nil {
+		h.r.Error(w, req, http.StatusInternalServerError, err)
+		return
+	}
+
+	fmt.Println("use me:", token)
+
+	http.Redirect(w, req, "/admin/invites", http.StatusFound)
 }

@@ -59,7 +59,6 @@ func Handler(
 		r:  r,
 		al: al,
 	}
-
 	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", ah.overview))
 	mux.HandleFunc("/members/add", ah.add)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
@@ -69,8 +68,8 @@ func Handler(
 		r:  r,
 		db: is,
 	}
-
 	mux.HandleFunc("/invites", r.HTML("admin/invites.tmpl", ih.overview))
+	mux.HandleFunc("/invites/create", ih.create)
 
 	var nh = noticeHandler{
 		r:        r,
