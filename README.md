@@ -1,6 +1,6 @@
 # Go-SSB Room
 
-This repository contains code for a [Secure-Scuttlebutt Room v2](github.com/ssb-ngi-pointer/rooms2/) server writen in Go.
+This repository contains code for a [Secure-Scuttlebutt Room v2](https://github.com/ssb-ngi-pointer/rooms2/) server written in Go.
 
 It not only includes the secret-handshake+boxstream setup and muxrpc handlers for tunneling connections but also a fully embedded http/html interface for administering the room.
 
@@ -15,7 +15,7 @@ It not only includes the secret-handshake+boxstream setup and muxrpc handlers fo
 
 ## Development
 
-The basics just need a recent version of [Go](https://golang.org). v1.14 and onward should be sufficient.
+The basics just need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
 
 To build the server and see a list of it's options, run the following:
 
@@ -48,26 +48,25 @@ This way it won't use the assets that are embedded in the binary but read them d
 Once you are done with your changes run `go generate` in the changed packages to update them.
 
 ## Tooling
+### Mocks
 
-### mocks
-
-[counterfeiter](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update them run `go generate` in package admindb.
-
-TODO: setup tool as dependency (no manual install)
-
+[`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update the mocks, run `go generate` in package admindb.
+* TODO: setup tool as dependency (no manual install)
 
 ### Database schema
 
-This project uses [sql-migrate](https://github.com/rubenv/sql-migrate) to upgrate the sqlite database when necessary.
+This project uses [sql-migrate](https://github.com/rubenv/sql-migrate) to upgrade the sqlite database when necessary.
 
-Just create a new file in `admindb/sqlite/migrations` with your changes but be reminded: Similar to the web assets, you need to use `go test -tags dev` to test them. Afterwards run `go generate` to embedd them in the code and thus the resulting server binary.
+To upgrade, create a new file in `admindb/sqlite/migrations` with your changes. 
+
+**Note**: similar to the web assets, you need to use `go test -tags dev` to test them. Afterwards run, `go generate` to embed the assets in the code and thus the resulting server binary.
 
 ### No ORM
 
-We use [sqlboiler](github.com/volatiletech/sqlboiler) to generate type-safe Go code code directly from SQL statements and table definitions. This approach suits the programming language much more then classical ORM approaches, which usually rely havily on reflection for (un)packing structs.
+We use [sqlboiler](github.com/volatiletech/sqlboiler) to generate type-safe Go code directly from SQL statements and table definitions. This approach suits the programming language much more then classical ORM approaches, which usually rely havily on reflection for (un)packing structs.
 
 To generate them run the following commands. This will populate `admindb/sqlite/models`:
- (TODO: automate this with `go generate`)
+* (TODO: automate this with `go generate`)
 
 ```bash
 # also included as generate_models.sh
@@ -82,10 +81,10 @@ Aside: I would have used `sqlc` since it's a bit more minimal and uses hand writ
 
 ### Development user creation
 
-`cmd/insert-user` contains code to create a fallback user. Build it and point it too your database with a username, like so:
+`cmd/insert-user` contains code to create a fallback user. Build it and point it to your database with a username:
 
 ```bash
-cd $src/cmd/insert-user
+cd cmd/insert-user
 go build
 ./insert-user $HOME/.ssb-go-room/roomdb my-user
 ```
@@ -93,7 +92,6 @@ go build
 Then repeat your password twice and you are all set for development.
 
 ## Testing
-
 ### Rooms
 
 The folder `tests/nodejs` contains tests against the JavaScript implementation. To run them, install node and npm and run the following:
@@ -106,7 +104,7 @@ go test
 
 ### Web Dashboard
 
-The folders `web/handlers` contain the HTTP handlers for the dashboard. Each subfolder comes with unit tests for the specific area (like `auth`, `news`, etc.). Simply run `go test` in one of them or run `go test ./web/...` in the root of the repo to test them all.
+The folder `web/handlers` contains the HTTP handlers for the dashboard. Each subfolder comes with unit tests for the specific area (like `auth`, `news`, etc.). Simply run `go test` in one of them or run `go test ./web/...` in the root of the repo to test them all.
 
 ## Authors
 
