@@ -29,8 +29,6 @@ type Invites struct {
 	allowList *AllowList
 }
 
-const tokenLength = 50
-
 // Create creates a new invite for a new member. It returns the token or an error.
 // createdBy is user ID of the admin or moderator who created it.
 // aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
@@ -90,19 +88,10 @@ func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion st
 func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedRef) (admindb.Invite, error) {
 	var inv admindb.Invite
 
-	tokenBytes, err := base64.URLEncoding.DecodeString(token)
+	hashedToken, err := getHashedToken(token)
 	if err != nil {
 		return inv, err
 	}
-
-	if n := len(tokenBytes); n != tokenLength {
-		return inv, fmt.Errorf("admindb: invalid invite token length (only got %d bytes)", n)
-	}
-
-	// hash the binary of the passed token
-	h := sha256.New()
-	h.Write(tokenBytes)
-	hashedToken := fmt.Sprintf("%x", h.Sum(nil))
 
 	err = transact(i.db, func(tx *sql.Tx) error {
 		entry, err := models.Invites(
@@ -151,6 +140,49 @@ func deleteConsumedInvites(tx boil.ContextExecutor) error {
 		return fmt.Errorf("admindb: failed to delete used invites: %w", err)
 	}
 	return nil
+}
+
+func (i Invites) GetByToken(ctx context.Context, token string) (admindb.Invite, error) {
+	var inv admindb.Invite
+
+	ht, err := getHashedToken(token)
+	if err != nil {
+		return inv, err
+	}
+
+	entry, err := models.Invites(
+		qm.Where("active = true AND token = ?", ht),
+		qm.Load("CreatedByAuthFallback"),
+	).One(ctx, i.db)
+	if err != nil {
+		return inv, err
+	}
+
+	inv.ID = entry.ID
+	inv.AliasSuggestion = entry.AliasSuggestion
+	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
+	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
+
+	return inv, nil
+}
+
+func (i Invites) GetByID(ctx context.Context, id int64) (admindb.Invite, error) {
+	var inv admindb.Invite
+
+	entry, err := models.Invites(
+		qm.Where("active = true AND id = ?", id),
+		qm.Load("CreatedByAuthFallback"),
+	).One(ctx, i.db)
+	if err != nil {
+		return inv, err
+	}
+
+	inv.ID = entry.ID
+	inv.AliasSuggestion = entry.AliasSuggestion
+	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
+	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
+
+	return inv, nil
 }
 
 // List returns a list of all the valid invites
@@ -204,4 +236,22 @@ func (i Invites) Revoke(ctx context.Context, id int64) error {
 
 		return nil
 	})
+}
+
+const tokenLength = 50
+
+func getHashedToken(b64tok string) (string, error) {
+	tokenBytes, err := base64.URLEncoding.DecodeString(b64tok)
+	if err != nil {
+		return "", err
+	}
+
+	if n := len(tokenBytes); n != tokenLength {
+		return "", fmt.Errorf("admindb: invalid invite token length (only got %d bytes)", n)
+	}
+
+	// hash the binary of the passed token
+	h := sha256.New()
+	h.Write(tokenBytes)
+	return fmt.Sprintf("%x", h.Sum(nil)), nil
 }

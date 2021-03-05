@@ -86,24 +86,12 @@ func (h invitesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 		return nil, err
 	}
 
-	// TODO: add GetByID to invite service
-	var invite admindb.Invite
-	list, err := h.db.List(req.Context())
+	invite, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		return nil, err
-	}
-
-	found := false
-	for _, elem := range list {
-		if elem.ID == id {
-			invite = elem
-			found = true
-			break
+		if errors.Is(err, admindb.ErrNotFound) {
+			return nil, weberrors.ErrNotFound{What: "invite"}
 		}
-	}
-
-	if !found {
-		return nil, weberrors.ErrNotFound{What: "invite"}
+		return nil, err
 	}
 
 	return map[string]interface{}{

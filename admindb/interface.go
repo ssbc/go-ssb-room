@@ -57,15 +57,21 @@ type AliasService interface{}
 
 // InviteService manages creation and consumption of invite tokens for joining the room.
 type InviteService interface {
-
 	// Create creates a new invite for a new member. It returns the token or an error.
 	// createdBy is user ID of the admin or moderator who created it.
 	// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
 	Create(ctx context.Context, createdBy int64, aliasSuggestion string) (string, error)
 
-	// Consume checks if the passed token is still valid. If it is it adds newMember to the members of the room and invalidates the token.
+	// Consume checks if the passed token is still valid.
+	// If it is it adds newMember to the members of the room and invalidates the token.
 	// If the token isn't valid, it returns an error.
 	Consume(ctx context.Context, token string, newMember refs.FeedRef) (Invite, error)
+
+	// GetByToken returns the Invite if one for that token exists, or an error
+	GetByToken(ctx context.Context, token string) (Invite, error)
+
+	// GetByToken returns the Invite if one for that ID exists, or an error
+	GetByID(ctx context.Context, id int64) (Invite, error)
 
 	// List returns a list of all the valid invites
 	List(ctx context.Context) ([]Invite, error)
