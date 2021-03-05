@@ -2,6 +2,7 @@ GenericConfirm = "Yes"
 GenericGoBack = "Back"
 GenericSave = "Save"
 GenericPreview = "Preview"
+GenericLanguage = "Language"
 
 PageNotFound = "The requested page was not found."
 
@@ -45,9 +46,13 @@ NavAdminInvites = "Invites"
 NavAdminNotices = "Notices"
 
 InviteAccept = "Accept invite"
-InviteAcceptTitle = "Accept Invite
+InviteAcceptTitle = "Accept Invite"
 InviteAcceptWelcome = "elaborate welcome message for a new member with good words and stuff."
 InviteAcceptAliasSuggestion = "The persone who created thought you might like this alias:"
+InviteAcceptPublicKey = "Public Key"
+
+InviteConsumedTitle = "Invite accepted!"
+InviteConsumedWelcome = "Even more elaborate message that the person is now a member of the room!"
 
 NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"

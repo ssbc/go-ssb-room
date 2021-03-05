@@ -80,12 +80,14 @@ func setup(t *testing.T) *testSession {
 		testRepo,
 		"localhost",
 		ts.RoomState,
-		ts.AuthDB,
-		ts.AuthFallbackDB,
-		ts.AllowListDB,
-		ts.InvitesDB,
-		ts.NoticeDB,
-		ts.PinnedDB,
+		Databases{
+			AuthWithSSB:   ts.AuthDB,
+			AuthFallback:  ts.AuthFallbackDB,
+			AllowList:     ts.AllowListDB,
+			Invites:       ts.InvitesDB,
+			Notices:       ts.NoticeDB,
+			PinnedNotices: ts.PinnedDB,
+		},
 	)
 	if err != nil {
 		t.Fatal("setup: handler init failed:", err)

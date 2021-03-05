@@ -39,18 +39,24 @@ var HTMLTemplates = []string{
 	"error.tmpl",
 }
 
+// Databases is an options stuct for the required databases of the web handlers
+type Databases struct {
+	AuthWithSSB   admindb.AuthWithSSBService
+	AuthFallback  admindb.AuthFallbackService
+	AllowList     admindb.AllowListService
+	Invites       admindb.InviteService
+	Notices       admindb.NoticesService
+	PinnedNotices admindb.PinnedNoticesService
+}
+
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
 	logger logging.Interface,
 	repo repo.Interface,
 	domainName string,
 	roomState *roomstate.Manager,
-	as admindb.AuthWithSSBService,
-	fs admindb.AuthFallbackService,
-	al admindb.AllowListService,
-	is admindb.InviteService,
-	ns admindb.NoticesService,
-	ps admindb.PinnedNoticesService,
+	dbs Databases,
+
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -93,7 +99,7 @@ func New(
 				if !noticeName.Valid() {
 					return nil
 				}
-				notice, err := ps.Get(r.Context(), noticeName, "en-GB")
+				notice, err := dbs.PinnedNotices.Get(r.Context(), noticeName, "en-GB")
 				if err != nil {
 					return nil
 				}
@@ -173,7 +179,7 @@ func New(
 		}, nil
 	})
 
-	a, err := auth.NewHandler(fs,
+	a, err := auth.NewHandler(dbs.AuthFallback,
 		auth.SetStore(store),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
@@ -204,18 +210,21 @@ func New(
 	// hookup handlers to the router
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(
+	adminHandler := admin.Handler(
 		domainName,
 		r,
 		roomState,
-		al,
-		is,
-		ns,
-		ps))
-	mainMux.Handle("/admin/", adminHandler)
+		admin.Databases{
+			AllowList:     dbs.AllowList,
+			Invites:       dbs.Invites,
+			Notices:       dbs.Notices,
+			PinnedNotices: dbs.PinnedNotices,
+		},
+	)
+	mainMux.Handle("/admin/", a.Authenticate(adminHandler))
 
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-		notice, err := ps.Get(req.Context(), admindb.NoticeDescription, "en-GB")
+		notice, err := dbs.PinnedNotices.Get(req.Context(), admindb.NoticeDescription, "en-GB")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find description: %w", err)
 		}
@@ -230,14 +239,14 @@ func New(
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
 	var nh = noticeHandler{
-		notices: ns,
-		pinned:  ps,
+		notices: dbs.Notices,
+		pinned:  dbs.PinnedNotices,
 	}
 	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
 	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
 
 	var ih = inviteHandler{
-		invites: is,
+		invites: dbs.Invites,
 	}
 	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
 	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))
@@ -255,7 +264,7 @@ func New(
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
 		logging.InjectHandler(logger),
-		user.ContextInjecter(fs, a),
+		user.ContextInjecter(dbs.AuthFallback, a),
 		CSRF,
 	}
 
@@ -264,8 +273,8 @@ func New(
 	}
 
 	var finalHandler http.Handler = mainMux
-	for _, mw := range middlewares {
-		finalHandler = mw(finalHandler)
+	for _, applyMiddleware := range middlewares {
+		finalHandler = applyMiddleware(finalHandler)
 	}
 
 	return finalHandler, nil

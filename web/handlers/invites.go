@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"go.mindeco.de/http/render"
+	"go.mindeco.de/logging"
 
+	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
@@ -20,7 +22,9 @@ type inviteHandler struct {
 }
 
 func (h inviteHandler) acceptForm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-	inv, err := h.invites.GetByToken(req.Context(), req.URL.Query().Get("token"))
+	token := req.URL.Query().Get("token")
+
+	inv, err := h.invites.GetByToken(req.Context(), token)
 	if err != nil {
 		if errors.Is(err, admindb.ErrNotFound) {
 			return nil, weberrors.ErrNotFound{What: "invite"}
@@ -29,7 +33,9 @@ func (h inviteHandler) acceptForm(rw http.ResponseWriter, req *http.Request) (in
 	}
 
 	return map[string]interface{}{
-		"Invite":         inv,
+		"Token":  token,
+		"Invite": inv,
+
 		csrf.TemplateTag: csrf.TemplateField(req),
 	}, nil
 }
@@ -38,6 +44,8 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) (inter
 	if err := req.ParseForm(); err != nil {
 		return nil, weberrors.ErrBadRequest{Where: "form data", Details: err}
 	}
+
+	alias := req.FormValue("alias")
 
 	token := req.FormValue("token")
 
@@ -52,6 +60,15 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) (inter
 			return nil, weberrors.ErrNotFound{What: "invite"}
 		}
 		return nil, err
+	}
+	log := logging.FromContext(req.Context())
+	level.Info(log).Log("event", "invite consumed", "id", inv.ID, "ref", newMember.ShortRef())
+
+	if alias != "" {
+		level.Warn(log).Log(
+			"TODO", "invite registration",
+			"alias", alias,
+		)
 	}
 
 	return map[string]interface{}{

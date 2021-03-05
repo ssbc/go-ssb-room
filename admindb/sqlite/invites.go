@@ -155,6 +155,9 @@ func (i Invites) GetByToken(ctx context.Context, token string) (admindb.Invite, 
 		qm.Load("CreatedByAuthFallback"),
 	).One(ctx, i.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return inv, admindb.ErrNotFound
+		}
 		return inv, err
 	}
 
@@ -174,6 +177,9 @@ func (i Invites) GetByID(ctx context.Context, id int64) (admindb.Invite, error) 
 		qm.Load("CreatedByAuthFallback"),
 	).One(ctx, i.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return inv, admindb.ErrNotFound
+		}
 		return inv, err
 	}
 
@@ -225,6 +231,9 @@ func (i Invites) Revoke(ctx context.Context, id int64) error {
 			qm.Where("active = true AND id = ?", id),
 		).One(ctx, tx)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return admindb.ErrNotFound
+			}
 			return err
 		}
 

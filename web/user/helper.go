@@ -13,7 +13,7 @@ type roomUserContextKeyType string
 
 var roomUserContextKey roomUserContextKeyType = "ssb:room:httpcontext:user"
 
-// FromContext returns the user or nil of it's not logged in
+ // FromContext returns the user or nil if not logged in
 func FromContext(ctx context.Context) *admindb.User {
 	v := ctx.Value(roomUserContextKey)
 
@@ -25,11 +25,10 @@ func FromContext(ctx context.Context) *admindb.User {
 	return user
 }
 
-// ContextInjecter returns the middleware that injects the user value into the request context
+// ContextInjecter returns middleware for injecting a user id into the request context
 func ContextInjecter(fs admindb.AuthFallbackService, a *auth.Handler) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
 			v, err := a.AuthenticateRequest(req)
 			if err != nil {
 				next.ServeHTTP(w, req)

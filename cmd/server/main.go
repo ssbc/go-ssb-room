@@ -215,12 +215,14 @@ func runroomsrv() error {
 		repo.New(repoDir),
 		httpsDomain,
 		roomsrv.StateManager,
-		db.AuthWithSSB,
-		db.AuthFallback,
-		db.AllowList,
-		db.Invites,
-		db.Notices,
-		db.PinnedNotices,
+		handlers.Databases{
+			AuthWithSSB:   db.AuthWithSSB,
+			AuthFallback:  db.AuthFallback,
+			AllowList:     db.AllowList,
+			Invites:       db.Invites,
+			Notices:       db.Notices,
+			PinnedNotices: db.PinnedNotices,
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)

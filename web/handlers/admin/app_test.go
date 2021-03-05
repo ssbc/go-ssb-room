@@ -96,10 +96,12 @@ func newSession(t *testing.T) *testSession {
 		ts.Domain,
 		r,
 		ts.RoomState,
-		ts.AllowListDB,
-		ts.InvitesDB,
-		ts.NoticeDB,
-		ts.PinnedDB,
+		Databases{
+			AllowList:     ts.AllowListDB,
+			Invites:       ts.InvitesDB,
+			Notices:       ts.NoticeDB,
+			PinnedNotices: ts.PinnedDB,
+		},
 	)
 
 	handler = user.MiddlewareForTests(ts.User)(handler)

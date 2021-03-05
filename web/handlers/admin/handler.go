@@ -32,16 +32,21 @@ var HTMLTemplates = []string{
 	"admin/notice-edit.tmpl",
 }
 
+// Databases is an option struct that encapsualtes the required database services
+type Databases struct {
+	AllowList     admindb.AllowListService
+	Invites       admindb.InviteService
+	Notices       admindb.NoticesService
+	PinnedNotices admindb.PinnedNoticesService
+}
+
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
 func Handler(
 	domainName string,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
-	al admindb.AllowListService,
-	is admindb.InviteService,
-	ndb admindb.NoticesService,
-	pdb admindb.PinnedNoticesService,
+	dbs Databases,
 ) http.Handler {
 	mux := &http.ServeMux{}
 	// TODO: configure 404 handler
@@ -59,7 +64,7 @@ func Handler(
 
 	var ah = allowListHandler{
 		r:  r,
-		al: al,
+		al: dbs.AllowList,
 	}
 	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", ah.overview))
 	mux.HandleFunc("/members/add", ah.add)
@@ -68,7 +73,7 @@ func Handler(
 
 	var ih = invitesHandler{
 		r:  r,
-		db: is,
+		db: dbs.Invites,
 
 		domainName: domainName,
 	}
@@ -79,8 +84,8 @@ func Handler(
 
 	var nh = noticeHandler{
 		r:        r,
-		noticeDB: ndb,
-		pinnedDB: pdb,
+		noticeDB: dbs.Notices,
+		pinnedDB: dbs.PinnedNotices,
 	}
 	mux.HandleFunc("/notice/edit", r.HTML("admin/notice-edit.tmpl", nh.edit))
 	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
