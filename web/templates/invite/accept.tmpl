@@ -7,11 +7,7 @@
       class="text-center"
     >{{ i18n "InviteAcceptWelcome" }}</span>
 
-
-    
-
-
-    <form id="confirm" action="{{urlTo "complete:invite:consume"}}" method="POST">
+    <form id="consume" action="{{urlTo "complete:invite:consume"}}" method="POST">
         {{ .csrfField }}
         <input type="hidden" name="token" value={{.Token}}>
         <div class="grid grid-cols-2 gap-4">
@@ -26,13 +22,16 @@
             <span class="ml-2 text-red-400">TODO: make this a dropdown</span>
           </div>
 
-          {{ if ne .Invite.AliasSuggestion "" }}
-            <p>{{ i18n "InviteAcceptAliasSuggestion" }}</p>
-            <input
-              name="alias"
+          <p>{{ i18n "InviteAcceptAliasSuggestion" }}</p>
+          <input
+            type="text"
+            name="alias"
+            {{ if ne .Invite.AliasSuggestion "" }}
               value="{{ .Invite.AliasSuggestion }}"
-            ></p>
-          {{ end }}
+            {{else}}
+              placeholder="you@this.room"
+            {{ end }}
+          >
 
           <a
             href="javascript:history.back()"

@@ -4,6 +4,7 @@ package handlers
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -220,6 +221,9 @@ func TestFallbackAuth(t *testing.T) {
 }
 
 // utils
+
+// TODO: we probably want to move all of these to web/testing or somesuch
+
 type localizedElement struct {
 	Selector, Label string
 }
@@ -238,4 +242,40 @@ func assertCSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
 	tipe, ok := csrfField.Attr("type")
 	a.True(ok, "csrf input has a type")
 	a.Equal("hidden", tipe, "wrong type on csrf field")
+}
+
+type inputElement struct {
+	Name, Value, Type, Placeholder string
+}
+
+// assertInputsInForm checks a list of defined elements. It tries to find them by input[name=$name]
+// and then proceeds with asserting their value, type or placeholder (if the fields in inputElement are not "")
+func assertInputsInForm(t *testing.T, form *goquery.Selection, elems []inputElement) {
+	a := assert.New(t)
+	for _, e := range elems {
+
+		inputSelector := form.Find(fmt.Sprintf("input[name=%s]", e.Name))
+		ok := a.Equal(1, inputSelector.Length(), "expected to find input with name %s", e.Name)
+		if !ok {
+			continue
+		}
+
+		if e.Value != "" {
+			value, has := inputSelector.Attr("value")
+			a.True(has, "expected value attribute input[name=%s]", e.Name)
+			a.Equal(e.Value, value, "wrong value attribute on input[name=%s]", e.Name)
+		}
+
+		if e.Type != "" {
+			tipe, has := inputSelector.Attr("type")
+			a.True(has, "expected type attribute input[name=%s]", e.Name)
+			a.Equal(e.Type, tipe, "wrong type attribute on input[name=%s]", e.Name)
+		}
+
+		if e.Placeholder != "" {
+			tipe, has := inputSelector.Attr("placeholder")
+			a.True(has, "expected placeholder attribute input[name=%s]", e.Name)
+			a.Equal(e.Placeholder, tipe, "wrong placeholder attribute on input[name=%s]", e.Name)
+		}
+	}
 }
