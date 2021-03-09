@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
@@ -19,6 +22,9 @@ type inviteHandler struct {
 
 	invites admindb.InviteService
 	alaises admindb.AliasService
+
+	muxrpcHostAndPort string
+	roomPubKey        ed25519.PublicKey
 }
 
 func (h inviteHandler) acceptForm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -71,7 +77,11 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) (inter
 		)
 	}
 
+	// TODO: hardcoded here just to be replaced soon with next version of ssb-uri
+	roomPubKey := base64.StdEncoding.EncodeToString(h.roomPubKey)
+	roomAddr := fmt.Sprintf("net:%s~shs:%s:SSB+Room+PSK3TLYC2T86EHQCUHBUHASCASE18JBV24=", h.muxrpcHostAndPort, roomPubKey)
+
 	return map[string]interface{}{
-		"TunnelAddress": "pew pew",
+		"RoomAddress": roomAddr,
 	}, nil
 }

@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"bytes"
+	"encoding/base64"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
@@ -219,5 +221,12 @@ func TestInviteConsumeInvite(t *testing.T) {
 
 	consumedDoc, err := goquery.NewDocumentFromReader(resp.Body)
 	r.NoError(err)
-	t.Log(consumedDoc.Find("body").Text())
+
+	gotRA := consumedDoc.Find("#room-address").Text()
+
+	// TODO: this is just a cheap stub for actual ssb-uri parsing
+	a.True(strings.HasPrefix(gotRA, "net:localhost:8008~shs:"), "not for the test host: %s", gotRA)
+	a.True(strings.Contains(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.PubKey)), "public key missing? %s", gotRA)
+	a.True(strings.HasSuffix(gotRA, ":SSB+Room+PSK3TLYC2T86EHQCUHBUHASCASE18JBV24="), "magic suffix missing: %s", gotRA)
+
 }

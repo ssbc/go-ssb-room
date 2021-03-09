@@ -17,6 +17,7 @@ import (
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
@@ -49,11 +50,21 @@ type Databases struct {
 	PinnedNotices admindb.PinnedNoticesService
 }
 
+// NetworkInfo encapsulates the domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
+type NetworkInfo struct {
+	PortMUXRPC uint
+	PortHTTPS  uint // 0 assumes default (443)
+
+	PubKey ed25519.PublicKey
+
+	Domain string
+}
+
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
 	logger logging.Interface,
 	repo repo.Interface,
-	domainName string,
+	netInfo NetworkInfo,
 	roomState *roomstate.Manager,
 	dbs Databases,
 
@@ -211,7 +222,7 @@ func New(
 	roomsAuth.Handler(m, r, a)
 
 	adminHandler := admin.Handler(
-		domainName,
+		netInfo.Domain,
 		r,
 		roomState,
 		admin.Databases{
@@ -247,6 +258,9 @@ func New(
 
 	var ih = inviteHandler{
 		invites: dbs.Invites,
+
+		roomPubKey:        netInfo.PubKey,
+		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
 	}
 	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
 	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))

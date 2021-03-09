@@ -39,6 +39,8 @@ type testSession struct {
 	NoticeDB       *mockdb.FakeNoticesService
 
 	RoomState *roomstate.Manager
+
+	NetworkInfo NetworkInfo
 }
 
 var testI18N = justTheKeys()
@@ -69,6 +71,14 @@ func setup(t *testing.T) *testSession {
 	ts.PinnedDB.GetReturns(defaultNotice, nil)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
 
+	ts.NetworkInfo = NetworkInfo{
+		Domain:     "localhost",
+		PortMUXRPC: 8008,
+		PortHTTPS:  443,
+
+		PubKey: bytes.Repeat([]byte("test"), 8),
+	}
+
 	log, _ := logtest.KitLogger("complete", t)
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
@@ -78,7 +88,7 @@ func setup(t *testing.T) *testSession {
 	h, err := New(
 		log,
 		testRepo,
-		"localhost",
+		ts.NetworkInfo,
 		ts.RoomState,
 		Databases{
 			AuthWithSSB:   ts.AuthDB,
