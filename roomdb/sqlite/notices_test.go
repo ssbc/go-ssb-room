@@ -103,9 +103,9 @@ func TestPinnedNotices(t *testing.T) {
 		}
 
 		for i, tcase := range cases {
-			desc, has := allTheNotices[tcase.Name]
+			notices, has := allTheNotices[tcase.Name]
 			r.True(has, "case %d failed - notice %s not in map", i, tcase.Name)
-			r.Len(desc, tcase.Count, "case %d failed - wrong number of notices for %s", i, tcase.Name)
+			r.Len(notices, tcase.Count, "case %d failed - wrong number of notices for %s", i, tcase.Name)
 		}
 	})
 
@@ -130,7 +130,6 @@ func TestPinnedNotices(t *testing.T) {
 		notice.Title = "política de privacidad"
 		notice.Content = "solo una prueba"
 		notice.Language = "es"
-
 		// save the new notice
 		err = db.Notices.Save(ctx, &notice)
 		r.NoError(err)
