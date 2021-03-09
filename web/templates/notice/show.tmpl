@@ -11,6 +11,7 @@
   <div class="h-10"></div>
   {{if is_logged_in}}
     <a
+      id="edit-notice"
       href="{{urlTo "admin:notice:edit" "id" .ID}}"
       class="self-start shadow rounded px-4 h-8 flex flex-row justify-center items-center text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
     >{{i18n "NoticeEditTitle"}}</a>

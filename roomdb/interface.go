@@ -19,6 +19,9 @@ import (
 
 // AuthFallbackService might be helpful for scenarios where one lost access to his ssb device or key
 type AuthFallbackService interface {
+
+	// Check receives the username and password (in clear) and checks them accordingly.
+	// If it's a valid combination it returns the user ID, or an error if they are not.
 	auth.Auther
 
 	Create(ctx context.Context, user string, password []byte) (int64, error)

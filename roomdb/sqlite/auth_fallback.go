@@ -24,6 +24,8 @@ type AuthFallback struct {
 	db *sql.DB
 }
 
+// Check receives the username and password (in clear) and checks them accordingly.
+// If it's a valid combination it returns the user ID, or an error if they are not.
 func (af AuthFallback) Check(name, password string) (interface{}, error) {
 	ctx := context.Background()
 	found, err := models.AuthFallbacks(qm.Where("name = ?", name)).One(ctx, af.db)
