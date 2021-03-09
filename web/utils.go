@@ -40,7 +40,7 @@ func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)
 		if route == nil {
-			level.Warn(l).Log("msg", "no such route", "route", routeName, "params", fmt.Sprintf("%v", ps))
+			// level.Warn(l).Log("msg", "no such route", "route", routeName, "params", fmt.Sprintf("%v", ps))
 			return &url.URL{}
 		}
 
