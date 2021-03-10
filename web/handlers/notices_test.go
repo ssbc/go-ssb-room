@@ -68,8 +68,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	}
 	ts.NoticeDB.GetByIDReturns(noticeData, nil)
 
-	// first check the button isn't there when not logged in
-
+	// first, we confirm that the button is missing when not logged in
 	noticeURL := urlTo(router.CompleteNoticeShow, "id", 42)
 	noticeURL.Host = "localhost"
 	noticeURL.Scheme = "https"
@@ -78,12 +77,12 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	doc, resp := ts.Client.GetHTML(noticeURL.String())
 	a.Equal(http.StatusOK, resp.Code)
 
-	// empty election == no link
+	// empty selection <=> we have no link
 	a.EqualValues(0, doc.Find(editButtonSelector).Length())
 
-	// start prepareing login dance
-	// very cheap client session
-	// TODO: refactor login dance for re-use in testing
+	// start preparing the ~login dance~
+    // cookiejar: a very cheap client session
+	// TODO: refactor login dance for re-use in testing / across tests
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
 
