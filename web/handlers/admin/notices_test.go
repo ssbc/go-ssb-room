@@ -3,8 +3,10 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	// "net/url"
 	"testing"
 
+	// "github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
@@ -13,16 +15,37 @@ import (
 /* TODO: 500s for some reason? */
 func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 	ts := newSession(t)
-	a := assert.New(t)
+	// instantiate the urlTo helper (constructs urls for us!)
+	urlTo := web.NewURLTo(ts.Router)
 
+	checkFormInputs := func(t *testing.T, url string) {
+		html, resp := ts.Client.GetHTML(url)
+		fmt.Println(html.Html())
+		a := assert.New(t)
+		/* TODO: continue test by checking for 1) forms, and 2) their required input fields */
+		a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
+		// Phrased these tests this way (multiple tests checking #) to present less confusion if, somehow, the inputs somehow end up being more than 1 :)
+		titleInputs := html.Find(`input[name="title"]`).Length()
+		a.True(titleInputs > 0, "Title input is missing")
+		a.True(titleInputs == 1, "Expected only one title input (there were several)")
+
+		idInput := html.Find(`input[name="id"]`)
+		idType, idHasType := idInput.Attr("type")
+		idInputs := idInput.Length()
+		a.True(idInputs > 0, "ID input is missing")
+		a.True(idInputs == 1, "Expected only one id input (there were several)")
+		a.True(idHasType && idType == "hidden", "Expected id input to be of type hidden")
+	}
 	// Construct notice url to edit
-	baseurl, err := ts.Router.Get(router.AdminNoticeEdit).URL()
-	a.Nil(err)
-	url := fmt.Sprintf("%s?id=%d", baseurl.String(), 1)
-
-	_, resp := ts.Client.GetHTML(url)
-	/* TODO: continue test by checking for 1) forms, and 2) their required input fields */
-	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
+	url := urlTo(router.AdminNoticeEdit, "id", 0).String()
+	checkFormInputs(t, url)
+	// Create mock notice data to operate on
+	// notice := admindb.Notice{
+	// 	ID:       1,
+	// 	Title:    "News",
+	// 	Content:  "Breaking News: This Room Has News",
+	// 	Language: "en",
+	// }
 }
 
 /* TODO: use this test as an example for pair programming 2021-03-09 */
