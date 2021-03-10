@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -20,8 +20,8 @@ import (
 type inviteHandler struct {
 	r *render.Renderer
 
-	invites admindb.InviteService
-	alaises admindb.AliasService
+	invites roomdb.InviteService
+	alaises roomdb.AliasService
 
 	muxrpcHostAndPort string
 	roomPubKey        ed25519.PublicKey
@@ -32,7 +32,7 @@ func (h inviteHandler) acceptForm(rw http.ResponseWriter, req *http.Request) (in
 
 	inv, err := h.invites.GetByToken(req.Context(), token)
 	if err != nil {
-		if errors.Is(err, admindb.ErrNotFound) {
+		if errors.Is(err, roomdb.ErrNotFound) {
 			return nil, weberrors.ErrNotFound{What: "invite"}
 		}
 		return nil, err
@@ -62,7 +62,7 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) (inter
 
 	inv, err := h.invites.Consume(req.Context(), token, *newMember)
 	if err != nil {
-		if errors.Is(err, admindb.ErrNotFound) {
+		if errors.Is(err, roomdb.ErrNotFound) {
 			return nil, weberrors.ErrNotFound{What: "invite"}
 		}
 		return nil, err

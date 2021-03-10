@@ -12,10 +12,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
-
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
-
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/netwrap"
@@ -25,6 +21,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -58,7 +56,7 @@ type Server struct {
 	public maybemuxrpc.PluginManager
 	master maybemuxrpc.PluginManager
 
-	authorizer admindb.AllowListService
+	authorizer roomdb.AllowListService
 
 	StateManager *roomstate.Manager
 }
@@ -67,7 +65,7 @@ func (s Server) Whoami() refs.FeedRef {
 	return s.keyPair.Feed
 }
 
-func New(allow admindb.AllowListService, opts ...Option) (*Server, error) {
+func New(allow roomdb.AllowListService, opts ...Option) (*Server, error) {
 	var s Server
 	s.authorizer = allow
 

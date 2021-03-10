@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/russross/blackfriday/v2"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"go.mindeco.de/http/render"
 )
@@ -19,14 +19,14 @@ import (
 type noticeHandler struct {
 	r *render.Renderer
 
-	noticeDB admindb.NoticesService
-	pinnedDB admindb.PinnedNoticesService
+	noticeDB roomdb.NoticesService
+	pinnedDB roomdb.PinnedNoticesService
 }
 
 func (nh noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	pinnedName := req.URL.Query().Get("name")
 
-	if !admindb.PinnedNoticeName(pinnedName).Valid() {
+	if !roomdb.PinnedNoticeName(pinnedName).Valid() {
 		return nil, weberrors.ErrBadRequest{Where: "pinnedName", Details: fmt.Errorf("invalid pinned notice name")}
 	}
 
@@ -45,14 +45,14 @@ func (nh noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request
 		return
 	}
 
-	pinnedName := admindb.PinnedNoticeName(req.FormValue("name"))
+	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
 	if !pinnedName.Valid() {
 		err := weberrors.ErrBadRequest{Where: "name", Details: fmt.Errorf("invalid pinned notice name")}
 		nh.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
-	var n admindb.Notice
+	var n roomdb.Notice
 	n.Title = req.FormValue("title")
 
 	// TODO: validate languages properly
@@ -128,7 +128,7 @@ func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 		redirect = "/"
 	}
 
-	var n admindb.Notice
+	var n roomdb.Notice
 	n.ID, err = strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "id", Details: err}

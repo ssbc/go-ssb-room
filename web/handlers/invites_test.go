@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
@@ -34,7 +34,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		r.NotNil(acceptURL404)
 
 		// prep the mocked db for http:404
-		ts.InvitesDB.GetByTokenReturns(admindb.Invite{}, admindb.ErrNotFound)
+		ts.InvitesDB.GetByTokenReturns(roomdb.Invite{}, roomdb.ErrNotFound)
 
 		// request the form
 		acceptForm := acceptURL404.String()
@@ -68,7 +68,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		r.NotNil(validAcceptURL)
 
 		// prep the mocked db for http:200
-		fakeExistingInvite := admindb.Invite{
+		fakeExistingInvite := roomdb.Invite{
 			ID:              1234,
 			AliasSuggestion: "bestie",
 		}
@@ -109,7 +109,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		validAcceptURL := urlTo(router.CompleteInviteAccept, "token", testToken)
 		r.NotNil(validAcceptURL)
 
-		inviteWithNoAlias := admindb.Invite{ID: 4321}
+		inviteWithNoAlias := roomdb.Invite{ID: 4321}
 		ts.InvitesDB.GetByTokenReturns(inviteWithNoAlias, nil)
 
 		// request the form
@@ -152,7 +152,7 @@ func TestInviteConsumeInvite(t *testing.T) {
 	validAcceptURL.Host = "localhost"
 	validAcceptURL.Scheme = "https"
 
-	inviteWithNoAlias := admindb.Invite{ID: 4321}
+	inviteWithNoAlias := roomdb.Invite{ID: 4321}
 	ts.InvitesDB.GetByTokenReturns(inviteWithNoAlias, nil)
 
 	// request the form (for a valid csrf token)

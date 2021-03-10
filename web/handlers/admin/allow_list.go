@@ -10,14 +10,14 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/gorilla/csrf"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 type allowListHandler struct {
 	r *render.Renderer
 
-	al admindb.AllowListService
+	al roomdb.AllowListService
 }
 
 const redirectToMembers = "/admin/members"
@@ -45,7 +45,7 @@ func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
 	err = h.al.Add(req.Context(), *newEntryParsed)
 	if err != nil {
 		code := http.StatusInternalServerError
-		var aa admindb.ErrAlreadyAdded
+		var aa roomdb.ErrAlreadyAdded
 		if errors.As(err, &aa) {
 			code = http.StatusBadRequest
 			// TODO: localized error pages
@@ -92,7 +92,7 @@ func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Reques
 
 	entry, err := h.al.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, admindb.ErrNotFound) {
+		if errors.Is(err, roomdb.ErrNotFound) {
 			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 			return nil, ErrRedirected
 		}
@@ -125,7 +125,7 @@ func (h allowListHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	status := http.StatusFound
 	err = h.al.RemoveID(req.Context(), id)
 	if err != nil {
-		if !errors.Is(err, admindb.ErrNotFound) {
+		if !errors.Is(err, roomdb.ErrNotFound) {
 			// TODO "flash" errors
 			h.r.Error(rw, req, http.StatusInternalServerError, err)
 			return

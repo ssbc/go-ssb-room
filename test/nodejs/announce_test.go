@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

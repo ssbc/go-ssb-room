@@ -7,13 +7,13 @@ import (
 
 	"github.com/russross/blackfriday/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 type noticeHandler struct {
-	pinned  admindb.PinnedNoticesService
-	notices admindb.NoticesService
+	pinned  roomdb.PinnedNoticesService
+	notices roomdb.NoticesService
 }
 
 func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -24,7 +24,7 @@ func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interfac
 	}
 
 	return struct {
-		AllNotices admindb.SortedPinnedNotices
+		AllNotices roomdb.SortedPinnedNotices
 	}{lst.Sorted()}, nil
 }
 

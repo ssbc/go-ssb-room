@@ -50,7 +50,7 @@ Once you are done with your changes run `go generate` in the changed packages to
 ## Tooling
 ### Mocks
 
-[`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update the mocks, run `go generate` in package admindb.
+[`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update the mocks, run `go generate` in package roomdb.
 * TODO: setup tool as dependency (no manual install)
 
 ### Database schema

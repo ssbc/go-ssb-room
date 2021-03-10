@@ -5,7 +5,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"go.mindeco.de/http/auth"
 )
 
@@ -14,10 +14,10 @@ type roomUserContextKeyType string
 var roomUserContextKey roomUserContextKeyType = "ssb:room:httpcontext:user"
 
  // FromContext returns the user or nil if not logged in
-func FromContext(ctx context.Context) *admindb.User {
+func FromContext(ctx context.Context) *roomdb.User {
 	v := ctx.Value(roomUserContextKey)
 
-	user, ok := v.(*admindb.User)
+	user, ok := v.(*roomdb.User)
 	if !ok {
 		return nil
 	}
@@ -26,7 +26,7 @@ func FromContext(ctx context.Context) *admindb.User {
 }
 
 // ContextInjecter returns middleware for injecting a user id into the request context
-func ContextInjecter(fs admindb.AuthFallbackService, a *auth.Handler) func(http.Handler) http.Handler {
+func ContextInjecter(fs roomdb.AuthFallbackService, a *auth.Handler) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			v, err := a.AuthenticateRequest(req)
@@ -57,14 +57,14 @@ func ContextInjecter(fs admindb.AuthFallbackService, a *auth.Handler) func(http.
 // It has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
 func TemplateHelper() func(*http.Request) interface{} {
 	return func(r *http.Request) interface{} {
-		no := func() *admindb.User { return nil }
+		no := func() *roomdb.User { return nil }
 
 		user := FromContext(r.Context())
 		if user == nil {
 			return no
 		}
 
-		yes := func() *admindb.User { return user }
+		yes := func() *roomdb.User { return user }
 		return yes
 	}
 }

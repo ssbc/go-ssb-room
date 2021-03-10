@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/csrf"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
@@ -19,7 +19,7 @@ import (
 type invitesHandler struct {
 	r *render.Renderer
 
-	db admindb.InviteService
+	db roomdb.InviteService
 
 	domainName string
 }
@@ -88,7 +88,7 @@ func (h invitesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 
 	invite, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, admindb.ErrNotFound) {
+		if errors.Is(err, roomdb.ErrNotFound) {
 			return nil, weberrors.ErrNotFound{What: "invite"}
 		}
 		return nil, err
@@ -122,7 +122,7 @@ func (h invitesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	status := http.StatusFound
 	err = h.db.Revoke(req.Context(), id)
 	if err != nil {
-		if !errors.Is(err, admindb.ErrNotFound) {
+		if !errors.Is(err, roomdb.ErrNotFound) {
 			// TODO "flash" errors
 			h.r.Error(rw, req, http.StatusInternalServerError, err)
 			return

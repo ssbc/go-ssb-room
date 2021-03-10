@@ -14,8 +14,8 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
@@ -32,7 +32,7 @@ type testSession struct {
 	NoticeDB    *mockdb.FakeNoticesService
 	InvitesDB   *mockdb.FakeInviteService
 
-	User *admindb.User
+	User *roomdb.User
 
 	Domain string
 
@@ -57,7 +57,7 @@ func newSession(t *testing.T) *testSession {
 	ts.Domain = randomString(10)
 
 	// fake user
-	ts.User = &admindb.User{
+	ts.User = &roomdb.User{
 		ID:   1234,
 		Name: "room mate",
 	}
@@ -76,7 +76,7 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["current_page_is"] = func(routeName string) bool {
 		return true
 	}
-	testFuncs["is_logged_in"] = func() *admindb.User { return nil }
+	testFuncs["is_logged_in"] = func() *roomdb.User { return nil }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 
 	r, err := render.New(web.Templates,

@@ -14,7 +14,7 @@ import (
 	"github.com/vcraescu/go-paginator/v2/view"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 )
 
@@ -34,10 +34,10 @@ var HTMLTemplates = []string{
 
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
-	AllowList     admindb.AllowListService
-	Invites       admindb.InviteService
-	Notices       admindb.NoticesService
-	PinnedNotices admindb.PinnedNoticesService
+	AllowList     roomdb.AllowListService
+	Invites       roomdb.InviteService
+	Notices       roomdb.NoticesService
+	PinnedNotices roomdb.PinnedNoticesService
 }
 
 // Handler supplies the elevated access pages to known users.

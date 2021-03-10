@@ -17,7 +17,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 
 	"golang.org/x/sync/errgroup"
 
@@ -86,7 +86,7 @@ func newSession(t *testing.T, appKey []byte) *testSession {
 	return ts
 }
 
-func (ts *testSession) startGoServer(al admindb.AllowListService, opts ...roomsrv.Option) *roomsrv.Server {
+func (ts *testSession) startGoServer(al roomdb.AllowListService, opts ...roomsrv.Option) *roomsrv.Server {
 	r := require.New(ts.t)
 
 	// prepend defaults
