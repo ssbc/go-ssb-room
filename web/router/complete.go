@@ -13,6 +13,9 @@ const (
 
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
+
+	CompleteInviteAccept  = "complete:invite:accept"
+	CompleteInviteConsume = "complete:invite:consume"
 )
 
 // CompleteApp constructs a mux.Router containing the routes for batch Complete html frontend
@@ -24,6 +27,9 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
 	m.Path("/about").Methods("GET").Name(CompleteAbout)
+
+	m.Path("/invite/accept").Methods("GET").Name(CompleteInviteAccept)
+	m.Path("/invite/consume").Methods("POST").Name(CompleteInviteConsume)
 
 	m.Path("/notice/show").Methods("GET").Name(CompleteNoticeShow)
 	m.Path("/notice/list").Methods("GET").Name(CompleteNoticeList)

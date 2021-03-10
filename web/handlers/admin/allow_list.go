@@ -12,20 +12,17 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	"github.com/vcraescu/go-paginator/v2"
-	"github.com/vcraescu/go-paginator/v2/adapter"
-	"github.com/vcraescu/go-paginator/v2/view"
 )
 
-type allowListH struct {
+type allowListHandler struct {
 	r *render.Renderer
 
 	al admindb.AllowListService
 }
 
-const redirectTo = "/admin/members"
+const redirectToMembers = "/admin/members"
 
-func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
+func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
@@ -60,12 +57,10 @@ func (h allowListH) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, redirectTo, http.StatusFound)
+	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
-const pageSize = 20
-
-func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h allowListHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	lst, err := h.al.List(req.Context())
 	if err != nil {
 		return nil, err
@@ -74,60 +69,21 @@ func (h allowListH) overview(rw http.ResponseWriter, req *http.Request) (interfa
 	for i, j := 0, len(lst)-1; i < j; i, j = i+1, j-1 {
 		lst[i], lst[j] = lst[j], lst[i]
 	}
-	count := len(lst)
 
-	num, err := strconv.ParseInt(req.URL.Query().Get("page"), 10, 32)
+	pageData, err := paginate(lst, len(lst), req.URL.Query())
 	if err != nil {
-		num = 1
-	}
-	page := int(num)
-	if page < 1 {
-		page = 1
+		return nil, err
 	}
 
-	paginator := paginator.New(adapter.NewSliceAdapter(lst), pageSize)
-	paginator.SetPage(page)
+	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
 
-	var entries admindb.ListEntries
-	if err = paginator.Results(&entries); err != nil {
-		return nil, fmt.Errorf("paginator failed with %w", err)
-	}
-
-	view := view.New(paginator)
-	pagesSlice, err := view.Pages()
-	if err != nil {
-		return nil, fmt.Errorf("paginator view.Pages failed with %w", err)
-	}
-	if len(pagesSlice) == 0 {
-		pagesSlice = []int{1}
-	}
-	last, err := view.Last()
-	if err != nil {
-		return nil, fmt.Errorf("paginator view.Last failed with %w", err)
-	}
-	firstInView := pagesSlice[0] == 1
-	lastInView := false
-	for _, num := range pagesSlice {
-		if num == last {
-			lastInView = true
-		}
-	}
-
-	return map[string]interface{}{
-		csrf.TemplateTag: csrf.TemplateField(req),
-		"Entries":        entries,
-		"Count":          count,
-		"Paginator":      paginator,
-		"View":           view,
-		"FirstInView":    firstInView,
-		"LastInView":     lastInView,
-	}, nil
+	return pageData, nil
 }
 
 // TODO: move to render package so that we can decide to not render a page during the controller
 var ErrRedirected = errors.New("render: not rendered but redirected")
 
-func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
@@ -137,23 +93,24 @@ func (h allowListH) removeConfirm(rw http.ResponseWriter, req *http.Request) (in
 	entry, err := h.al.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, admindb.ErrNotFound) {
-			http.Redirect(rw, req, redirectTo, http.StatusFound)
+			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 			return nil, ErrRedirected
 		}
 		return nil, err
 	}
+
 	return map[string]interface{}{
 		"Entry":          entry,
 		csrf.TemplateTag: csrf.TemplateField(req),
 	}, nil
 }
 
-func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
+func (h allowListHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectTo, http.StatusFound)
+		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
@@ -161,7 +118,7 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectTo, http.StatusFound)
+		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
@@ -176,5 +133,5 @@ func (h allowListH) remove(rw http.ResponseWriter, req *http.Request) {
 		status = http.StatusNotFound
 	}
 
-	http.Redirect(rw, req, redirectTo, status)
+	http.Redirect(rw, req, redirectToMembers, status)
 }

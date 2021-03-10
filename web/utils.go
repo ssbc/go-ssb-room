@@ -62,6 +62,7 @@ func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
 				params = append(params, v.Ref())
 			default:
 				level.Error(l).Log("msg", "invalid param type", "param", fmt.Sprintf("%T", p), "route", routeName)
+				return &url.URL{}
 			}
 		}
 

@@ -17,6 +17,7 @@ import (
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
+	"golang.org/x/crypto/ed25519"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
@@ -26,26 +27,47 @@ import (
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
+	"invite/accept.tmpl",
+	"invite/consumed.tmpl",
 	"notice/list.tmpl",
 	"notice/show.tmpl",
 	"error.tmpl",
+}
+
+// Databases is an options stuct for the required databases of the web handlers
+type Databases struct {
+	AuthWithSSB   admindb.AuthWithSSBService
+	AuthFallback  admindb.AuthFallbackService
+	AllowList     admindb.AllowListService
+	Invites       admindb.InviteService
+	Notices       admindb.NoticesService
+	PinnedNotices admindb.PinnedNoticesService
+}
+
+// NetworkInfo encapsulates the domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
+type NetworkInfo struct {
+	PortMUXRPC uint
+	PortHTTPS  uint // 0 assumes default (443)
+
+	PubKey ed25519.PublicKey
+
+	Domain string
 }
 
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
 	logger logging.Interface,
 	repo repo.Interface,
+	netInfo NetworkInfo,
 	roomState *roomstate.Manager,
-	as admindb.AuthWithSSBService,
-	fs admindb.AuthFallbackService,
-	al admindb.AllowListService,
-	ns admindb.NoticesService,
-	ps admindb.PinnedNoticesService,
+	dbs Databases,
+
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -53,8 +75,6 @@ func New(
 	if err != nil {
 		return nil, err
 	}
-
-	var a *auth.Handler
 
 	r, err := render.New(web.Templates,
 		render.SetLogger(logger),
@@ -90,7 +110,7 @@ func New(
 				if !noticeName.Valid() {
 					return nil
 				}
-				notice, err := ps.Get(r.Context(), noticeName, "en-GB")
+				notice, err := dbs.PinnedNotices.Get(r.Context(), noticeName, "en-GB")
 				if err != nil {
 					return nil
 				}
@@ -109,27 +129,7 @@ func New(
 				return u
 			}
 		}),
-		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
-			no := func() *admindb.User { return nil }
-
-			v, err := a.AuthenticateRequest(r)
-			if err != nil {
-				return no
-			}
-
-			uid, ok := v.(int64)
-			if !ok {
-				panic(fmt.Sprintf("warning: not the expected ID type from authenticated session: %T\n", v))
-			}
-
-			user, err := fs.GetByID(r.Context(), uid)
-			if err != nil {
-				return no
-			}
-
-			yes := func() *admindb.User { return user }
-			return yes
-		}),
+		render.InjectTemplateFunc("is_logged_in", user.TemplateHelper()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
@@ -190,7 +190,7 @@ func New(
 		}, nil
 	})
 
-	a, err = auth.NewHandler(fs,
+	a, err := auth.NewHandler(dbs.AuthFallback,
 		auth.SetStore(store),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
@@ -221,11 +221,21 @@ func New(
 	// hookup handlers to the router
 	roomsAuth.Handler(m, r, a)
 
-	adminHandler := a.Authenticate(admin.Handler(r, roomState, al, ns, ps))
-	mainMux.Handle("/admin/", adminHandler)
+	adminHandler := admin.Handler(
+		netInfo.Domain,
+		r,
+		roomState,
+		admin.Databases{
+			AllowList:     dbs.AllowList,
+			Invites:       dbs.Invites,
+			Notices:       dbs.Notices,
+			PinnedNotices: dbs.PinnedNotices,
+		},
+	)
+	mainMux.Handle("/admin/", a.Authenticate(adminHandler))
 
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-		notice, err := ps.Get(req.Context(), admindb.NoticeDescription, "en-GB")
+		notice, err := dbs.PinnedNotices.Get(req.Context(), admindb.NoticeDescription, "en-GB")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find description: %w", err)
 		}
@@ -239,11 +249,21 @@ func New(
 	}))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
-	var nr noticeHandler
-	nr.notices = ns
-	nr.pinned = ps
-	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nr.list))
-	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nr.show))
+	var nh = noticeHandler{
+		notices: dbs.Notices,
+		pinned:  dbs.PinnedNotices,
+	}
+	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
+	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
+
+	var ih = inviteHandler{
+		invites: dbs.Invites,
+
+		roomPubKey:        netInfo.PubKey,
+		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
+	}
+	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
+	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
@@ -255,16 +275,23 @@ func New(
 
 	mainMux.Handle("/", m)
 
-	// apply middleware
-	var finalHandler http.Handler = mainMux
-	finalHandler = logging.InjectHandler(logger)(finalHandler)
-	finalHandler = CSRF(finalHandler)
-
-	if web.Production {
-		return finalHandler, nil
+	// apply HTTP middleware
+	middlewares := []func(http.Handler) http.Handler{
+		logging.InjectHandler(logger),
+		user.ContextInjecter(dbs.AuthFallback, a),
+		CSRF,
 	}
 
-	return r.GetReloader()(finalHandler), nil
+	if !web.Production {
+		middlewares = append(middlewares, r.GetReloader())
+	}
+
+	var finalHandler http.Handler = mainMux
+	for _, applyMiddleware := range middlewares {
+		finalHandler = applyMiddleware(finalHandler)
+	}
+
+	return finalHandler, nil
 }
 
 // utils

@@ -1,0 +1,95 @@
+{{ define "title" }}{{i18n "AdminInvitesTitle"}}{{ end }}
+{{ define "content" }}
+  <h1
+    class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
+  >{{i18n "AdminInvitesTitle"}}</h1>
+
+  <p id="welcome" class="my-2">{{i18n "AdminInvitesWelcome"}}</p>
+
+  <p
+    id="inviteListCount"
+    class="text-lg font-bold my-2"
+  >{{i18npl "ListCount" .Count}}</p>
+
+  <ul id="theList" class="divide-y pb-4">
+    <form
+      id="create-invite"
+      action="{{urlTo "admin:invites:create"}}"
+      method="POST"
+    >
+      {{ .csrfField }}
+      <div class="flex flex-row items-center h-12">
+        <input
+          type="text"
+          name="alias_suggestion"
+          placeholder="{{i18n "AdminInvitesAliasSuggestion"}}"
+          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+        >
+        <input
+          type="submit"
+          value="{{i18n "GenericSave"}}"
+          class="pl-4 w-20 py-2 text-center text-green-500 hover:text-green-600 font-bold bg-transparent cursor-pointer"
+        >
+      </div>
+    </form>
+    {{range .Entries}}
+    <li class="flex flex-row items-center h-12">
+      <span
+        class="font-mono truncate flex-auto text-gray-600 tracking-wider"
+      >
+      <!-- https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60 -->
+      {{i18n "AdminInviteCreatedBy"}} {{.CreatedBy.Name}}
+      {{if ne .AliasSuggestion ""}}
+        ({{i18n "AdminInviteSuggestedAliasIsShort"}} {{.AliasSuggestion}})
+      {{end}}
+      </span>
+
+      <a
+        href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
+        class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+      >{{i18n "AdminInviteRevoke"}}</a>
+    </li>
+    {{end}}
+  </ul>
+
+  {{$pageNums := .Paginator.PageNums}}
+  {{$view := .View}}
+  {{if gt $pageNums 1}}
+  <div class="flex flex-row justify-center">
+    {{if not .FirstInView}}
+      <a
+        href="{{urlTo "admin:invites:overview"}}?page=1"
+        class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+      >1</a>
+      <span
+        class="px-3 py-2 text-gray-400 border-2 border-transparent"
+      >..</span>
+    {{end}}
+
+    {{range $view.Pages}}
+      {{if le . $pageNums}}
+        {{if eq . $view.Current}}
+          <span
+            class="px-3 py-2 cursor-default text-gray-500 border-2 border-transparent"
+          >{{.}}</span>
+        {{else}}
+          <a
+            href="{{urlTo "admin:invites:overview"}}?page={{.}}"
+            class="rounded px-3 py-2 mx-1 text-pink-600 border-transparent hover:border-pink-400 border-2"
+          >{{.}}</a>
+        {{end}}
+      {{end}}
+    {{end}}
+
+    {{if not .LastInView}}
+      <span
+        class="px-3 py-2 text-gray-400 border-2 border-transparent"
+      >..</span>
+      <a
+        href="{{urlTo "admin:invites:overview"}}?page={{$view.Last}}"
+        class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+      >{{$view.Last}}</a>
+    {{end}}
+  </div>
+  {{end}}
+{{end}}

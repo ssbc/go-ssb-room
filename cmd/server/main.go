@@ -127,12 +127,33 @@ func runroomsrv() error {
 		return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
 	}
 
+	// validate listen addresses to bail out on invalid flag input before doing anything else
+	_, muxrpcPortStr, err := net.SplitHostPort(listenAddrShsMux)
+	if err != nil {
+		return fmt.Errorf("invalid muxrpc listener: %w", err)
+	}
+
+	portMUXRPC, err := net.LookupPort("tcp", muxrpcPortStr)
+	if err != nil {
+		return fmt.Errorf("invalid tcp port for muxrpc listener: %w", err)
+	}
+
+	_, portHTTPStr, err := net.SplitHostPort(listenAddrHTTP)
+	if err != nil {
+		return fmt.Errorf("invalid http listener: %w", err)
+	}
+
+	portHTTP, err := net.LookupPort("tcp", portHTTPStr)
+	if err != nil {
+		return fmt.Errorf("invalid tcp port for muxrpc listener: %w", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	ak, err := base64.StdEncoding.DecodeString(appKey)
 	if err != nil {
-		return fmt.Errorf("application key: %w", err)
+		return fmt.Errorf("secret-handshake appkey is invalid base64: %w", err)
 	}
 
 	opts := []roomsrv.Option{
@@ -213,12 +234,21 @@ func runroomsrv() error {
 	dashboardH, err := handlers.New(
 		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
+		handlers.NetworkInfo{
+			Domain:     httpsDomain,
+			PortHTTPS:  uint(portHTTP),
+			PortMUXRPC: uint(portMUXRPC),
+			PubKey:     roomsrv.Whoami().PubKey(),
+		},
 		roomsrv.StateManager,
-		db.AuthWithSSB,
-		db.AuthFallback,
-		db.AllowList,
-		db.Notices,
-		db.PinnedNotices,
+		handlers.Databases{
+			AuthWithSSB:   db.AuthWithSSB,
+			AuthFallback:  db.AuthFallback,
+			AllowList:     db.AllowList,
+			Invites:       db.Invites,
+			Notices:       db.Notices,
+			PinnedNotices: db.PinnedNotices,
+		},
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)

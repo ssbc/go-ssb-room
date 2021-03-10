@@ -3,14 +3,18 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
-
+	"github.com/vcraescu/go-paginator/v2"
+	"github.com/vcraescu/go-paginator/v2/adapter"
+	"github.com/vcraescu/go-paginator/v2/view"
 	"go.mindeco.de/http/render"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 )
 
@@ -21,17 +25,28 @@ var HTMLTemplates = []string{
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
 
+	"admin/invite-list.tmpl",
+	"admin/invite-revoke-confirm.tmpl",
+	"admin/invite-created.tmpl",
+
 	"admin/notice-edit.tmpl",
+}
+
+// Databases is an option struct that encapsualtes the required database services
+type Databases struct {
+	AllowList     admindb.AllowListService
+	Invites       admindb.InviteService
+	Notices       admindb.NoticesService
+	PinnedNotices admindb.PinnedNoticesService
 }
 
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
 func Handler(
+	domainName string,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
-	al admindb.AllowListService,
-	ndb admindb.NoticesService,
-	pdb admindb.PinnedNoticesService,
+	dbs Databases,
 ) http.Handler {
 	mux := &http.ServeMux{}
 	// TODO: configure 404 handler
@@ -47,20 +62,30 @@ func Handler(
 		return map[string]interface{}{}, nil
 	}))
 
-	var ah = allowListH{
+	var ah = allowListHandler{
 		r:  r,
-		al: al,
+		al: dbs.AllowList,
 	}
-
 	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", ah.overview))
 	mux.HandleFunc("/members/add", ah.add)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
 	mux.HandleFunc("/members/remove", ah.remove)
 
+	var ih = invitesHandler{
+		r:  r,
+		db: dbs.Invites,
+
+		domainName: domainName,
+	}
+	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))
+	mux.HandleFunc("/invites/create", r.HTML("admin/invite-created.tmpl", ih.create))
+	mux.HandleFunc("/invites/revoke/confirm", r.HTML("admin/invite-revoke-confirm.tmpl", ih.revokeConfirm))
+	mux.HandleFunc("/invites/revoke", ih.revoke)
+
 	var nh = noticeHandler{
 		r:        r,
-		noticeDB: ndb,
-		pinnedDB: pdb,
+		noticeDB: dbs.Notices,
+		pinnedDB: dbs.PinnedNotices,
 	}
 	mux.HandleFunc("/notice/edit", r.HTML("admin/notice-edit.tmpl", nh.edit))
 	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
@@ -68,6 +93,63 @@ func Handler(
 	mux.HandleFunc("/notice/save", nh.save)
 
 	return customStripPrefix("/admin", mux)
+}
+
+// how many elements does a paginated page have by default
+const defaultPageSize = 20
+
+// paginate receives the total slice and it's length/count, a URL query for the 'limit' and which 'page'.
+//
+// The members of the map are:
+//	Entries: the paginated slice
+//	Count: the total number of the whole, unpaginated list
+//	FirstInView: a bool thats true if you render the first page
+//	LastInView: a bool thats true if you render the last page
+//	Paginator and View: helpers for rendering the page accessor (see github.com/vcraescu/go-paginator)
+//
+// TODO: we could return a struct instead but then need to re-think how we embedd it into all the pages where we need it.
+//  Maybe renderData["Pages"] = paginatedData
+func paginate(total interface{}, count int, qry url.Values) (map[string]interface{}, error) {
+	pageSize, err := strconv.Atoi(qry.Get("limit"))
+	if err != nil {
+		pageSize = defaultPageSize
+	}
+
+	page, err := strconv.Atoi(qry.Get("page"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	paginator := paginator.New(adapter.NewSliceAdapter(total), pageSize)
+	paginator.SetPage(page)
+
+	var entries []interface{}
+	if err = paginator.Results(&entries); err != nil {
+		return nil, fmt.Errorf("paginator failed with %w", err)
+	}
+
+	view := view.New(paginator)
+	pagesSlice, err := view.Pages()
+	if err != nil {
+		return nil, fmt.Errorf("paginator view.Pages failed with %w", err)
+	}
+	if len(pagesSlice) == 0 {
+		pagesSlice = []int{1}
+	}
+
+	last, err := view.Last()
+	if err != nil {
+		return nil, fmt.Errorf("paginator view.Last failed with %w", err)
+	}
+
+	return map[string]interface{}{
+		"Entries":     entries,
+		"Count":       count,
+		"Paginator":   paginator,
+		"View":        view,
+		"FirstInView": pagesSlice[0] == 1,
+		"LastInView":  pagesSlice[len(pagesSlice)-1] == last,
+	}, nil
 }
 
 // trim prefix if exists (workaround for named router problem)

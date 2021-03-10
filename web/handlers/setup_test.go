@@ -34,10 +34,13 @@ type testSession struct {
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
 	AllowListDB    *mockdb.FakeAllowListService
+	InvitesDB      *mockdb.FakeInviteService
 	PinnedDB       *mockdb.FakePinnedNoticesService
 	NoticeDB       *mockdb.FakeNoticesService
 
 	RoomState *roomstate.Manager
+
+	NetworkInfo NetworkInfo
 }
 
 var testI18N = justTheKeys()
@@ -59,6 +62,7 @@ func setup(t *testing.T) *testSession {
 	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
+	ts.InvitesDB = new(mockdb.FakeInviteService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	defaultNotice := &admindb.Notice{
 		Title:   "Default Notice Title",
@@ -66,6 +70,14 @@ func setup(t *testing.T) *testSession {
 	}
 	ts.PinnedDB.GetReturns(defaultNotice, nil)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
+
+	ts.NetworkInfo = NetworkInfo{
+		Domain:     "localhost",
+		PortMUXRPC: 8008,
+		PortHTTPS:  443,
+
+		PubKey: bytes.Repeat([]byte("test"), 8),
+	}
 
 	log, _ := logtest.KitLogger("complete", t)
 	ctx := context.TODO()
@@ -76,12 +88,16 @@ func setup(t *testing.T) *testSession {
 	h, err := New(
 		log,
 		testRepo,
+		ts.NetworkInfo,
 		ts.RoomState,
-		ts.AuthDB,
-		ts.AuthFallbackDB,
-		ts.AllowListDB,
-		ts.NoticeDB,
-		ts.PinnedDB,
+		Databases{
+			AuthWithSSB:   ts.AuthDB,
+			AuthFallback:  ts.AuthFallbackDB,
+			AllowList:     ts.AllowListDB,
+			Invites:       ts.InvitesDB,
+			Notices:       ts.NoticeDB,
+			PinnedNotices: ts.PinnedDB,
+		},
 	)
 	if err != nil {
 		t.Fatal("setup: handler init failed:", err)

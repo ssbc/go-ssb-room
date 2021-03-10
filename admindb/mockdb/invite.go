@@ -40,6 +40,34 @@ type FakeInviteService struct {
 		result1 string
 		result2 error
 	}
+	GetByIDStub        func(context.Context, int64) (admindb.Invite, error)
+	getByIDMutex       sync.RWMutex
+	getByIDArgsForCall []struct {
+		arg1 context.Context
+		arg2 int64
+	}
+	getByIDReturns struct {
+		result1 admindb.Invite
+		result2 error
+	}
+	getByIDReturnsOnCall map[int]struct {
+		result1 admindb.Invite
+		result2 error
+	}
+	GetByTokenStub        func(context.Context, string) (admindb.Invite, error)
+	getByTokenMutex       sync.RWMutex
+	getByTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	getByTokenReturns struct {
+		result1 admindb.Invite
+		result2 error
+	}
+	getByTokenReturnsOnCall map[int]struct {
+		result1 admindb.Invite
+		result2 error
+	}
 	ListStub        func(context.Context) ([]admindb.Invite, error)
 	listMutex       sync.RWMutex
 	listArgsForCall []struct {
@@ -201,6 +229,136 @@ func (fake *FakeInviteService) CreateReturnsOnCall(i int, result1 string, result
 	}{result1, result2}
 }
 
+func (fake *FakeInviteService) GetByID(arg1 context.Context, arg2 int64) (admindb.Invite, error) {
+	fake.getByIDMutex.Lock()
+	ret, specificReturn := fake.getByIDReturnsOnCall[len(fake.getByIDArgsForCall)]
+	fake.getByIDArgsForCall = append(fake.getByIDArgsForCall, struct {
+		arg1 context.Context
+		arg2 int64
+	}{arg1, arg2})
+	stub := fake.GetByIDStub
+	fakeReturns := fake.getByIDReturns
+	fake.recordInvocation("GetByID", []interface{}{arg1, arg2})
+	fake.getByIDMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeInviteService) GetByIDCallCount() int {
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
+	return len(fake.getByIDArgsForCall)
+}
+
+func (fake *FakeInviteService) GetByIDCalls(stub func(context.Context, int64) (admindb.Invite, error)) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = stub
+}
+
+func (fake *FakeInviteService) GetByIDArgsForCall(i int) (context.Context, int64) {
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
+	argsForCall := fake.getByIDArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeInviteService) GetByIDReturns(result1 admindb.Invite, result2 error) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = nil
+	fake.getByIDReturns = struct {
+		result1 admindb.Invite
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInviteService) GetByIDReturnsOnCall(i int, result1 admindb.Invite, result2 error) {
+	fake.getByIDMutex.Lock()
+	defer fake.getByIDMutex.Unlock()
+	fake.GetByIDStub = nil
+	if fake.getByIDReturnsOnCall == nil {
+		fake.getByIDReturnsOnCall = make(map[int]struct {
+			result1 admindb.Invite
+			result2 error
+		})
+	}
+	fake.getByIDReturnsOnCall[i] = struct {
+		result1 admindb.Invite
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInviteService) GetByToken(arg1 context.Context, arg2 string) (admindb.Invite, error) {
+	fake.getByTokenMutex.Lock()
+	ret, specificReturn := fake.getByTokenReturnsOnCall[len(fake.getByTokenArgsForCall)]
+	fake.getByTokenArgsForCall = append(fake.getByTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetByTokenStub
+	fakeReturns := fake.getByTokenReturns
+	fake.recordInvocation("GetByToken", []interface{}{arg1, arg2})
+	fake.getByTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeInviteService) GetByTokenCallCount() int {
+	fake.getByTokenMutex.RLock()
+	defer fake.getByTokenMutex.RUnlock()
+	return len(fake.getByTokenArgsForCall)
+}
+
+func (fake *FakeInviteService) GetByTokenCalls(stub func(context.Context, string) (admindb.Invite, error)) {
+	fake.getByTokenMutex.Lock()
+	defer fake.getByTokenMutex.Unlock()
+	fake.GetByTokenStub = stub
+}
+
+func (fake *FakeInviteService) GetByTokenArgsForCall(i int) (context.Context, string) {
+	fake.getByTokenMutex.RLock()
+	defer fake.getByTokenMutex.RUnlock()
+	argsForCall := fake.getByTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeInviteService) GetByTokenReturns(result1 admindb.Invite, result2 error) {
+	fake.getByTokenMutex.Lock()
+	defer fake.getByTokenMutex.Unlock()
+	fake.GetByTokenStub = nil
+	fake.getByTokenReturns = struct {
+		result1 admindb.Invite
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInviteService) GetByTokenReturnsOnCall(i int, result1 admindb.Invite, result2 error) {
+	fake.getByTokenMutex.Lock()
+	defer fake.getByTokenMutex.Unlock()
+	fake.GetByTokenStub = nil
+	if fake.getByTokenReturnsOnCall == nil {
+		fake.getByTokenReturnsOnCall = make(map[int]struct {
+			result1 admindb.Invite
+			result2 error
+		})
+	}
+	fake.getByTokenReturnsOnCall[i] = struct {
+		result1 admindb.Invite
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInviteService) List(arg1 context.Context) ([]admindb.Invite, error) {
 	fake.listMutex.Lock()
 	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
@@ -334,6 +492,10 @@ func (fake *FakeInviteService) Invocations() map[string][][]interface{} {
 	defer fake.consumeMutex.RUnlock()
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
+	fake.getByIDMutex.RLock()
+	defer fake.getByIDMutex.RUnlock()
+	fake.getByTokenMutex.RLock()
+	defer fake.getByTokenMutex.RUnlock()
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
 	fake.revokeMutex.RLock()

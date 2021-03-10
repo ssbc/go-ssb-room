@@ -68,10 +68,17 @@ func TestInvites(t *testing.T) {
 		r.Equal("bestie", lst[0].AliasSuggestion)
 		r.Equal(testUserName, lst[0].CreatedBy.Name)
 
+		nope := db.AllowList.HasFeed(ctx, newMember)
+		r.False(nope, "expected feed to not yet be on the allow list")
+
 		inv, err := db.Invites.Consume(ctx, tok, newMember)
 		r.NoError(err, "failed to consume the invite")
 		r.Equal(testUserName, inv.CreatedBy.Name)
 		r.NotEqualValues(0, inv.ID, "invite ID unset")
+
+		// consume also adds it to the allow list
+		yes := db.AllowList.HasFeed(ctx, newMember)
+		r.True(yes, "expected feed on the allow list")
 
 		lst, err = db.Invites.List(ctx)
 		r.NoError(err, "failed to get list of tokens post consume")
@@ -80,6 +87,7 @@ func TestInvites(t *testing.T) {
 		// can't use twice
 		_, err = db.Invites.Consume(ctx, tok, newMember)
 		r.Error(err, "failed to consume the invite")
+
 	})
 
 	t.Run("simple create but revoke before use", func(t *testing.T) {
