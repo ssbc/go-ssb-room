@@ -31,7 +31,7 @@ jobs:
 
     - name: install node ssb-stack
       run: |
-        pushd test/nodejs
+        pushd muxrpc/test/nodejs
         npm ci
         popd
 

@@ -3,10 +3,10 @@ cmd/server/server
 cmd/insert-user/insert-user
 
 # testrun contains repos that were use for tests
-test/go/testrun
-test/nodejs/testrun
+muxrpc/test/go/testrun
+muxrpc/test/nodejs/testrun
 web/handlers/testrun
-admindb/sqlite/testrun
+roomdb/sqlite/testrun
 
 # build artifacts from node.js project web/styles
 node_modules
