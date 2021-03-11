@@ -61,12 +61,9 @@ func TestAllowListAdd(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	inputSelection := formSelection.Find("input[type=text]")
-	a.EqualValues(1, inputSelection.Length())
-
-	name, ok := inputSelection.Attr("name")
-	a.True(ok, "field has a name")
-	a.Equal("pub_key", name, "wrong name on input field")
+	webassert.InputsInForm(t, formSelection, []webassert.InputElement{
+		{Name: "pub_key", Type: "text"},
+	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
 	addVals := url.Values{
@@ -184,16 +181,9 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	inputSelection := form.Find("input[type=hidden]")
-	a.EqualValues(1, inputSelection.Length())
-
-	name, ok := inputSelection.Attr("name")
-	a.True(ok, "input has the expected name")
-	a.Equal("id", name, "wrong name on input field")
-
-	val, ok := inputSelection.Attr("value")
-	a.True(ok, "input has the expected value")
-	a.Equal("666", val, "wrong name on input field")
+	webassert.InputsInForm(t, form, []webassert.InputElement{
+		{Name: "id", Type: "hidden", Value: "666"},
+	})
 }
 
 func TestAllowListRemove(t *testing.T) {

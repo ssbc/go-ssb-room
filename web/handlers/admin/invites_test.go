@@ -44,12 +44,9 @@ func TestInvitesCreateForm(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	inputSelection := formSelection.Find("input[type=text]")
-	a.EqualValues(1, inputSelection.Length())
-
-	name, ok := inputSelection.Attr("name")
-	a.True(ok, "input has a name")
-	a.Equal("alias_suggestion", name, "wrong name on input field")
+	webassert.InputsInForm(t, formSelection, []webassert.InputElement{
+		{Name: "alias_suggestion", Type: "text"},
+	})
 }
 
 func TestInvitesCreate(t *testing.T) {
