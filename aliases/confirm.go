@@ -47,17 +47,7 @@ type Confirmation struct {
 }
 
 // Verify checks that the confirmation is for the expected room and from the expected feed
-func (c Confirmation) Verify(room, feed refs.FeedRef) bool {
-	// not for that room
-	if !c.RoomID.Equal(&room) {
-		return false
-	}
-
-	// not for that feed
-	if !c.UserID.Equal(&feed) {
-		return false
-	}
-
+func (c Confirmation) Verify() bool {
 	// re-construct the registration
 	message := c.createRegistrationMessage()
 

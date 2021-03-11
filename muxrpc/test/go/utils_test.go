@@ -18,10 +18,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 
@@ -84,7 +84,7 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv
 	t.Cleanup(func() {
 		db.Close()
 	})
-	theBot, err := roomsrv.New(db.AllowList, botOptions...)
+	theBot, err := roomsrv.New(db.AllowList, db.Aliases, botOptions...)
 	r.NoError(err)
 	return theBot
 }

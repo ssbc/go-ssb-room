@@ -6,13 +6,10 @@ import (
 	"fmt"
 	"net"
 
-	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
 	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/whoami"
 )
 
 func (s *Server) initNetwork() error {
@@ -27,31 +24,15 @@ func (s *Server) initNetwork() error {
 		}
 
 		if s.keyPair.Feed.Equal(remote) {
-			return s.master.MakeHandler(conn)
+			return &s.master, nil
 		}
 
 		if s.authorizer.HasFeed(s.rootCtx, *remote) {
-			return s.public.MakeHandler(conn)
+			return &s.public, nil
 		}
 
 		return nil, fmt.Errorf("not authorized")
 	}
-
-	// whoami
-	whoami := whoami.New(kitlog.With(s.logger, "unit", "whoami"), s.Whoami())
-	s.public.Register(whoami)
-	s.master.Register(whoami)
-
-	s.master.Register(manifestPlug)
-
-	// s.master.Register(replicate.NewPlug(s.Users))
-
-	tunnelPlug := server.New(
-		kitlog.With(s.logger, "unit", "tunnel"),
-		s.Whoami(),
-		s.StateManager,
-	)
-	s.public.Register(tunnelPlug)
 
 	// tcp+shs
 	opts := network.Options{

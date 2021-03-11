@@ -53,6 +53,7 @@ func (s *Server) initUnixSock() error {
 
 	go func() {
 
+	acceptLoop:
 		for {
 			c, err := uxLis.Accept()
 			if err != nil {
@@ -77,7 +78,7 @@ func (s *Server) initUnixSock() error {
 				if err != nil {
 					level.Warn(s.logger).Log("err", err)
 					c.Close()
-					continue
+					continue acceptLoop
 				}
 			}
 
@@ -86,13 +87,7 @@ func (s *Server) initUnixSock() error {
 
 				pkr := muxrpc.NewPacker(conn)
 
-				h, err := s.master.MakeHandler(conn)
-				if err != nil {
-					level.Warn(s.logger).Log("event", "unix sock make handler", "err", err)
-					return
-				}
-
-				edp := muxrpc.Handle(pkr, h,
+				edp := muxrpc.Handle(pkr, &s.master,
 					muxrpc.WithContext(s.rootCtx),
 					muxrpc.WithLogger(kitlog.NewNopLogger()),
 				)

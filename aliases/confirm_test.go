@@ -40,7 +40,7 @@ func TestConfirmation(t *testing.T) {
 	// create the signed confirmation
 	confirmation := valid.Sign(userKeyPair.Pair.Secret)
 
-	yes := confirmation.Verify(roomID, userKeyPair.Feed)
+	yes := confirmation.Verify()
 	r.True(yes, "should be valid for this room and feed")
 
 	// make up another id for the invalid test(s)
@@ -49,16 +49,19 @@ func TestConfirmation(t *testing.T) {
 		Algo: "test",
 	}
 
-	yes = confirmation.Verify(otherID, userKeyPair.Feed)
+	confirmation.RoomID = otherID
+	yes = confirmation.Verify()
 	r.False(yes, "should not be valid for another room")
 
-	yes = confirmation.Verify(roomID, otherID)
+	confirmation.RoomID = roomID // restore
+	confirmation.UserID = otherID
+	yes = confirmation.Verify()
 	r.False(yes, "should not be valid for this room but another feed")
 
 	// puncture the signature to emulate an invalid one
 	confirmation.Signature[0] = confirmation.Signature[0] ^ 1
 
-	yes = confirmation.Verify(roomID, userKeyPair.Feed)
+	yes = confirmation.Verify()
 	r.False(yes, "should not be valid anymore")
 
 }

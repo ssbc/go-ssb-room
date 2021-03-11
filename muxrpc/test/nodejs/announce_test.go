@@ -80,8 +80,9 @@ func TestJSClient(t *testing.T) {
 	ts := newRandomSession(t)
 	// ts := newSession(t, nil)
 
-	var al = &mockdb.FakeAllowListService{}
-	srv := ts.startGoServer(al)
+	var allowDB = &mockdb.FakeAllowListService{}
+	var aliasDB = &mockdb.FakeAliasService{}
+	srv := ts.startGoServer(allowDB, aliasDB)
 
 	alice := ts.startJSClient("alice", "./testscripts/simple_client.js",
 		srv.Network.GetListenAddr(),
@@ -110,7 +111,7 @@ func TestJSClient(t *testing.T) {
 	)
 
 	srv.Allow(bob, true)
-	al.HasFeedReturns(true)
+	allowDB.HasFeedReturns(true)
 
 	time.Sleep(5 * time.Second)
 
@@ -137,10 +138,11 @@ func TestJSServer(t *testing.T) {
 	}
 
 	// now connect our go client
-	var al = &mockdb.FakeAllowListService{}
-	client := ts.startGoServer(al)
+	var allowDB = &mockdb.FakeAllowListService{}
+	var aliasDB = &mockdb.FakeAliasService{}
+	client := ts.startGoServer(allowDB, aliasDB)
 	client.Allow(*alice, true)
-	al.HasFeedReturns(true)
+	allowDB.HasFeedReturns(true)
 
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
