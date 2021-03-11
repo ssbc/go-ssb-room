@@ -3,29 +3,21 @@ package admin
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 )
 /* TODO: 
-    * add a new test that makes sure that /translation/add only accepts POST 
+    * add a new 
     * add a check inside the handler proper
 */
 
-func createTestElementCheck (t *testing.T, html *goquery.Selection) func (string, string) {
-    a := assert.New(t)
-    return func(tag, name string) {
-        inputs := html.Find(fmt.Sprintf(`%s[name="%s"]`, tag, name)).Length()
-        // phrased these tests this way (multiple tests checking #) to present less confusion if, somehow, the inputs end up being more than 1 :)
-        a.True(inputs > 0, fmt.Sprintf("%s input is missing", strings.Title(name)))
-        a.True(inputs < 2, fmt.Sprintf("Expected only one %s input (there were several)", name))
-    }
+// Verifies that /translation/add only accepts POST requests
+func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 }
 
 func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
@@ -48,11 +40,10 @@ func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
     html, resp := ts.Client.GetHTML(u.String())
     form := html.Find("form")
     a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
-    testElementExistence := createTestElementCheck(t, form)
-    testElementExistence("textarea", "content")
-    webassert.InputsInForm(t, form, []webassert.InputElement{
-        { Name: "title" },
-        { Name: "language" },
+    webassert.ElementsInForm(t, form, []webassert.FormElement{
+        { Tag: "input", Name: "title" },
+        { Tag: "input", Name: "language" },
+        { Tag: "textarea", Name: "content" },
     })
 }
 
@@ -74,14 +65,13 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
     u := urlTo(router.AdminNoticeEdit, "id", 1)
     html, resp := ts.Client.GetHTML(u.String())
     form := html.Find("form")
-    testElementExistence := createTestElementCheck(t, form)
 
     a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
     // check for all the form elements & verify their initial contents are set correctly
-    testElementExistence("textarea", "content")
-    webassert.InputsInForm(t, form, []webassert.InputElement{
-        { Name: "title", Value: notice.Title },
-        { Name: "language", Value: notice.Language },
-        { Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden" },
+    webassert.ElementsInForm(t, form, []webassert.FormElement{
+        { Tag: "input", Name: "title", Value: notice.Title },
+        { Tag: "input", Name: "language", Value: notice.Language },
+        { Tag: "input", Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden" },
+        { Tag: "textarea", Name: "content" },
     })
 }

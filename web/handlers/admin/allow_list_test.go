@@ -61,8 +61,8 @@ func TestAllowListAdd(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	webassert.InputsInForm(t, formSelection, []webassert.InputElement{
-		{Name: "pub_key", Type: "text"},
+	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
+        {Tag: "input", Name: "pub_key", Type: "text"},
 	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
@@ -181,8 +181,8 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	webassert.InputsInForm(t, form, []webassert.InputElement{
-		{Name: "id", Type: "hidden", Value: "666"},
+	webassert.ElementsInForm(t, form, []webassert.FormElement{
+        {Tag: "input", Name: "id", Type: "hidden", Value: "666"},
 	})
 }
 
