@@ -1,67 +1,18 @@
-// SPDX-License-Identifier: MIT
-
 package handlers
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"testing"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
-
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
-
-func TestIndex(t *testing.T) {
-	ts := setup(t)
-
-	a := assert.New(t)
-	r := require.New(t)
-
-	url, err := ts.Router.Get(router.CompleteIndex).URL()
-	r.Nil(err)
-	html, resp := ts.Client.GetHTML(url.String())
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	assertLocalized(t, html, []localizedElement{
-		{"h1", "Default Notice Title"},
-		{"title", "Default Notice Title"},
-		// {"#nav", "FooBar"},
-	})
-
-	content := html.Find("p").Text()
-	a.Equal("Default Notice Content", content)
-}
-
-func TestAbout(t *testing.T) {
-	ts := setup(t)
-
-	a := assert.New(t)
-	r := require.New(t)
-
-	url, err := ts.Router.Get(router.CompleteAbout).URL()
-	r.Nil(err)
-	html, resp := ts.Client.GetHTML(url.String())
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	found := html.Find("h1").Text()
-	a.Equal("The about page", found)
-}
-
-func TestNotFound(t *testing.T) {
-	ts := setup(t)
-
-	a := assert.New(t)
-
-	html, resp := ts.Client.GetHTML("/some/random/ASDKLANZXC")
-	a.Equal(http.StatusNotFound, resp.Code, "wrong HTTP status code")
-	found := html.Find("h1").Text()
-	a.Equal("Error #404 - Not Found", found)
-}
 
 func TestRestricted(t *testing.T) {
 	ts := setup(t)
@@ -91,7 +42,7 @@ func TestLoginForm(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AuthFallbackWelcome"},
 		{"title", "AuthFallbackTitle"},
 	})
@@ -118,7 +69,7 @@ func TestFallbackAuth(t *testing.T) {
 
 	jar.SetCookies(signInFormURL, csrfCookie)
 
-	assertCSRFTokenPresent(t, doc.Find("form"))
+	webassert.CSRFTokenPresent(t, doc.Find("form"))
 
 	csrfTokenElem := doc.Find("input[type=hidden]")
 	a.Equal(1, csrfTokenElem.Length())
@@ -187,7 +138,7 @@ func TestFallbackAuth(t *testing.T) {
 		t.Log(html.Find("body").Text())
 	}
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
@@ -199,8 +150,7 @@ func TestFallbackAuth(t *testing.T) {
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code") {
 		t.Log(html.Find("body").Text())
 	}
-
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 		{"#roomCount", "AdminRoomCountSingular"},
@@ -212,70 +162,9 @@ func TestFallbackAuth(t *testing.T) {
 	html, resp = ts.Client.GetHTML(durl)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 		{"#roomCount", "AdminRoomCountPlural"},
 	})
-
-}
-
-// utils
-
-// TODO: we probably want to move all of these to web/testing or somesuch
-
-type localizedElement struct {
-	Selector, Label string
-}
-
-func assertLocalized(t *testing.T, html *goquery.Document, elems []localizedElement) {
-	a := assert.New(t)
-	for i, pair := range elems {
-		a.Equal(pair.Label, html.Find(pair.Selector).Text(), "localized pair %d failed", i+1)
-	}
-}
-
-func assertCSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
-	a := assert.New(t)
-	csrfField := sel.Find("input[name='gorilla.csrf.Token']")
-	a.EqualValues(1, csrfField.Length(), "no csrf-token input tag")
-	tipe, ok := csrfField.Attr("type")
-	a.True(ok, "csrf input has a type")
-	a.Equal("hidden", tipe, "wrong type on csrf field")
-}
-
-type inputElement struct {
-	Name, Value, Type, Placeholder string
-}
-
-// assertInputsInForm checks a list of defined elements. It tries to find them by input[name=$name]
-// and then proceeds with asserting their value, type or placeholder (if the fields in inputElement are not "")
-func assertInputsInForm(t *testing.T, form *goquery.Selection, elems []inputElement) {
-	a := assert.New(t)
-	for _, e := range elems {
-
-		inputSelector := form.Find(fmt.Sprintf("input[name=%s]", e.Name))
-		ok := a.Equal(1, inputSelector.Length(), "expected to find input with name %s", e.Name)
-		if !ok {
-			continue
-		}
-
-		if e.Value != "" {
-			value, has := inputSelector.Attr("value")
-			a.True(has, "expected value attribute input[name=%s]", e.Name)
-			a.Equal(e.Value, value, "wrong value attribute on input[name=%s]", e.Name)
-		}
-
-		if e.Type != "" {
-			tipe, has := inputSelector.Attr("type")
-			a.True(has, "expected type attribute input[name=%s]", e.Name)
-			a.Equal(e.Type, tipe, "wrong type attribute on input[name=%s]", e.Name)
-		}
-
-		if e.Placeholder != "" {
-			tipe, has := inputSelector.Attr("placeholder")
-			a.True(has, "expected placeholder attribute input[name=%s]", e.Name)
-			a.Equal(e.Placeholder, tipe, "wrong placeholder attribute on input[name=%s]", e.Name)
-		}
-	}
 }

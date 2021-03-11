@@ -15,6 +15,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -28,7 +29,7 @@ func TestAllowListEmpty(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountPlural"},
@@ -121,7 +122,7 @@ func TestAllowList(t *testing.T) {
 	html, resp := ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountPlural"},
@@ -137,7 +138,7 @@ func TestAllowList(t *testing.T) {
 	html, resp = ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountSingular"},

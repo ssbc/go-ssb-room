@@ -19,6 +19,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 )
 
 func TestInviteShowAcceptForm(t *testing.T) {
@@ -85,7 +86,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		_, tokenFromArg := ts.InvitesDB.GetByTokenArgsForCall(1)
 		a.Equal(testToken, tokenFromArg)
 
-		assertLocalized(t, doc, []localizedElement{
+		webassert.Localized(t, doc, []webassert.LocalizedElement{
 			{"#welcome", "InviteAcceptWelcome"},
 			{"title", "InviteAcceptTitle"},
 		})
@@ -93,9 +94,9 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		form := doc.Find("form#consume")
 		r.Equal(1, form.Length())
 
-		assertCSRFTokenPresent(t, form)
+		webassert.CSRFTokenPresent(t, form)
 
-		assertInputsInForm(t, form, []inputElement{
+		webassert.InputsInForm(t, form, []webassert.InputElement{
 			{Name: "token", Type: "hidden", Value: testToken},
 			{Name: "alias", Type: "text", Value: fakeExistingInvite.AliasSuggestion},
 			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},
@@ -123,7 +124,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		_, tokenFromArg := ts.InvitesDB.GetByTokenArgsForCall(2)
 		a.Equal(testToken, tokenFromArg)
 
-		assertLocalized(t, doc, []localizedElement{
+		webassert.Localized(t, doc, []webassert.LocalizedElement{
 			{"#welcome", "InviteAcceptWelcome"},
 			{"title", "InviteAcceptTitle"},
 		})
@@ -131,9 +132,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		form := doc.Find("form#consume")
 		r.Equal(1, form.Length())
 
-		assertCSRFTokenPresent(t, form)
-
-		assertInputsInForm(t, form, []inputElement{
+		webassert.CSRFTokenPresent(t, form)
+		webassert.InputsInForm(t, form, []webassert.InputElement{
 			{Name: "token", Type: "hidden", Value: testToken},
 			{Name: "alias", Type: "text", Placeholder: "you@this.room"},
 			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},

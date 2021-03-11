@@ -11,6 +11,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 )
 
 func TestInvitesCreateForm(t *testing.T) {
@@ -23,7 +24,7 @@ func TestInvitesCreateForm(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminInvitesWelcome"},
 		{"title", "AdminInvitesTitle"},
 	})
@@ -74,7 +75,7 @@ func TestInvitesCreate(t *testing.T) {
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
 	require.NoError(t, err, "failed to parse response")
 
-	assertLocalized(t, doc, []localizedElement{
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		{"title", "AdminInviteCreatedTitle"},
 		{"#welcome", "AdminInviteCreatedWelcome"},
 	})
