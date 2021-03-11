@@ -3,13 +3,14 @@ package admin
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 )
 /* TODO: 
@@ -17,8 +18,17 @@ import (
     * add a check inside the handler proper
 */
 
+func createTestElementCheck (t *testing.T, html *goquery.Selection) func (string, string) {
+    a := assert.New(t)
+    return func(tag, name string) {
+        inputs := html.Find(fmt.Sprintf(`%s[name="%s"]`, tag, name)).Length()
+        // phrased these tests this way (multiple tests checking #) to present less confusion if, somehow, the inputs end up being more than 1 :)
+        a.True(inputs > 0, fmt.Sprintf("%s input is missing", strings.Title(name)))
+        a.True(inputs < 2, fmt.Sprintf("Expected only one %s input (there were several)", name))
+    }
+}
 
-func TestNoticeAddLanguageIncludesAllFields(t *testing.T) {
+func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
     ts := newSession(t)
     a := assert.New(t)
     // instantiate the urlTo helper (constructs urls for us!)
@@ -31,15 +41,19 @@ func TestNoticeAddLanguageIncludesAllFields(t *testing.T) {
 		Content:  "Breaking News: This Room Has News",
 		Language: "en-GB",
 	}
-	ts.NoticeDB.GetByIDReturns(notice, nil)
-    // the we need to pin the mocked notice
+    // make sure we return a notice when accessing pinned notices (which are the only notices with translations at writing (2021-03-11)
     ts.PinnedDB.GetReturns(&notice, nil)
 
-    /* TODO: are you only supposed to add translations to pinned notices? */
     u := urlTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews.String())
     html, resp := ts.Client.GetHTML(u.String())
-    a.Equal(http.StatusOK, resp.Code)
-    fmt.Println(html.Html())
+    form := html.Find("form")
+    a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
+    testElementExistence := createTestElementCheck(t, form)
+    testElementExistence("textarea", "content")
+    webassert.InputsInForm(t, form, []webassert.InputElement{
+        { Name: "title" },
+        { Name: "language" },
+    })
 }
 
 func TestNoticeEditFormIncludesAllFields(t *testing.T) {
@@ -48,35 +62,26 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 	// instantiate the urlTo helper (constructs urls for us!)
 	urlTo := web.NewURLTo(ts.Router)
 
-	// helper function to test all form inputs that should exist on a given edit page
-	checkFormInputs := func(u *url.URL) {
-		html, resp := ts.Client.GetHTML(u.String())
-		a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
-		testElementExistence := func(tag, name string) {
-			inputs := html.Find(fmt.Sprintf(`%s[name="%s"]`, tag, name)).Length()
-			// phrased these tests this way (multiple tests checking #) to present less confusion if, somehow, the inputs end up being more than 1 :)
-			a.True(inputs > 0, fmt.Sprintf("%s input is missing", strings.Title(name)))
-			a.True(inputs == 1, fmt.Sprintf("Expected only one %s input (there were several)", name))
-		}
-		testElementExistence("input", "title")
-		testElementExistence("input", "language") // this test will fail when converted to dropdown from single input
-		testElementExistence("textarea", "content")
-		testElementExistence("input", "id")
-
-		// make sure the id input is hidden
-		idInput := html.Find(`input[name="id"]`)
-		idType, idHasType := idInput.Attr("type")
-		a.True(idHasType && idType == "hidden", "Expected id input to be of type hidden")
-	}
-
 	// Create mock notice data to operate on
-	notice := roomdb.Notice{
-		ID:       1,
-		Title:    "News",
-		Content:  "Breaking News: This Room Has News",
-		Language: "en-GB",
-	}
-	ts.NoticeDB.GetByIDReturns(notice, nil)
-	// Construct notice url to edit
-	checkFormInputs(urlTo(router.AdminNoticeEdit, "id", 1))
+    notice := roomdb.Notice{
+        ID:       1,
+        Title:    "News",
+        Content:  "Breaking News: This Room Has News",
+        Language: "en-GB",
+    }
+    ts.NoticeDB.GetByIDReturns(notice, nil)
+
+    u := urlTo(router.AdminNoticeEdit, "id", 1)
+    html, resp := ts.Client.GetHTML(u.String())
+    form := html.Find("form")
+    testElementExistence := createTestElementCheck(t, form)
+
+    a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
+    // check for all the form elements & verify their initial contents are set correctly
+    testElementExistence("textarea", "content")
+    webassert.InputsInForm(t, form, []webassert.InputElement{
+        { Name: "title", Value: notice.Title },
+        { Name: "language", Value: notice.Language },
+        { Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden" },
+    })
 }
