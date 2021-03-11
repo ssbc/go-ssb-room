@@ -42,10 +42,24 @@ Usage of ./server:
     	print version number and build date
 ```
 
-If you are working on the sqlite migrations, html templates or website assets, build the server with `go build -tags dev`.
-This way it won't use the assets that are embedded in the binary but read them directly from the local filesystem.
+If you want to view the development server in your browser:
+```sh
+cd cmd/server && go build -tags dev && ./server
+# and visit http://localhost:3000
+```
 
-Once you are done with your changes run `go generate` in the changed packages to update them.
+This can be useful if you are working on:
+* the sqlite migrations, 
+* html templates, 
+* or website assets
+
+This way the build won't use the assets embedded in the binary, but instead read them directly from the local filesystem.
+
+Once you are done with your changes run and want to update the embedded assets:
+```sh
+go generate
+```
+**Note**: you need to run generate in each changed package.
 
 ## Tooling
 ### Mocks
