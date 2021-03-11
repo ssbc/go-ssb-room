@@ -12,9 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -28,7 +29,7 @@ func TestAllowListEmpty(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountPlural"},
@@ -60,12 +61,9 @@ func TestAllowListAdd(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	inputSelection := formSelection.Find("input[type=text]")
-	a.EqualValues(1, inputSelection.Length())
-
-	name, ok := inputSelection.Attr("name")
-	a.True(ok, "field has a name")
-	a.Equal("pub_key", name, "wrong name on input field")
+	webassert.InputsInForm(t, formSelection, []webassert.InputElement{
+		{Name: "pub_key", Type: "text"},
+	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
 	addVals := url.Values{
@@ -111,7 +109,7 @@ func TestAllowList(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	lst := admindb.ListEntries{
+	lst := roomdb.ListEntries{
 		{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
 		{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
 		{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
@@ -121,7 +119,7 @@ func TestAllowList(t *testing.T) {
 	html, resp := ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountPlural"},
@@ -129,7 +127,7 @@ func TestAllowList(t *testing.T) {
 
 	a.EqualValues(html.Find("#theList li").Length(), 3)
 
-	lst = admindb.ListEntries{
+	lst = roomdb.ListEntries{
 		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
 	ts.AllowListDB.ListReturns(lst, nil)
@@ -137,7 +135,7 @@ func TestAllowList(t *testing.T) {
 	html, resp = ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	assertLocalized(t, html, []localizedElement{
+	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"#welcome", "AdminAllowListWelcome"},
 		{"title", "AdminAllowListTitle"},
 		{"#allowListCount", "MemberCountSingular"},
@@ -158,7 +156,7 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
-	testEntry := admindb.ListEntry{ID: 666, PubKey: *testKey}
+	testEntry := roomdb.ListEntry{ID: 666, PubKey: *testKey}
 	ts.AllowListDB.GetByIDReturns(testEntry, nil)
 
 	urlTo := web.NewURLTo(ts.Router)
@@ -183,16 +181,9 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 
 	a.Equal(addURL.String(), action)
 
-	inputSelection := form.Find("input[type=hidden]")
-	a.EqualValues(1, inputSelection.Length())
-
-	name, ok := inputSelection.Attr("name")
-	a.True(ok, "input has the expected name")
-	a.Equal("id", name, "wrong name on input field")
-
-	val, ok := inputSelection.Attr("value")
-	a.True(ok, "input has the expected value")
-	a.Equal("666", val, "wrong name on input field")
+	webassert.InputsInForm(t, form, []webassert.InputElement{
+		{Name: "id", Type: "hidden", Value: "666"},
+	})
 }
 
 func TestAllowListRemove(t *testing.T) {
@@ -213,7 +204,7 @@ func TestAllowListRemove(t *testing.T) {
 	a.EqualValues(666, theID)
 
 	// now for unknown ID
-	ts.AllowListDB.RemoveIDReturns(admindb.ErrNotFound)
+	ts.AllowListDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
 	rec = ts.Client.PostForm(urlRemove.String(), addVals)
 	a.Equal(http.StatusNotFound, rec.Code)

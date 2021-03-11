@@ -29,7 +29,7 @@ import (
 	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"

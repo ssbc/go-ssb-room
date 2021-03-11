@@ -11,8 +11,8 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/whoami"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/whoami"
 )
 
 func (s *Server) initNetwork() error {

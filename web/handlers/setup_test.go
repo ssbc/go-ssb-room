@@ -17,8 +17,8 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
@@ -64,7 +64,7 @@ func setup(t *testing.T) *testSession {
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
 	ts.InvitesDB = new(mockdb.FakeInviteService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
-	defaultNotice := &admindb.Notice{
+	defaultNotice := &roomdb.Notice{
 		Title:   "Default Notice Title",
 		Content: "Default Notice Content",
 	}

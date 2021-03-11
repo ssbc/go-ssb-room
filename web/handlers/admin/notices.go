@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/russross/blackfriday/v2"
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"go.mindeco.de/http/render"
 )
@@ -19,14 +19,14 @@ import (
 type noticeHandler struct {
 	r *render.Renderer
 
-	noticeDB admindb.NoticesService
-	pinnedDB admindb.PinnedNoticesService
+	noticeDB roomdb.NoticesService
+	pinnedDB roomdb.PinnedNoticesService
 }
 
-func (nh noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	pinnedName := req.URL.Query().Get("name")
 
-	if !admindb.PinnedNoticeName(pinnedName).Valid() {
+	if !roomdb.PinnedNoticeName(pinnedName).Valid() {
 		return nil, weberrors.ErrBadRequest{Where: "pinnedName", Details: fmt.Errorf("invalid pinned notice name")}
 	}
 
@@ -37,29 +37,29 @@ func (nh noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Reque
 	}, nil
 }
 
-func (nh noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request) {
+func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "form data", Details: err}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
-	pinnedName := admindb.PinnedNoticeName(req.FormValue("name"))
+	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
 	if !pinnedName.Valid() {
 		err := weberrors.ErrBadRequest{Where: "name", Details: fmt.Errorf("invalid pinned notice name")}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
-	var n admindb.Notice
+	var n roomdb.Notice
 	n.Title = req.FormValue("title")
 
 	// TODO: validate languages properly
 	n.Language = req.FormValue("language")
 	if n.Language == "" {
 		err := weberrors.ErrBadRequest{Where: "language", Details: fmt.Errorf("language can't be empty")}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -67,15 +67,15 @@ func (nh noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
-	err = nh.noticeDB.Save(req.Context(), &n)
+	err = h.noticeDB.Save(req.Context(), &n)
 	if err != nil {
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
-	err = nh.pinnedDB.Set(req.Context(), pinnedName, n.ID)
+	err = h.pinnedDB.Set(req.Context(), pinnedName, n.ID)
 	if err != nil {
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -87,14 +87,14 @@ func (nh noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request
 	http.Redirect(rw, req, redirect, http.StatusTemporaryRedirect)
 }
 
-func (nh noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		return nil, err
 	}
 
-	n, err := nh.noticeDB.GetByID(req.Context(), id)
+	n, err := h.noticeDB.GetByID(req.Context(), id)
 	if err != nil {
 		return nil, err
 	}
@@ -115,11 +115,11 @@ func (nh noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interfa
 	}, nil
 }
 
-func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
+func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "form data", Details: err}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -128,11 +128,11 @@ func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 		redirect = "/"
 	}
 
-	var n admindb.Notice
+	var n roomdb.Notice
 	n.ID, err = strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "id", Details: err}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -142,7 +142,7 @@ func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	n.Language = req.FormValue("language")
 	if n.Language == "" {
 		err = weberrors.ErrBadRequest{Where: "language", Details: fmt.Errorf("language can't be empty")}
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -150,9 +150,9 @@ func (nh noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
-	err = nh.noticeDB.Save(req.Context(), &n)
+	err = h.noticeDB.Save(req.Context(), &n)
 	if err != nil {
-		nh.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
 

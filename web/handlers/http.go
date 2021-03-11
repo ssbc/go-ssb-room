@@ -19,7 +19,7 @@ import (
 	"go.mindeco.de/logging"
 	"golang.org/x/crypto/ed25519"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
@@ -42,12 +42,12 @@ var HTMLTemplates = []string{
 
 // Databases is an options stuct for the required databases of the web handlers
 type Databases struct {
-	AuthWithSSB   admindb.AuthWithSSBService
-	AuthFallback  admindb.AuthFallbackService
-	AllowList     admindb.AllowListService
-	Invites       admindb.InviteService
-	Notices       admindb.NoticesService
-	PinnedNotices admindb.PinnedNoticesService
+	AuthWithSSB   roomdb.AuthWithSSBService
+	AuthFallback  roomdb.AuthFallbackService
+	AllowList     roomdb.AllowListService
+	Invites       roomdb.InviteService
+	Notices       roomdb.NoticesService
+	PinnedNotices roomdb.PinnedNoticesService
 }
 
 // NetworkInfo encapsulates the domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
@@ -106,7 +106,7 @@ func New(
 		}),
 		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
 			return func(name string) *url.URL {
-				noticeName := admindb.PinnedNoticeName(name)
+				noticeName := roomdb.PinnedNoticeName(name)
 				if !noticeName.Valid() {
 					return nil
 				}
@@ -157,13 +157,13 @@ func New(
 
 		// localize some specific error messages
 		var (
-			aa admindb.ErrAlreadyAdded
+			aa roomdb.ErrAlreadyAdded
 		)
 		switch {
 		case err == auth.ErrBadLogin:
 			msg = ih.LocalizeSimple("AuthErrorBadLogin")
 
-		case errors.Is(err, admindb.ErrNotFound):
+		case errors.Is(err, roomdb.ErrNotFound):
 			msg = ih.LocalizeSimple("ErrorNotFound")
 
 		case errors.As(err, &aa):
@@ -235,7 +235,7 @@ func New(
 	mainMux.Handle("/admin/", a.Authenticate(adminHandler))
 
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-		notice, err := dbs.PinnedNotices.Get(req.Context(), admindb.NoticeDescription, "en-GB")
+		notice, err := dbs.PinnedNotices.Get(req.Context(), roomdb.NoticeDescription, "en-GB")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find description: %w", err)
 		}
