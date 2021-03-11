@@ -40,8 +40,8 @@ func (al AllowList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
 	}
 
 	var entry models.AllowList
-
 	entry.PubKey.FeedRef = a
+
 	err := entry.Insert(ctx, tx, boil.Whitelist("pub_key"))
 	if err != nil {
 		var sqlErr sqlite3.Error
@@ -99,7 +99,6 @@ func (al AllowList) List(ctx context.Context) (roomdb.ListEntries, error) {
 
 	var asRefs = make(roomdb.ListEntries, len(all))
 	for i, allowed := range all {
-
 		asRefs[i] = roomdb.ListEntry{
 			ID:     allowed.ID,
 			PubKey: allowed.PubKey.FeedRef,

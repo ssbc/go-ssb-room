@@ -53,7 +53,22 @@ type AllowListService interface {
 }
 
 // AliasService manages alias handle registration and lookup
-type AliasService interface{}
+type AliasService interface {
+	// Resolve returns all the relevant information for that alias or an error if it doesnt exist
+	Resolve(context.Context, string) (Alias, error)
+
+	// GetByID returns the alias for that ID or an error
+	GetByID(context.Context, int64) (Alias, error)
+
+	// List returns a list of all registerd aliases
+	List(ctx context.Context) ([]Alias, error)
+
+	// Register receives an alias and signature for it. Validation needs to happen before this.
+	Register(ctx context.Context, alias string, userFeed refs.FeedRef, signature []byte) error
+
+	// Revoke removes an alias from the system
+	Revoke(ctx context.Context, alias string) error
+}
 
 // InviteService manages creation and consumption of invite tokens for joining the room.
 type InviteService interface {
