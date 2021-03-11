@@ -21,7 +21,7 @@ type inviteHandler struct {
 	r *render.Renderer
 
 	invites roomdb.InviteService
-	alaises roomdb.AliasService
+	aliases roomdb.AliasService
 
 	muxrpcHostAndPort string
 	roomPubKey        ed25519.PublicKey
