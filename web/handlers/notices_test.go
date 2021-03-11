@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestNoticeSmokeTest(t *testing.T) {
 	ts := setup(t)
 	a := assert.New(t)
 
-	noticeData := admindb.Notice{
+	noticeData := roomdb.Notice{
 		ID:    1,
 		Title: "Welcome!",
 	}
@@ -39,7 +39,7 @@ Hello world!
 
 ## The loveliest of rooms is here
 `
-	noticeData := admindb.Notice{
+	noticeData := roomdb.Notice{
 		ID:      1,
 		Title:   "Welcome!",
 		Content: markdown,
@@ -61,7 +61,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
-	noticeData := admindb.Notice{
+	noticeData := roomdb.Notice{
 		ID:      42,
 		Title:   "Welcome!",
 		Content: `super simple conent`,
@@ -118,7 +118,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	}
 
 	// have the database return okay for any user
-	testUser := &admindb.User{
+	testUser := &roomdb.User{
 		ID:   23,
 		Name: "test admin",
 	}

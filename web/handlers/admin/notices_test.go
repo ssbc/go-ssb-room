@@ -7,11 +7,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
 )
+/* TODO: 
+    * add a new test that makes sure that /translation/add only accepts POST 
+    * add a check inside the handler proper
+*/
+
 
 func TestNoticeAddLanguageIncludesAllFields(t *testing.T) {
     ts := newSession(t)
@@ -20,7 +25,7 @@ func TestNoticeAddLanguageIncludesAllFields(t *testing.T) {
     urlTo := web.NewURLTo(ts.Router)
 
     // to test translations we first need to add a notice to the notice mockdb
-	notice := admindb.Notice{
+	notice := roomdb.Notice{
 		ID:       1,
 		Title:    "News",
 		Content:  "Breaking News: This Room Has News",
@@ -31,7 +36,7 @@ func TestNoticeAddLanguageIncludesAllFields(t *testing.T) {
     ts.PinnedDB.GetReturns(&notice, nil)
 
     /* TODO: are you only supposed to add translations to pinned notices? */
-    u := urlTo(router.AdminNoticeDraftTranslation, "name", admindb.NoticeNews.String())
+    u := urlTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews.String())
     html, resp := ts.Client.GetHTML(u.String())
     a.Equal(http.StatusOK, resp.Code)
     fmt.Println(html.Html())
@@ -65,7 +70,7 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 	}
 
 	// Create mock notice data to operate on
-	notice := admindb.Notice{
+	notice := roomdb.Notice{
 		ID:       1,
 		Title:    "News",
 		Content:  "Breaking News: This Room Has News",
