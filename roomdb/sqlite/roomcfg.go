@@ -25,15 +25,15 @@ type AllowList struct {
 }
 
 // Add adds the feed to the list.
-func (l AllowList) Add(ctx context.Context, a refs.FeedRef) error {
+func (al AllowList) Add(ctx context.Context, a refs.FeedRef) error {
 	// single insert transaction but this makes it easier to re-use in invites.Consume
-	return transact(l.db, func(tx *sql.Tx) error {
-		return l.add(ctx, tx, a)
+	return transact(al.db, func(tx *sql.Tx) error {
+		return al.add(ctx, tx, a)
 	})
 }
 
 // this add is not exported and for internal use with transactions.
-func (l AllowList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
+func (al AllowList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
 	// TODO: better valid
 	if _, err := refs.ParseFeedRef(a.Ref()); err != nil {
 		return err
@@ -56,8 +56,8 @@ func (l AllowList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
 }
 
 // HasFeed returns true if a feed is on the list.
-func (l AllowList) HasFeed(ctx context.Context, h refs.FeedRef) bool {
-	_, err := models.AllowLists(qm.Where("pub_key = ?", h.Ref())).One(ctx, l.db)
+func (al AllowList) HasFeed(ctx context.Context, h refs.FeedRef) bool {
+	_, err := models.AllowLists(qm.Where("pub_key = ?", h.Ref())).One(ctx, al.db)
 	if err != nil {
 		return false
 	}
@@ -65,8 +65,8 @@ func (l AllowList) HasFeed(ctx context.Context, h refs.FeedRef) bool {
 }
 
 // HasID returns true if a feed is on the list.
-func (l AllowList) HasID(ctx context.Context, id int64) bool {
-	_, err := models.FindAllowList(ctx, l.db, id)
+func (al AllowList) HasID(ctx context.Context, id int64) bool {
+	_, err := models.FindAllowList(ctx, al.db, id)
 	if err != nil {
 		return false
 	}
@@ -74,9 +74,9 @@ func (l AllowList) HasID(ctx context.Context, id int64) bool {
 }
 
 // GetByID returns the entry if a feed with that ID is on the list.
-func (l AllowList) GetByID(ctx context.Context, id int64) (roomdb.ListEntry, error) {
+func (al AllowList) GetByID(ctx context.Context, id int64) (roomdb.ListEntry, error) {
 	var le roomdb.ListEntry
-	entry, err := models.FindAllowList(ctx, l.db, id)
+	entry, err := models.FindAllowList(ctx, al.db, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return le, roomdb.ErrNotFound
@@ -91,8 +91,8 @@ func (l AllowList) GetByID(ctx context.Context, id int64) (roomdb.ListEntry, err
 }
 
 // List returns a list of all the feeds.
-func (l AllowList) List(ctx context.Context) (roomdb.ListEntries, error) {
-	all, err := models.AllowLists().All(ctx, l.db)
+func (al AllowList) List(ctx context.Context) (roomdb.ListEntries, error) {
+	all, err := models.AllowLists().All(ctx, al.db)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +110,8 @@ func (l AllowList) List(ctx context.Context) (roomdb.ListEntries, error) {
 }
 
 // RemoveFeed removes the feed from the list.
-func (l AllowList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
-	entry, err := models.AllowLists(qm.Where("pub_key = ?", r.Ref())).One(ctx, l.db)
+func (al AllowList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
+	entry, err := models.AllowLists(qm.Where("pub_key = ?", r.Ref())).One(ctx, al.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound
@@ -119,7 +119,7 @@ func (l AllowList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 		return err
 	}
 
-	_, err = entry.Delete(ctx, l.db)
+	_, err = entry.Delete(ctx, al.db)
 	if err != nil {
 		return err
 	}
@@ -128,8 +128,8 @@ func (l AllowList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 }
 
 // RemoveID removes the feed from the list.
-func (l AllowList) RemoveID(ctx context.Context, id int64) error {
-	entry, err := models.FindAllowList(ctx, l.db, id)
+func (al AllowList) RemoveID(ctx context.Context, id int64) error {
+	entry, err := models.FindAllowList(ctx, al.db, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound
@@ -137,7 +137,7 @@ func (l AllowList) RemoveID(ctx context.Context, id int64) error {
 		return err
 	}
 
-	_, err = entry.Delete(ctx, l.db)
+	_, err = entry.Delete(ctx, al.db)
 	if err != nil {
 		return err
 	}

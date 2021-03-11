@@ -24,9 +24,9 @@ type AuthFallback struct {
 	db *sql.DB
 }
 
-func (ah AuthFallback) Check(name, password string) (interface{}, error) {
+func (af AuthFallback) Check(name, password string) (interface{}, error) {
 	ctx := context.Background()
-	found, err := models.AuthFallbacks(qm.Where("name = ?", name)).One(ctx, ah.db)
+	found, err := models.AuthFallbacks(qm.Where("name = ?", name)).One(ctx, af.db)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (ah AuthFallback) Check(name, password string) (interface{}, error) {
 	return found.ID, nil
 }
 
-func (ah AuthFallback) Create(ctx context.Context, name string, password []byte) (int64, error) {
+func (af AuthFallback) Create(ctx context.Context, name string, password []byte) (int64, error) {
 	var u models.AuthFallback
 	u.Name = name
 
@@ -50,7 +50,7 @@ func (ah AuthFallback) Create(ctx context.Context, name string, password []byte)
 
 	u.PasswordHash = hashed
 
-	err = u.Insert(ctx, ah.db, boil.Infer())
+	err = u.Insert(ctx, af.db, boil.Infer())
 	if err != nil {
 		return -1, fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
 	}
@@ -58,8 +58,8 @@ func (ah AuthFallback) Create(ctx context.Context, name string, password []byte)
 	return u.ID, nil
 }
 
-func (ah AuthFallback) GetByID(ctx context.Context, uid int64) (*roomdb.User, error) {
-	modelU, err := models.FindAuthFallback(ctx, ah.db, uid)
+func (af AuthFallback) GetByID(ctx context.Context, uid int64) (*roomdb.User, error) {
+	modelU, err := models.FindAuthFallback(ctx, af.db, uid)
 	if err != nil {
 		return nil, err
 	}

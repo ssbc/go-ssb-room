@@ -205,14 +205,14 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 		}
 
 		invs = make([]roomdb.Invite, len(entries))
-		for i, e := range entries {
+		for idx, e := range entries {
 			var inv roomdb.Invite
 			inv.ID = e.ID
 			inv.AliasSuggestion = e.AliasSuggestion
 			inv.CreatedBy.ID = e.R.CreatedByAuthFallback.ID
 			inv.CreatedBy.Name = e.R.CreatedByAuthFallback.Name
 
-			invs[i] = inv
+			invs[idx] = inv
 		}
 
 		return nil
