@@ -53,7 +53,7 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, fmt.Errorf("registerAlias: invalid signature")
 	}
 
-	err = h.db.Register(ctx, confirmation.Alias, confirmation.Signature)
+	err = h.db.Register(ctx, confirmation.Alias, confirmation.UserID, confirmation.Signature)
 	if err != nil {
 		return nil, fmt.Errorf("registerAlias: could not register alias: %w", err)
 	}

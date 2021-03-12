@@ -29,8 +29,8 @@ import (
 	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers"
@@ -201,7 +201,10 @@ func runroomsrv() error {
 	}
 
 	// create the shs+muxrpc server
-	roomsrv, err := mksrv.New(db.AllowList, opts...)
+	roomsrv, err := mksrv.New(
+		db.AllowList,
+		db.Aliases,
+		opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)
 	}
