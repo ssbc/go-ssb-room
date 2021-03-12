@@ -36,10 +36,10 @@
         </td>
       </tr>
       <tr class="hidden sm:table-row h-8 uppercase text-sm text-gray-400">
-        <th class="w-3 text-center pl-3 pr-6">ID</th>
-        <th class="w-1/2 text-left px-6">Created by</th>
-        <th class="w-1/2 text-left px-6">Alias suggestion</th>
-        <th></th>
+        <th class="w-3 text-center pl-3 pr-6">{{i18n "AdminInvitesIDColumn"}}</th>
+        <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesCreatorColumn"}}</th>
+        <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesAliasColumn"}}</th>
+        <th class="w-0"></th>
       </tr>
     </thead>
     <tbody class="divide-y">
@@ -57,7 +57,7 @@
       </tr>
       <tr class="h-12 table-row sm:hidden">
         <td class="flex flex-row items-center" colspan="4">
-          <span class="flex-1">From <b>{{.CreatedBy.Name}}</b> to <b>{{if ne .AliasSuggestion ""}}{{.AliasSuggestion}}{{else}}?{{end}}</b></span>
+          <span class="flex-1">{{i18n "AdminInvitesSummaryFrom"}} <b>{{.CreatedBy.Name}}</b> {{i18n "AdminInvitesSummaryTo"}} <b>{{if ne .AliasSuggestion ""}}{{.AliasSuggestion}}{{else}}?{{end}}</b></span>
           <a
             href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
             class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
