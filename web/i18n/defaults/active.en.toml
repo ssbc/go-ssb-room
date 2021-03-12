@@ -1,6 +1,7 @@
 GenericConfirm = "Yes"
 GenericGoBack = "Back"
 GenericSave = "Save"
+GenericCreate = "Create"
 GenericPreview = "Preview"
 GenericLanguage = "Language"
 
@@ -25,8 +26,9 @@ AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this membe
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 AdminInvitesTitle = "Invites"
-AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room."
-AdminInvitesAliasSuggestion = "Suggested alias (optional)"
+AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
+AdminInvitesAliasSuggestion = "(Optional) Alias suggestion"
+AdminInvitesCount = "{{.Count}} invites still unclaimed"
 AdminInviteRevoke = "Revoke"
 AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
 AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
