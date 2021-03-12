@@ -60,6 +60,9 @@ type Server struct {
 	authorizer roomdb.AllowListService
 
 	StateManager *roomstate.Manager
+
+	AllowList roomdb.AllowListService
+	Aliases   roomdb.AliasService
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -73,6 +76,9 @@ func New(
 ) (*Server, error) {
 	var s Server
 	s.authorizer = allowdb
+
+	s.AllowList = allowdb
+	s.Aliases = aliasdb
 
 	for i, opt := range opts {
 		err := opt(&s)

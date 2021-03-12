@@ -82,7 +82,9 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv
 	db, err := sqlite.Open(repo.New(testPath))
 	r.NoError(err)
 	t.Cleanup(func() {
-		db.Close()
+		if err := db.Close(); err != nil {
+			t.Log("db close failed: ", err)
+		}
 	})
 	theBot, err := roomsrv.New(db.AllowList, db.Aliases, botOptions...)
 	r.NoError(err)

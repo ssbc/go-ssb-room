@@ -11,10 +11,6 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-const name = "tunnel"
-
-var method muxrpc.Method = muxrpc.Method{name}
-
 /* manifest:
 {
 	"announce": "sync",

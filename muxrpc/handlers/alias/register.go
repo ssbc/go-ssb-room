@@ -2,8 +2,10 @@ package alias
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
@@ -21,9 +23,11 @@ type Handler struct {
 	db roomdb.AliasService
 }
 
+const sigSuffix = ".sig.ed25519"
+
 func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 
-	var args []json.RawMessage
+	var args []string
 
 	err := json.Unmarshal(req.RawArgs, &args)
 	if err != nil {
@@ -34,9 +38,21 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, fmt.Errorf("registerAlias: expected two arguments got %d", n)
 	}
 
+	if !strings.HasSuffix(args[1], sigSuffix) {
+		return nil, fmt.Errorf("registerAlias: signature does not have the expected suffix")
+	}
+
+	// remove the suffix of the base64 string
+	sig := strings.TrimSuffix(args[1], sigSuffix)
+
 	var confirmation aliases.Confirmation
 	confirmation.RoomID = h.self
-	confirmation.Alias = string(args[0])
+	confirmation.Alias = args[0]
+	confirmation.Signature, err = base64.StdEncoding.DecodeString(sig)
+	if err != nil {
+		return nil, fmt.Errorf("registerAlias: bad signature encoding: %w", err)
+	}
+
 	// check alias is valid
 	// if !aliases.IsValid(confirmation.Alias) { ... }
 
