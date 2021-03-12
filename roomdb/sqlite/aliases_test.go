@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package sqlite
 
 import (
@@ -9,9 +11,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 )
 
