@@ -12,7 +12,6 @@ It includes:
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
 * [x] Simple allow-listing   
     Currently via `.ssb-go-rooms/authorized_keys`.   
-    To be replaced with an authorization list on the dashboard.
 * [ ] Sign-in with SSB
 * [ ] Alias managment
 
