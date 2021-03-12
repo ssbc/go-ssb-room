@@ -26,7 +26,7 @@ AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this membe
 AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 
 AdminInvitesTitle = "Invites"
-AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
+AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same time as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
 AdminInvitesAliasSuggestion = "(Optional) Alias suggestion"
 AdminInvitesCount = "{{.Count}} invites still unclaimed"
 AdminInviteRevoke = "Revoke"
