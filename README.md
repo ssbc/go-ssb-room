@@ -1,28 +1,32 @@
 # Go-SSB Room
 
-This repository contains code for a [Secure-Scuttlebutt Room v2](https://github.com/ssb-ngi-pointer/rooms2/) server written in Go.
+This repository contains code for a [Secure Scuttlebutt](https://ssb.nz) [Room (v1+v2) server](https://github.com/ssb-ngi-pointer/rooms2), written in Go.
 
-It not only includes the secret-handshake+boxstream setup and muxrpc handlers for tunneling connections but also a fully embedded http/html interface for administering the room.
+It includes:
+* a secret-handshake+boxstream setup
+* muxrpc handlers for tunneling connections
+* a fully embedded server & frontend, for administering the room
 
 ## Features
 
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
+* [x] Simple allow-listing   
+    Currently via `.ssb-go-rooms/authorized_keys`.   
+    To be replaced with an authorization list on the dashboard.
 * [ ] Sign-in with SSB
-* [x] Simple allow-listing
-    Currently via `.ssb-go-rooms/authorized_keys`.
-    To be replaced with a authorization list on the dashboard.
 * [ ] Alias managment
 
 ## Development
 
 To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
 
-To build the server and see a list of it's options, run the following:
+To build the server and see a list of its options:
 
 ```bash
-$ cd cmd/server
-$ go build
-$ ./server -h
+cd cmd/server
+go build
+./server -h
+ 
 Usage of ./server:
   -dbg string
     	listen addr for metrics and pprof HTTP server (default "localhost:6078")
@@ -44,6 +48,9 @@ Usage of ./server:
 
 If you want to view the development server in your browser:
 ```sh
+# change to the root of the project (e.g. cd go-ssb-room) and generate the frontend's styling; requires npm
+go generate -tags dev ./...
+# now let's build & run the development server
 cd cmd/server && go build -tags dev && ./server
 # and visit http://localhost:3000
 ```
@@ -53,13 +60,13 @@ This can be useful if you are working on:
 * html templates, 
 * or website assets
 
-This way the build won't use the assets embedded in the binary, but instead read them directly from the local filesystem.
+This way, the build won't use the assets embedded in the binary, but instead read them directly from the local filesystem.
 
-Once you are done with your changes run and want to update the embedded assets:
+Once you are done with your changes and want to update the embedded assets:
 ```sh
-go generate
+# cd to the root of the folder, and then run go generate
+go generate -tags dev ./...
 ```
-**Note**: you need to run generate in each changed package.
 
 ## Tooling
 ### Mocks
