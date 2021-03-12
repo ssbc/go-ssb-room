@@ -3,15 +3,14 @@
 This repository contains code for a [Secure Scuttlebutt](https://ssb.nz) [Room (v1+v2) server](https://github.com/ssb-ngi-pointer/rooms2), written in Go.
 
 It includes:
-* a secret-handshake+boxstream setup
+* secret-handshake+boxstream network transport, sometimes referred to as SHS, using [secretstream](https://github.com/cryptoscope/secretstream)
 * muxrpc handlers for tunneling connections
-* a fully embedded server & frontend, for administering the room
+* a fully embedded HTTP server & HTML frontend, for administering the room
 
 ## Features
 
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
-* [x] Simple allow-listing   
-    Currently via `.ssb-go-rooms/authorized_keys`.   
+* [x] Simple allow-listing, administerd via the web dashboard
 * [ ] Sign-in with SSB
 * [ ] Alias managment
 
