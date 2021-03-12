@@ -7,21 +7,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.cryptoscope.co/muxrpc/v2"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
-
-	"go.cryptoscope.co/muxrpc/v2"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 
 // technically we are usign two servers here
 // but we just treat one of them as a muxrpc client
 func TestAliasRegister(t *testing.T) {
+	testInit(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	botgroup, ctx := errgroup.WithContext(ctx)
 	bs := newBotServer(ctx, mainLog)

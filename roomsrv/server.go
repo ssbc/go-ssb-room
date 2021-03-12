@@ -12,10 +12,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"go.cryptoscope.co/muxrpc/v2/typemux"
-
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"go.cryptoscope.co/muxrpc/v2/typemux"
 	"go.cryptoscope.co/netwrap"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"

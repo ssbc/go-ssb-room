@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"strings"
 
+	kitlog "github.com/go-kit/kit/log"
+	"go.cryptoscope.co/muxrpc/v2"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-
-	kitlog "github.com/go-kit/kit/log"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"go.cryptoscope.co/muxrpc/v2"
 	refs "go.mindeco.de/ssb-refs"
 )
 
