@@ -45,9 +45,15 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	if req.Method != "POST" {
+		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry chump!")}
+		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
+	}
+
 	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
 	if !pinnedName.Valid() {
 		err := weberrors.ErrBadRequest{Where: "name", Details: fmt.Errorf("invalid pinned notice name")}
+		// reply with 405 error: Method not allowed
 		h.r.Error(rw, req, http.StatusInternalServerError, err)
 		return
 	}
