@@ -27,6 +27,7 @@ type testSession struct {
 	Client *tester.Tester
 	Router *mux.Router
 
+	Aliases     *mockdb.FakeAliasService
 	AllowListDB *mockdb.FakeAllowListService
 	PinnedDB    *mockdb.FakePinnedNoticesService
 	NoticeDB    *mockdb.FakeNoticesService
@@ -43,6 +44,7 @@ func newSession(t *testing.T) *testSession {
 	var ts testSession
 
 	// fake dbs
+	ts.Aliases = new(mockdb.FakeAliasService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
@@ -97,6 +99,7 @@ func newSession(t *testing.T) *testSession {
 		r,
 		ts.RoomState,
 		Databases{
+			Aliases:       ts.Aliases,
 			AllowList:     ts.AllowListDB,
 			Invites:       ts.InvitesDB,
 			Notices:       ts.NoticeDB,

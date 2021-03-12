@@ -9,6 +9,10 @@ const (
 	AdminDashboard = "admin:dashboard"
 	AdminMenu      = "admin:menu"
 
+	AdminAliasesOverview      = "admin:aliases:overview"
+	AdminAliasesRevokeConfirm = "admin:aliases:revoke:confirm"
+	AdminAliasesRevoke        = "admin:aliases:revoke"
+
 	AdminAllowListOverview      = "admin:allow-list:overview"
 	AdminAllowListAdd           = "admin:allow-list:add"
 	AdminAllowListRemoveConfirm = "admin:allow-list:remove:confirm"
@@ -33,6 +37,10 @@ func Admin(m *mux.Router) *mux.Router {
 
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
 	m.Path("/menu").Methods("GET").Name(AdminMenu)
+
+	m.Path("/aliases").Methods("GET").Name(AdminAliasesOverview)
+	m.Path("/aliases/revoke/confirm").Methods("GET").Name(AdminAliasesRevokeConfirm)
+	m.Path("/aliases/revoke").Methods("POST").Name(AdminAliasesRevoke)
 
 	m.Path("/members").Methods("GET").Name(AdminAllowListOverview)
 	m.Path("/members/add").Methods("POST").Name(AdminAllowListAdd)

@@ -245,6 +245,7 @@ func runroomsrv() error {
 		},
 		roomsrv.StateManager,
 		handlers.Databases{
+			Aliases:       db.Aliases,
 			AuthWithSSB:   db.AuthWithSSB,
 			AuthFallback:  db.AuthFallback,
 			AllowList:     db.AllowList,

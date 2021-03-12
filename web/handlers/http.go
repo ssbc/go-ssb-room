@@ -19,8 +19,8 @@ import (
 	"go.mindeco.de/logging"
 	"golang.org/x/crypto/ed25519"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
@@ -42,6 +42,7 @@ var HTMLTemplates = []string{
 
 // Databases is an options stuct for the required databases of the web handlers
 type Databases struct {
+	Aliases       roomdb.AliasService
 	AuthWithSSB   roomdb.AuthWithSSBService
 	AuthFallback  roomdb.AuthFallbackService
 	AllowList     roomdb.AllowListService
@@ -97,7 +98,11 @@ func New(
 		}),
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
-				url, err := router.CompleteApp().Get(routeName).URLPath()
+				route := router.CompleteApp().Get(routeName)
+				if route == nil {
+					return false
+				}
+				url, err := route.URLPath()
 				if err != nil {
 					return false
 				}
@@ -226,6 +231,7 @@ func New(
 		r,
 		roomState,
 		admin.Databases{
+			Aliases:       dbs.Aliases,
 			AllowList:     dbs.AllowList,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
