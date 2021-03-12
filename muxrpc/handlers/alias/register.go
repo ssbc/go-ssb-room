@@ -56,7 +56,9 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 	}
 
 	// check alias is valid
-	// if !aliases.IsValid(confirmation.Alias) { ... }
+	if !aliases.IsValid(confirmation.Alias) {
+		return nil, fmt.Errorf("registerAlias: invalid alias")
+	}
 
 	// get the user from the muxrpc connection
 	userID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
