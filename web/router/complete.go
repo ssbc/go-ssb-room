@@ -14,6 +14,8 @@ const (
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
 
+	CompleteAliasResolve = "complete:alias:resolve"
+
 	CompleteInviteAccept  = "complete:invite:accept"
 	CompleteInviteConsume = "complete:invite:consume"
 )
@@ -27,6 +29,8 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
 	m.Path("/about").Methods("GET").Name(CompleteAbout)
+
+	m.Path("/{alias}").Methods("GET").Name(CompleteAliasResolve)
 
 	m.Path("/invite/accept").Methods("GET").Name(CompleteInviteAccept)
 	m.Path("/invite/consume").Methods("POST").Name(CompleteInviteConsume)

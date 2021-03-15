@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
 	"golang.org/x/crypto/ed25519"
 
@@ -18,8 +17,6 @@ import (
 )
 
 type inviteHandler struct {
-	r *render.Renderer
-
 	invites roomdb.InviteService
 	aliases roomdb.AliasService
 

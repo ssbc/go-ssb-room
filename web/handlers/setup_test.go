@@ -16,10 +16,11 @@ import (
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
+	refs "go.mindeco.de/ssb-refs"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
@@ -33,6 +34,7 @@ type testSession struct {
 	// mocked dbs
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
+	AliasesDB      *mockdb.FakeAliasService
 	AllowListDB    *mockdb.FakeAllowListService
 	InvitesDB      *mockdb.FakeInviteService
 	PinnedDB       *mockdb.FakePinnedNoticesService
@@ -61,6 +63,7 @@ func setup(t *testing.T) *testSession {
 
 	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
+	ts.AliasesDB = new(mockdb.FakeAliasService)
 	ts.AllowListDB = new(mockdb.FakeAllowListService)
 	ts.InvitesDB = new(mockdb.FakeInviteService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
@@ -76,7 +79,10 @@ func setup(t *testing.T) *testSession {
 		PortMUXRPC: 8008,
 		PortHTTPS:  443,
 
-		PubKey: bytes.Repeat([]byte("test"), 8),
+		RoomID: refs.FeedRef{
+			ID:   bytes.Repeat([]byte("test"), 8),
+			Algo: refs.RefAlgoFeedSSB1,
+		},
 	}
 
 	log, _ := logtest.KitLogger("complete", t)
@@ -91,6 +97,7 @@ func setup(t *testing.T) *testSession {
 		ts.NetworkInfo,
 		ts.RoomState,
 		Databases{
+			Aliases:       ts.AliasesDB,
 			AuthWithSSB:   ts.AuthDB,
 			AuthFallback:  ts.AuthFallbackDB,
 			AllowList:     ts.AllowListDB,

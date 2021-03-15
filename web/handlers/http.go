@@ -11,13 +11,14 @@ import (
 	"strconv"
 	"time"
 
+	refs "go.mindeco.de/ssb-refs"
+
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
-	"golang.org/x/crypto/ed25519"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -33,6 +34,7 @@ import (
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
+	"aliases-resolved.html",
 	"invite/accept.tmpl",
 	"invite/consumed.tmpl",
 	"notice/list.tmpl",
@@ -56,7 +58,7 @@ type NetworkInfo struct {
 	PortMUXRPC uint
 	PortHTTPS  uint // 0 assumes default (443)
 
-	PubKey ed25519.PublicKey
+	RoomID refs.FeedRef
 
 	Domain string
 }
@@ -262,10 +264,20 @@ func New(
 	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
 	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
 
+	var ah = aliasHandler{
+		r: r,
+
+		db: dbs.Aliases,
+
+		roomID:            netInfo.RoomID,
+		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
+	}
+	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
+
 	var ih = inviteHandler{
 		invites: dbs.Invites,
 
-		roomPubKey:        netInfo.PubKey,
+		roomPubKey:        netInfo.RoomID.PubKey(),
 		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
 	}
 	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
