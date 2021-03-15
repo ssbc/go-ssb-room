@@ -55,11 +55,23 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 	// instantiate the urlTo helper (constructs urls for us!)
 	urlTo := web.NewURLTo(ts.Router)
 
+	// verify that a GET request is no bueno
 	u := urlTo(router.AdminNoticeAddTranslation, "name", roomdb.NoticeNews.String())
 	_, resp := ts.Client.GetHTML(u.String())
 	a.Equal(http.StatusMethodNotAllowed, resp.Code, "GET should not be allowed for this route")
+
+	// next up, we verify that a correct POST request actually works:
+	id := []string{"1"}
+	title := []string{"Bom Dia! SSB Breaking News: This Test Is Great"}
+	content := []string{"conteúdo muito bom"}
+	language := []string{"pt"}
+
+	formValues := url.Values{"name": []string{roomdb.NoticeNews.String()}, "id": id, "title": title, "content": content, "language": language}
+	resp = ts.Client.PostForm(u.String(), formValues)
+	a.Equal(http.StatusTemporaryRedirect, resp.Code)
 }
 
+// Verifies that the "add a translation" page contains all the required form fields (id/title/content/language)
 func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
