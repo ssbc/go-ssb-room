@@ -46,7 +46,7 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	}
 
 	if req.Method != "POST" {
-		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry chump!")}
+		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
 		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
 	}
 
@@ -60,6 +60,11 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 
 	var n roomdb.Notice
 	n.Title = req.FormValue("title")
+	if n.Title == "" {
+		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 
 	// TODO: validate languages properly
 	n.Language = req.FormValue("language")
@@ -70,6 +75,11 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	}
 
 	n.Content = req.FormValue("content")
+	if n.Content == "" {
+		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
