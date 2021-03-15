@@ -96,6 +96,7 @@ func (json aliasJSONResponder) SendConfirmation(alias roomdb.Alias) {
 	var resp = aliasJSONResponse{
 		Status:    "successfull",
 		RoomID:    json.roomID.Ref(),
+		Address:   json.multiservAddr,
 		Alias:     alias.Name,
 		UserID:    alias.Feed.Ref(),
 		Signature: base64.StdEncoding.EncodeToString(alias.Signature),
@@ -138,7 +139,9 @@ func (html *aliasHTMLResponder) UpdateRoomInfo(hostAndPort string, roomID refs.F
 func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 	err := html.renderer.Render(html.rw, html.req, "aliases-resolved.html", http.StatusOK, struct {
 		Alias roomdb.Alias
-	}{alias})
+
+		RoomAddr string
+	}{alias, html.multiservAddr})
 	if err != nil {
 		log.Println("alias-resolve render errr:", err)
 	}
