@@ -241,7 +241,7 @@ func runroomsrv() error {
 			Domain:     httpsDomain,
 			PortHTTPS:  uint(portHTTP),
 			PortMUXRPC: uint(portMUXRPC),
-			PubKey:     roomsrv.Whoami().PubKey(),
+			RoomID:     roomsrv.Whoami(),
 		},
 		roomsrv.StateManager,
 		handlers.Databases{
