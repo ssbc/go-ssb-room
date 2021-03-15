@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -12,10 +13,30 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-/* TODO:
- * add a new
- * add a check inside the handler proper
- */
+// Verifies that the notices.go:save handler refuses requests missing required parameters
+func TestNoticeSaveRefusesIncomplete(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+	// instantiate the urlTo helper (constructs urls for us!)
+	urlTo := web.NewURLTo(ts.Router)
+
+	// notice values we are selectively omitting in the tests below
+	// ID:       1,
+	// Title:    "News",
+	// Content:  "Breaking News: This Room Has News",
+	// Language: "en-GB",
+
+	/* save without id */
+	u := urlTo(router.AdminNoticeSave)
+	emptyParams := url.Values{}
+	resp := ts.Client.PostForm(u.String(), emptyParams)
+	a.Equal(http.StatusInternalServerError, resp.Code, "saving without id should not work")
+
+	/* save without language */
+	formValues := url.Values{"id": []string{"1"}, "title": []string{"Fake Title"}, "content": []string{"Thrilling Content"}}
+	resp = ts.Client.PostForm(u.String(), formValues)
+	a.Equal(http.StatusInternalServerError, resp.Code, "saving without language should not work")
+}
 
 // Verifies that /translation/add only accepts POST requests
 func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
@@ -25,7 +46,7 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 
 	u := urlTo(router.AdminNoticeAddTranslation, "name", roomdb.NoticeNews.String())
-	html, resp := ts.Client.GetHTML(u.String())
+	_, resp := ts.Client.GetHTML(u.String())
 	a.Equal(http.StatusMethodNotAllowed, resp.Code, "GET should not be allowed for this route")
 }
 
