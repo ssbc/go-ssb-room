@@ -21,10 +21,10 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 
 	// notice values we are selectively omitting in the tests below
-	// ID:       1,
-	// Title:    "News",
-	// Content:  "Breaking News: This Room Has News",
-	// Language: "en-GB",
+	id := []string{"1"}
+	title := []string{"SSB Breaking News: This Test Is Great"}
+	content := []string{"Absolutely Thrilling Content"}
+	language := []string{"pt"}
 
 	/* save without id */
 	u := urlTo(router.AdminNoticeSave)
@@ -32,8 +32,18 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	resp := ts.Client.PostForm(u.String(), emptyParams)
 	a.Equal(http.StatusInternalServerError, resp.Code, "saving without id should not work")
 
+	/* save without title */
+	formValues := url.Values{"id": id, "content": content, "language": language}
+	resp = ts.Client.PostForm(u.String(), formValues)
+	a.Equal(http.StatusInternalServerError, resp.Code, "saving without title should not work")
+
+	/* save without content */
+	formValues = url.Values{"id": id, "title": title, "language": language}
+	resp = ts.Client.PostForm(u.String(), formValues)
+	a.Equal(http.StatusInternalServerError, resp.Code, "saving without content should not work")
+
 	/* save without language */
-	formValues := url.Values{"id": []string{"1"}, "title": []string{"Fake Title"}, "content": []string{"Thrilling Content"}}
+	formValues = url.Values{"id": id, "title": title, "content": content}
 	resp = ts.Client.PostForm(u.String(), formValues)
 	a.Equal(http.StatusInternalServerError, resp.Code, "saving without language should not work")
 }
