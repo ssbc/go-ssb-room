@@ -29,7 +29,7 @@ func TestNoticeSaveActuallyCalled(t *testing.T) {
 	u := urlTo(router.AdminNoticeSave)
 	formValues := url.Values{"id": id, "title": title, "content": content, "language": language}
 	resp := ts.Client.PostForm(u.String(), formValues)
-	a.NotEqual(http.StatusInternalServerError, resp.Code)
+	a.Equal(http.StatusSeeOther, resp.Code, "POST should work")
 	a.Equal(1, ts.NoticeDB.SaveCallCount(), "noticedb should have saved after POST completed")
 }
 
@@ -114,9 +114,10 @@ func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 	html, resp := ts.Client.GetHTML(u.String())
 	form := html.Find("form")
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
+    // FormElement defaults to input if tag omitted
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
-		{Tag: "input", Name: "title"},
-		{Tag: "input", Name: "language"},
+		{Name: "title"},
+		{Name: "language"},
 		{Tag: "textarea", Name: "content"},
 	})
 }
@@ -142,10 +143,11 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
 	// check for all the form elements & verify their initial contents are set correctly
+    // FormElement defaults to input if tag omitted
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
-		{Tag: "input", Name: "title", Value: notice.Title},
-		{Tag: "input", Name: "language", Value: notice.Language},
-		{Tag: "input", Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden"},
+		{Name: "title", Value: notice.Title},
+		{Name: "language", Value: notice.Language},
+		{Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden"},
 		{Tag: "textarea", Name: "content"},
 	})
 }
