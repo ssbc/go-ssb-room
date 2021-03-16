@@ -95,7 +95,7 @@ func (json *aliasJSONResponder) UpdateRoomInfo(hostAndPort string, roomID refs.F
 
 func (json aliasJSONResponder) SendConfirmation(alias roomdb.Alias) {
 	var resp = aliasJSONResponse{
-		Status:    "successfull",
+		Status:    "successful",
 		RoomID:    json.roomID.Ref(),
 		Address:   json.multiservAddr,
 		Alias:     alias.Name,
