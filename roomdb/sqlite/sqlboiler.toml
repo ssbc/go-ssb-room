@@ -4,8 +4,8 @@ dbname = "testrun/TestSimple/roomdb"
 blacklist = ["gorp_migrations"]
 
 
+# marshal pub_key strings ala @asdjjasd as feed references.
 [[types]]
-   # marshal pub_key strings ala @asdjjasd as feed references.
   [types.match]
     type = "string"
     #tables = ['fallback_auth']

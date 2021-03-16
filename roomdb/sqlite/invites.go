@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/friendsofgo/errors"
 	"github.com/mattn/go-sqlite3"
@@ -48,6 +49,9 @@ func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion st
 		for tries := 100; tries > 0; tries-- {
 			// generate an invite code
 			rand.Read(tokenBytes)
+
+			// see comment on migrations/6-invite-createdAt.sql
+			newInvite.CreatedAt = time.Now()
 
 			// hash the binary of the token for storage
 			h := sha256.New()
@@ -115,6 +119,7 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 		}
 
 		inv.ID = entry.ID
+		inv.CreatedAt = entry.CreatedAt
 		inv.AliasSuggestion = entry.AliasSuggestion
 		inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
 		inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
@@ -162,6 +167,7 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 	}
 
 	inv.ID = entry.ID
+	inv.CreatedAt = entry.CreatedAt
 	inv.AliasSuggestion = entry.AliasSuggestion
 	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
 	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
@@ -184,6 +190,7 @@ func (i Invites) GetByID(ctx context.Context, id int64) (roomdb.Invite, error) {
 	}
 
 	inv.ID = entry.ID
+	inv.CreatedAt = entry.CreatedAt
 	inv.AliasSuggestion = entry.AliasSuggestion
 	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
 	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
@@ -208,6 +215,7 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 		for idx, e := range entries {
 			var inv roomdb.Invite
 			inv.ID = e.ID
+			inv.CreatedAt = e.CreatedAt
 			inv.AliasSuggestion = e.AliasSuggestion
 			inv.CreatedBy.ID = e.R.CreatedByAuthFallback.ID
 			inv.CreatedBy.Name = e.R.CreatedByAuthFallback.Name

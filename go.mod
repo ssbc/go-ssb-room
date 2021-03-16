@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
+	github.com/kevinburke/go-bindata v3.21.0+incompatible // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
@@ -22,8 +23,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/unrolled/secure v1.0.8
 	github.com/vcraescu/go-paginator/v2 v2.0.0
-	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20200618013359-a93887c09a14 // indirect
-	github.com/volatiletech/sqlboiler/v4 v4.4.0
+	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
+	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210202162901-fe642d405dc6
 	go.cryptoscope.co/netwrap v0.1.1
