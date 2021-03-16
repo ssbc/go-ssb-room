@@ -36,7 +36,7 @@
         </td>
       </tr>
       <tr class="hidden sm:table-row h-8 uppercase text-sm text-gray-400">
-        <th class="w-3 text-center pl-3 pr-6">{{i18n "AdminInvitesIDColumn"}}</th>
+        <th class="w-3 text-center pl-3 pr-6">{{i18n "AdminInvitesCreatedAtColumn"}}</th>
         <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesCreatorColumn"}}</th>
         <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesAliasColumn"}}</th>
         <th class="w-0"></th>
@@ -45,7 +45,7 @@
     <tbody class="divide-y">
       {{range .Entries}}
       <tr class="h-12 hidden sm:table-row">
-        <td class="pl-3 pr-6 text-gray-400 text-center">#{{.ID}}</td>
+        <td class="pl-3 pr-6 text-gray-400 text-center">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
         <td class="px-6">{{.CreatedBy.Name}}</td>
         <td class="px-6">{{if ne .AliasSuggestion ""}}{{.AliasSuggestion}}{{end}}</td>
         <td class="pl-6 pr-3">
