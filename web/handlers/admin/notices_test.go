@@ -114,7 +114,7 @@ func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 	html, resp := ts.Client.GetHTML(u.String())
 	form := html.Find("form")
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
-    // FormElement defaults to input if tag omitted
+	// FormElement defaults to input if tag omitted
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "title"},
 		{Name: "language"},
@@ -143,7 +143,7 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
 	// check for all the form elements & verify their initial contents are set correctly
-    // FormElement defaults to input if tag omitted
+	// FormElement defaults to input if tag omitted
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "title", Value: notice.Title},
 		{Name: "language", Value: notice.Language},

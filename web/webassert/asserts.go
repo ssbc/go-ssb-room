@@ -40,10 +40,10 @@ type FormElement struct {
 func ElementsInForm(t *testing.T, form *goquery.Selection, elems []FormElement) {
 	a := assert.New(t)
 	for _, e := range elems {
-        // empty Tag defaults to <input>
-        if e.Tag == "" {
-            e.Tag = "input"
-        }
+		// empty Tag defaults to <input>
+		if e.Tag == "" {
+			e.Tag = "input"
+		}
 
 		elementSelector := form.Find(fmt.Sprintf("%s[name=%s]", e.Tag, e.Name))
 		ok := a.Equal(1, elementSelector.Length(), "expected to find element with name %s", e.Name)

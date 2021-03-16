@@ -13,7 +13,7 @@ type roomUserContextKeyType string
 
 var roomUserContextKey roomUserContextKeyType = "ssb:room:httpcontext:user"
 
- // FromContext returns the user or nil if not logged in
+// FromContext returns the user or nil if not logged in
 func FromContext(ctx context.Context) *roomdb.User {
 	v := ctx.Value(roomUserContextKey)
 
