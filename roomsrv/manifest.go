@@ -32,6 +32,18 @@ const manifest manifestHandler = `
 
 	"whoami":"async",
 
+	"room": {
+		"registerAlias": "async",
+		"revokeAlias": "async",
+
+		"announce": "sync",
+		"leave": "sync",
+		"connect": "duplex",
+		"endpoints": "source",
+		"isRoom": "async",
+		"ping": "sync"
+	},
+
 	"tunnel": {
 		"announce": "sync",
 		"leave": "sync",

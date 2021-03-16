@@ -45,5 +45,6 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasService) {
 		tunnelHandler.Register(mux, method)
 
 		mux.RegisterAsync(append(method, "registerAlias"), typemux.AsyncFunc(aliasHandler.Register))
+		mux.RegisterAsync(append(method, "revokeAlias"), typemux.AsyncFunc(aliasHandler.Revoke))
 	}
 }

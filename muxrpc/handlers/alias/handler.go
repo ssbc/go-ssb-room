@@ -95,3 +95,39 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 
 	return true, nil
 }
+
+// Revoke checks that the alias is from that user before revoking the alias from the database.
+func (h Handler) Revoke(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
+	var args []string
+
+	err := json.Unmarshal(req.RawArgs, &args)
+	if err != nil {
+		return nil, fmt.Errorf("registerAlias: bad request: %w", err)
+	}
+
+	if n := len(args); n != 1 {
+		return nil, fmt.Errorf("registerAlias: expected two arguments got %d", n)
+	}
+
+	// get the user from the muxrpc connection
+	userID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
+	if err != nil {
+		return nil, err
+	}
+
+	alias, err := h.db.Resolve(ctx, args[0])
+	if err != nil {
+		return nil, err
+	}
+
+	if !alias.Feed.Equal(userID) {
+		return nil, fmt.Errorf("revokeAlias: not your alias (moderators need to use the web dashboard of the room")
+	}
+
+	err = h.db.Revoke(ctx, alias.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
