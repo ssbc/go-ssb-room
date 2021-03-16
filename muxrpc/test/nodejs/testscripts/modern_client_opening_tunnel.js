@@ -7,12 +7,12 @@ let newConnections = 0
 module.exports = {
     secretStackPlugins: ['ssb-conn', 'ssb-room-client'],
 
-    before: (client, ready) => {
+    before: (t, client, ready) => {
         // nothing to prepare (like publishes messages, or...)
         ready()
     },
 
-    after: (client, roomSrvRpc, exit) => {
+    after: (t, client, roomSrvRpc, exit) => {
         newConnections++
         console.warn('new connection!', roomSrvRpc.id, 'total:', newConnections)
         

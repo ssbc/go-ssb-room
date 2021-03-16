@@ -3,11 +3,11 @@ const pull = require('pull-stream')
 module.exports = {
     secretStackPlugins: ['ssb-conn', 'ssb-room/tunnel/client'],
 
-    before: (sbot, ready) => {
+    before: (t, sbot, ready) => {
         ready()
     },
 
-    after: (sbot, rpc, exit) => {
+    after: (t, sbot, rpc, exit) => {
         sbot.on("rpc:connect", (remote, isClient) => {
             console.warn("tunneld connection to simple client!")
 
@@ -19,8 +19,7 @@ module.exports = {
                     console.warn('room left... exiting in 10s')
                     setTimeout(exit, 10000)
                 }).catch((err) => {
-                    console.warn('left failed')
-                    throw err
+                    t.error(err, 'tunnel.leave failed')
                 })
             }, 3000)
         })
@@ -30,8 +29,7 @@ module.exports = {
             console.warn('announced!')
             console.warn(ret)
         }).catch((err) => {
-            console.warn('announce failed')
-            throw err
+            t.error(err, 'tunnel.announce failed')
         })
 
         // log all new endpoints

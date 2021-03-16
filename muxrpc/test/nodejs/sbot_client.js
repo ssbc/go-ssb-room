@@ -50,7 +50,7 @@ tape(testName, function (t) {
     sbot.conn.connect(to, (err, rpc) => {
       t.error(err, 'connected')
       t.comment('connected to: '+rpc.id)
-      testSession.after(sbot, rpc, exit)
+      testSession.after(t, sbot, rpc, exit)
     })
   }
 
@@ -93,5 +93,5 @@ tape(testName, function (t) {
   t.comment('client spawned. I am:' +  alice.id)
   
   console.log(alice.id) // tell go process who's incoming
-  testSession.before(sbot, ready)
+  testSession.before(t, sbot, ready)
 })

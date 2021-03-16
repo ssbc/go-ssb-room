@@ -5,7 +5,6 @@ const theStack = require('secret-stack')
 const ssbCaps = require('ssb-caps')
 
 const testSHSappKey = bufFromEnv('TEST_APPKEY')
-
 let testAppkey = Buffer.from(ssbCaps.shs, 'base64')
 if (testSHSappKey !== false) {
   testAppkey = testSHSappKey
@@ -26,7 +25,7 @@ for (plug of testSession.secretStackPlugins) {
 
 tape.createStream().pipe(process.stderr);
 tape(testName, function (t) {
-  // t.timeoutAfter(30000) // doesn't exit the process
+// t.timeoutAfter(30000) // doesn't exit the process
 //   const tapeTimeout = setTimeout(() => {
 //     t.comment("test timeout")
 //     process.exit(1)
@@ -50,20 +49,17 @@ tape(testName, function (t) {
   })
   const alice = sbot.whoami()
 
-//   const replicate_changes = sbot.replicate.changes()
-
   t.comment("sbot spawned, running before")
  
   function ready() {
     t.comment('server spawned. I am:' +  alice.id)
     console.log(alice.id) // tell go process who our pubkey
   }
-  testSession.before(sbot, ready)
-  
-  
+  testSession.before(t, sbot, ready)
+
   sbot.on("rpc:connect", (remote, isClient) => {
     t.comment("new connection: "+ remote.id)
-    testSession.after(sbot, remote, exit)
+    testSession.after(t, sbot, remote, exit)
   })
 })
 
