@@ -1,3 +1,6 @@
+# vim
+.*.sw[a-z]
+
 # the binaries
 cmd/server/server
 cmd/insert-user/insert-user

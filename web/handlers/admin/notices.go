@@ -45,6 +45,12 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
+    // reply with 405 error: Method not allowed
+	if req.Method != "POST" {
+		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
+		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
+	}
+
 	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
 	if !pinnedName.Valid() {
 		err := weberrors.ErrBadRequest{Where: "name", Details: fmt.Errorf("invalid pinned notice name")}
@@ -54,6 +60,11 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 
 	var n roomdb.Notice
 	n.Title = req.FormValue("title")
+	if n.Title == "" {
+		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 
 	// TODO: validate languages properly
 	n.Language = req.FormValue("language")
@@ -64,6 +75,11 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	}
 
 	n.Content = req.FormValue("content")
+	if n.Content == "" {
+		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
@@ -137,6 +153,11 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	n.Title = req.FormValue("title")
+	if n.Title == "" {
+		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 
 	// TODO: validate languages properly
 	n.Language = req.FormValue("language")
@@ -147,6 +168,11 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	n.Content = req.FormValue("content")
+	if n.Content == "" {
+		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 

@@ -78,7 +78,8 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["current_page_is"] = func(routeName string) bool {
 		return true
 	}
-	testFuncs["is_logged_in"] = func() *roomdb.User { return nil }
+
+	testFuncs["is_logged_in"] = func() *roomdb.User { return ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 
 	r, err := render.New(web.Templates,

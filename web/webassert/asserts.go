@@ -31,36 +31,40 @@ func CSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
 	a.Equal("hidden", tipe, "wrong type on csrf field")
 }
 
-type InputElement struct {
-	Name, Value, Type, Placeholder string
+type FormElement struct {
+	Tag, Name, Value, Type, Placeholder string
 }
 
-// InputsInForm checks a list of defined elements. It tries to find them by input[name=$name]
-// and then proceeds with asserting their value, type or placeholder (if the fields in InputElement are not "")
-func InputsInForm(t *testing.T, form *goquery.Selection, elems []InputElement) {
+// ElementsInForm checks a list of defined elements. It tries to find them by input[name=$name]
+// and then proceeds with asserting their value, type or placeholder (if the fields in FormElement are not "")
+func ElementsInForm(t *testing.T, form *goquery.Selection, elems []FormElement) {
 	a := assert.New(t)
 	for _, e := range elems {
+        // empty Tag defaults to <input>
+        if e.Tag == "" {
+            e.Tag = "input"
+        }
 
-		inputSelector := form.Find(fmt.Sprintf("input[name=%s]", e.Name))
-		ok := a.Equal(1, inputSelector.Length(), "expected to find input with name %s", e.Name)
+		elementSelector := form.Find(fmt.Sprintf("%s[name=%s]", e.Tag, e.Name))
+		ok := a.Equal(1, elementSelector.Length(), "expected to find element with name %s", e.Name)
 		if !ok {
 			continue
 		}
 
 		if e.Value != "" {
-			value, has := inputSelector.Attr("value")
+			value, has := elementSelector.Attr("value")
 			a.True(has, "expected value attribute input[name=%s]", e.Name)
 			a.Equal(e.Value, value, "wrong value attribute on input[name=%s]", e.Name)
 		}
 
 		if e.Type != "" {
-			tipe, has := inputSelector.Attr("type")
+			tipe, has := elementSelector.Attr("type")
 			a.True(has, "expected type attribute input[name=%s]", e.Name)
 			a.Equal(e.Type, tipe, "wrong type attribute on input[name=%s]", e.Name)
 		}
 
 		if e.Placeholder != "" {
-			tipe, has := inputSelector.Attr("placeholder")
+			tipe, has := elementSelector.Attr("placeholder")
 			a.True(has, "expected placeholder attribute input[name=%s]", e.Name)
 			a.Equal(e.Placeholder, tipe, "wrong placeholder attribute on input[name=%s]", e.Name)
 		}

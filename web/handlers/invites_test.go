@@ -96,7 +96,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 
 		webassert.CSRFTokenPresent(t, form)
 
-		webassert.InputsInForm(t, form, []webassert.InputElement{
+		webassert.ElementsInForm(t, form, []webassert.FormElement{
 			{Name: "token", Type: "hidden", Value: testToken},
 			{Name: "alias", Type: "text", Value: fakeExistingInvite.AliasSuggestion},
 			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},
@@ -133,7 +133,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		r.Equal(1, form.Length())
 
 		webassert.CSRFTokenPresent(t, form)
-		webassert.InputsInForm(t, form, []webassert.InputElement{
+		webassert.ElementsInForm(t, form, []webassert.FormElement{
 			{Name: "token", Type: "hidden", Value: testToken},
 			{Name: "alias", Type: "text", Placeholder: "you@this.room"},
 			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},

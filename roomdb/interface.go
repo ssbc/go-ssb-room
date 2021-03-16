@@ -19,6 +19,9 @@ import (
 
 // AuthFallbackService might be helpful for scenarios where one lost access to his ssb device or key
 type AuthFallbackService interface {
+
+	// Check receives the username and password (in clear) and checks them accordingly.
+	// If it's a valid combination it returns the user ID, or an error if they are not.
 	auth.Auther
 
 	Create(ctx context.Context, user string, password []byte) (int64, error)
@@ -98,7 +101,7 @@ type InviteService interface {
 // PinnedNoticesService allows an admin to assign Notices to specific placeholder pages.
 // like updates, privacy policy, code of conduct
 type PinnedNoticesService interface {
-	// List returns a list of all the pinned notices with their corrosponding notices and languges
+	// List returns a list of all the pinned notices with their corresponding notices and languages
 	List(context.Context) (PinnedNotices, error)
 
 	// Set assigns a fixed page name to an page ID and a language to allow for multiple translated versions of the same page.
