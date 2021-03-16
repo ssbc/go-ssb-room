@@ -13,6 +13,8 @@ proably by turning the exported object into an init function which returns the {
 // const pull = require('pull-stream')
 
 module.exports = {
+    secretStackPlugins: ['ssb-blobs', 'ssb-what-ever-you-need'],
+
     before: (sbot, ready) => {
         console.warn('before connect...')
         setTimeout(ready, 1000)

@@ -5,6 +5,8 @@ const { readFileSync } = require('fs')
 let newConnections = 0
 
 module.exports = {
+    secretStackPlugins: ['ssb-conn', 'ssb-room/tunnel/client'],
+
     before: (client, ready) => {
         // nothing to prepare (like publishes messages, or...)
         ready()

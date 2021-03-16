@@ -15,13 +15,15 @@ if (testSHSappKey !== false) {
 stackOpts = {caps: {shs: testAppkey } }
 const createSbot = theStack(stackOpts)
   .use(require('ssb-db'))
-  .use(require('ssb-conn'))
-  .use(require('ssb-room/tunnel/server'))
-  // .use(require('ssb-logging'))
 
 const testName = process.env['TEST_NAME']
 const testPort = process.env['TEST_PORT']
 const testSession = require(process.env['TEST_SESSIONSCRIPT'])
+
+// load the plugins needed for this session
+for (plug of testSession.secretStackPlugins) {
+  createSbot = createSbot.use(require(plug))
+}
 
 tape.createStream().pipe(process.stderr);
 tape(testName, function (t) {

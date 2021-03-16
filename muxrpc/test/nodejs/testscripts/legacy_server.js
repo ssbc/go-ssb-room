@@ -1,6 +1,8 @@
 const pull = require('pull-stream')
 
 module.exports = {
+    secretStackPlugins: ['ssb-conn', 'ssb-room/tunnel/server'],
+
     before: (sbot, ready) => {
         pull(
             sbot.conn.hub().listen(),

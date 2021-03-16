@@ -13,8 +13,6 @@ if (testSHSappKey !== false) {
 
 const createSbot = theStack({caps: {shs: testAppkey } })
   .use(require('ssb-db'))
-  .use(require('ssb-conn'))
-  .use(require('ssb-room/tunnel/client'))
 
 const testName = process.env.TEST_NAME
 
@@ -23,6 +21,11 @@ const testPeerAddr = process.env.TEST_PEERADDR
 const testPeerRef = process.env.TEST_PEERREF
 
 const testSession = require(process.env['TEST_SESSIONSCRIPT'])
+
+// load the plugins needed for this session
+for (plug of testSession.secretStackPlugins) {
+  createSbot = createSbot.use(require(plug))
+}
 
 function bufFromEnv(evname) {
   const has = process.env[evname]

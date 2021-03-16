@@ -1,8 +1,8 @@
 const pull = require('pull-stream')
 
-let newConnections = 0
-
 module.exports = {
+    secretStackPlugins: ['ssb-conn', 'ssb-room/tunnel/client'],
+
     before: (sbot, ready) => {
         ready()
     },
