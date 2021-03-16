@@ -23,8 +23,9 @@ import (
 	"go.cryptoscope.co/secretstream"
 )
 
-// all js end-to-end test as a sanity check
-func TestAllJSEndToEnd(t *testing.T) {
+// legacy js end-to-end test as a sanity check
+// it runs the ssb-room server against two ssb-room clients
+func TestLegacyJSEndToEnd(t *testing.T) {
 	// defer leakcheck.Check(t)
 	r := require.New(t)
 
@@ -32,14 +33,14 @@ func TestAllJSEndToEnd(t *testing.T) {
 	// ts := newSession(t, nil)
 
 	// alice is the server now
-	alice, port := ts.startJSBotAsServer("alice", "./testscripts/server.js")
+	alice, port := ts.startJSBotAsServer("alice", "./testscripts/legacy_server.js")
 
 	aliceAddr := &net.TCPAddr{
 		IP:   net.ParseIP("127.0.0.1"),
 		Port: port,
 	}
 
-	bob := ts.startJSClient("bob", "./testscripts/simple_client.js",
+	bob := ts.startJSClient("bob", "./testscripts/legacy_client.js",
 		aliceAddr,
 		*alice,
 	)
@@ -63,7 +64,7 @@ func TestAllJSEndToEnd(t *testing.T) {
 
 	time.Sleep(1000 * time.Millisecond)
 
-	claire := ts.startJSClient("claire", "./testscripts/simple_client_opening_tunnel.js",
+	claire := ts.startJSClient("claire", "./testscripts/legacy_client_opening_tunnel.js",
 		aliceAddr,
 		*alice,
 	)
@@ -74,7 +75,8 @@ func TestAllJSEndToEnd(t *testing.T) {
 	ts.wait()
 }
 
-func TestJSClient(t *testing.T) {
+// Two ssb-room clients against a Go server
+func TestLegacyJSClient(t *testing.T) {
 	// defer leakcheck.Check(t)
 	r := require.New(t)
 
@@ -86,7 +88,7 @@ func TestJSClient(t *testing.T) {
 	srv := ts.startGoServer(membersDB, aliases)
 	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
-	alice := ts.startJSClient("alice", "./testscripts/simple_client.js",
+	alice := ts.startJSClient("alice", "./testscripts/legacy_client.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
@@ -106,7 +108,7 @@ func TestJSClient(t *testing.T) {
 	r.NoError(err)
 
 	time.Sleep(1500 * time.Millisecond)
-	ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
+	ts.startJSClient("bob", "./testscripts/legacy_client_opening_tunnel.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
@@ -116,7 +118,8 @@ func TestJSClient(t *testing.T) {
 	ts.wait()
 }
 
-func TestJSServer(t *testing.T) {
+// A Go "client" with a JS ssb-room server and client
+func TestLegacyJSServer(t *testing.T) {
 	// defer leakcheck.Check(t)
 	r := require.New(t)
 	a := assert.New(t)
@@ -127,9 +130,8 @@ func TestJSServer(t *testing.T) {
 	// ts := newSession(t, nil)
 
 	// alice is the server now
-	alice, port := ts.startJSBotAsServer("alice", "./testscripts/server.js")
+	alice, port := ts.startJSBotAsServer("alice", "./testscripts/legacy_server.js")
 
-	// a 2nd js instance but as a client
 	aliceAddr := &net.TCPAddr{
 		IP:   net.ParseIP("127.0.0.1"),
 		Port: port,
@@ -141,6 +143,7 @@ func TestJSServer(t *testing.T) {
 	client := ts.startGoServer(membersDB, aliasesDB)
 	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
+	// create the room handle for the js client
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
 	roomHandle.WriteString(alice.Ref())
@@ -155,22 +158,19 @@ func TestJSServer(t *testing.T) {
 	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
 	r.NoError(err)
 
-	bob := ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
+	// a 2nd js instance but as a client
+	bob := ts.startJSClient("bob", "./testscripts/legacy_client_opening_tunnel.js",
 		aliceAddr,
 		*alice,
 	)
 	t.Log("started bob:", bob.Ref())
 
-	// connect to alice
+	// connect to the server alice
 	aliceShsAddr := netwrap.WrapAddr(aliceAddr, secretstream.Addr{PubKey: alice.ID})
-
 	ctx, connCancel := context.WithCancel(context.TODO())
 	err = client.Network.Connect(ctx, aliceShsAddr)
 	defer connCancel()
 	r.NoError(err, "connect #1 failed")
-
-	// this might fail if the previous node process is still running...
-	// TODO: properly write cleanup
 
 	time.Sleep(2 * time.Second)
 

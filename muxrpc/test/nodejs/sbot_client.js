@@ -11,7 +11,7 @@ if (testSHSappKey !== false) {
   testAppkey = testSHSappKey
 }
 
-const createSbot = theStack({caps: {shs: testAppkey } })
+let createSbot = theStack({caps: {shs: testAppkey } })
   .use(require('ssb-db'))
 
 const testName = process.env.TEST_NAME
