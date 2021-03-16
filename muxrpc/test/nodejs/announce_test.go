@@ -227,3 +227,49 @@ func TestLegacyJSServer(t *testing.T) {
 
 	ts.wait()
 }
+
+// the new ssb-room-client module (2x) against a Go room server
+func TestModernJSClient(t *testing.T) {
+	// defer leakcheck.Check(t)
+	r := require.New(t)
+
+	ts := newRandomSession(t)
+	// ts := newSession(t, nil)
+
+	var allowDB = &mockdb.FakeAllowListService{}
+	var aliasDB = &mockdb.FakeAliasService{}
+	srv := ts.startGoServer(allowDB, aliasDB)
+
+	alice := ts.startJSClient("alice", "./testscripts/modern_client.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
+	srv.Allow(alice, true)
+
+	var roomHandle bytes.Buffer
+	roomHandle.WriteString("tunnel:")
+	roomHandle.WriteString(srv.Whoami().Ref())
+	roomHandle.WriteString(":")
+	roomHandle.WriteString(alice.Ref())
+	roomHandle.WriteString("~shs:")
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
+
+	// write the handle to the testrun folder of the bot
+	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
+	os.MkdirAll(filepath.Dir(handleFile), 0700)
+	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
+	r.NoError(err)
+
+	time.Sleep(1500 * time.Millisecond)
+	bob := ts.startJSClient("bob", "./testscripts/modern_client_opening_tunnel.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
+
+	srv.Allow(bob, true)
+	allowDB.HasFeedReturns(true)
+
+	time.Sleep(5 * time.Second)
+
+	ts.wait()
+}
