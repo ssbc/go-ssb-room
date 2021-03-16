@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+// Package admin implements the dashboard for admins and moderators to change and control aspects of the room.
+// Including aliases, allow/deny list managment, invites and settings of the room.
 package admin
 
 import (
@@ -18,6 +20,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 )
 
+// HTMLTemplates define the list of files the template system should load.
 var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
 	"admin/menu.tmpl",

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+// Package alias implements the muxrpc handlers for alias needs.
 package alias
 
 import (
@@ -18,6 +19,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
+// Handler implements the muxrpc methods for alias registration and recvocation
 type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
@@ -25,8 +27,22 @@ type Handler struct {
 	db roomdb.AliasService
 }
 
+// New returns a fresh alias muxrpc handler
+func New(log kitlog.Logger, self refs.FeedRef, aliasDB roomdb.AliasService) Handler {
+	var h Handler
+	h.self = self
+	h.logger = log
+	h.db = aliasDB
+
+	return h
+}
+
 const sigSuffix = ".sig.ed25519"
 
+// Register is an async muxrpc method handler for registering aliases.
+// It receives two string arguments over muxrpc (alias and signature),
+// checks the signature confirmation is correct (for this room and signed by the key of theconnection)
+// If it is valid, it registers the alias on the roomdb and returns true. If not it returns an error.
 func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 	var args []string
 

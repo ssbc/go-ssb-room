@@ -25,6 +25,7 @@ func WithUNIXSocket(yes bool) Option {
 	}
 }
 
+// creates the UNIX socket file listener for local usage
 func (s *Server) initUnixSock() error {
 	// this races because roomsrv might not be done with init yet
 	// TODO: refactor network peer code and make unixsock implement that (those will be inited late anyway)

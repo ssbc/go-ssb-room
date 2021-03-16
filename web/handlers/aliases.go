@@ -15,6 +15,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 
+// aliasHandler implements the public resolve endpoint for HTML and JSON requests.
 type aliasHandler struct {
 	r *render.Renderer
 

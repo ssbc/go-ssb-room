@@ -12,6 +12,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 )
 
+// opens the shs listener for TCP connections
 func (s *Server) initNetwork() error {
 	// muxrpc handler creation and authoratization decider
 	mkHandler := func(conn net.Conn) (muxrpc.Handler, error) {

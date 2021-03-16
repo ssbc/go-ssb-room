@@ -13,6 +13,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/whoami"
 )
 
+// instantiate and register the muxrpc handlers
 func (s *Server) initHandlers(aliasDB roomdb.AliasService) {
 	// inistaniate handler packages
 	whoami := whoami.New(s.Whoami())

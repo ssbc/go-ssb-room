@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+// Package roomsrv implements the muxrpc server for all the room related code.
+// It ties the muxrpc/handlers packages and network listeners together.
 package roomsrv
 
 import (

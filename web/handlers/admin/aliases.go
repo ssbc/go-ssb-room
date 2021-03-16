@@ -15,6 +15,8 @@ import (
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
+// aliasesHandler implements the managment endpoints for aliases (list and revoke),
+// does light validation of the web arguments and passes them through to the roomdb.
 type aliasesHandler struct {
 	r *render.Renderer
 
