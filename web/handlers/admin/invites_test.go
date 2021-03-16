@@ -9,10 +9,59 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 )
+
+func TestInvitesOverview(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+
+	testUser := roomdb.User{ID: 23}
+
+	lst := []roomdb.Invite{
+		{ID: 1, CreatedBy: testUser, AliasSuggestion: "foo"},
+		{ID: 2, CreatedBy: testUser, AliasSuggestion: "bar"},
+		{ID: 3, CreatedBy: testUser, AliasSuggestion: "baz"},
+	}
+	ts.InvitesDB.ListReturns(lst, nil)
+
+	html, resp := ts.Client.GetHTML("/invites")
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+
+	webassert.Localized(t, html, []webassert.LocalizedElement{
+		{"#welcome", "AdminInvitesWelcome"},
+		{"title", "AdminInvitesTitle"},
+		{"#invite-list-count", "AdminInvitesCountPlural"},
+	})
+
+	trSelector := "#the-table-rows tr"
+	a.EqualValues(3, html.Find(trSelector).Length(), "wrong number of entries on the table (plural)")
+
+	lst = []roomdb.Invite{
+		{ID: 666, CreatedBy: testUser, AliasSuggestion: "single entry"},
+	}
+	ts.InvitesDB.ListReturns(lst, nil)
+
+	html, resp = ts.Client.GetHTML("/invites")
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+
+	webassert.Localized(t, html, []webassert.LocalizedElement{
+		{"#welcome", "AdminInvitesWelcome"},
+		{"title", "AdminInvitesTitle"},
+		{"#invite-list-count", "AdminInvitesCountSingular"},
+	})
+
+	elems := html.Find(trSelector)
+	a.EqualValues(1, elems.Length(), "wrong number of entries on the table (signular)")
+
+	// check for link to remove confirm link
+	link, yes := elems.ContentsFiltered("a").Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/admin/invites/revoke/confirm?id=666", link)
+}
 
 func TestInvitesCreateForm(t *testing.T) {
 	ts := newSession(t)
