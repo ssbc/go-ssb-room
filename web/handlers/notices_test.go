@@ -81,6 +81,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	a.EqualValues(0, doc.Find(editButtonSelector).Length())
 
 	// start preparing the ~login dance~
+	// TODO: make this code reusable and share it with the login => /dashboard http:200 test
     // cookiejar: a very cheap client session
 	// TODO: refactor login dance for re-use in testing / across tests
 	jar, err := cookiejar.New(nil)
@@ -163,10 +164,6 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	// now we are logged in, anchor tag should be there
 	doc, resp = ts.Client.GetHTML(noticeURL.String())
 	a.Equal(http.StatusOK, resp.Code)
-
-	// html, err := doc.Html()
-	// r.NoError(err)
-	// t.Log(html)
 
 	a.EqualValues(1, doc.Find(editButtonSelector).Length())
 }
