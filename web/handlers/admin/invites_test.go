@@ -37,8 +37,9 @@ func TestInvitesOverview(t *testing.T) {
 		{"#invite-list-count", "AdminInvitesCountPlural"},
 	})
 
+	// devided by two because there is one for wide and one for slim/mobile
 	trSelector := "#the-table-rows tr"
-	a.EqualValues(3, html.Find(trSelector).Length(), "wrong number of entries on the table (plural)")
+	a.EqualValues(3, html.Find(trSelector).Length()/2, "wrong number of entries on the table (plural)")
 
 	lst = []roomdb.Invite{
 		{ID: 666, CreatedBy: testUser, AliasSuggestion: "single entry"},
@@ -55,10 +56,10 @@ func TestInvitesOverview(t *testing.T) {
 	})
 
 	elems := html.Find(trSelector)
-	a.EqualValues(1, elems.Length(), "wrong number of entries on the table (signular)")
+	a.EqualValues(1, elems.Length()/2, "wrong number of entries on the table (signular)")
 
 	// check for link to remove confirm link
-	link, yes := elems.ContentsFiltered("a").Attr("href")
+	link, yes := elems.Find("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
 	a.Equal("/admin/invites/revoke/confirm?id=666", link)
 }
