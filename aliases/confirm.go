@@ -11,7 +11,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-// Registration ties an alias to the ID of the user and the RoomID it should be registerd on
+// Registration ties an alias to the ID of the user and the RoomID it should be registered on
 type Registration struct {
 	Alias  string
 	UserID refs.FeedRef

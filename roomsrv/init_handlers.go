@@ -14,7 +14,6 @@ import (
 )
 
 func (s *Server) initHandlers(aliasDB roomdb.AliasService) {
-
 	// inistaniate handler packages
 	whoami := whoami.New(s.Whoami())
 

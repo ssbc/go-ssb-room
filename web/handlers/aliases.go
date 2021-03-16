@@ -52,7 +52,7 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 	ar.SendConfirmation(alias)
 }
 
-// aliasResponder is supposed handle different encoding types transparently.
+// aliasResponder is supposed to handle different encoding types transparently.
 // It either sends the signed alias confirmation or an error.
 type aliasResponder interface {
 	SendConfirmation(roomdb.Alias)
@@ -145,7 +145,6 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 	if err != nil {
 		log.Println("alias-resolve render errr:", err)
 	}
-
 }
 
 func (html aliasHTMLResponder) SendError(err error) {

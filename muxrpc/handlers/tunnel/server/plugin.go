@@ -23,7 +23,6 @@ import (
 */
 
 func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager) *Handler {
-
 	var h = new(Handler)
 	h.self = self
 	h.logger = log

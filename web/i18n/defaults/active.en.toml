@@ -18,7 +18,7 @@ AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 
 AdminAliasesTitle = "Aliases"
-AdminAliasesWelcome = "Here you can see and revoke the registerd aliases of this room."
+AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."
 AdminAliasesRevoke = "Revoke"
 
 AdminAllowListTitle = "Members"

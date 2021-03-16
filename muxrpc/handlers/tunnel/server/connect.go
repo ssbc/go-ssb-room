@@ -25,7 +25,6 @@ type connectWithOriginArg struct {
 
 func (h *Handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
 	// unpack arguments
-
 	var args []connectArg
 	err := json.Unmarshal(req.RawArgs, &args)
 	if err != nil {

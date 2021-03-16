@@ -28,7 +28,6 @@ type Handler struct {
 const sigSuffix = ".sig.ed25519"
 
 func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
-
 	var args []string
 
 	err := json.Unmarshal(req.RawArgs, &args)

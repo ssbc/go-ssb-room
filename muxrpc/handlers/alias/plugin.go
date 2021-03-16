@@ -11,7 +11,6 @@ import (
 )
 
 func New(log kitlog.Logger, self refs.FeedRef, aliasDB roomdb.AliasService) Handler {
-
 	var h Handler
 	h.self = self
 	h.logger = log

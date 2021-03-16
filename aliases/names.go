@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-// IsValid decides weather an alias is okay for use or not.
+// IsValid decides whether an alias is okay for use or not.
 // The room spec defines it as _labels valid under RFC 1035_ ( https://ssb-ngi-pointer.github.io/rooms2/#alias-string )
 // but that can be mostly any string since DNS is a 8bit binary protocol,
 // as long as it's shorter then 63 charachters.
 //
-// Right now it's pretty basic set of charachters (a-z, A-Z, 0-9).
+// Right now it's pretty basic set of characters (a-z, A-Z, 0-9).
 // In theory we could be more liberal but there is a bunch of stuff to figure out,
 // like homograph attacks (https://en.wikipedia.org/wiki/IDN_homograph_attack),
 // if we would decide to allow full utf8 unicode.
