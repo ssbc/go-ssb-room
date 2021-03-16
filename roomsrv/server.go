@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+// Package roomsrv implements the muxrpc server for all the room related code.
+// It ties the muxrpc/handlers packages and network listeners together.
 package roomsrv
 
 import (
@@ -14,11 +16,11 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"go.cryptoscope.co/muxrpc/v2/typemux"
 	"go.cryptoscope.co/netwrap"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemuxrpc"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -53,24 +55,31 @@ type Server struct {
 	preSecureWrappers  []netwrap.ConnWrapper
 	postSecureWrappers []netwrap.ConnWrapper
 
-	public maybemuxrpc.PluginManager
-	master maybemuxrpc.PluginManager
+	public typemux.HandlerMux
+	master typemux.HandlerMux
 
 	authorizer roomdb.AllowListService
 
 	StateManager *roomstate.Manager
+
+	AllowList roomdb.AllowListService
+	Aliases   roomdb.AliasService
 }
 
 func (s Server) Whoami() refs.FeedRef {
 	return s.keyPair.Feed
 }
 
-func New(allow roomdb.AllowListService, opts ...Option) (*Server, error) {
+func New(
+	allowdb roomdb.AllowListService,
+	aliasdb roomdb.AliasService,
+	opts ...Option,
+) (*Server, error) {
 	var s Server
-	s.authorizer = allow
+	s.authorizer = allowdb
 
-	s.public = maybemuxrpc.NewPluginManager()
-	s.master = maybemuxrpc.NewPluginManager()
+	s.AllowList = allowdb
+	s.Aliases = aliasdb
 
 	for i, opt := range opts {
 		err := opt(&s)
@@ -110,6 +119,9 @@ func New(allow roomdb.AllowListService, opts ...Option) (*Server, error) {
 		s.logger = logger
 	}
 
+	s.public = typemux.New(kitlog.With(s.logger, "mux", "public"))
+	s.master = typemux.New(kitlog.With(s.logger, "mux", "master"))
+
 	if s.rootCtx == nil {
 		s.rootCtx, s.Shutdown = context.WithCancel(context.Background())
 	}
@@ -125,6 +137,8 @@ func New(allow roomdb.AllowListService, opts ...Option) (*Server, error) {
 	}
 
 	s.StateManager = roomstate.NewManager(s.rootCtx, s.logger)
+
+	s.initHandlers(aliasdb)
 
 	if err := s.initNetwork(); err != nil {
 		return nil, err

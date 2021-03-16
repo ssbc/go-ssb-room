@@ -6,32 +6,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 
 	"go.cryptoscope.co/muxrpc/v2"
 )
 
-type namedPlugin struct {
-	h    muxrpc.Handler
-	name string
-}
-
-func (np namedPlugin) Name() string            { return np.name }
-func (np namedPlugin) Method() muxrpc.Method   { return muxrpc.Method{np.name} }
-func (np namedPlugin) Handler() muxrpc.Handler { return np.h }
-func (np namedPlugin) Authorize(net.Conn) bool { return true }
-
 type manifestHandler string
 
-func (manifestHandler) Handled(m muxrpc.Method) bool { return m.String() == "manifest" }
-
-func (manifestHandler) HandleConnect(context.Context, muxrpc.Endpoint) {}
-
-func (h manifestHandler) HandleCall(ctx context.Context, req *muxrpc.Request) {
-	err := req.Return(ctx, json.RawMessage(h))
-	if err != nil {
-		fmt.Println("manifest err", err)
-	}
+func (h manifestHandler) HandleAsync(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
+	return json.RawMessage(h), nil
 }
 
 func init() {
@@ -50,6 +32,18 @@ const manifest manifestHandler = `
 
 	"whoami":"async",
 
+	"room": {
+		"registerAlias": "async",
+		"revokeAlias": "async",
+
+		"announce": "sync",
+		"leave": "sync",
+		"connect": "duplex",
+		"endpoints": "source",
+		"isRoom": "async",
+		"ping": "sync"
+	},
+
 	"tunnel": {
 		"announce": "sync",
 		"leave": "sync",
@@ -59,8 +53,3 @@ const manifest manifestHandler = `
 		"ping": "sync"
 	}
 }`
-
-var manifestPlug = namedPlugin{
-	h:    manifest,
-	name: "manifest",
-}

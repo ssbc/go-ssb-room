@@ -16,25 +16,25 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 )
 
-type handler struct {
+type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
 
 	state *roomstate.Manager
 }
 
-func (h *handler) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
+func (h *Handler) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
 	level.Debug(h.logger).Log("called", "isRoom")
 	return true, nil
 }
 
-func (h *handler) ping(context.Context, *muxrpc.Request) (interface{}, error) {
+func (h *Handler) ping(context.Context, *muxrpc.Request) (interface{}, error) {
 	now := time.Now().UnixNano() / 1000
 	level.Debug(h.logger).Log("called", "ping")
 	return now, nil
 }
 
-func (h *handler) announce(_ context.Context, req *muxrpc.Request) (interface{}, error) {
+func (h *Handler) announce(_ context.Context, req *muxrpc.Request) (interface{}, error) {
 	level.Debug(h.logger).Log("called", "announce")
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
@@ -46,7 +46,7 @@ func (h *handler) announce(_ context.Context, req *muxrpc.Request) (interface{},
 	return false, nil
 }
 
-func (h *handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
+func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (h *handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 	return false, nil
 }
 
-func (h *handler) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
+func (h *Handler) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
 	level.Debug(h.logger).Log("called", "endpoints")
 
 	toPeer := newForwarder(snk)

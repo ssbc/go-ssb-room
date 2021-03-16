@@ -14,6 +14,17 @@ import (
 // ErrNotFound is returned by the admin db if an object couldn't be found.
 var ErrNotFound = errors.New("roomdb: object not found")
 
+// Alias is how the roomdb stores an alias.
+type Alias struct {
+	ID int64
+
+	Name string // or "alias string" as the docs call it
+
+	Feed refs.FeedRef // the ssb identity that belongs to the user
+
+	Signature []byte
+}
+
 // User holds all the information an authenticated user of the site has.
 type User struct {
 	ID   int64

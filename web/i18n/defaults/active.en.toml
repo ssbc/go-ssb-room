@@ -18,6 +18,10 @@ AuthSignOut = "Sign out"
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 
+AdminAliasesTitle = "Aliases"
+AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."
+AdminAliasesRevoke = "Revoke"
+
 AdminAllowListTitle = "Members"
 AdminAllowListWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
 AdminAllowListAdd = "Add"

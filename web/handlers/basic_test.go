@@ -26,7 +26,6 @@ func TestIndex(t *testing.T) {
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"h1", "Default Notice Title"},
 		{"title", "Default Notice Title"},
-		// {"#nav", "FooBar"},
 	})
 
 	content := html.Find("p").Text()

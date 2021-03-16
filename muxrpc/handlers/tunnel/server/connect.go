@@ -23,9 +23,8 @@ type connectWithOriginArg struct {
 	Origin refs.FeedRef `json:"origin"` // this should be clear from the shs session already
 }
 
-func (h *handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
+func (h *Handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
 	// unpack arguments
-
 	var args []connectArg
 	err := json.Unmarshal(req.RawArgs, &args)
 	if err != nil {

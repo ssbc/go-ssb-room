@@ -11,16 +11,17 @@ import (
 	"strconv"
 	"time"
 
+	refs "go.mindeco.de/ssb-refs"
+
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
-	"golang.org/x/crypto/ed25519"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
@@ -33,6 +34,7 @@ import (
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
+	"aliases-resolved.html",
 	"invite/accept.tmpl",
 	"invite/consumed.tmpl",
 	"notice/list.tmpl",
@@ -42,6 +44,7 @@ var HTMLTemplates = []string{
 
 // Databases is an options stuct for the required databases of the web handlers
 type Databases struct {
+	Aliases       roomdb.AliasService
 	AuthWithSSB   roomdb.AuthWithSSBService
 	AuthFallback  roomdb.AuthFallbackService
 	AllowList     roomdb.AllowListService
@@ -55,7 +58,7 @@ type NetworkInfo struct {
 	PortMUXRPC uint
 	PortHTTPS  uint // 0 assumes default (443)
 
-	PubKey ed25519.PublicKey
+	RoomID refs.FeedRef
 
 	Domain string
 }
@@ -97,7 +100,11 @@ func New(
 		}),
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
-				url, err := router.CompleteApp().Get(routeName).URLPath()
+				route := router.CompleteApp().Get(routeName)
+				if route == nil {
+					return false
+				}
+				url, err := route.URLPath()
 				if err != nil {
 					return false
 				}
@@ -226,6 +233,7 @@ func New(
 		r,
 		roomState,
 		admin.Databases{
+			Aliases:       dbs.Aliases,
 			AllowList:     dbs.AllowList,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
@@ -256,10 +264,20 @@ func New(
 	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
 	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
 
+	var ah = aliasHandler{
+		r: r,
+
+		db: dbs.Aliases,
+
+		roomID:            netInfo.RoomID,
+		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
+	}
+	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
+
 	var ih = inviteHandler{
 		invites: dbs.Invites,
 
-		roomPubKey:        netInfo.PubKey,
+		roomPubKey:        netInfo.RoomID.PubKey(),
 		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
 	}
 	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 
+// Package admin implements the dashboard for admins and moderators to change and control aspects of the room.
+// Including aliases, allow/deny list managment, invites and settings of the room.
 package admin
 
 import (
@@ -18,9 +20,13 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 )
 
+// HTMLTemplates define the list of files the template system should load.
 var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
 	"admin/menu.tmpl",
+
+	"admin/aliases.tmpl",
+	"admin/aliases-revoke-confirm.tmpl",
 
 	"admin/allow-list.tmpl",
 	"admin/allow-list-remove-confirm.tmpl",
@@ -34,6 +40,7 @@ var HTMLTemplates = []string{
 
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
+	Aliases       roomdb.AliasService
 	AllowList     roomdb.AllowListService
 	Invites       roomdb.InviteService
 	Notices       roomdb.NoticesService
@@ -62,14 +69,22 @@ func Handler(
 		return map[string]interface{}{}, nil
 	}))
 
-	var ah = allowListHandler{
+	var ah = aliasesHandler{
+		r:  r,
+		db: dbs.Aliases,
+	}
+	mux.HandleFunc("/aliases", r.HTML("admin/aliases.tmpl", ah.overview))
+	mux.HandleFunc("/aliases/revoke/confirm", r.HTML("admin/aliases-revoke-confirm.tmpl", ah.revokeConfirm))
+	mux.HandleFunc("/aliases/revoke", ah.revoke)
+
+	var mh = allowListHandler{
 		r:  r,
 		al: dbs.AllowList,
 	}
-	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", ah.overview))
-	mux.HandleFunc("/members/add", ah.add)
-	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", ah.removeConfirm))
-	mux.HandleFunc("/members/remove", ah.remove)
+	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", mh.overview))
+	mux.HandleFunc("/members/add", mh.add)
+	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", mh.removeConfirm))
+	mux.HandleFunc("/members/remove", mh.remove)
 
 	var ih = invitesHandler{
 		r:  r,

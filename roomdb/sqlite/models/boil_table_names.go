@@ -4,6 +4,7 @@
 package models
 
 var TableNames = struct {
+	Aliases      string
 	AllowList    string
 	AuthFallback string
 	Invites      string
@@ -11,6 +12,7 @@ var TableNames = struct {
 	PinNotices   string
 	Pins         string
 }{
+	Aliases:      "aliases",
 	AllowList:    "allow_list",
 	AuthFallback: "auth_fallback",
 	Invites:      "invites",
