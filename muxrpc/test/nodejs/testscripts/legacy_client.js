@@ -22,7 +22,7 @@ module.exports = {
                     console.warn('left failed')
                     throw err
                 })
-            }, 5000)
+            }, 3000)
         })
 
         // announce ourselves to the room/tunnel

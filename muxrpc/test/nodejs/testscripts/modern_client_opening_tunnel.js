@@ -10,13 +10,6 @@ module.exports = {
     before: (client, ready) => {
         // nothing to prepare (like publishes messages, or...)
         ready()
-
-        // let msg = {
-        //     type: 'test',
-        // }
-        // client.publish(msg, (err) => {
-        //     if (err) throw err
-        // })
     },
 
     after: (client, roomSrvRpc, exit) => {

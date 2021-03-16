@@ -1,5 +1,7 @@
 const pull = require('pull-stream')
 
+let connections = 0
+
 module.exports = {
     secretStackPlugins: ['ssb-conn', 'ssb-room/tunnel/server'],
 
@@ -14,8 +16,12 @@ module.exports = {
     },
 
     after: (sbot, client, exit) => {
-        // hrm.. this runs twice (for each connection)
-        console.warn('server new connection:', client.id)
-        setTimeout(exit, 30000)
+        // this runs twice (for each connection)
+        connections++
+        console.warn('server new connection:', client.id, connections)
+        
+        if (connections == 2) {
+            setTimeout(exit, 15000)
+        }
     }
 }

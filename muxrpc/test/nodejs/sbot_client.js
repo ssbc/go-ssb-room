@@ -37,14 +37,14 @@ function bufFromEnv(evname) {
 
 tape.createStream().pipe(process.stderr)
 tape(testName, function (t) {
-  let timeoutLength = 15000
+  let timeoutLength = 30000
   var tapeTimeout = null
   function ready() { // needs to be called by the before block when it's done
     t.timeoutAfter(timeoutLength) // doesn't exit the process
     tapeTimeout = setTimeout(() => {
       t.comment('test timeout')
       process.exit(1)
-    }, timeoutLength*1.25)
+    }, timeoutLength)
     const to = `net:${testPeerAddr}~shs:${testPeerRef.substr(1).replace('.ed25519', '')}`
     t.comment('dialing:' + to)
     sbot.conn.connect(to, (err, rpc) => {
@@ -56,7 +56,7 @@ tape(testName, function (t) {
 
   function exit() { // call this when you're done
     sbot.close()
-    t.comment('closed sbot')
+    t.comment('closed client: '+testName)
     clearTimeout(tapeTimeout)
     t.end()
     process.exit(0)

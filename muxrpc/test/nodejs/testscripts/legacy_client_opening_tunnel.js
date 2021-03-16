@@ -10,13 +10,6 @@ module.exports = {
     before: (client, ready) => {
         // nothing to prepare (like publishes messages, or...)
         ready()
-
-        // let msg = {
-        //     type: 'test',
-        // }
-        // client.publish(msg, (err) => {
-        //     if (err) throw err
-        // })
     },
 
     after: (client, roomSrvRpc, exit) => {
@@ -58,7 +51,7 @@ module.exports = {
                         if (err) throw err
                         console.warn("ping:", id)
 
-                        // start leaving after 2s
+                        // start leaving after 1s
                         setTimeout(() => {
                             roomSrvRpc.tunnel.leave().then((ret) => {
                                 console.warn('left room... exiting in 3s')
@@ -67,7 +60,7 @@ module.exports = {
                                 console.warn('left failed')
                                 throw err
                             })
-                        }, 2000)
+                        }, 1000)
                     })
                 })
              

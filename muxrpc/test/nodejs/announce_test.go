@@ -60,7 +60,8 @@ func TestLegacyJSEndToEnd(t *testing.T) {
 	)
 	t.Log("this is claire:", claire.Ref())
 
-	time.Sleep(20 * time.Second)
+	t.Log("waiting for process exits")
+	time.Sleep(45 * time.Second)
 
 	ts.wait()
 }

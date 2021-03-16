@@ -34,9 +34,10 @@ tape(testName, function (t) {
 
   function exit() { // call this when you're done
     sbot.close()
-    t.comment('closed jsbot')
+    t.comment('closed server: '+testName)
     // clearTimeout(tapeTimeout)
     t.end()
+    process.exit(0)
   }
 
   const tempRepo = process.env['TEST_REPO']

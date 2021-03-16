@@ -171,9 +171,9 @@ func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr,
 	ts.done.Go(func() error {
 		err := cmd.Wait()
 		if err != nil {
-			ts.t.Logf("node server %s: exited with %s", name, err)
+			ts.t.Logf("node client %s: exited with %s", name, err)
 		}
-		return nil
+		return err
 	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()
@@ -227,7 +227,7 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 		if err != nil {
 			ts.t.Logf("node server %s: exited with %s", name, err)
 		}
-		return nil
+		return err
 	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()
