@@ -13,14 +13,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/netwrap"
 	"go.cryptoscope.co/secretstream"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 // legacy js end-to-end test as a sanity check
@@ -47,20 +48,9 @@ func TestLegacyJSEndToEnd(t *testing.T) {
 
 	// claire wants to connect to bob through alice
 
-	// nasty multiserver-addr hack
-	var roomHandle bytes.Buffer
-	roomHandle.WriteString("tunnel:")
-	roomHandle.WriteString(alice.Ref())
-	roomHandle.WriteString(":")
-	roomHandle.WriteString(bob.Ref())
-	roomHandle.WriteString("~shs:")
-	roomHandle.WriteString(base64.StdEncoding.EncodeToString(bob.ID))
-
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "claire", "endpoint_through_room.txt")
-	os.MkdirAll(filepath.Dir(handleFile), 0700)
-	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
-	r.NoError(err)
+	r.NoError(writeRoomHandleFile(*alice, bob, handleFile))
 
 	time.Sleep(1000 * time.Millisecond)
 
@@ -93,19 +83,9 @@ func TestLegacyJSClient(t *testing.T) {
 		srv.Whoami(),
 	)
 
-	var roomHandle bytes.Buffer
-	roomHandle.WriteString("tunnel:")
-	roomHandle.WriteString(srv.Whoami().Ref())
-	roomHandle.WriteString(":")
-	roomHandle.WriteString(alice.Ref())
-	roomHandle.WriteString("~shs:")
-	roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
-
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
-	os.MkdirAll(filepath.Dir(handleFile), 0700)
-	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
-	r.NoError(err)
+	r.NoError(writeRoomHandleFile(srv.Whoami(), alice, handleFile))
 
 	time.Sleep(1500 * time.Millisecond)
 	ts.startJSClient("bob", "./testscripts/legacy_client_opening_tunnel.js",
@@ -143,20 +123,9 @@ func TestLegacyJSServer(t *testing.T) {
 	client := ts.startGoServer(membersDB, aliasesDB)
 	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
-	// create the room handle for the js client
-	var roomHandle bytes.Buffer
-	roomHandle.WriteString("tunnel:")
-	roomHandle.WriteString(alice.Ref())
-	roomHandle.WriteString(":")
-	roomHandle.WriteString(client.Whoami().Ref())
-	roomHandle.WriteString("~shs:")
-	roomHandle.WriteString(base64.StdEncoding.EncodeToString(client.Whoami().ID))
-
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
-	os.MkdirAll(filepath.Dir(handleFile), 0700)
-	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
-	r.NoError(err)
+	r.NoError(writeRoomHandleFile(*alice, client.Whoami(), handleFile))
 
 	// a 2nd js instance but as a client
 	bob := ts.startJSClient("bob", "./testscripts/legacy_client_opening_tunnel.js",
@@ -168,7 +137,7 @@ func TestLegacyJSServer(t *testing.T) {
 	// connect to the server alice
 	aliceShsAddr := netwrap.WrapAddr(aliceAddr, secretstream.Addr{PubKey: alice.ID})
 	ctx, connCancel := context.WithCancel(context.TODO())
-	err = client.Network.Connect(ctx, aliceShsAddr)
+	err := client.Network.Connect(ctx, aliceShsAddr)
 	defer connCancel()
 	r.NoError(err, "connect #1 failed")
 
@@ -246,19 +215,9 @@ func TestModernJSClient(t *testing.T) {
 	)
 	srv.Allow(alice, true)
 
-	var roomHandle bytes.Buffer
-	roomHandle.WriteString("tunnel:")
-	roomHandle.WriteString(srv.Whoami().Ref())
-	roomHandle.WriteString(":")
-	roomHandle.WriteString(alice.Ref())
-	roomHandle.WriteString("~shs:")
-	roomHandle.WriteString(base64.StdEncoding.EncodeToString(alice.ID))
-
 	// write the handle to the testrun folder of the bot
 	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
-	os.MkdirAll(filepath.Dir(handleFile), 0700)
-	err := ioutil.WriteFile(handleFile, roomHandle.Bytes(), 0700)
-	r.NoError(err)
+	r.NoError(writeRoomHandleFile(srv.Whoami(), alice, handleFile))
 
 	time.Sleep(1500 * time.Millisecond)
 	bob := ts.startJSClient("bob", "./testscripts/modern_client_opening_tunnel.js",
@@ -272,4 +231,17 @@ func TestModernJSClient(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	ts.wait()
+}
+
+func writeRoomHandleFile(srv, target refs.FeedRef, filePath string) error {
+	var roomHandle bytes.Buffer
+	roomHandle.WriteString("tunnel:")
+	roomHandle.WriteString(srv.Ref())
+	roomHandle.WriteString(":")
+	roomHandle.WriteString(target.Ref())
+	roomHandle.WriteString("~shs:")
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(target.ID))
+
+	os.MkdirAll(filepath.Dir(filePath), 0700)
+	return ioutil.WriteFile(filePath, roomHandle.Bytes(), 0700)
 }
