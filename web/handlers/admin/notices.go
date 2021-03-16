@@ -45,7 +45,7 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
-    // reply with 405 error: Method not allowed
+	// reply with 405 error: Method not allowed
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
 		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)

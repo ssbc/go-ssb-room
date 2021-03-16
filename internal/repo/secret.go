@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	refs "go.mindeco.de/ssb-refs"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 func DefaultKeyPair(r Interface) (*keys.KeyPair, error) {

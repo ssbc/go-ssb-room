@@ -82,7 +82,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	// start preparing the ~login dance~
 	// TODO: make this code reusable and share it with the login => /dashboard http:200 test
-    // cookiejar: a very cheap client session
+	// cookiejar: a very cheap client session
 	// TODO: refactor login dance for re-use in testing / across tests
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)

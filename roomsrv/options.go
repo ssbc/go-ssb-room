@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	kitlog "github.com/go-kit/kit/log"
-	"go.cryptoscope.co/netwrap"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"go.cryptoscope.co/netwrap"
 )
 
 type Option func(srv *Server) error
