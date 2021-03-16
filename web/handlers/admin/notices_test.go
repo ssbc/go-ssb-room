@@ -13,6 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Verifies that the notice.go save handler is like, actually, called.
+func TestNoticeSaveActuallyCalled(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+	// instantiate the urlTo helper (constructs urls for us!)
+	urlTo := web.NewURLTo(ts.Router)
+
+	id := []string{"1"}
+	title := []string{"SSB Breaking News: This Test Is Great"}
+	content := []string{"Absolutely Thrilling Content"}
+	language := []string{"en-GB"}
+
+	// POST a correct request to the save handler, and verify that the save was handled using the mock database)
+	u := urlTo(router.AdminNoticeSave)
+	formValues := url.Values{"id": id, "title": title, "content": content, "language": language}
+	resp := ts.Client.PostForm(u.String(), formValues)
+	a.NotEqual(http.StatusInternalServerError, resp.Code)
+	a.Equal(1, ts.NoticeDB.SaveCallCount(), "noticedb should have saved after POST completed")
+}
+
 // Verifies that the notices.go:save handler refuses requests missing required parameters
 func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	ts := newSession(t)
@@ -46,6 +66,8 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	formValues = url.Values{"id": id, "title": title, "content": content}
 	resp = ts.Client.PostForm(u.String(), formValues)
 	a.Equal(http.StatusInternalServerError, resp.Code, "saving without language should not work")
+
+	a.Equal(0, ts.NoticeDB.SaveCallCount(), "noticedb should never save incomplete requests")
 }
 
 // Verifies that /translation/add only accepts POST requests
