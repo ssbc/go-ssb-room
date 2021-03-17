@@ -11,20 +11,24 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
-	refs "go.mindeco.de/ssb-refs"
-
-	"github.com/gorilla/securecookie"
-
+	"github.com/dustin/go-humanize"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/gorilla/securecookie"
 	"go.mindeco.de/logging"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 // TemplateFuncs returns a map of template functions
 func TemplateFuncs(m *mux.Router) template.FuncMap {
 	return template.FuncMap{
+		"human_time": func(when time.Time) string {
+			return humanize.Time(when)
+		},
 		"urlTo": NewURLTo(m),
 		"inc":   func(i int) int { return i + 1 },
 	}

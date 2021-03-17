@@ -1,4 +1,5 @@
 {{ define "title" }}{{i18n "AdminInvitesTitle"}}{{ end }}
+
 {{ define "content" }}
   <h1
     class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
@@ -10,7 +11,10 @@
     <thead class="block sm:table-header-group">
       <tr class="sm:h-12 sm:table-row flex flex-col items-stretch">
         <td class="sm:w-3 sm:table-cell block" colspan="2">
-          <div class="inline ml-0 rounded-full px-3 py-1 tracking-tight font-black text-white bg-gradient-to-r from-pink-400 to-red-400">{{i18npl "AdminInvitesCount" .Count}}</div>
+          <div
+            id="invite-list-count"
+            class="inline ml-0 rounded-full px-3 py-1 tracking-tight font-black text-white bg-gradient-to-r from-pink-400 to-red-400"
+          >{{i18npl "AdminInvitesCount" .Count}}</div>
         </td>
         <td class="sm:w-1/2 sm:pl-2 pr-0 sm:table-cell block sm:my-0 my-4" colspan="2">
           <form
@@ -36,22 +40,27 @@
         </td>
       </tr>
       <tr class="hidden sm:table-row h-8 uppercase text-sm text-gray-400">
-        <th class="w-3 text-center pl-3 pr-6">{{i18n "AdminInvitesIDColumn"}}</th>
+        <th class="w-10 text-center pl-3 pr-6">{{i18n "AdminInvitesCreatedAtColumn"}}</th>
         <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesCreatorColumn"}}</th>
         <th class="w-1/2 text-left px-6">{{i18n "AdminInvitesAliasColumn"}}</th>
         <th class="w-0"></th>
       </tr>
     </thead>
-    <tbody class="divide-y">
+    <tbody id="the-table-rows" class="divide-y">
       {{range .Entries}}
       <tr class="h-12 hidden sm:table-row">
-        <td class="pl-3 pr-6 text-gray-400 text-center">#{{.ID}}</td>
+        <td class="pl-3 pr-6 text-gray-400 text-center">
+        <div class="has-tooltip">
+          {{human_time .CreatedAt}}
+          <span class="tooltip">{{.CreatedAt.Format "2006-01-02T15:04:05.00"}}</span>
+        </div>
+        </td>
         <td class="px-6">{{.CreatedBy.Name}}</td>
         <td class="px-6">{{if ne .AliasSuggestion ""}}{{.AliasSuggestion}}{{end}}</td>
-        <td class="pl-6 pr-3">
+        <td class="pl-2 pr-3">
           <a
             href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
-            class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+            class="pl-2 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
           >{{i18n "AdminInviteRevoke"}}</a>
         </td>
       </tr>

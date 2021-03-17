@@ -7,7 +7,9 @@ import (
 	"math/rand"
 	"net/http"
 	"testing"
+	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.mindeco.de/http/render"
@@ -75,12 +77,10 @@ func newSession(t *testing.T) *testSession {
 		}
 		return msgID + "Plural"
 	}
-	testFuncs["current_page_is"] = func(routeName string) bool {
-		return true
-	}
-
+	testFuncs["current_page_is"] = func(routeName string) bool { return true }
 	testFuncs["is_logged_in"] = func() *roomdb.User { return ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
+	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
 	r, err := render.New(web.Templates,
 		render.SetLogger(log),

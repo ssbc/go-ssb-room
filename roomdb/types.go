@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -45,6 +46,7 @@ type Invite struct {
 	ID int64
 
 	CreatedBy User
+	CreatedAt time.Time
 
 	AliasSuggestion string
 }

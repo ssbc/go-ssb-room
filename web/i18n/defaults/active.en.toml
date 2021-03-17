@@ -32,8 +32,7 @@ AdminAllowListRemoveConfirmTitle = "Confirm member removal"
 AdminInvitesTitle = "Invites"
 AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same time as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
 AdminInvitesAliasSuggestion = "(Optional) Alias suggestion"
-AdminInvitesCount = "{{.Count}} invites still unclaimed"
-AdminInvitesIDColumn = "ID"
+AdminInvitesCreatedAtColumn = "Created at"
 AdminInvitesCreatorColumn = "Created by"
 AdminInvitesAliasColumn = "Alias suggestion"
 AdminInvitesSummaryFrom = "From"
@@ -41,6 +40,7 @@ AdminInvitesSummaryTo = "to"
 AdminInviteRevoke = "Revoke"
 AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
 AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
+
 
 # TODO: add placeholder support to the template helpers (https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60)
 AdminInviteCreatedBy = "Created by:"
@@ -89,3 +89,8 @@ other =  "There are {{.Count}} items on the List"
 description = "The number of people in a room"
 one = "There is one person in the Room"
 other =  "There are {{.Count}} people in the Room"
+
+[AdminInvitesCount]
+description = "the number of invites that are not yet claimed"
+one = "1 invite still unclaimed"
+other = "{{.Count}} invites still unclaimed"

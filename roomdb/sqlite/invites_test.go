@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -56,6 +57,9 @@ func TestInvites(t *testing.T) {
 	t.Run("simple create and consume", func(t *testing.T) {
 		r := require.New(t)
 
+		// i really don't want to do a mocked time functions and rather solve the comment in migration 6 instead
+		before := time.Now()
+
 		tok, err := db.Invites.Create(ctx, uid, "bestie")
 		r.NoError(err, "failed to create invite token")
 
@@ -68,6 +72,7 @@ func TestInvites(t *testing.T) {
 
 		r.Equal("bestie", lst[0].AliasSuggestion)
 		r.Equal(testUserName, lst[0].CreatedBy.Name)
+		r.True(lst[0].CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
 		nope := db.AllowList.HasFeed(ctx, newMember)
 		r.False(nope, "expected feed to not yet be on the allow list")
@@ -76,6 +81,7 @@ func TestInvites(t *testing.T) {
 		r.NoError(err, "failed to consume the invite")
 		r.Equal(testUserName, inv.CreatedBy.Name)
 		r.NotEqualValues(0, inv.ID, "invite ID unset")
+		r.True(inv.CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
 		// consume also adds it to the allow list
 		yes := db.AllowList.HasFeed(ctx, newMember)
