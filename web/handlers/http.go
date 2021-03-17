@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	refs "go.mindeco.de/ssb-refs"
-
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
@@ -20,6 +18,7 @@ import (
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
@@ -29,6 +28,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 var HTMLTemplates = []string{
@@ -46,6 +46,7 @@ var HTMLTemplates = []string{
 type Databases struct {
 	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
+	AuthWithSSB   roomdb.AuthWithSSBService
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
@@ -69,8 +70,8 @@ func New(
 	repo repo.Interface,
 	netInfo NetworkInfo,
 	roomState *roomstate.Manager,
+	roomEndpoints network.Endpoints,
 	dbs Databases,
-
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -147,7 +148,7 @@ func New(
 		return nil, err
 	}
 
-	store := &sessions.CookieStore{
+	cookieStore := &sessions.CookieStore{
 		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
@@ -197,8 +198,8 @@ func New(
 		}, nil
 	})
 
-	a, err := auth.NewHandler(dbs.AuthFallback,
-		auth.SetStore(store),
+	authWithPassword, err := auth.NewHandler(dbs.AuthFallback,
+		auth.SetStore(cookieStore),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
 		auth.SetLifetime(2*time.Hour), // TODO: configure
@@ -225,8 +226,21 @@ func New(
 	// TODO: explain problem between gorilla/mux named routers and authentication
 	mainMux := &http.ServeMux{}
 
-	// hookup handlers to the router
-	roomsAuth.Handler(m, r, a)
+	// start hooking up handlers to the router
+
+	authWithSSB := roomsAuth.NewWithSSBHandler(
+		m,
+		r,
+		netInfo.RoomID,
+		roomEndpoints,
+		dbs.Aliases,
+		dbs.Members,
+		dbs.AuthWithSSB,
+		cookieStore,
+	)
+
+	// just hooks up the router to the handler
+	roomsAuth.NewFallbackPasswordHandler(m, r, authWithPassword)
 
 	adminHandler := admin.Handler(
 		netInfo.Domain,
@@ -241,7 +255,7 @@ func New(
 			PinnedNotices: dbs.PinnedNotices,
 		},
 	)
-	mainMux.Handle("/admin/", a.Authenticate(adminHandler))
+	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
 
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		notice, err := dbs.PinnedNotices.Get(req.Context(), roomdb.NoticeDescription, "en-GB")
@@ -297,7 +311,7 @@ func New(
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
 		logging.InjectHandler(logger),
-		members.ContextInjecter(dbs.Members, a),
+		members.ContextInjecter(dbs.Members, authWithPassword, authWithSSB),
 		CSRF,
 	}
 

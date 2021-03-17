@@ -33,14 +33,14 @@ type Invites struct {
 // Create creates a new invite for a new member. It returns the token or an error.
 // createdBy is user ID of the admin or moderator who created it.
 // aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
-// The returned token is base64 URL encoded and has tokenLength when decoded.
+// The returned token is base64 URL encoded and has inviteTokenLength when decoded.
 func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion string) (string, error) {
 	var newInvite = models.Invite{
 		CreatedBy:       createdBy,
 		AliasSuggestion: aliasSuggestion,
 	}
 
-	tokenBytes := make([]byte, tokenLength)
+	tokenBytes := make([]byte, inviteTokenLength)
 
 	err := transact(i.db, func(tx *sql.Tx) error {
 
@@ -88,7 +88,7 @@ func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion st
 
 // Consume checks if the passed token is still valid. If it is it adds newMember to the members of the room and invalidates the token.
 // If the token isn't valid, it returns an error.
-// Tokens need to be base64 URL encoded and when decoded be of tokenLength.
+// Tokens need to be base64 URL encoded and when decoded be of inviteTokenLength.
 func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedRef) (roomdb.Invite, error) {
 	var inv roomdb.Invite
 
@@ -263,7 +263,7 @@ func (i Invites) Revoke(ctx context.Context, id int64) error {
 	})
 }
 
-const tokenLength = 50
+const inviteTokenLength = 50
 
 func getHashedToken(b64tok string) (string, error) {
 	tokenBytes, err := base64.URLEncoding.DecodeString(b64tok)
@@ -271,7 +271,7 @@ func getHashedToken(b64tok string) (string, error) {
 		return "", err
 	}
 
-	if n := len(tokenBytes); n != tokenLength {
+	if n := len(tokenBytes); n != inviteTokenLength {
 		return "", fmt.Errorf("admindb: invalid invite token length (only got %d bytes)", n)
 	}
 

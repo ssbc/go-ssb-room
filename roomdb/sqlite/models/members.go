@@ -60,10 +60,12 @@ var MemberWhere = struct {
 
 // MemberRels is where relationship names are stored.
 var MemberRels = struct {
+	SIWSSBSessions    string
 	Aliases           string
 	FallbackPasswords string
 	CreatedByInvites  string
 }{
+	SIWSSBSessions:    "SIWSSBSessions",
 	Aliases:           "Aliases",
 	FallbackPasswords: "FallbackPasswords",
 	CreatedByInvites:  "CreatedByInvites",
@@ -71,6 +73,7 @@ var MemberRels = struct {
 
 // memberR is where relationships are stored.
 type memberR struct {
+	SIWSSBSessions    SIWSSBSessionSlice    `boil:"SIWSSBSessions" json:"SIWSSBSessions" toml:"SIWSSBSessions" yaml:"SIWSSBSessions"`
 	Aliases           AliasSlice            `boil:"Aliases" json:"Aliases" toml:"Aliases" yaml:"Aliases"`
 	FallbackPasswords FallbackPasswordSlice `boil:"FallbackPasswords" json:"FallbackPasswords" toml:"FallbackPasswords" yaml:"FallbackPasswords"`
 	CreatedByInvites  InviteSlice           `boil:"CreatedByInvites" json:"CreatedByInvites" toml:"CreatedByInvites" yaml:"CreatedByInvites"`
@@ -366,6 +369,27 @@ func (q memberQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
+// SIWSSBSessions retrieves all the SIWSSB_session's SIWSSBSessions with an executor.
+func (o *Member) SIWSSBSessions(mods ...qm.QueryMod) sIWSSBSessionQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"SIWSSB_sessions\".\"member_id\"=?", o.ID),
+	)
+
+	query := SIWSSBSessions(queryMods...)
+	queries.SetFrom(query.Query, "\"SIWSSB_sessions\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"SIWSSB_sessions\".*"})
+	}
+
+	return query
+}
+
 // Aliases retrieves all the alias's Aliases with an executor.
 func (o *Member) Aliases(mods ...qm.QueryMod) aliasQuery {
 	var queryMods []qm.QueryMod
@@ -427,6 +451,104 @@ func (o *Member) CreatedByInvites(mods ...qm.QueryMod) inviteQuery {
 	}
 
 	return query
+}
+
+// LoadSIWSSBSessions allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (memberL) LoadSIWSSBSessions(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMember interface{}, mods queries.Applicator) error {
+	var slice []*Member
+	var object *Member
+
+	if singular {
+		object = maybeMember.(*Member)
+	} else {
+		slice = *maybeMember.(*[]*Member)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &memberR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &memberR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`SIWSSB_sessions`),
+		qm.WhereIn(`SIWSSB_sessions.member_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load SIWSSB_sessions")
+	}
+
+	var resultSlice []*SIWSSBSession
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice SIWSSB_sessions")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on SIWSSB_sessions")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for SIWSSB_sessions")
+	}
+
+	if len(sIWSSBSessionAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.SIWSSBSessions = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &sIWSSBSessionR{}
+			}
+			foreign.R.Member = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.MemberID {
+				local.R.SIWSSBSessions = append(local.R.SIWSSBSessions, foreign)
+				if foreign.R == nil {
+					foreign.R = &sIWSSBSessionR{}
+				}
+				foreign.R.Member = local
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadAliases allows an eager lookup of values, cached into the
@@ -720,6 +842,59 @@ func (memberL) LoadCreatedByInvites(ctx context.Context, e boil.ContextExecutor,
 		}
 	}
 
+	return nil
+}
+
+// AddSIWSSBSessions adds the given related objects to the existing relationships
+// of the member, optionally inserting them as new records.
+// Appends related to o.R.SIWSSBSessions.
+// Sets related.R.Member appropriately.
+func (o *Member) AddSIWSSBSessions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*SIWSSBSession) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.MemberID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"SIWSSB_sessions\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 0, []string{"member_id"}),
+				strmangle.WhereClause("\"", "\"", 0, sIWSSBSessionPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.MemberID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &memberR{
+			SIWSSBSessions: related,
+		}
+	} else {
+		o.R.SIWSSBSessions = append(o.R.SIWSSBSessions, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &sIWSSBSessionR{
+				Member: o,
+			}
+		} else {
+			rel.R.Member = o
+		}
+	}
 	return nil
 }
 

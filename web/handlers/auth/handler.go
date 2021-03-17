@@ -15,13 +15,19 @@ import (
 
 var HTMLTemplates = []string{
 	"auth/fallback_sign_in.tmpl",
+	"auth/withssb_sign_in.tmpl",
 }
 
-func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
+func NewFallbackPasswordHandler(
+	m *mux.Router,
+	r *render.Renderer,
+	ah *auth.Handler,
+) {
 	if m == nil {
 		m = router.Auth(nil)
 	}
 
+	// just the form
 	m.Get(router.AuthFallbackSignInForm).Handler(r.HTML("auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{
 			csrf.TemplateTag: csrf.TemplateField(req),
@@ -29,8 +35,7 @@ func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
 	}))
 
 	// hook up the auth handler to the router
-	m.Get(router.AuthFallbackSignIn).HandlerFunc(a.Authorize)
-	m.Get(router.AuthFallbackSignOut).HandlerFunc(a.Logout)
+	m.Get(router.AuthFallbackSignIn).HandlerFunc(ah.Authorize)
 
-	return m
+	m.Get(router.AuthSignOut).HandlerFunc(ah.Logout)
 }

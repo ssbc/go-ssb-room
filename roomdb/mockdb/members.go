@@ -26,19 +26,6 @@ type FakeMembersService struct {
 		result1 int64
 		result2 error
 	}
-	ChangeRoleStub        func(context.Context, int64, roomdb.Role) error
-	changeRoleMutex       sync.RWMutex
-	changeRoleArgsForCall []struct {
-		arg1 context.Context
-		arg2 int64
-		arg3 roomdb.Role
-	}
-	changeRoleReturns struct {
-		result1 error
-	}
-	changeRoleReturnsOnCall map[int]struct {
-		result1 error
-	}
 	GetByFeedStub        func(context.Context, refs.FeedRef) (roomdb.Member, error)
 	getByFeedMutex       sync.RWMutex
 	getByFeedArgsForCall []struct {
@@ -186,69 +173,6 @@ func (fake *FakeMembersService) AddReturnsOnCall(i int, result1 int64, result2 e
 		result1 int64
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeMembersService) ChangeRole(arg1 context.Context, arg2 int64, arg3 roomdb.Role) error {
-	fake.changeRoleMutex.Lock()
-	ret, specificReturn := fake.changeRoleReturnsOnCall[len(fake.changeRoleArgsForCall)]
-	fake.changeRoleArgsForCall = append(fake.changeRoleArgsForCall, struct {
-		arg1 context.Context
-		arg2 int64
-		arg3 roomdb.Role
-	}{arg1, arg2, arg3})
-	stub := fake.ChangeRoleStub
-	fakeReturns := fake.changeRoleReturns
-	fake.recordInvocation("ChangeRole", []interface{}{arg1, arg2, arg3})
-	fake.changeRoleMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeMembersService) ChangeRoleCallCount() int {
-	fake.changeRoleMutex.RLock()
-	defer fake.changeRoleMutex.RUnlock()
-	return len(fake.changeRoleArgsForCall)
-}
-
-func (fake *FakeMembersService) ChangeRoleCalls(stub func(context.Context, int64, roomdb.Role) error) {
-	fake.changeRoleMutex.Lock()
-	defer fake.changeRoleMutex.Unlock()
-	fake.ChangeRoleStub = stub
-}
-
-func (fake *FakeMembersService) ChangeRoleArgsForCall(i int) (context.Context, int64, roomdb.Role) {
-	fake.changeRoleMutex.RLock()
-	defer fake.changeRoleMutex.RUnlock()
-	argsForCall := fake.changeRoleArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
-}
-
-func (fake *FakeMembersService) ChangeRoleReturns(result1 error) {
-	fake.changeRoleMutex.Lock()
-	defer fake.changeRoleMutex.Unlock()
-	fake.ChangeRoleStub = nil
-	fake.changeRoleReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeMembersService) ChangeRoleReturnsOnCall(i int, result1 error) {
-	fake.changeRoleMutex.Lock()
-	defer fake.changeRoleMutex.Unlock()
-	fake.ChangeRoleStub = nil
-	if fake.changeRoleReturnsOnCall == nil {
-		fake.changeRoleReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.changeRoleReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
 }
 
 func (fake *FakeMembersService) GetByFeed(arg1 context.Context, arg2 refs.FeedRef) (roomdb.Member, error) {
@@ -637,8 +561,6 @@ func (fake *FakeMembersService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
-	fake.changeRoleMutex.RLock()
-	defer fake.changeRoleMutex.RUnlock()
 	fake.getByFeedMutex.RLock()
 	defer fake.getByFeedMutex.RUnlock()
 	fake.getByIDMutex.RLock()
