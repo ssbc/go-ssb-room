@@ -19,6 +19,9 @@ AuthFallbackTitle = "The place of last resort"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
+AuthWithSSBTitle = "Sign-in with SSB"
+AuthWithSSBWelcome = "If you have a compatible device/application, you can sign-in here without a password."
+
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
 

@@ -23,3 +23,11 @@ type ErrBadRequest struct {
 func (br ErrBadRequest) Error() string {
 	return fmt.Sprintf("rooms/web: bad request error: %s", br.Details)
 }
+
+type ErrForbidden struct {
+	Details error
+}
+
+func (f ErrForbidden) Error() string {
+	return fmt.Sprintf("rooms/web: access denied: %s", f.Details)
+}

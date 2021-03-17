@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	refs "go.mindeco.de/ssb-refs"
-
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
@@ -20,6 +18,7 @@ import (
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
@@ -29,6 +28,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 var HTMLTemplates = []string{
@@ -69,8 +69,8 @@ func New(
 	repo repo.Interface,
 	netInfo NetworkInfo,
 	roomState *roomstate.Manager,
+	roomEndpoints network.Endpoints,
 	dbs Databases,
-
 ) (http.Handler, error) {
 	m := router.CompleteApp()
 
@@ -147,7 +147,7 @@ func New(
 		return nil, err
 	}
 
-	store := &sessions.CookieStore{
+	cookieStore := &sessions.CookieStore{
 		Codecs: cookieCodec,
 		Options: &sessions.Options{
 			Path:   "/",
@@ -198,7 +198,7 @@ func New(
 	})
 
 	a, err := auth.NewHandler(dbs.AuthFallback,
-		auth.SetStore(store),
+		auth.SetStore(cookieStore),
 		auth.SetErrorHandler(authErrH),
 		auth.SetNotAuthorizedHandler(notAuthorizedH),
 		auth.SetLifetime(2*time.Hour), // TODO: configure
@@ -226,7 +226,15 @@ func New(
 	mainMux := &http.ServeMux{}
 
 	// hookup handlers to the router
-	roomsAuth.Handler(m, r, a)
+	roomsAuth.Handler(
+		m,
+		r,
+		a,
+		netInfo.RoomID,
+		roomEndpoints,
+		dbs.Aliases,
+		dbs.Members,
+	)
 
 	adminHandler := admin.Handler(
 		netInfo.Domain,

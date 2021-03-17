@@ -18,6 +18,7 @@ import (
 	"go.mindeco.de/logging/logtest"
 	refs "go.mindeco.de/ssb-refs"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network/mocked"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
@@ -41,6 +42,8 @@ type testSession struct {
 	NoticeDB       *mockdb.FakeNoticesService
 
 	RoomState *roomstate.Manager
+
+	MockedEndpoints *mocked.FakeEndpoints
 
 	NetworkInfo NetworkInfo
 }
@@ -74,6 +77,8 @@ func setup(t *testing.T) *testSession {
 	ts.PinnedDB.GetReturns(defaultNotice, nil)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
 
+	ts.MockedEndpoints = new(mocked.FakeEndpoints)
+
 	ts.NetworkInfo = NetworkInfo{
 		Domain:     "localhost",
 		PortMUXRPC: 8008,
@@ -96,6 +101,7 @@ func setup(t *testing.T) *testSession {
 		testRepo,
 		ts.NetworkInfo,
 		ts.RoomState,
+		ts.MockedEndpoints,
 		Databases{
 			Aliases:       ts.AliasesDB,
 			AuthFallback:  ts.AuthFallbackDB,

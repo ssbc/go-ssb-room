@@ -49,12 +49,11 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) (inter
 	}
 
 	alias := req.FormValue("alias")
-
 	token := req.FormValue("token")
 
 	newMember, err := refs.ParseFeedRef(req.FormValue("new_member"))
 	if err != nil {
-		return nil, weberrors.ErrBadRequest{Where: "form data", Details: err}
+		return nil, weberrors.ErrBadRequest{Where: "new_member", Details: err}
 	}
 
 	inv, err := h.invites.Consume(req.Context(), token, *newMember)

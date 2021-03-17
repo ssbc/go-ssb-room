@@ -24,13 +24,19 @@ type EndpointStat struct {
 	Endpoint muxrpc.Endpoint
 }
 
+//go:generate counterfeiter -o mocked/endpoints.go . Endpoints
+
+type Endpoints interface {
+	GetEndpointFor(refs.FeedRef) (muxrpc.Endpoint, bool)
+}
+
 type Network interface {
 	Connect(ctx context.Context, addr net.Addr) error
 	Serve(context.Context, ...muxrpc.HandlerWrapper) error
 	GetListenAddr() net.Addr
 
 	GetAllEndpoints() []EndpointStat
-	GetEndpointFor(refs.FeedRef) (muxrpc.Endpoint, bool)
+	Endpoints
 
 	GetConnTracker() ConnTracker
 

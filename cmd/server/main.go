@@ -248,6 +248,7 @@ func runroomsrv() error {
 			RoomID:     roomsrv.Whoami(),
 		},
 		roomsrv.StateManager,
+		roomsrv.Network,
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,

@@ -2,16 +2,25 @@ package handlers
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+
+	"go.cryptoscope.co/muxrpc/v2"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -168,4 +177,146 @@ func TestFallbackAuth(t *testing.T) {
 		{"title", "AdminDashboardTitle"},
 		{"#roomCount", "AdminRoomCountPlural"},
 	})
+}
+
+func TestAuthWithSSBNotConnected(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the client is a member but not connected right now
+	ts.MembersDB.GetByFeedReturns(roomdb.Member{ID: 1234, Nickname: "test-member"}, nil)
+	ts.MockedEndpoints.GetEndpointForReturns(nil, false)
+
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+
+	cc := signinwithssb.GenerateChallenge()
+
+	urlTo := web.NewURLTo(ts.Router)
+
+	signInStartURL := urlTo(router.AuthWithSSBSignIn,
+		"cid", client.Feed.Ref(),
+		"challenge", cc,
+	)
+	r.NotNil(signInStartURL)
+
+	t.Log(signInStartURL.String())
+	doc, resp := ts.Client.GetHTML(signInStartURL.String())
+	a.Equal(http.StatusInternalServerError, resp.Code) // TODO: StatusForbidden
+
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
+		// {"#welcome", "AuthWithSSBWelcome"},
+		// {"title", "AuthWithSSBTitle"},
+	})
+}
+
+func TestAuthWithSSBNotAllowed(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the client isnt a member
+	ts.MembersDB.GetByFeedReturns(roomdb.Member{}, roomdb.ErrNotFound)
+	ts.MockedEndpoints.GetEndpointForReturns(nil, false)
+
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+
+	cc := signinwithssb.GenerateChallenge()
+
+	urlTo := web.NewURLTo(ts.Router)
+
+	signInStartURL := urlTo(router.AuthWithSSBSignIn,
+		"cid", client.Feed.Ref(),
+		"challenge", cc,
+	)
+	r.NotNil(signInStartURL)
+
+	t.Log(signInStartURL.String())
+	doc, resp := ts.Client.GetHTML(signInStartURL.String())
+	a.Equal(http.StatusInternalServerError, resp.Code) // TODO: StatusForbidden
+
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
+		// {"#welcome", "AuthWithSSBWelcome"},
+		// {"title", "AuthWithSSBTitle"},
+	})
+}
+
+func TestAuthWithSSBHasClient(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the request to be signed later
+	var req signinwithssb.ClientRequest
+	req.ServerID = ts.NetworkInfo.RoomID
+
+	// the keypair for our client
+	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+	testMember.PubKey = client.Feed
+	ts.MembersDB.GetByFeedReturns(testMember, nil)
+	// fill the basic infos of the request
+	req.ClientID = client.Feed
+
+	// this is our fake "connected" client
+	var edp muxrpc.FakeEndpoint
+
+	// setup a mocked muxrpc call that asserts the arguments and returns the needed signature
+	edp.AsyncCalls(func(_ context.Context, ret interface{}, encoding muxrpc.RequestEncoding, method muxrpc.Method, args ...interface{}) error {
+		a.Equal(muxrpc.TypeString, encoding)
+		a.Equal("httpAuth.requestSolution", method.String())
+
+		r.Len(args, 2, "expected two args")
+
+		serverChallange, ok := args[0].(string)
+		r.True(ok, "argument[0] is not a string: %T", args[0])
+		a.NotEqual("", serverChallange)
+		// update the challenge
+		req.ServerChallange = serverChallange
+
+		clientChallange, ok := args[1].(string)
+		r.True(ok, "argument[1] is not a string: %T", args[1])
+		a.Equal(req.ClientChallange, clientChallange)
+
+		strptr, ok := ret.(*string)
+		r.True(ok, "return is not a string pointer: %T", ret)
+
+		// sign the request now that we have the sc
+		clientSig := req.Sign(client.Pair.Secret)
+
+		*strptr = base64.URLEncoding.EncodeToString(clientSig)
+		return nil
+	})
+
+	// setup the fake client endpoint
+	ts.MockedEndpoints.GetEndpointForReturns(&edp, true)
+
+	cc := signinwithssb.GenerateChallenge()
+	// update the challenge
+	req.ClientChallange = cc
+
+	// prepare the url
+	signInStartURL := web.NewURLTo(ts.Router)(router.AuthWithSSBSignIn,
+		"cid", client.Feed.Ref(),
+		"challenge", cc,
+	)
+	r.NotNil(signInStartURL)
+
+	t.Log(signInStartURL.String())
+	doc, resp := ts.Client.GetHTML(signInStartURL.String())
+	a.Equal(http.StatusOK, resp.Code)
+
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
+		// {"#welcome", "AuthWithSSBWelcome"},
+		// {"title", "AuthWithSSBTitle"},
+	})
+
+	// analyse the endpoints call
+	a.Equal(1, ts.MockedEndpoints.GetEndpointForCallCount())
+	edpRef := ts.MockedEndpoints.GetEndpointForArgsForCall(0)
+	a.Equal(client.Feed.Ref(), edpRef.Ref())
+
+	// analyse the muxrpc call
+	a.Equal(1, edp.AsyncCallCount())
+
 }
