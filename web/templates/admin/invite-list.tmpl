@@ -1,4 +1,5 @@
 {{ define "title" }}{{i18n "AdminInvitesTitle"}}{{ end }}
+
 {{ define "content" }}
   <h1
     class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
@@ -48,7 +49,12 @@
     <tbody id="the-table-rows" class="divide-y">
       {{range .Entries}}
       <tr class="h-12 hidden sm:table-row">
-        <td class="pl-3 pr-6 text-gray-400 text-center">{{human_time .CreatedAt}}</td>
+        <td class="pl-3 pr-6 text-gray-400 text-center">
+        <div class="has-tooltip">
+          {{human_time .CreatedAt}}
+          <span class="tooltip">{{.CreatedAt.Format "02.01.2006 15:04"}}</span>
+        </div>
+        </td>
         <td class="px-6">{{.CreatedBy.Name}}</td>
         <td class="px-6">{{if ne .AliasSuggestion ""}}{{.AliasSuggestion}}{{end}}</td>
         <td class="pl-6 pr-3">
