@@ -10,12 +10,16 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	mrand "math/rand"
 	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 
@@ -89,7 +93,8 @@ func newSession(t *testing.T, appKey []byte) *testSession {
 func (ts *testSession) startGoServer(
 	membersDB roomdb.MembersService,
 	aliasDB roomdb.AliasesService,
-	opts ...roomsrv.Option) *roomsrv.Server {
+	opts ...roomsrv.Option,
+) *roomsrv.Server {
 	r := require.New(ts.t)
 
 	// prepend defaults
@@ -106,7 +111,12 @@ func (ts *testSession) startGoServer(
 
 	opts = append(opts,
 		roomsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
-			return debug.WrapDump(filepath.Join("testrun", ts.t.Name(), "muxdump"), conn)
+			ref, err := network.GetFeedRefFromAddr(conn.RemoteAddr())
+			if err != nil {
+				return nil, err
+			}
+			fname := filepath.Join("testrun", ts.t.Name(), "muxdump", ref.ShortRef())
+			return debug.WrapDump(fname, conn)
 		}),
 	)
 
@@ -132,8 +142,14 @@ func (ts *testSession) startGoServer(
 
 var jsBotCnt = 0
 
-// returns the jsbots pubkey
-func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr, peerRef refs.FeedRef) refs.FeedRef {
+// starts a node process in the client role. returns the jsbots pubkey
+func (ts *testSession) startJSClient(
+	name,
+	testScript string,
+	// the perr the client should connect to at first (here usually the room server)
+	peerAddr net.Addr,
+	peerRef refs.FeedRef,
+) refs.FeedRef {
 	ts.t.Log("starting client", name)
 	r := require.New(ts.t)
 	cmd := exec.CommandContext(ts.ctx, "node", "../../../sbot_client.js")
@@ -166,14 +182,18 @@ func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr,
 	}
 
 	cmd.Env = env
+
+	started := time.Now()
 	r.NoError(cmd.Start(), "failed to init test js-sbot")
 
 	ts.done.Go(func() error {
 		err := cmd.Wait()
+		ts.t.Logf("node client %s: exited with %v (after %s)", name, err, time.Since(started))
+		// we need to return the error code to have an idea if any of the tape assertions failed
 		if err != nil {
-			ts.t.Logf("node client %s: exited with %s", name, err)
+			return fmt.Errorf("node client %s exited with %s", name, err)
 		}
-		return err
+		return nil
 	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()
@@ -182,12 +202,17 @@ func (ts *testSession) startJSClient(name, testScript string, peerAddr net.Addr,
 	pubScanner := bufio.NewScanner(outrc) // TODO muxrpc comms?
 	r.True(pubScanner.Scan(), "multiple lines of output from js - expected #1 to be %s pubkey/id", name)
 
+	go io.Copy(os.Stderr, outrc) // restore node stdout to stderr behavior
+
 	jsBotRef, err := refs.ParseFeedRef(pubScanner.Text())
 	r.NoError(err, "failed to get %s key from JS process")
 	ts.t.Logf("JS %s:%d %s", name, jsBotCnt, jsBotRef.Ref())
 	return *jsBotRef
 }
 
+// startJSBotAsServer returns the servers public key and it's TCP port on localhost.
+// This is only here to check compliance against the old javascript server.
+// We don't care so much about it's internal behavior, just that clients can connect through it.
 func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*refs.FeedRef, int) {
 	r := require.New(ts.t)
 	cmd := exec.CommandContext(ts.ctx, "node", "../../../sbot_serv.js")
@@ -220,14 +245,13 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 	}
 	cmd.Env = env
 
+	started := time.Now()
 	r.NoError(cmd.Start(), "failed to init test js-sbot")
 
 	ts.done.Go(func() error {
 		err := cmd.Wait()
-		if err != nil {
-			ts.t.Logf("node server %s: exited with %s", name, err)
-		}
-		return err
+		ts.t.Logf("node server %s: exited with %v (after %s)", name, err, time.Since(started))
+		return nil
 	})
 	ts.t.Cleanup(func() {
 		cmd.Process.Kill()

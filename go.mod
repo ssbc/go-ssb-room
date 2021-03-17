@@ -27,7 +27,7 @@ require (
 	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
-	go.cryptoscope.co/muxrpc/v2 v2.0.0-20210202162901-fe642d405dc6
+	go.cryptoscope.co/muxrpc/v2 v2.0.0-beta.1.0.20210308090127-5f1f5f9cbb59
 	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/secretstream v1.2.2
 	go.mindeco.de v1.8.0

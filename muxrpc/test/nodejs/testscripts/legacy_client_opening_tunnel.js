@@ -14,24 +14,25 @@ module.exports = {
 
     after: (t, client, roomSrvRpc, exit) => {
         newConnections++
-        t.comment('new connection!' + roomSrvRpc.id)
+        t.comment('client new connection!' + roomSrvRpc.id)
         t.comment('total connections:' + newConnections)
-        
+
         if (newConnections > 1) {
-            t.comment('after call 2 - not exiting')
+            t.comment('got a 2nd connection')
             return
         }
         // now connected to the room server
-        
+
         // log all new endpoints
         pull(
             roomSrvRpc.tunnel.endpoints(),
             pull.drain(el => {
-                t.comment("from roomsrv:",el)
+                t.comment("from roomsrv:", el)
             })
         )
 
-        roomSrvRpc.tunnel.isRoom().then((yes) => {
+        roomSrvRpc.tunnel.isRoom((err, yes) => {
+            t.error(err, "tunnel.isRoom failed")
             t.equal(yes, true, "expected isRoom to return true!")
             
             t.comment("peer is indeed a room!")
@@ -42,7 +43,7 @@ module.exports = {
 
                 // put there by the go test process
                 let roomHandle = readFileSync('endpoint_through_room.txt').toString()
-                t.comment("connecting to room handle:", roomHandle)
+                t.comment("connecting to room handle:" + roomHandle)
 
                 client.conn.connect(roomHandle, (err, tunneldRpc) => {
                     t.error(err, "connected")
@@ -51,25 +52,20 @@ module.exports = {
                     // check the tunnel connection works
                     tunneldRpc.tunnel.ping((err, timestamp) => {
                         t.error(err, "ping over the tunnel")
+                        t.true(timestamp > 0, "ping returns a timestamp")
                         t.comment("ping:"+timestamp)
 
-                        // start leaving after 1s
-                        setTimeout(() => {
-                            roomSrvRpc.tunnel.leave().then((ret) => {
-                                t.comment('left room... exiting in 3s')
-                                setTimeout(exit, 3000)
-                            }).catch((err) => {
-                                t.error(err, 'leave')
-                            })
-                        }, 1000)
+                        roomSrvRpc.tunnel.leave().then((ret) => {
+                            t.comment('left room... exiting in 1s')
+                            setTimeout(exit, 1000)
+                        }).catch((err) => {
+                            t.error(err, 'leave')
+                        })
                     })
                 })
-             
             }).catch((err) => {
                 t.error(err, 'announce')
             })
-        }).catch((err) => {
-            t.error(err, 'isRoom failed')            
         })
     }
 }

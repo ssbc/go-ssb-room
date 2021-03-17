@@ -12,7 +12,8 @@ if (testSHSappKey !== false) {
 
 stackOpts = {caps: {shs: testAppkey } }
 let createSbot = theStack(stackOpts)
-  .use(require('ssb-db'))
+  .use(require('ssb-db2'))
+  .use(require('ssb-db2/compat/db'))
 
 const testName = process.env['TEST_NAME']
 const testPort = process.env['TEST_PORT']

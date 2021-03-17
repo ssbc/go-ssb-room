@@ -12,7 +12,9 @@ if (testSHSappKey !== false) {
 }
 
 let createSbot = theStack({caps: {shs: testAppkey } })
-  .use(require('ssb-db'))
+  .use(require('ssb-db2'))
+  .use(require('ssb-db2/compat/db'))
+  .use(require('./testscripts/secretstack_testplugin.js'))
 
 const testName = process.env.TEST_NAME
 
