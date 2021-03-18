@@ -1,5 +1,6 @@
 const Path = require('path')
 const { loadOrCreateSync } = require('ssb-keys')
+const tapSpec = require("tap-spec")
 const tape = require('tape')
 const theStack = require('secret-stack')
 const ssbCaps = require('ssb-caps')
@@ -37,7 +38,7 @@ function bufFromEnv(evname) {
   return false
 }
 
-tape.createStream().pipe(process.stderr)
+tape.createStream().pipe(tapSpec()).pipe(process.stderr)
 tape(testName, function (t) {
   let timeoutLength = 30000
   var tapeTimeout = null

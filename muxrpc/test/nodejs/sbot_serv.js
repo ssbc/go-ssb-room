@@ -1,4 +1,5 @@
 const Path = require('path')
+const tapSpec = require('tap-spec')
 const tape = require('tape')
 const { loadOrCreateSync } = require('ssb-keys')
 const theStack = require('secret-stack')
@@ -24,7 +25,7 @@ for (plug of testSession.secretStackPlugins) {
   createSbot = createSbot.use(require(plug))
 }
 
-tape.createStream().pipe(process.stderr);
+tape.createStream().pipe(tapSpec()).pipe(process.stderr);
 tape(testName, function (t) {
 // t.timeoutAfter(30000) // doesn't exit the process
 //   const tapeTimeout = setTimeout(() => {
