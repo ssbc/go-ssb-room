@@ -15,7 +15,7 @@ module.exports = {
         // so it will be an incomming tunnel client.
         // since this calls exit() - if no client connects it will not exit
         sbot.on("rpc:connect", (remote, isClient) => {
-            console.warn("tunneld connection to simple client!")
+            console.warn("tunneled connection to simple client!")
 
             // leave after 3 seconds (give the other party time to call ping)
             setTimeout(() => {

@@ -12,9 +12,9 @@ module.exports = {
         ready()
     },
 
-    after: (t, client, roomSrvRpc, exit) => {
+    after: (t, client, roomrpc, exit) => {
         newConnections++
-        t.comment('client new connection!' + roomSrvRpc.id)
+        t.comment('client new connection!' + roomrpc.id)
         t.comment('total connections:' + newConnections)
 
         if (newConnections > 1) {
@@ -25,37 +25,37 @@ module.exports = {
 
         // log all new endpoints
         pull(
-            roomSrvRpc.tunnel.endpoints(),
+            roomrpc.tunnel.endpoints(),
             pull.drain(el => {
                 t.comment("from roomsrv:", el)
             })
         )
 
-        roomSrvRpc.tunnel.isRoom((err, yes) => {
+        roomrpc.tunnel.isRoom((err, yes) => {
             t.error(err, "tunnel.isRoom failed")
             t.equal(yes, true, "expected isRoom to return true!")
             
             t.comment("peer is indeed a room!")
 
             // announce ourselves to the room/tunnel
-            roomSrvRpc.tunnel.announce().then((ret) => {
+            roomrpc.tunnel.announce().then((ret) => {
                 t.comment('announced!')
 
                 // put there by the go test process
                 let roomHandle = readFileSync('endpoint_through_room.txt').toString()
                 t.comment("connecting to room handle:" + roomHandle)
 
-                client.conn.connect(roomHandle, (err, tunneldRpc) => {
+                client.conn.connect(roomHandle, (err, tunneledrpc) => {
                     t.error(err, "connected")
-                    t.comment("got tunnel to:", tunneldRpc.id)
+                    t.comment("got tunnel to:", tunneledrpc.id)
 
                     // check the tunnel connection works
-                    tunneldRpc.tunnel.ping((err, timestamp) => {
+                    tunneledrpc.tunnel.ping((err, timestamp) => {
                         t.error(err, "ping over the tunnel")
                         t.true(timestamp > 0, "ping returns a timestamp")
                         t.comment("ping:"+timestamp)
 
-                        roomSrvRpc.tunnel.leave().then((ret) => {
+                        roomrpc.tunnel.leave().then((ret) => {
                             t.comment('left room... exiting in 1s')
                             setTimeout(exit, 1000)
                         }).catch((err) => {

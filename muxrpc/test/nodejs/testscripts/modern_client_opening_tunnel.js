@@ -15,9 +15,9 @@ module.exports = {
         ready()
     },
 
-    after: (t, client, roomSrvRpc, exit) => {
+    after: (t, client, roomrpc, exit) => {
         newConnections++
-        t.comment('client new connection!' + roomSrvRpc.id)
+        t.comment('client new connection!' + roomrpc.id)
         t.comment('total connections:' + newConnections)
 
         if (newConnections > 1) {
@@ -28,32 +28,32 @@ module.exports = {
 
         // log all new endpoints
         pull(
-            roomSrvRpc.tunnel.endpoints(),
+            roomrpc.tunnel.endpoints(),
             pull.drain(el => {
                 t.comment("from roomsrv:" + JSON.stringify(el))
             })
         )
 
         // announce ourselves to the room/tunnel
-        roomSrvRpc.tunnel.announce().then((ret) => {
+        roomrpc.tunnel.announce().then((ret) => {
             t.comment('announced!')
 
             // put there by the go test process
             let roomHandle = readFileSync('endpoint_through_room.txt').toString()
             t.comment("connecting to room handle:", roomHandle)
 
-            client.conn.connect(roomHandle, (err, tunneldRpc) => {
+            client.conn.connect(roomHandle, (err, tunneledrpc) => {
                 t.error(err, 'connect through room')
-                t.comment("got tunnel to:", tunneldRpc.id)
+                t.comment("got tunnel to:", tunneledrpc.id)
 
                 // check the tunnel connection works
-                tunneldRpc.testing.working((err, ok) => {
+                tunneledrpc.testing.working((err, ok) => {
                     t.error(err, 'testing.working didnt error')
                     t.true(ok, 'testing.working is true')
 
                     // start leaving after 2s
                     setTimeout(() => {
-                        roomSrvRpc.tunnel.leave().then((ret) => {
+                        roomrpc.tunnel.leave().then((ret) => {
                             t.comment('left room... exiting in 3s')
                             setTimeout(exit, 3000)
                         }).catch((err) => {

@@ -12,7 +12,7 @@ module.exports = {
 
     after: (t, sbot, rpc, exit) => {
         sbot.on("rpc:connect", (remote, isClient) => {
-            console.warn("tunneld connection to simple client!")
+            console.warn("tunneled connection to simple client!")
 
             // check the tunnel connection works
             remote.testing.working((err, ok) => {
