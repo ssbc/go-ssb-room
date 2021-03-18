@@ -17,22 +17,54 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-// AuthFallbackService might be helpful for scenarios where one lost access to his ssb device or key
+// AuthFallbackService allows password authentication which might be helpful for scenarios
+// where one lost access to his ssb device or key.
 type AuthFallbackService interface {
 
 	// Check receives the username and password (in clear) and checks them accordingly.
 	// If it's a valid combination it returns the user ID, or an error if they are not.
 	auth.Auther
 
-	Create(ctx context.Context, user string, password []byte) (int64, error)
-	GetByID(ctx context.Context, uid int64) (*User, error)
+	Create(_ context.Context, memberID int64, login string, password []byte) error
+	// GetByID(context.Context, int64) (User, error)
+	// ListAll()
+	// ListByMember()
+	// Remove(pwid)
 }
 
+// needed?! not sure we need to hold the challanges
 // AuthWithSSBService defines functions needed for the challange/response system of sign-in with ssb
 type AuthWithSSBService interface{}
 
-// AllowListService changes the lists of people that are allowed to get into the room
-type AllowListService interface {
+// MembersService stores and retreives the list of internal users (members, mods and admins).
+type MembersService interface {
+	// Add adds a new member
+	Add(_ context.Context, nickName string, pubKey refs.FeedRef, r Role) (int64, error)
+
+	// HasFeed returns true if a feed is on the list.
+	HasFeed(context.Context, refs.FeedRef) bool
+
+	// HasFeed returns true if a feed is on the list.
+	HasID(context.Context, int64) bool
+
+	// GetByID returns the list entry for that ID or an error
+	GetByID(context.Context, int64) (Member, error)
+
+	// List returns a list of all the members.
+	List(context.Context) ([]Member, error)
+
+	// RemoveFeed removes the feed from the list.
+	RemoveFeed(context.Context, refs.FeedRef) error
+
+	// RemoveID removes the feed for the ID from the list.
+	RemoveID(context.Context, int64) error
+
+	// SetRole
+	SetRole(context.Context, int64, Role) error
+}
+
+// DeniedListService changes the lists of people that are Denieded to get into the room
+type DeniedListService interface {
 	// Add adds the feed to the list.
 	Add(context.Context, refs.FeedRef) error
 
@@ -46,7 +78,7 @@ type AllowListService interface {
 	GetByID(context.Context, int64) (ListEntry, error)
 
 	// List returns a list of all the feeds.
-	List(context.Context) (ListEntries, error)
+	List(context.Context) ([]ListEntry, error)
 
 	// RemoveFeed removes the feed from the list.
 	RemoveFeed(context.Context, refs.FeedRef) error
@@ -55,8 +87,8 @@ type AllowListService interface {
 	RemoveID(context.Context, int64) error
 }
 
-// AliasService manages alias handle registration and lookup
-type AliasService interface {
+// AliasesService manages alias handle registration and lookup
+type AliasesService interface {
 	// Resolve returns all the relevant information for that alias or an error if it doesnt exist
 	Resolve(context.Context, string) (Alias, error)
 
@@ -73,8 +105,8 @@ type AliasService interface {
 	Revoke(ctx context.Context, alias string) error
 }
 
-// InviteService manages creation and consumption of invite tokens for joining the room.
-type InviteService interface {
+// InvitesService manages creation and consumption of invite tokens for joining the room.
+type InvitesService interface {
 	// Create creates a new invite for a new member. It returns the token or an error.
 	// createdBy is user ID of the admin or moderator who created it.
 	// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
@@ -125,16 +157,18 @@ type NoticesService interface {
 
 // for tests we use generated mocks from these interfaces created with https://github.com/maxbrunsfeld/counterfeiter
 
+//go:generate counterfeiter -o mockdb/aliases.go . AliasesService
+
 //go:generate counterfeiter -o mockdb/auth.go . AuthWithSSBService
 
 //go:generate counterfeiter -o mockdb/auth_fallback.go . AuthFallbackService
 
-//go:generate counterfeiter -o mockdb/allow.go . AllowListService
-
-//go:generate counterfeiter -o mockdb/alias.go . AliasService
-
-//go:generate counterfeiter -o mockdb/invite.go . InviteService
+//go:generate counterfeiter -o mockdb/denied.go . DeniedListService
 
 //go:generate counterfeiter -o mockdb/fixed_pages.go . PinnedNoticesService
+
+//go:generate counterfeiter -o mockdb/invites.go . InvitesService
+
+//go:generate counterfeiter -o mockdb/members.go . MembersService
 
 //go:generate counterfeiter -o mockdb/pages.go . NoticesService

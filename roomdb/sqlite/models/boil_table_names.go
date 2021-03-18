@@ -4,19 +4,21 @@
 package models
 
 var TableNames = struct {
-	Aliases      string
-	AllowList    string
-	AuthFallback string
-	Invites      string
-	Notices      string
-	PinNotices   string
-	Pins         string
+	Aliases           string
+	DeniedKeys        string
+	FallbackPasswords string
+	Invites           string
+	Members           string
+	Notices           string
+	PinNotices        string
+	Pins              string
 }{
-	Aliases:      "aliases",
-	AllowList:    "allow_list",
-	AuthFallback: "auth_fallback",
-	Invites:      "invites",
-	Notices:      "notices",
-	PinNotices:   "pin_notices",
-	Pins:         "pins",
+	Aliases:           "aliases",
+	DeniedKeys:        "denied_keys",
+	FallbackPasswords: "fallback_passwords",
+	Invites:           "invites",
+	Members:           "members",
+	Notices:           "notices",
+	PinNotices:        "pin_notices",
+	Pins:              "pins",
 }

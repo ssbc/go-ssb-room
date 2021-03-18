@@ -1,6 +1,6 @@
 [sqlite3]
 # go test in the admindb/sqlite package will create this
-dbname = "testrun/TestSimple/roomdb"
+dbname = "testrun/TestSchema/roomdb"
 blacklist = ["gorp_migrations"]
 
 

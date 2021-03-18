@@ -20,14 +20,14 @@ import (
 )
 
 // compiler assertion to ensure the struct fullfills the interface
-var _ roomdb.InviteService = (*Invites)(nil)
+var _ roomdb.InvitesService = (*Invites)(nil)
 
 // Invites implements the roomdb.InviteService.
 // Tokens are stored as sha256 hashes on disk to protect against attackers gaining database read-access.
 type Invites struct {
 	db *sql.DB
 
-	allowList *AllowList
+	members Members
 }
 
 // Create creates a new invite for a new member. It returns the token or an error.
@@ -56,7 +56,7 @@ func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion st
 			// hash the binary of the token for storage
 			h := sha256.New()
 			h.Write(tokenBytes)
-			newInvite.Token = fmt.Sprintf("%x", h.Sum(nil))
+			newInvite.HashedToken = fmt.Sprintf("%x", h.Sum(nil))
 
 			// insert the new invite
 			err := newInvite.Insert(ctx, tx, boil.Infer())
@@ -99,14 +99,19 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 
 	err = transact(i.db, func(tx *sql.Tx) error {
 		entry, err := models.Invites(
-			qm.Where("active = true AND token = ?", hashedToken),
-			qm.Load("CreatedByAuthFallback"),
+			qm.Where("active = true AND hashed_token = ?", hashedToken),
+			qm.Load("CreatedByMember"),
 		).One(ctx, tx)
 		if err != nil {
 			return err
 		}
 
-		err = i.allowList.add(ctx, tx, newMember)
+		memberNick := time.Now().Format("new-member 2006-01-02")
+		memberNick += "(invited by:" + entry.R.CreatedByMember.Nick + ")"
+		if entry.AliasSuggestion != "" {
+			memberNick = entry.AliasSuggestion
+		}
+		_, err = i.members.add(ctx, tx, memberNick, newMember, roomdb.RoleMember)
 		if err != nil {
 			return err
 		}
@@ -121,8 +126,9 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 		inv.ID = entry.ID
 		inv.CreatedAt = entry.CreatedAt
 		inv.AliasSuggestion = entry.AliasSuggestion
-		inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
-		inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
+		inv.CreatedBy.ID = entry.R.CreatedByMember.ID
+		inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
+		inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 		return nil
 	})
@@ -157,7 +163,7 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 
 	entry, err := models.Invites(
 		qm.Where("active = true AND token = ?", ht),
-		qm.Load("CreatedByAuthFallback"),
+		qm.Load("CreatedByMember"),
 	).One(ctx, i.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -169,8 +175,9 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 	inv.ID = entry.ID
 	inv.CreatedAt = entry.CreatedAt
 	inv.AliasSuggestion = entry.AliasSuggestion
-	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
-	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
+	inv.CreatedBy.ID = entry.R.CreatedByMember.ID
+	inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
+	inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 	return inv, nil
 }
@@ -180,7 +187,7 @@ func (i Invites) GetByID(ctx context.Context, id int64) (roomdb.Invite, error) {
 
 	entry, err := models.Invites(
 		qm.Where("active = true AND id = ?", id),
-		qm.Load("CreatedByAuthFallback"),
+		qm.Load("CreatedByMember"),
 	).One(ctx, i.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -192,8 +199,9 @@ func (i Invites) GetByID(ctx context.Context, id int64) (roomdb.Invite, error) {
 	inv.ID = entry.ID
 	inv.CreatedAt = entry.CreatedAt
 	inv.AliasSuggestion = entry.AliasSuggestion
-	inv.CreatedBy.ID = entry.R.CreatedByAuthFallback.ID
-	inv.CreatedBy.Name = entry.R.CreatedByAuthFallback.Name
+	inv.CreatedBy.ID = entry.R.CreatedByMember.ID
+	inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
+	inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 	return inv, nil
 }
@@ -205,7 +213,7 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 	err := transact(i.db, func(tx *sql.Tx) error {
 		entries, err := models.Invites(
 			qm.Where("active = true"),
-			qm.Load("CreatedByAuthFallback"),
+			qm.Load("CreatedByMember"),
 		).All(ctx, tx)
 		if err != nil {
 			return err
@@ -217,8 +225,8 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 			inv.ID = e.ID
 			inv.CreatedAt = e.CreatedAt
 			inv.AliasSuggestion = e.AliasSuggestion
-			inv.CreatedBy.ID = e.R.CreatedByAuthFallback.ID
-			inv.CreatedBy.Name = e.R.CreatedByAuthFallback.Name
+			inv.CreatedBy.ID = e.R.CreatedByMember.ID
+			inv.CreatedBy.Nickname = e.R.CreatedByMember.Nick
 
 			invs[idx] = inv
 		}

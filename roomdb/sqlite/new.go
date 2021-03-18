@@ -33,16 +33,16 @@ import (
 type Database struct {
 	db *sql.DB
 
-	AuthWithSSB  roomdb.AuthWithSSBService
 	AuthFallback roomdb.AuthFallbackService
 
-	AllowList roomdb.AllowListService
-	Aliases   roomdb.AliasService
+	Members Members
+	Aliases Aliases
 
-	PinnedNotices roomdb.PinnedNoticesService
-	Notices       roomdb.NoticesService
+	PinnedNotices PinnedNotices
+	Notices       Notices
 
-	Invites roomdb.InviteService
+	Invites Invites
+	// DeniedList Denied
 }
 
 // Open looks for a database file 'fname'
@@ -95,19 +95,21 @@ func Open(r repo.Interface) (*Database, error) {
 		}
 	}()
 
-	al := &AllowList{db}
+	ml := Members{db}
+
 	admindb := &Database{
-		db:            db,
-		AuthWithSSB:   AuthWithSSB{db},
-		AuthFallback:  AuthFallback{db},
-		AllowList:     al,
+		db: db,
+		// DeniedList:    DeniedList{db},
 		Aliases:       Aliases{db},
+		AuthFallback:  AuthFallback{db},
 		PinnedNotices: PinnedNotices{db},
 		Notices:       Notices{db},
 
+		Members: ml,
+
 		Invites: Invites{
-			db:        db,
-			allowList: al,
+			db:      db,
+			members: ml,
 		},
 	}
 

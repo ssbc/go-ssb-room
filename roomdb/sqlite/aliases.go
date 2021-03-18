@@ -16,7 +16,7 @@ import (
 )
 
 // compiler assertion to ensure the struct fullfills the interface
-var _ roomdb.AliasService = (*Aliases)(nil)
+var _ roomdb.AliasesService = (*Aliases)(nil)
 
 type Aliases struct {
 	db *sql.DB
@@ -35,8 +35,8 @@ func (a Aliases) GetByID(ctx context.Context, id int64) (roomdb.Alias, error) {
 func (a Aliases) findOne(ctx context.Context, by qm.QueryMod) (roomdb.Alias, error) {
 	var found roomdb.Alias
 
-	// construct query which resolves the User relation and by which we shoudl look for it
-	qry := append([]qm.QueryMod{qm.Load("User")}, by)
+	// construct query which resolves the Member relation and by which we shoudl look for it
+	qry := append([]qm.QueryMod{qm.Load("Member")}, by)
 
 	entry, err := models.Aliases(qry...).One(ctx, a.db)
 	if err != nil {
@@ -50,14 +50,14 @@ func (a Aliases) findOne(ctx context.Context, by qm.QueryMod) (roomdb.Alias, err
 	found.ID = entry.ID
 	found.Name = entry.Name
 	found.Signature = entry.Signature
-	found.Feed = entry.R.User.PubKey.FeedRef
+	found.Feed = entry.R.Member.PubKey.FeedRef
 
 	return found, nil
 }
 
 // List returns a list of all registerd aliases
 func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
-	all, err := models.Aliases(qm.Load("User")).All(ctx, a.db)
+	all, err := models.Aliases(qm.Load("Member")).All(ctx, a.db)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
 		aliases[i] = roomdb.Alias{
 			ID:        entry.ID,
 			Name:      entry.Name,
-			Feed:      entry.R.User.PubKey.FeedRef,
+			Feed:      entry.R.Member.PubKey.FeedRef,
 			Signature: entry.Signature,
 		}
 	}
@@ -80,7 +80,7 @@ func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
 func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedRef, signature []byte) error {
 	return transact(a.db, func(tx *sql.Tx) error {
 		// check we have a members entry for the feed and load it to get its ID
-		allowListEntry, err := models.AllowLists(qm.Where("pub_key = ?", userFeed.Ref())).One(ctx, tx)
+		memberEntry, err := models.Members(qm.Where("pub_key = ?", userFeed.Ref())).One(ctx, tx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return roomdb.ErrNotFound
@@ -90,7 +90,7 @@ func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedR
 
 		var newEntry models.Alias
 		newEntry.Name = alias
-		newEntry.UserID = allowListEntry.ID
+		newEntry.MemberID = memberEntry.ID
 		newEntry.Signature = signature
 
 		err = newEntry.Insert(ctx, tx, boil.Infer())
@@ -102,7 +102,7 @@ func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedR
 // Revoke removes an alias from the system
 func (a Aliases) Revoke(ctx context.Context, alias string) error {
 	return transact(a.db, func(tx *sql.Tx) error {
-		qry := append([]qm.QueryMod{qm.Load("User")}, qm.Where("name = ?", alias))
+		qry := append([]qm.QueryMod{qm.Load("Member")}, qm.Where("name = ?", alias))
 
 		entry, err := models.Aliases(qry...).One(ctx, a.db)
 		if err != nil {

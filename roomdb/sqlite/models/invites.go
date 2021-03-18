@@ -23,11 +23,11 @@ import (
 // Invite is an object representing the database table.
 type Invite struct {
 	ID              int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Token           string    `boil:"token" json:"token" toml:"token" yaml:"token"`
+	HashedToken     string    `boil:"hashed_token" json:"hashed_token" toml:"hashed_token" yaml:"hashed_token"`
 	CreatedBy       int64     `boil:"created_by" json:"created_by" toml:"created_by" yaml:"created_by"`
+	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	AliasSuggestion string    `boil:"alias_suggestion" json:"alias_suggestion" toml:"alias_suggestion" yaml:"alias_suggestion"`
 	Active          bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
-	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	R *inviteR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L inviteL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -35,18 +35,18 @@ type Invite struct {
 
 var InviteColumns = struct {
 	ID              string
-	Token           string
+	HashedToken     string
 	CreatedBy       string
+	CreatedAt       string
 	AliasSuggestion string
 	Active          string
-	CreatedAt       string
 }{
 	ID:              "id",
-	Token:           "token",
+	HashedToken:     "hashed_token",
 	CreatedBy:       "created_by",
+	CreatedAt:       "created_at",
 	AliasSuggestion: "alias_suggestion",
 	Active:          "active",
-	CreatedAt:       "created_at",
 }
 
 // Generated where
@@ -60,53 +60,32 @@ func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field
 func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
-type whereHelpertime_Time struct{ field string }
-
-func (w whereHelpertime_Time) EQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.EQ, x)
-}
-func (w whereHelpertime_Time) NEQ(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.NEQ, x)
-}
-func (w whereHelpertime_Time) LT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpertime_Time) LTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpertime_Time) GT(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpertime_Time) GTE(x time.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var InviteWhere = struct {
 	ID              whereHelperint64
-	Token           whereHelperstring
+	HashedToken     whereHelperstring
 	CreatedBy       whereHelperint64
+	CreatedAt       whereHelpertime_Time
 	AliasSuggestion whereHelperstring
 	Active          whereHelperbool
-	CreatedAt       whereHelpertime_Time
 }{
 	ID:              whereHelperint64{field: "\"invites\".\"id\""},
-	Token:           whereHelperstring{field: "\"invites\".\"token\""},
+	HashedToken:     whereHelperstring{field: "\"invites\".\"hashed_token\""},
 	CreatedBy:       whereHelperint64{field: "\"invites\".\"created_by\""},
+	CreatedAt:       whereHelpertime_Time{field: "\"invites\".\"created_at\""},
 	AliasSuggestion: whereHelperstring{field: "\"invites\".\"alias_suggestion\""},
 	Active:          whereHelperbool{field: "\"invites\".\"active\""},
-	CreatedAt:       whereHelpertime_Time{field: "\"invites\".\"created_at\""},
 }
 
 // InviteRels is where relationship names are stored.
 var InviteRels = struct {
-	CreatedByAuthFallback string
+	CreatedByMember string
 }{
-	CreatedByAuthFallback: "CreatedByAuthFallback",
+	CreatedByMember: "CreatedByMember",
 }
 
 // inviteR is where relationships are stored.
 type inviteR struct {
-	CreatedByAuthFallback *AuthFallback `boil:"CreatedByAuthFallback" json:"CreatedByAuthFallback" toml:"CreatedByAuthFallback" yaml:"CreatedByAuthFallback"`
+	CreatedByMember *Member `boil:"CreatedByMember" json:"CreatedByMember" toml:"CreatedByMember" yaml:"CreatedByMember"`
 }
 
 // NewStruct creates a new relationship struct
@@ -118,9 +97,9 @@ func (*inviteR) NewStruct() *inviteR {
 type inviteL struct{}
 
 var (
-	inviteAllColumns            = []string{"id", "token", "created_by", "alias_suggestion", "active", "created_at"}
+	inviteAllColumns            = []string{"id", "hashed_token", "created_by", "created_at", "alias_suggestion", "active"}
 	inviteColumnsWithoutDefault = []string{}
-	inviteColumnsWithDefault    = []string{"id", "token", "created_by", "alias_suggestion", "active", "created_at"}
+	inviteColumnsWithDefault    = []string{"id", "hashed_token", "created_by", "created_at", "alias_suggestion", "active"}
 	invitePrimaryKeyColumns     = []string{"id"}
 )
 
@@ -399,23 +378,23 @@ func (q inviteQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
-// CreatedByAuthFallback pointed to by the foreign key.
-func (o *Invite) CreatedByAuthFallback(mods ...qm.QueryMod) authFallbackQuery {
+// CreatedByMember pointed to by the foreign key.
+func (o *Invite) CreatedByMember(mods ...qm.QueryMod) memberQuery {
 	queryMods := []qm.QueryMod{
 		qm.Where("\"id\" = ?", o.CreatedBy),
 	}
 
 	queryMods = append(queryMods, mods...)
 
-	query := AuthFallbacks(queryMods...)
-	queries.SetFrom(query.Query, "\"auth_fallback\"")
+	query := Members(queryMods...)
+	queries.SetFrom(query.Query, "\"members\"")
 
 	return query
 }
 
-// LoadCreatedByAuthFallback allows an eager lookup of values, cached into the
+// LoadCreatedByMember allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExecutor, singular bool, maybeInvite interface{}, mods queries.Applicator) error {
+func (inviteL) LoadCreatedByMember(ctx context.Context, e boil.ContextExecutor, singular bool, maybeInvite interface{}, mods queries.Applicator) error {
 	var slice []*Invite
 	var object *Invite
 
@@ -455,8 +434,8 @@ func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExec
 	}
 
 	query := NewQuery(
-		qm.From(`auth_fallback`),
-		qm.WhereIn(`auth_fallback.id in ?`, args...),
+		qm.From(`members`),
+		qm.WhereIn(`members.id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -464,19 +443,19 @@ func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExec
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load AuthFallback")
+		return errors.Wrap(err, "failed to eager load Member")
 	}
 
-	var resultSlice []*AuthFallback
+	var resultSlice []*Member
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice AuthFallback")
+		return errors.Wrap(err, "failed to bind eager loaded slice Member")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for auth_fallback")
+		return errors.Wrap(err, "failed to close results of eager load for members")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for auth_fallback")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for members")
 	}
 
 	if len(inviteAfterSelectHooks) != 0 {
@@ -493,9 +472,9 @@ func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExec
 
 	if singular {
 		foreign := resultSlice[0]
-		object.R.CreatedByAuthFallback = foreign
+		object.R.CreatedByMember = foreign
 		if foreign.R == nil {
-			foreign.R = &authFallbackR{}
+			foreign.R = &memberR{}
 		}
 		foreign.R.CreatedByInvites = append(foreign.R.CreatedByInvites, object)
 		return nil
@@ -504,9 +483,9 @@ func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExec
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
 			if local.CreatedBy == foreign.ID {
-				local.R.CreatedByAuthFallback = foreign
+				local.R.CreatedByMember = foreign
 				if foreign.R == nil {
-					foreign.R = &authFallbackR{}
+					foreign.R = &memberR{}
 				}
 				foreign.R.CreatedByInvites = append(foreign.R.CreatedByInvites, local)
 				break
@@ -517,10 +496,10 @@ func (inviteL) LoadCreatedByAuthFallback(ctx context.Context, e boil.ContextExec
 	return nil
 }
 
-// SetCreatedByAuthFallback of the invite to the related item.
-// Sets o.R.CreatedByAuthFallback to related.
+// SetCreatedByMember of the invite to the related item.
+// Sets o.R.CreatedByMember to related.
 // Adds o to related.R.CreatedByInvites.
-func (o *Invite) SetCreatedByAuthFallback(ctx context.Context, exec boil.ContextExecutor, insert bool, related *AuthFallback) error {
+func (o *Invite) SetCreatedByMember(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Member) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -547,14 +526,14 @@ func (o *Invite) SetCreatedByAuthFallback(ctx context.Context, exec boil.Context
 	o.CreatedBy = related.ID
 	if o.R == nil {
 		o.R = &inviteR{
-			CreatedByAuthFallback: related,
+			CreatedByMember: related,
 		}
 	} else {
-		o.R.CreatedByAuthFallback = related
+		o.R.CreatedByMember = related
 	}
 
 	if related.R == nil {
-		related.R = &authFallbackR{
+		related.R = &memberR{
 			CreatedByInvites: InviteSlice{o},
 		}
 	} else {

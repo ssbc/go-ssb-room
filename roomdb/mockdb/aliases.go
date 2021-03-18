@@ -9,7 +9,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-type FakeAliasService struct {
+type FakeAliasesService struct {
 	GetByIDStub        func(context.Context, int64) (roomdb.Alias, error)
 	getByIDMutex       sync.RWMutex
 	getByIDArgsForCall []struct {
@@ -81,7 +81,7 @@ type FakeAliasService struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeAliasService) GetByID(arg1 context.Context, arg2 int64) (roomdb.Alias, error) {
+func (fake *FakeAliasesService) GetByID(arg1 context.Context, arg2 int64) (roomdb.Alias, error) {
 	fake.getByIDMutex.Lock()
 	ret, specificReturn := fake.getByIDReturnsOnCall[len(fake.getByIDArgsForCall)]
 	fake.getByIDArgsForCall = append(fake.getByIDArgsForCall, struct {
@@ -101,26 +101,26 @@ func (fake *FakeAliasService) GetByID(arg1 context.Context, arg2 int64) (roomdb.
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeAliasService) GetByIDCallCount() int {
+func (fake *FakeAliasesService) GetByIDCallCount() int {
 	fake.getByIDMutex.RLock()
 	defer fake.getByIDMutex.RUnlock()
 	return len(fake.getByIDArgsForCall)
 }
 
-func (fake *FakeAliasService) GetByIDCalls(stub func(context.Context, int64) (roomdb.Alias, error)) {
+func (fake *FakeAliasesService) GetByIDCalls(stub func(context.Context, int64) (roomdb.Alias, error)) {
 	fake.getByIDMutex.Lock()
 	defer fake.getByIDMutex.Unlock()
 	fake.GetByIDStub = stub
 }
 
-func (fake *FakeAliasService) GetByIDArgsForCall(i int) (context.Context, int64) {
+func (fake *FakeAliasesService) GetByIDArgsForCall(i int) (context.Context, int64) {
 	fake.getByIDMutex.RLock()
 	defer fake.getByIDMutex.RUnlock()
 	argsForCall := fake.getByIDArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAliasService) GetByIDReturns(result1 roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) GetByIDReturns(result1 roomdb.Alias, result2 error) {
 	fake.getByIDMutex.Lock()
 	defer fake.getByIDMutex.Unlock()
 	fake.GetByIDStub = nil
@@ -130,7 +130,7 @@ func (fake *FakeAliasService) GetByIDReturns(result1 roomdb.Alias, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) GetByIDReturnsOnCall(i int, result1 roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) GetByIDReturnsOnCall(i int, result1 roomdb.Alias, result2 error) {
 	fake.getByIDMutex.Lock()
 	defer fake.getByIDMutex.Unlock()
 	fake.GetByIDStub = nil
@@ -146,7 +146,7 @@ func (fake *FakeAliasService) GetByIDReturnsOnCall(i int, result1 roomdb.Alias, 
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) List(arg1 context.Context) ([]roomdb.Alias, error) {
+func (fake *FakeAliasesService) List(arg1 context.Context) ([]roomdb.Alias, error) {
 	fake.listMutex.Lock()
 	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
 	fake.listArgsForCall = append(fake.listArgsForCall, struct {
@@ -165,26 +165,26 @@ func (fake *FakeAliasService) List(arg1 context.Context) ([]roomdb.Alias, error)
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeAliasService) ListCallCount() int {
+func (fake *FakeAliasesService) ListCallCount() int {
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
 	return len(fake.listArgsForCall)
 }
 
-func (fake *FakeAliasService) ListCalls(stub func(context.Context) ([]roomdb.Alias, error)) {
+func (fake *FakeAliasesService) ListCalls(stub func(context.Context) ([]roomdb.Alias, error)) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = stub
 }
 
-func (fake *FakeAliasService) ListArgsForCall(i int) context.Context {
+func (fake *FakeAliasesService) ListArgsForCall(i int) context.Context {
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
 	argsForCall := fake.listArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeAliasService) ListReturns(result1 []roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) ListReturns(result1 []roomdb.Alias, result2 error) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
@@ -194,7 +194,7 @@ func (fake *FakeAliasService) ListReturns(result1 []roomdb.Alias, result2 error)
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) ListReturnsOnCall(i int, result1 []roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) ListReturnsOnCall(i int, result1 []roomdb.Alias, result2 error) {
 	fake.listMutex.Lock()
 	defer fake.listMutex.Unlock()
 	fake.ListStub = nil
@@ -210,7 +210,7 @@ func (fake *FakeAliasService) ListReturnsOnCall(i int, result1 []roomdb.Alias, r
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) Register(arg1 context.Context, arg2 string, arg3 refs.FeedRef, arg4 []byte) error {
+func (fake *FakeAliasesService) Register(arg1 context.Context, arg2 string, arg3 refs.FeedRef, arg4 []byte) error {
 	var arg4Copy []byte
 	if arg4 != nil {
 		arg4Copy = make([]byte, len(arg4))
@@ -237,26 +237,26 @@ func (fake *FakeAliasService) Register(arg1 context.Context, arg2 string, arg3 r
 	return fakeReturns.result1
 }
 
-func (fake *FakeAliasService) RegisterCallCount() int {
+func (fake *FakeAliasesService) RegisterCallCount() int {
 	fake.registerMutex.RLock()
 	defer fake.registerMutex.RUnlock()
 	return len(fake.registerArgsForCall)
 }
 
-func (fake *FakeAliasService) RegisterCalls(stub func(context.Context, string, refs.FeedRef, []byte) error) {
+func (fake *FakeAliasesService) RegisterCalls(stub func(context.Context, string, refs.FeedRef, []byte) error) {
 	fake.registerMutex.Lock()
 	defer fake.registerMutex.Unlock()
 	fake.RegisterStub = stub
 }
 
-func (fake *FakeAliasService) RegisterArgsForCall(i int) (context.Context, string, refs.FeedRef, []byte) {
+func (fake *FakeAliasesService) RegisterArgsForCall(i int) (context.Context, string, refs.FeedRef, []byte) {
 	fake.registerMutex.RLock()
 	defer fake.registerMutex.RUnlock()
 	argsForCall := fake.registerArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
 }
 
-func (fake *FakeAliasService) RegisterReturns(result1 error) {
+func (fake *FakeAliasesService) RegisterReturns(result1 error) {
 	fake.registerMutex.Lock()
 	defer fake.registerMutex.Unlock()
 	fake.RegisterStub = nil
@@ -265,7 +265,7 @@ func (fake *FakeAliasService) RegisterReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAliasService) RegisterReturnsOnCall(i int, result1 error) {
+func (fake *FakeAliasesService) RegisterReturnsOnCall(i int, result1 error) {
 	fake.registerMutex.Lock()
 	defer fake.registerMutex.Unlock()
 	fake.RegisterStub = nil
@@ -279,7 +279,7 @@ func (fake *FakeAliasService) RegisterReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAliasService) Resolve(arg1 context.Context, arg2 string) (roomdb.Alias, error) {
+func (fake *FakeAliasesService) Resolve(arg1 context.Context, arg2 string) (roomdb.Alias, error) {
 	fake.resolveMutex.Lock()
 	ret, specificReturn := fake.resolveReturnsOnCall[len(fake.resolveArgsForCall)]
 	fake.resolveArgsForCall = append(fake.resolveArgsForCall, struct {
@@ -299,26 +299,26 @@ func (fake *FakeAliasService) Resolve(arg1 context.Context, arg2 string) (roomdb
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeAliasService) ResolveCallCount() int {
+func (fake *FakeAliasesService) ResolveCallCount() int {
 	fake.resolveMutex.RLock()
 	defer fake.resolveMutex.RUnlock()
 	return len(fake.resolveArgsForCall)
 }
 
-func (fake *FakeAliasService) ResolveCalls(stub func(context.Context, string) (roomdb.Alias, error)) {
+func (fake *FakeAliasesService) ResolveCalls(stub func(context.Context, string) (roomdb.Alias, error)) {
 	fake.resolveMutex.Lock()
 	defer fake.resolveMutex.Unlock()
 	fake.ResolveStub = stub
 }
 
-func (fake *FakeAliasService) ResolveArgsForCall(i int) (context.Context, string) {
+func (fake *FakeAliasesService) ResolveArgsForCall(i int) (context.Context, string) {
 	fake.resolveMutex.RLock()
 	defer fake.resolveMutex.RUnlock()
 	argsForCall := fake.resolveArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAliasService) ResolveReturns(result1 roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) ResolveReturns(result1 roomdb.Alias, result2 error) {
 	fake.resolveMutex.Lock()
 	defer fake.resolveMutex.Unlock()
 	fake.ResolveStub = nil
@@ -328,7 +328,7 @@ func (fake *FakeAliasService) ResolveReturns(result1 roomdb.Alias, result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) ResolveReturnsOnCall(i int, result1 roomdb.Alias, result2 error) {
+func (fake *FakeAliasesService) ResolveReturnsOnCall(i int, result1 roomdb.Alias, result2 error) {
 	fake.resolveMutex.Lock()
 	defer fake.resolveMutex.Unlock()
 	fake.ResolveStub = nil
@@ -344,7 +344,7 @@ func (fake *FakeAliasService) ResolveReturnsOnCall(i int, result1 roomdb.Alias, 
 	}{result1, result2}
 }
 
-func (fake *FakeAliasService) Revoke(arg1 context.Context, arg2 string) error {
+func (fake *FakeAliasesService) Revoke(arg1 context.Context, arg2 string) error {
 	fake.revokeMutex.Lock()
 	ret, specificReturn := fake.revokeReturnsOnCall[len(fake.revokeArgsForCall)]
 	fake.revokeArgsForCall = append(fake.revokeArgsForCall, struct {
@@ -364,26 +364,26 @@ func (fake *FakeAliasService) Revoke(arg1 context.Context, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeAliasService) RevokeCallCount() int {
+func (fake *FakeAliasesService) RevokeCallCount() int {
 	fake.revokeMutex.RLock()
 	defer fake.revokeMutex.RUnlock()
 	return len(fake.revokeArgsForCall)
 }
 
-func (fake *FakeAliasService) RevokeCalls(stub func(context.Context, string) error) {
+func (fake *FakeAliasesService) RevokeCalls(stub func(context.Context, string) error) {
 	fake.revokeMutex.Lock()
 	defer fake.revokeMutex.Unlock()
 	fake.RevokeStub = stub
 }
 
-func (fake *FakeAliasService) RevokeArgsForCall(i int) (context.Context, string) {
+func (fake *FakeAliasesService) RevokeArgsForCall(i int) (context.Context, string) {
 	fake.revokeMutex.RLock()
 	defer fake.revokeMutex.RUnlock()
 	argsForCall := fake.revokeArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeAliasService) RevokeReturns(result1 error) {
+func (fake *FakeAliasesService) RevokeReturns(result1 error) {
 	fake.revokeMutex.Lock()
 	defer fake.revokeMutex.Unlock()
 	fake.RevokeStub = nil
@@ -392,7 +392,7 @@ func (fake *FakeAliasService) RevokeReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAliasService) RevokeReturnsOnCall(i int, result1 error) {
+func (fake *FakeAliasesService) RevokeReturnsOnCall(i int, result1 error) {
 	fake.revokeMutex.Lock()
 	defer fake.revokeMutex.Unlock()
 	fake.RevokeStub = nil
@@ -406,7 +406,7 @@ func (fake *FakeAliasService) RevokeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeAliasService) Invocations() map[string][][]interface{} {
+func (fake *FakeAliasesService) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getByIDMutex.RLock()
@@ -426,7 +426,7 @@ func (fake *FakeAliasService) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeAliasService) recordInvocation(key string, args []interface{}) {
+func (fake *FakeAliasesService) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -438,4 +438,4 @@ func (fake *FakeAliasService) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ roomdb.AliasService = new(FakeAliasService)
+var _ roomdb.AliasesService = new(FakeAliasesService)
