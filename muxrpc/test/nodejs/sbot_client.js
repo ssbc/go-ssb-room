@@ -45,7 +45,7 @@ tape(testName, function (t) {
   function ready() { // needs to be called by the before block when it's done
     t.timeoutAfter(timeoutLength) // doesn't exit the process
     tapeTimeout = setTimeout(() => {
-      t.comment('test timeout')
+      t.comment('!! test did not complete before timeout; shutting everything down')
       process.exit(1)
     }, timeoutLength)
     const to = `net:${testPeerAddr}~shs:${testPeerRef.substr(1).replace('.ed25519', '')}`

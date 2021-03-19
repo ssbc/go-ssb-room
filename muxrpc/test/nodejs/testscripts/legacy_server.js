@@ -22,8 +22,8 @@ module.exports = {
         t.comment(`total connections: ${connections}`)
         
         if (connections == 2) {
-            t.comment('2nd connection received. exiting in 10 seconds')
-            setTimeout(exit, 10000)
+            t.comment('2nd connection received. exiting in 20 seconds')
+            setTimeout(exit, 20000)
         }
     }
 }
