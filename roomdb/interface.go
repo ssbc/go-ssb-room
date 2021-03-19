@@ -41,14 +41,11 @@ type MembersService interface {
 	// Add adds a new member
 	Add(_ context.Context, nickName string, pubKey refs.FeedRef, r Role) (int64, error)
 
-	// HasFeed returns true if a feed is on the list.
-	HasFeed(context.Context, refs.FeedRef) bool
-
-	// HasFeed returns true if a feed is on the list.
-	HasID(context.Context, int64) bool
-
-	// GetByID returns the list entry for that ID or an error
+	// GetByID returns the member if it exists
 	GetByID(context.Context, int64) (Member, error)
+
+	// GetByFeed returns the member if it exists
+	GetByFeed(context.Context, refs.FeedRef) (Member, error)
 
 	// List returns a list of all the members.
 	List(context.Context) ([]Member, error)

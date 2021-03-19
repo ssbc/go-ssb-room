@@ -76,8 +76,8 @@ func TestInvites(t *testing.T) {
 		r.Equal(testMemberNick, lst[0].CreatedBy.Nickname)
 		r.True(lst[0].CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
-		nope := db.Members.HasFeed(ctx, newMember)
-		r.False(nope, "expected feed to not yet be on the allow list")
+		_, nope := db.Members.GetByFeed(ctx, newMember)
+		r.Error(nope, "expected feed to not yet be on the allow list")
 
 		inv, err := db.Invites.Consume(ctx, tok, newMember)
 		r.NoError(err, "failed to consume the invite")
@@ -86,8 +86,8 @@ func TestInvites(t *testing.T) {
 		r.True(inv.CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
 		// consume also adds it to the allow list
-		yes := db.Members.HasFeed(ctx, newMember)
-		r.True(yes, "expected feed on the allow list")
+		_, yes := db.Members.GetByFeed(ctx, newMember)
+		r.NoError(yes, "expected feed on the allow list")
 
 		lst, err = db.Invites.List(ctx)
 		r.NoError(err, "failed to get list of tokens post consume")

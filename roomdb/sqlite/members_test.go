@@ -33,7 +33,7 @@ func TestMembers(t *testing.T) {
 
 	// looks ok at least
 	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
-	_, err = db.Members.Add(ctx, "should-add-me", okFeed, roomdb.RoleMember)
+	mid, err := db.Members.Add(ctx, "should-add-me", okFeed, roomdb.RoleMember)
 	r.NoError(err)
 
 	sqlDB := db.Members.db
@@ -45,11 +45,18 @@ func TestMembers(t *testing.T) {
 	r.NoError(err)
 	r.Len(lst, 1)
 
-	yes := db.Members.HasFeed(ctx, okFeed)
-	r.True(yes)
+	_, yes := db.Members.GetByFeed(ctx, okFeed)
+	r.NoError(yes)
 
-	yes = db.Members.HasFeed(ctx, tf)
-	r.False(yes)
+	okMember, err := db.Members.GetByFeed(ctx, okFeed)
+	r.NoError(err)
+	r.Equal(okMember.ID, mid)
+	r.Equal(okMember.Nickname, "should-add-me")
+	r.Equal(okMember.Role, roomdb.RoleMember)
+	r.True(okMember.PubKey.Equal(&okFeed))
+
+	_, yes = db.Members.GetByFeed(ctx, tf)
+	r.Error(yes)
 
 	err = db.Members.RemoveFeed(ctx, okFeed)
 	r.NoError(err)
@@ -62,8 +69,8 @@ func TestMembers(t *testing.T) {
 	r.NoError(err)
 	r.Len(lst, 0)
 
-	yes = db.Members.HasFeed(ctx, okFeed)
-	r.False(yes)
+	_, yes = db.Members.GetByFeed(ctx, okFeed)
+	r.Error(yes)
 
 	r.NoError(db.Close())
 }
@@ -114,11 +121,11 @@ func TestMembersByID(t *testing.T) {
 	r.NoError(err)
 	r.Len(lst, 1)
 
-	yes := db.Members.HasID(ctx, lst[0].ID)
-	r.True(yes)
+	_, yes := db.Members.GetByID(ctx, lst[0].ID)
+	r.NoError(yes)
 
-	yes = db.Members.HasID(ctx, 666)
-	r.False(yes)
+	_, yes = db.Members.GetByID(ctx, 666)
+	r.Error(yes)
 
 	err = db.Members.RemoveID(ctx, 666)
 	r.Error(err)
@@ -127,6 +134,6 @@ func TestMembersByID(t *testing.T) {
 	err = db.Members.RemoveID(ctx, lst[0].ID)
 	r.NoError(err)
 
-	yes = db.Members.HasID(ctx, lst[0].ID)
-	r.False(yes)
+	_, yes = db.Members.GetByID(ctx, lst[0].ID)
+	r.Error(yes)
 }

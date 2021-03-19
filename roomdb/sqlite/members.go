@@ -57,32 +57,30 @@ func (Members) add(ctx context.Context, tx *sql.Tx, nick string, pubKey refs.Fee
 }
 
 func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) {
-	modelU, err := models.FindMember(ctx, m.db, mid)
+	entry, err := models.FindMember(ctx, m.db, mid)
 	if err != nil {
 		return roomdb.Member{}, err
 	}
 	return roomdb.Member{
-		ID:       modelU.ID,
-		Nickname: modelU.Nick,
+		ID:       entry.ID,
+		Role:     roomdb.Role(entry.Role),
+		Nickname: entry.Nick,
+		PubKey:   entry.PubKey.FeedRef,
 	}, nil
 }
 
-// HasFeed returns true if a feed is on the list.
-func (m Members) HasFeed(ctx context.Context, h refs.FeedRef) bool {
-	_, err := models.Members(qm.Where("pub_key = ?", h.Ref())).One(ctx, m.db)
+// GetByFeed returns the member if it exists
+func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, error) {
+	entry, err := models.Members(qm.Where("pub_key = ?", h.Ref())).One(ctx, m.db)
 	if err != nil {
-		return false
+		return roomdb.Member{}, err
 	}
-	return true
-}
-
-// HasID returns true if a feed is on the list.
-func (m Members) HasID(ctx context.Context, id int64) bool {
-	_, err := models.FindMember(ctx, m.db, id)
-	if err != nil {
-		return false
-	}
-	return true
+	return roomdb.Member{
+		ID:       entry.ID,
+		Role:     roomdb.Role(entry.Role),
+		Nickname: entry.Nick,
+		PubKey:   entry.PubKey.FeedRef,
+	}, nil
 }
 
 // List returns a list of all the feeds.

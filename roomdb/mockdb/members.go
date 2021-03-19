@@ -26,6 +26,20 @@ type FakeMembersService struct {
 		result1 int64
 		result2 error
 	}
+	GetByFeedStub        func(context.Context, refs.FeedRef) (roomdb.Member, error)
+	getByFeedMutex       sync.RWMutex
+	getByFeedArgsForCall []struct {
+		arg1 context.Context
+		arg2 refs.FeedRef
+	}
+	getByFeedReturns struct {
+		result1 roomdb.Member
+		result2 error
+	}
+	getByFeedReturnsOnCall map[int]struct {
+		result1 roomdb.Member
+		result2 error
+	}
 	GetByIDStub        func(context.Context, int64) (roomdb.Member, error)
 	getByIDMutex       sync.RWMutex
 	getByIDArgsForCall []struct {
@@ -39,30 +53,6 @@ type FakeMembersService struct {
 	getByIDReturnsOnCall map[int]struct {
 		result1 roomdb.Member
 		result2 error
-	}
-	HasFeedStub        func(context.Context, refs.FeedRef) bool
-	hasFeedMutex       sync.RWMutex
-	hasFeedArgsForCall []struct {
-		arg1 context.Context
-		arg2 refs.FeedRef
-	}
-	hasFeedReturns struct {
-		result1 bool
-	}
-	hasFeedReturnsOnCall map[int]struct {
-		result1 bool
-	}
-	HasIDStub        func(context.Context, int64) bool
-	hasIDMutex       sync.RWMutex
-	hasIDArgsForCall []struct {
-		arg1 context.Context
-		arg2 int64
-	}
-	hasIDReturns struct {
-		result1 bool
-	}
-	hasIDReturnsOnCall map[int]struct {
-		result1 bool
 	}
 	ListStub        func(context.Context) ([]roomdb.Member, error)
 	listMutex       sync.RWMutex
@@ -185,6 +175,71 @@ func (fake *FakeMembersService) AddReturnsOnCall(i int, result1 int64, result2 e
 	}{result1, result2}
 }
 
+func (fake *FakeMembersService) GetByFeed(arg1 context.Context, arg2 refs.FeedRef) (roomdb.Member, error) {
+	fake.getByFeedMutex.Lock()
+	ret, specificReturn := fake.getByFeedReturnsOnCall[len(fake.getByFeedArgsForCall)]
+	fake.getByFeedArgsForCall = append(fake.getByFeedArgsForCall, struct {
+		arg1 context.Context
+		arg2 refs.FeedRef
+	}{arg1, arg2})
+	stub := fake.GetByFeedStub
+	fakeReturns := fake.getByFeedReturns
+	fake.recordInvocation("GetByFeed", []interface{}{arg1, arg2})
+	fake.getByFeedMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeMembersService) GetByFeedCallCount() int {
+	fake.getByFeedMutex.RLock()
+	defer fake.getByFeedMutex.RUnlock()
+	return len(fake.getByFeedArgsForCall)
+}
+
+func (fake *FakeMembersService) GetByFeedCalls(stub func(context.Context, refs.FeedRef) (roomdb.Member, error)) {
+	fake.getByFeedMutex.Lock()
+	defer fake.getByFeedMutex.Unlock()
+	fake.GetByFeedStub = stub
+}
+
+func (fake *FakeMembersService) GetByFeedArgsForCall(i int) (context.Context, refs.FeedRef) {
+	fake.getByFeedMutex.RLock()
+	defer fake.getByFeedMutex.RUnlock()
+	argsForCall := fake.getByFeedArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeMembersService) GetByFeedReturns(result1 roomdb.Member, result2 error) {
+	fake.getByFeedMutex.Lock()
+	defer fake.getByFeedMutex.Unlock()
+	fake.GetByFeedStub = nil
+	fake.getByFeedReturns = struct {
+		result1 roomdb.Member
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeMembersService) GetByFeedReturnsOnCall(i int, result1 roomdb.Member, result2 error) {
+	fake.getByFeedMutex.Lock()
+	defer fake.getByFeedMutex.Unlock()
+	fake.GetByFeedStub = nil
+	if fake.getByFeedReturnsOnCall == nil {
+		fake.getByFeedReturnsOnCall = make(map[int]struct {
+			result1 roomdb.Member
+			result2 error
+		})
+	}
+	fake.getByFeedReturnsOnCall[i] = struct {
+		result1 roomdb.Member
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeMembersService) GetByID(arg1 context.Context, arg2 int64) (roomdb.Member, error) {
 	fake.getByIDMutex.Lock()
 	ret, specificReturn := fake.getByIDReturnsOnCall[len(fake.getByIDArgsForCall)]
@@ -248,130 +303,6 @@ func (fake *FakeMembersService) GetByIDReturnsOnCall(i int, result1 roomdb.Membe
 		result1 roomdb.Member
 		result2 error
 	}{result1, result2}
-}
-
-func (fake *FakeMembersService) HasFeed(arg1 context.Context, arg2 refs.FeedRef) bool {
-	fake.hasFeedMutex.Lock()
-	ret, specificReturn := fake.hasFeedReturnsOnCall[len(fake.hasFeedArgsForCall)]
-	fake.hasFeedArgsForCall = append(fake.hasFeedArgsForCall, struct {
-		arg1 context.Context
-		arg2 refs.FeedRef
-	}{arg1, arg2})
-	stub := fake.HasFeedStub
-	fakeReturns := fake.hasFeedReturns
-	fake.recordInvocation("HasFeed", []interface{}{arg1, arg2})
-	fake.hasFeedMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeMembersService) HasFeedCallCount() int {
-	fake.hasFeedMutex.RLock()
-	defer fake.hasFeedMutex.RUnlock()
-	return len(fake.hasFeedArgsForCall)
-}
-
-func (fake *FakeMembersService) HasFeedCalls(stub func(context.Context, refs.FeedRef) bool) {
-	fake.hasFeedMutex.Lock()
-	defer fake.hasFeedMutex.Unlock()
-	fake.HasFeedStub = stub
-}
-
-func (fake *FakeMembersService) HasFeedArgsForCall(i int) (context.Context, refs.FeedRef) {
-	fake.hasFeedMutex.RLock()
-	defer fake.hasFeedMutex.RUnlock()
-	argsForCall := fake.hasFeedArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeMembersService) HasFeedReturns(result1 bool) {
-	fake.hasFeedMutex.Lock()
-	defer fake.hasFeedMutex.Unlock()
-	fake.HasFeedStub = nil
-	fake.hasFeedReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeMembersService) HasFeedReturnsOnCall(i int, result1 bool) {
-	fake.hasFeedMutex.Lock()
-	defer fake.hasFeedMutex.Unlock()
-	fake.HasFeedStub = nil
-	if fake.hasFeedReturnsOnCall == nil {
-		fake.hasFeedReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.hasFeedReturnsOnCall[i] = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeMembersService) HasID(arg1 context.Context, arg2 int64) bool {
-	fake.hasIDMutex.Lock()
-	ret, specificReturn := fake.hasIDReturnsOnCall[len(fake.hasIDArgsForCall)]
-	fake.hasIDArgsForCall = append(fake.hasIDArgsForCall, struct {
-		arg1 context.Context
-		arg2 int64
-	}{arg1, arg2})
-	stub := fake.HasIDStub
-	fakeReturns := fake.hasIDReturns
-	fake.recordInvocation("HasID", []interface{}{arg1, arg2})
-	fake.hasIDMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fakeReturns.result1
-}
-
-func (fake *FakeMembersService) HasIDCallCount() int {
-	fake.hasIDMutex.RLock()
-	defer fake.hasIDMutex.RUnlock()
-	return len(fake.hasIDArgsForCall)
-}
-
-func (fake *FakeMembersService) HasIDCalls(stub func(context.Context, int64) bool) {
-	fake.hasIDMutex.Lock()
-	defer fake.hasIDMutex.Unlock()
-	fake.HasIDStub = stub
-}
-
-func (fake *FakeMembersService) HasIDArgsForCall(i int) (context.Context, int64) {
-	fake.hasIDMutex.RLock()
-	defer fake.hasIDMutex.RUnlock()
-	argsForCall := fake.hasIDArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeMembersService) HasIDReturns(result1 bool) {
-	fake.hasIDMutex.Lock()
-	defer fake.hasIDMutex.Unlock()
-	fake.HasIDStub = nil
-	fake.hasIDReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeMembersService) HasIDReturnsOnCall(i int, result1 bool) {
-	fake.hasIDMutex.Lock()
-	defer fake.hasIDMutex.Unlock()
-	fake.HasIDStub = nil
-	if fake.hasIDReturnsOnCall == nil {
-		fake.hasIDReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.hasIDReturnsOnCall[i] = struct {
-		result1 bool
-	}{result1}
 }
 
 func (fake *FakeMembersService) List(arg1 context.Context) ([]roomdb.Member, error) {
@@ -630,12 +561,10 @@ func (fake *FakeMembersService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.getByFeedMutex.RLock()
+	defer fake.getByFeedMutex.RUnlock()
 	fake.getByIDMutex.RLock()
 	defer fake.getByIDMutex.RUnlock()
-	fake.hasFeedMutex.RLock()
-	defer fake.hasFeedMutex.RUnlock()
-	fake.hasIDMutex.RLock()
-	defer fake.hasIDMutex.RUnlock()
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
 	fake.removeFeedMutex.RLock()
