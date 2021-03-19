@@ -1,18 +1,18 @@
-{{ define "title" }}{{i18n "AdminAllowListRemoveConfirmTitle"}}{{ end }}
+{{ define "title" }}{{i18n "AdminDeniedKeysRemoveConfirmTitle"}}{{ end }}
 {{ define "content" }}
     <div class="flex flex-col justify-center items-center h-64">
 
       <span
         id="welcome"
         class="text-center"
-      >{{i18n "AdminAllowListRemoveConfirmWelcome"}}</span>
+      >{{i18n "AdminDeniedKeysRemoveConfirmWelcome"}}</span>
 
       <pre
         id="verify"
         class="my-4 font-mono truncate max-w-full text-lg text-gray-700"
       >{{.Entry.PubKey.Ref}}</pre>
 
-      <form id="confirm" action="{{urlTo "admin:allow-list:remove"}}" method="POST">
+      <form id="confirm" action="{{urlTo "admin:denied-keys:remove"}}" method="POST">
         {{ .csrfField }}
         <input type="hidden" name="id" value={{.Entry.ID}}>
         <div class="grid grid-cols-2 gap-4">

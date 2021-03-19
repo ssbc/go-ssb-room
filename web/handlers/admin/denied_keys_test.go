@@ -92,6 +92,7 @@ func TestDeniedKeysDontAddInvalid(t *testing.T) {
 
 	newKey := "@some-garbage"
 	addVals := url.Values{
+		"comment": []string{"some-comment"},
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
@@ -120,7 +121,7 @@ func TestDeniedKeys(t *testing.T) {
 	}
 	ts.DeniedKeysDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/members")
+	html, resp := ts.Client.GetHTML("/denied")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -136,7 +137,7 @@ func TestDeniedKeys(t *testing.T) {
 	}
 	ts.DeniedKeysDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/members")
+	html, resp = ts.Client.GetHTML("/denied")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -151,7 +152,7 @@ func TestDeniedKeys(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/members/remove/confirm?id=666", link)
+	a.Equal("/admin/denied/remove/confirm?id=666", link)
 }
 
 func TestDeniedKeysRemoveConfirmation(t *testing.T) {
