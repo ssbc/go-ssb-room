@@ -46,7 +46,7 @@ var HTMLTemplates = []string{
 type Databases struct {
 	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
-	DeniedList    roomdb.DeniedListService
+	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
 	Members       roomdb.MembersService
@@ -234,9 +234,10 @@ func New(
 		roomState,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
-			Members:       dbs.Members,
+			DeniedKeys:    dbs.DeniedKeys,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
+			Members:       dbs.Members,
 			PinnedNotices: dbs.PinnedNotices,
 		},
 	)

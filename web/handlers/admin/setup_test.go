@@ -36,7 +36,7 @@ type testSession struct {
 	MembersDB    *mockdb.FakeMembersService
 	PinnedDB     *mockdb.FakePinnedNoticesService
 
-	User *roomdb.Member
+	User roomdb.Member
 
 	Domain string
 
@@ -63,7 +63,7 @@ func newSession(t *testing.T) *testSession {
 	ts.Domain = randomString(10)
 
 	// fake user
-	ts.User = &roomdb.Member{
+	ts.User = roomdb.Member{
 		ID:       1234,
 		Nickname: "room mate",
 		Role:     roomdb.RoleModerator,
@@ -81,7 +81,7 @@ func newSession(t *testing.T) *testSession {
 		return msgID + "Plural"
 	}
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
-	testFuncs["is_logged_in"] = func() *roomdb.Member { return ts.User }
+	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 

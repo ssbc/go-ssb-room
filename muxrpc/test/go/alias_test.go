@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -18,6 +16,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
 

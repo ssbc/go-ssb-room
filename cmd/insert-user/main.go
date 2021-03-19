@@ -31,16 +31,11 @@ func main() {
 
 	var (
 		repoPath string
-		role     roomdb.Role
+		role     roomdb.Role = roomdb.RoleAdmin
 	)
 
 	flag.StringVar(&repoPath, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "where the repo of the room is located")
 	flag.Func("role", "which role the new member should have (ie moderator, admin, member. defaults to admin)", func(val string) error {
-		if val == "" {
-			role = roomdb.RoleAdmin
-			return nil
-		}
-
 		switch strings.ToLower(val) {
 		case "admin":
 			role = roomdb.RoleAdmin
@@ -58,7 +53,7 @@ func main() {
 
 	flag.Parse()
 
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		fmt.Fprintf(os.Stderr, "usage: %s <user-name> <@theirPublicKey.ed25519>\n", os.Args[0])
 		flag.Usage()
 		os.Exit(1)
@@ -70,7 +65,8 @@ func main() {
 	check(err)
 	defer db.Close()
 
-	pubKey, err := refs.ParseFeedRef(os.Args[1])
+	pubKey, err := refs.ParseFeedRef(os.Args[2])
+	check(err)
 
 	fmt.Fprintln(os.Stderr, "Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
