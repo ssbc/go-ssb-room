@@ -19,7 +19,7 @@ func TestInvitesOverview(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	testUser := roomdb.User{ID: 23}
+	testUser := roomdb.Member{ID: 23}
 
 	lst := []roomdb.Invite{
 		{ID: 1, CreatedBy: testUser, AliasSuggestion: "foo"},

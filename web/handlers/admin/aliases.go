@@ -20,7 +20,7 @@ import (
 type aliasesHandler struct {
 	r *render.Renderer
 
-	db roomdb.AliasService
+	db roomdb.AliasesService
 }
 
 const redirectToAliases = "/admin/aliases"

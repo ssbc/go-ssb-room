@@ -9,24 +9,24 @@ import (
 	"go.mindeco.de/http/auth"
 )
 
-type roomUserContextKeyType string
+type roomMemberContextKeyType string
 
-var roomUserContextKey roomUserContextKeyType = "ssb:room:httpcontext:user"
+var roomMemberContextKey roomMemberContextKeyType = "ssb:room:httpcontext:user"
 
 // FromContext returns the user or nil if not logged in
-func FromContext(ctx context.Context) *roomdb.User {
-	v := ctx.Value(roomUserContextKey)
+func FromContext(ctx context.Context) *roomdb.Member {
+	v := ctx.Value(roomMemberContextKey)
 
-	user, ok := v.(*roomdb.User)
+	m, ok := v.(*roomdb.Member)
 	if !ok {
 		return nil
 	}
 
-	return user
+	return m
 }
 
 // ContextInjecter returns middleware for injecting a user id into the request context
-func ContextInjecter(fs roomdb.AuthFallbackService, a *auth.Handler) func(http.Handler) http.Handler {
+func ContextInjecter(mdb roomdb.MembersService, a *auth.Handler) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			v, err := a.AuthenticateRequest(req)
@@ -35,19 +35,19 @@ func ContextInjecter(fs roomdb.AuthFallbackService, a *auth.Handler) func(http.H
 				return
 			}
 
-			uid, ok := v.(int64)
+			mid, ok := v.(int64)
 			if !ok {
 				next.ServeHTTP(w, req)
 				return
 			}
 
-			user, err := fs.GetByID(req.Context(), uid)
+			user, err := mdb.GetByID(req.Context(), mid)
 			if err != nil {
 				next.ServeHTTP(w, req)
 				return
 			}
 
-			ctx := context.WithValue(req.Context(), roomUserContextKey, user)
+			ctx := context.WithValue(req.Context(), roomMemberContextKey, user)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
@@ -57,14 +57,14 @@ func ContextInjecter(fs roomdb.AuthFallbackService, a *auth.Handler) func(http.H
 // It has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
 func TemplateHelper() func(*http.Request) interface{} {
 	return func(r *http.Request) interface{} {
-		no := func() *roomdb.User { return nil }
+		no := func() *roomdb.Member { return nil }
 
 		user := FromContext(r.Context())
 		if user == nil {
 			return no
 		}
 
-		yes := func() *roomdb.User { return user }
+		yes := func() *roomdb.Member { return user }
 		return yes
 	}
 }

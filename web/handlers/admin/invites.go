@@ -19,7 +19,7 @@ import (
 type invitesHandler struct {
 	r *render.Renderer
 
-	db roomdb.InviteService
+	db roomdb.InvitesService
 
 	domainName string
 }

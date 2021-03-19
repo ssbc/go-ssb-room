@@ -28,8 +28,8 @@ var HTMLTemplates = []string{
 	"admin/aliases.tmpl",
 	"admin/aliases-revoke-confirm.tmpl",
 
-	"admin/allow-list.tmpl",
-	"admin/allow-list-remove-confirm.tmpl",
+	"admin/members.tmpl",
+	"admin/members-remove-confirm.tmpl",
 
 	"admin/invite-list.tmpl",
 	"admin/invite-revoke-confirm.tmpl",
@@ -40,9 +40,9 @@ var HTMLTemplates = []string{
 
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
-	Aliases       roomdb.AliasService
-	AllowList     roomdb.AllowListService
-	Invites       roomdb.InviteService
+	Members       roomdb.MembersService
+	Aliases       roomdb.AliasesService
+	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
 	PinnedNotices roomdb.PinnedNoticesService
 }
@@ -77,13 +77,13 @@ func Handler(
 	mux.HandleFunc("/aliases/revoke/confirm", r.HTML("admin/aliases-revoke-confirm.tmpl", ah.revokeConfirm))
 	mux.HandleFunc("/aliases/revoke", ah.revoke)
 
-	var mh = allowListHandler{
+	var mh = membersHandler{
 		r:  r,
-		al: dbs.AllowList,
+		db: dbs.Members,
 	}
-	mux.HandleFunc("/members", r.HTML("admin/allow-list.tmpl", mh.overview))
+	mux.HandleFunc("/members", r.HTML("admin/members.tmpl", mh.overview))
 	mux.HandleFunc("/members/add", mh.add)
-	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/allow-list-remove-confirm.tmpl", mh.removeConfirm))
+	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/members-remove-confirm.tmpl", mh.removeConfirm))
 	mux.HandleFunc("/members/remove", mh.remove)
 
 	var ih = invitesHandler{

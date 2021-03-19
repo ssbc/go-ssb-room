@@ -29,13 +29,13 @@ type testSession struct {
 	Client *tester.Tester
 	Router *mux.Router
 
-	Aliases     *mockdb.FakeAliasService
-	AllowListDB *mockdb.FakeAllowListService
-	PinnedDB    *mockdb.FakePinnedNoticesService
-	NoticeDB    *mockdb.FakeNoticesService
-	InvitesDB   *mockdb.FakeInviteService
+	AliasesDB *mockdb.FakeAliasesService
+	MembersDB *mockdb.FakeMembersService
+	PinnedDB  *mockdb.FakePinnedNoticesService
+	NoticeDB  *mockdb.FakeNoticesService
+	InvitesDB *mockdb.FakeInvitesService
 
-	User *roomdb.User
+	User *roomdb.Member
 
 	Domain string
 
@@ -46,11 +46,11 @@ func newSession(t *testing.T) *testSession {
 	var ts testSession
 
 	// fake dbs
-	ts.Aliases = new(mockdb.FakeAliasService)
-	ts.AllowListDB = new(mockdb.FakeAllowListService)
+	ts.AliasesDB = new(mockdb.FakeAliasesService)
+	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
-	ts.InvitesDB = new(mockdb.FakeInviteService)
+	ts.InvitesDB = new(mockdb.FakeInvitesService)
 
 	log, _ := logtest.KitLogger("admin", t)
 	ctx := context.TODO()
@@ -61,9 +61,10 @@ func newSession(t *testing.T) *testSession {
 	ts.Domain = randomString(10)
 
 	// fake user
-	ts.User = &roomdb.User{
-		ID:   1234,
-		Name: "room mate",
+	ts.User = &roomdb.Member{
+		ID:       1234,
+		Nickname: "room mate",
+		Role:     roomdb.RoleModerator,
 	}
 
 	// setup rendering
@@ -78,7 +79,7 @@ func newSession(t *testing.T) *testSession {
 		return msgID + "Plural"
 	}
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
-	testFuncs["is_logged_in"] = func() *roomdb.User { return ts.User }
+	testFuncs["is_logged_in"] = func() *roomdb.Member { return ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
@@ -100,8 +101,8 @@ func newSession(t *testing.T) *testSession {
 		r,
 		ts.RoomState,
 		Databases{
-			Aliases:       ts.Aliases,
-			AllowList:     ts.AllowListDB,
+			Aliases:       ts.AliasesDB,
+			Members:       ts.MembersDB,
 			Invites:       ts.InvitesDB,
 			Notices:       ts.NoticeDB,
 			PinnedNotices: ts.PinnedDB,

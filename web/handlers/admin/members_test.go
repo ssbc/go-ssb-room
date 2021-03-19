@@ -19,28 +19,28 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-func TestAllowListEmpty(t *testing.T) {
+func TestMembersEmpty(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	url, err := ts.Router.Get(router.AdminAllowListOverview).URL()
+	url, err := ts.Router.Get(router.AdminMembersOverview).URL()
 	a.Nil(err)
 
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountPlural"},
+		{"#welcome", "AdminMembersWelcome"},
+		{"title", "AdminMembersTitle"},
+		{"#membersCount", "MemberCountPlural"},
 	})
 }
 
-func TestAllowListAdd(t *testing.T) {
+func TestMembersAdd(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	listURL, err := ts.Router.Get(router.AdminAllowListOverview).URL()
+	listURL, err := ts.Router.Get(router.AdminMembersOverview).URL()
 	a.NoError(err)
 
 	html, resp := ts.Client.GetHTML(listURL.String())
@@ -56,89 +56,95 @@ func TestAllowListAdd(t *testing.T) {
 	action, ok := formSelection.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAllowListAdd).URL()
+	addURL, err := ts.Router.Get(router.AdminMembersAdd).URL()
 	a.NoError(err)
 
 	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
+		{Name: "nick", Type: "text"},
 	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
 	addVals := url.Values{
 		// just any key that looks valid
 		"pub_key": []string{newKey},
+		"nick":    []string{"test-member"},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
-	a.Equal(1, ts.AllowListDB.AddCallCount())
-	_, added := ts.AllowListDB.AddArgsForCall(0)
-	a.Equal(newKey, added.Ref())
+	a.Equal(1, ts.MembersDB.AddCallCount())
+	_, addedNick, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
+	a.Equal(newKey, addedPubKey.Ref())
+	a.Equal("test-member", addedNick)
+	a.Equal(roomdb.RoleMember, addedRole)
+
 }
 
-func TestAllowListDontAddInvalid(t *testing.T) {
+func TestMembersDontAddInvalid(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 	r := require.New(t)
 
-	addURL, err := ts.Router.Get(router.AdminAllowListAdd).URL()
+	addURL, err := ts.Router.Get(router.AdminMembersAdd).URL()
 	a.NoError(err)
 
 	newKey := "@some-garbage"
 	addVals := url.Values{
+		"nick":    []string{"some-test-nick"},
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
 	a.Equal(http.StatusBadRequest, rec.Code)
 
-	a.Equal(0, ts.AllowListDB.AddCallCount())
+	a.Equal(0, ts.MembersDB.AddCallCount())
 
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
 	r.NoError(err)
 
-	expErr := `bad request: feedRef: couldn't parse "@some-garbage"`
+	expErr := `bad public key: feedRef: couldn't parse "@some-garbage"`
 	gotMsg := doc.Find("#errBody").Text()
 	if !a.True(strings.HasPrefix(gotMsg, expErr), "did not find errBody") {
 		t.Log(gotMsg)
 	}
 }
 
-func TestAllowList(t *testing.T) {
+func TestMembers(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	lst := roomdb.ListEntries{
-		{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
-		{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
-		{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
+	lst := []roomdb.Member{
+		{ID: 1, Nickname: "one", Role: roomdb.RoleMember, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
+		{ID: 2, Nickname: "two", Role: roomdb.RoleModerator, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
+		{ID: 3, Nickname: "three", Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 	}
-	ts.AllowListDB.ListReturns(lst, nil)
+	ts.MembersDB.ListReturns(lst, nil)
 
 	html, resp := ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountPlural"},
+		{"#welcome", "AdminMembersWelcome"},
+		{"title", "AdminMembersTitle"},
+		{"#membersCount", "MemberCountPlural"},
 	})
 
 	a.EqualValues(html.Find("#theList li").Length(), 3)
 
-	lst = roomdb.ListEntries{
-		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
+	lst = []roomdb.Member{
+		{ID: 666, Nickname: "four", Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
-	ts.AllowListDB.ListReturns(lst, nil)
+	ts.MembersDB.ListReturns(lst, nil)
 
 	html, resp = ts.Client.GetHTML("/members")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountSingular"},
+		{"#welcome", "AdminMembersWelcome"},
+		{"title", "AdminMembersTitle"},
+		{"#membersCount", "MemberCountSingular"},
 	})
 
 	elems := html.Find("#theList li")
@@ -150,17 +156,17 @@ func TestAllowList(t *testing.T) {
 	a.Equal("/admin/members/remove/confirm?id=666", link)
 }
 
-func TestAllowListRemoveConfirmation(t *testing.T) {
+func TestMembersRemoveConfirmation(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
-	testEntry := roomdb.ListEntry{ID: 666, PubKey: *testKey}
-	ts.AllowListDB.GetByIDReturns(testEntry, nil)
+	testEntry := roomdb.Member{ID: 666, PubKey: *testKey}
+	ts.MembersDB.GetByIDReturns(testEntry, nil)
 
 	urlTo := web.NewURLTo(ts.Router)
-	urlRemoveConfirm := urlTo(router.AdminAllowListRemoveConfirm, "id", 3)
+	urlRemoveConfirm := urlTo(router.AdminMembersRemoveConfirm, "id", 3)
 
 	html, resp := ts.Client.GetHTML(urlRemoveConfirm.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
@@ -176,7 +182,7 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 	action, ok := form.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAllowListRemove).URL()
+	addURL, err := ts.Router.Get(router.AdminMembersRemove).URL()
 	a.NoError(err)
 
 	a.Equal(addURL.String(), action)
@@ -186,25 +192,25 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 	})
 }
 
-func TestAllowListRemove(t *testing.T) {
+func TestMembersRemove(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
 	urlTo := web.NewURLTo(ts.Router)
-	urlRemove := urlTo(router.AdminAllowListRemove)
+	urlRemove := urlTo(router.AdminMembersRemove)
 
-	ts.AllowListDB.RemoveIDReturns(nil)
+	ts.MembersDB.RemoveIDReturns(nil)
 
 	addVals := url.Values{"id": []string{"666"}}
 	rec := ts.Client.PostForm(urlRemove.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
-	a.Equal(1, ts.AllowListDB.RemoveIDCallCount())
-	_, theID := ts.AllowListDB.RemoveIDArgsForCall(0)
+	a.Equal(1, ts.MembersDB.RemoveIDCallCount())
+	_, theID := ts.MembersDB.RemoveIDArgsForCall(0)
 	a.EqualValues(666, theID)
 
 	// now for unknown ID
-	ts.AllowListDB.RemoveIDReturns(roomdb.ErrNotFound)
+	ts.MembersDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
 	rec = ts.Client.PostForm(urlRemove.String(), addVals)
 	a.Equal(http.StatusNotFound, rec.Code)

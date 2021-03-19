@@ -16,23 +16,31 @@ import (
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
-type allowListHandler struct {
+type membersHandler struct {
 	r *render.Renderer
 
-	al roomdb.AllowListService
+	db roomdb.MembersService
 }
 
 const redirectToMembers = "/admin/members"
 
-func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
+func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
 		return
 	}
+
 	if err := req.ParseForm(); err != nil {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		return
+	}
+
+	memberNick := req.Form.Get("nick")
+	if memberNick == "" {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad nick: %q", memberNick))
 		return
 	}
 
@@ -40,11 +48,11 @@ func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad public key: %w", err))
 		return
 	}
 
-	err = h.al.Add(req.Context(), *newEntryParsed)
+	_, err = h.db.Add(req.Context(), memberNick, *newEntryParsed, roomdb.RoleMember)
 	if err != nil {
 		code := http.StatusInternalServerError
 		var aa roomdb.ErrAlreadyAdded
@@ -62,8 +70,8 @@ func (h allowListHandler) add(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
-func (h allowListHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-	lst, err := h.al.List(req.Context())
+func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	lst, err := h.db.List(req.Context())
 	if err != nil {
 		return nil, err
 	}
@@ -85,14 +93,14 @@ func (h allowListHandler) overview(rw http.ResponseWriter, req *http.Request) (i
 // TODO: move to render package so that we can decide to not render a page during the controller
 var ErrRedirected = errors.New("render: not rendered but redirected")
 
-func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		return nil, err
 	}
 
-	entry, err := h.al.GetByID(req.Context(), id)
+	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, roomdb.ErrNotFound) {
 			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
@@ -107,7 +115,7 @@ func (h allowListHandler) removeConfirm(rw http.ResponseWriter, req *http.Reques
 	}, nil
 }
 
-func (h allowListHandler) remove(rw http.ResponseWriter, req *http.Request) {
+func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
@@ -125,7 +133,7 @@ func (h allowListHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	status := http.StatusFound
-	err = h.al.RemoveID(req.Context(), id)
+	err = h.db.RemoveID(req.Context(), id)
 	if err != nil {
 		if !errors.Is(err, roomdb.ErrNotFound) {
 			// TODO "flash" errors
