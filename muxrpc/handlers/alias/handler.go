@@ -24,15 +24,15 @@ type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
 
-	db roomdb.AliasService
+	db roomdb.AliasesService
 }
 
 // New returns a fresh alias muxrpc handler
-func New(log kitlog.Logger, self refs.FeedRef, aliasDB roomdb.AliasService) Handler {
+func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService) Handler {
 	var h Handler
 	h.self = self
 	h.logger = log
-	h.db = aliasDB
+	h.db = aliasesDB
 
 	return h
 }

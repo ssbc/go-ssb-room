@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -41,7 +43,7 @@ func TestAliasRegister(t *testing.T) {
 
 	theBots := []*roomsrv.Server{}
 
-	serv := makeNamedTestBot(t, "srv", netOpts)
+	srvMembers, serv := makeNamedTestBot(t, "srv", netOpts)
 	botgroup.Go(bs.Serve(serv))
 	theBots = append(theBots, serv)
 
@@ -49,7 +51,7 @@ func TestAliasRegister(t *testing.T) {
 	bobsKey, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 
-	bob := makeNamedTestBot(t, "bob", append(netOpts,
+	bobsMembers, bob := makeNamedTestBot(t, "bob", append(netOpts,
 		roomsrv.WithKeyPair(bobsKey),
 	))
 	botgroup.Go(bs.Serve(bob))
@@ -64,12 +66,13 @@ func TestAliasRegister(t *testing.T) {
 	})
 
 	// adds
-	serv.Allow(bob.Whoami(), true)
-	// serv.Allow(botB.Whoami(), true)
+	_, err = srvMembers.Add(ctx, "bob", bob.Whoami(), roomdb.RoleMember)
+	r.NoError(err)
 
 	// allow bots to dial the remote
-	bob.Allow(serv.Whoami(), true)
-	// botB.Allow(serv.Whoami(), true)
+	// side-effect of re-using a room-server as the client
+	_, err = bobsMembers.Add(ctx, "the-room", serv.Whoami(), roomdb.RoleMember)
+	r.NoError(err)
 
 	// should work (we allowed A)
 	err = bob.Network.Connect(ctx, serv.Network.GetListenAddr())

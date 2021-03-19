@@ -14,7 +14,7 @@ import (
 )
 
 // instantiate and register the muxrpc handlers
-func (s *Server) initHandlers(aliasDB roomdb.AliasService) {
+func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 	// inistaniate handler packages
 	whoami := whoami.New(s.Whoami())
 

@@ -7,7 +7,6 @@ import (
 	"net"
 
 	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 )
@@ -28,7 +27,7 @@ func (s *Server) initNetwork() error {
 			return &s.master, nil
 		}
 
-		if s.authorizer.HasFeed(s.rootCtx, *remote) {
+		if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err == nil {
 			return &s.public, nil
 		}
 
@@ -57,14 +56,4 @@ func (s *Server) initNetwork() error {
 	}
 
 	return nil
-}
-
-// Allow adds (if yes==true) the passed reference to the list of peers that are allowed to connect to the server,
-// yes==false removes it.
-func (s *Server) Allow(r refs.FeedRef, yes bool) {
-	if yes {
-		s.authorizer.Add(s.rootCtx, r)
-	} else {
-		s.authorizer.RemoveFeed(s.rootCtx, r)
-	}
 }

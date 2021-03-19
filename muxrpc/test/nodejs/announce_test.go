@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 
 	"github.com/stretchr/testify/assert"
@@ -80,15 +81,15 @@ func TestJSClient(t *testing.T) {
 	ts := newRandomSession(t)
 	// ts := newSession(t, nil)
 
-	var allowDB = &mockdb.FakeAllowListService{}
-	var aliasDB = &mockdb.FakeAliasService{}
-	srv := ts.startGoServer(allowDB, aliasDB)
+	var membersDB = &mockdb.FakeMembersService{}
+	var aliases = &mockdb.FakeAliasesService{}
+	srv := ts.startGoServer(membersDB, aliases)
+	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
 	alice := ts.startJSClient("alice", "./testscripts/simple_client.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
-	srv.Allow(alice, true)
 
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
@@ -105,13 +106,10 @@ func TestJSClient(t *testing.T) {
 	r.NoError(err)
 
 	time.Sleep(1500 * time.Millisecond)
-	bob := ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
+	ts.startJSClient("bob", "./testscripts/simple_client_opening_tunnel.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
-
-	srv.Allow(bob, true)
-	allowDB.HasFeedReturns(true)
 
 	time.Sleep(5 * time.Second)
 
@@ -138,11 +136,10 @@ func TestJSServer(t *testing.T) {
 	}
 
 	// now connect our go client
-	var allowDB = &mockdb.FakeAllowListService{}
-	var aliasDB = &mockdb.FakeAliasService{}
-	client := ts.startGoServer(allowDB, aliasDB)
-	client.Allow(*alice, true)
-	allowDB.HasFeedReturns(true)
+	var membersDB = &mockdb.FakeMembersService{}
+	var aliasesDB = &mockdb.FakeAliasesService{}
+	client := ts.startGoServer(membersDB, aliasesDB)
+	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
@@ -163,8 +160,6 @@ func TestJSServer(t *testing.T) {
 		*alice,
 	)
 	t.Log("started bob:", bob.Ref())
-
-	client.Allow(bob, true)
 
 	// connect to alice
 	aliceShsAddr := netwrap.WrapAddr(aliceAddr, secretstream.Addr{PubKey: alice.ID})

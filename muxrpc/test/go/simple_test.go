@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -18,7 +20,12 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*roomsrv.Server {
+type testBot struct {
+	Server  *roomsrv.Server
+	Members roomdb.MembersService
+}
+
+func createServerAndBots(t *testing.T, ctx context.Context, count uint) []testBot {
 	testInit(t)
 	r := require.New(t)
 
@@ -33,23 +40,29 @@ func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*rooms
 		roomsrv.WithAppKey(appKey),
 		roomsrv.WithContext(ctx),
 	}
-	theBots := []*roomsrv.Server{}
+	theBots := []testBot{}
 
-	serv := makeNamedTestBot(t, "srv", netOpts)
+	srvsMembers, serv := makeNamedTestBot(t, "srv", netOpts)
 	botgroup.Go(bs.Serve(serv))
-	theBots = append(theBots, serv)
+	theBots = append(theBots, testBot{
+		Server:  serv,
+		Members: srvsMembers,
+	})
 
 	for i := uint(1); i < count+1; i++ {
-		botI := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
-		botgroup.Go(bs.Serve(botI))
-		theBots = append(theBots, botI)
+		botMembers, botSrv := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
+		botgroup.Go(bs.Serve(botSrv))
+		theBots = append(theBots, testBot{
+			Server:  botSrv,
+			Members: botMembers,
+		})
 	}
 
 	t.Cleanup(func() {
 		time.Sleep(1 * time.Second)
 		for _, bot := range theBots {
-			bot.Shutdown()
-			r.NoError(bot.Close())
+			bot.Server.Shutdown()
+			r.NoError(bot.Server.Close())
 		}
 		r.NoError(botgroup.Wait())
 	})
@@ -65,17 +78,17 @@ func TestTunnelServerSimple(t *testing.T) {
 	r := require.New(t)
 	a := assert.New(t)
 
-	serv := theBots[0]
+	serv := theBots[0].Server
+	botA := theBots[1].Server
+	botB := theBots[2].Server
 
-	botA := theBots[1]
-	botB := theBots[2]
-
-	// only allow B to dial A
-	serv.Allow(botA.Whoami(), true)
+	// allow both clients
+	theBots[0].Members.Add(ctx, "botA", botA.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, "botB", botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	botA.Allow(serv.Whoami(), true)
-	botB.Allow(serv.Whoami(), true)
+	theBots[1].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
+	theBots[2].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
 
 	// dial up B->A and C->A
 
@@ -136,18 +149,17 @@ func TestRoomAnnounce(t *testing.T) {
 	r := require.New(t)
 	a := assert.New(t)
 
-	serv := theBots[0]
+	serv := theBots[0].Server
+	botA := theBots[1].Server
+	botB := theBots[2].Server
 
-	botA := theBots[1]
-	botB := theBots[2]
-
-	// only allow B to dial A
-	serv.Allow(botA.Whoami(), true)
-	serv.Allow(botB.Whoami(), true)
+	// allow both clients
+	theBots[0].Members.Add(ctx, "botA", botA.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, "botB", botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	botA.Allow(serv.Whoami(), true)
-	botB.Allow(serv.Whoami(), true)
+	theBots[1].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
+	theBots[2].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
 
 	// should work (we allowed A)
 	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())

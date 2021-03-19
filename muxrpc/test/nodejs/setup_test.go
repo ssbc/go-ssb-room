@@ -87,8 +87,8 @@ func newSession(t *testing.T, appKey []byte) *testSession {
 }
 
 func (ts *testSession) startGoServer(
-	allowDB roomdb.AllowListService,
-	aliasDB roomdb.AliasService,
+	membersDB roomdb.MembersService,
+	aliasDB roomdb.AliasesService,
 	opts ...roomsrv.Option) *roomsrv.Server {
 	r := require.New(ts.t)
 
@@ -110,7 +110,7 @@ func (ts *testSession) startGoServer(
 		}),
 	)
 
-	srv, err := roomsrv.New(allowDB, aliasDB, opts...)
+	srv, err := roomsrv.New(membersDB, aliasDB, opts...)
 	r.NoError(err, "failed to init tees a server")
 	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {
