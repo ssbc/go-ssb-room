@@ -28,22 +28,26 @@ var HTMLTemplates = []string{
 	"admin/aliases.tmpl",
 	"admin/aliases-revoke-confirm.tmpl",
 
-	"admin/members.tmpl",
-	"admin/members-remove-confirm.tmpl",
+	"admin/denied-keys.tmpl",
+	"admin/denied-keys-remove-confirm.tmpl",
 
 	"admin/invite-list.tmpl",
 	"admin/invite-revoke-confirm.tmpl",
 	"admin/invite-created.tmpl",
 
 	"admin/notice-edit.tmpl",
+
+	"admin/members.tmpl",
+	"admin/members-remove-confirm.tmpl",
 }
 
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
-	Members       roomdb.MembersService
 	Aliases       roomdb.AliasesService
+	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
+	Members       roomdb.MembersService
 	PinnedNotices roomdb.PinnedNoticesService
 }
 
@@ -76,6 +80,15 @@ func Handler(
 	mux.HandleFunc("/aliases", r.HTML("admin/aliases.tmpl", ah.overview))
 	mux.HandleFunc("/aliases/revoke/confirm", r.HTML("admin/aliases-revoke-confirm.tmpl", ah.revokeConfirm))
 	mux.HandleFunc("/aliases/revoke", ah.revoke)
+
+	var dh = deniedKeysHandler{
+		r:  r,
+		db: dbs.DeniedKeys,
+	}
+	mux.HandleFunc("/denied", r.HTML("admin/denied-keys.tmpl", dh.overview))
+	mux.HandleFunc("/denied/add", dh.add)
+	mux.HandleFunc("/denied/remove/confirm", r.HTML("admin/denied-keys-remove-confirm.tmpl", dh.removeConfirm))
+	mux.HandleFunc("/denied/remove", dh.remove)
 
 	var mh = membersHandler{
 		r:  r,

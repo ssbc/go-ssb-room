@@ -16,31 +16,23 @@ import (
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
-type membersHandler struct {
+type deniedKeysHandler struct {
 	r *render.Renderer
 
-	db roomdb.MembersService
+	db roomdb.DeniedKeysService
 }
 
-const redirectToMembers = "/admin/members"
+const redirectToDeniedKeys = "/admin/denied"
 
-func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
+func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
 		return
 	}
-
 	if err := req.ParseForm(); err != nil {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
-		return
-	}
-
-	memberNick := req.Form.Get("nick")
-	if memberNick == "" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad nick: %q", memberNick))
 		return
 	}
 
@@ -48,11 +40,14 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad public key: %w", err))
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
 		return
 	}
 
-	_, err = h.db.Add(req.Context(), memberNick, *newEntryParsed, roomdb.RoleMember)
+	// can be empty
+	comment := req.Form.Get("comment")
+
+	err = h.db.Add(req.Context(), *newEntryParsed, comment)
 	if err != nil {
 		code := http.StatusInternalServerError
 		var aa roomdb.ErrAlreadyAdded
@@ -67,10 +62,10 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, redirectToMembers, http.StatusFound)
+	http.Redirect(w, req, redirectToDeniedKeys, http.StatusFound)
 }
 
-func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	lst, err := h.db.List(req.Context())
 	if err != nil {
 		return nil, err
@@ -90,7 +85,10 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	return pageData, nil
 }
 
-func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+// TODO: move to render package so that we can decide to not render a page during the controller
+var ErrRedirected = errors.New("render: not rendered but redirected")
+
+func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
@@ -100,7 +98,7 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+			http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
 			return nil, ErrRedirected
 		}
 		return nil, err
@@ -112,12 +110,12 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 	}, nil
 }
 
-func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
+func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
 		return
 	}
 
@@ -125,7 +123,7 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
 		return
 	}
 
@@ -140,5 +138,5 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 		status = http.StatusNotFound
 	}
 
-	http.Redirect(rw, req, redirectToMembers, status)
+	http.Redirect(rw, req, redirectToDeniedKeys, status)
 }
