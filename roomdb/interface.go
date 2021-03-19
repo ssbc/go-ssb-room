@@ -60,10 +60,10 @@ type MembersService interface {
 	SetRole(context.Context, int64, Role) error
 }
 
-// DeniedListService changes the lists of people that are Denieded to get into the room
-type DeniedListService interface {
-	// Add adds the feed to the list.
-	Add(context.Context, refs.FeedRef) error
+// DeniedKeysService changes the lists of public keys that are not allowed to get into the room
+type DeniedKeysService interface {
+	// Add adds the feed to the list, together with a comment for other members
+	Add(ctx context.Context, ref refs.FeedRef, comment string) error
 
 	// HasFeed returns true if a feed is on the list.
 	HasFeed(context.Context, refs.FeedRef) bool
@@ -160,7 +160,7 @@ type NoticesService interface {
 
 //go:generate counterfeiter -o mockdb/auth_fallback.go . AuthFallbackService
 
-//go:generate counterfeiter -o mockdb/denied.go . DeniedListService
+//go:generate counterfeiter -o mockdb/denied.go . DeniedKeysService
 
 //go:generate counterfeiter -o mockdb/fixed_pages.go . PinnedNoticesService
 

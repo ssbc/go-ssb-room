@@ -1,4 +1,4 @@
-// +build ignore
+// SPDX-License-Identifier: MIT
 
 package sqlite
 
@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 
@@ -17,7 +18,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-func TestDeniedList(t *testing.T) {
+func TestDeniedKeys(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 
@@ -30,49 +31,54 @@ func TestDeniedList(t *testing.T) {
 	require.NoError(t, err)
 
 	tf := refs.FeedRef{ID: bytes.Repeat([]byte("fooo"), 8), Algo: "nope"}
-	err = db.DeniedList.Add(ctx, tf)
+	err = db.DeniedKeys.Add(ctx, tf, "wont work anyhow")
 	r.Error(err)
 
 	// looks ok at least
-	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
-	err = db.DeniedList.Add(ctx, okFeed)
+	created := time.Now()
+	time.Sleep(time.Second / 2)
+	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("b44d"), 8), Algo: refs.RefAlgoFeedSSB1}
+	err = db.DeniedKeys.Add(ctx, okFeed, "be gone")
 	r.NoError(err)
 
 	// hack into the interface to get the concrete database/sql instance
-	sqlDB := db.DeniedList.(*DeniedList).db
+	sqlDB := db.DeniedKeys.db
 
-	count, err := models.DeniedLists().Count(ctx, sqlDB)
+	count, err := models.DeniedKeys().Count(ctx, sqlDB)
 	r.NoError(err)
 	r.EqualValues(count, 1)
 
-	lst, err := db.DeniedList.List(ctx)
+	lst, err := db.DeniedKeys.List(ctx)
 	r.NoError(err)
 	r.Len(lst, 1)
+	r.Equal(okFeed.Ref(), lst[0].PubKey.Ref())
+	r.Equal("be gone", lst[0].Comment)
+	r.True(lst[0].CreatedAt.After(created))
 
-	yes := db.DeniedList.HasFeed(ctx, okFeed)
+	yes := db.DeniedKeys.HasFeed(ctx, okFeed)
 	r.True(yes)
 
-	yes = db.DeniedList.HasFeed(ctx, tf)
+	yes = db.DeniedKeys.HasFeed(ctx, tf)
 	r.False(yes)
 
-	err = db.DeniedList.RemoveFeed(ctx, okFeed)
+	err = db.DeniedKeys.RemoveFeed(ctx, okFeed)
 	r.NoError(err)
 
-	count, err = models.DeniedLists().Count(ctx, sqlDB)
+	count, err = models.DeniedKeys().Count(ctx, sqlDB)
 	r.NoError(err)
 	r.EqualValues(count, 0)
 
-	lst, err = db.DeniedList.List(ctx)
+	lst, err = db.DeniedKeys.List(ctx)
 	r.NoError(err)
 	r.Len(lst, 0)
 
-	yes = db.DeniedList.HasFeed(ctx, okFeed)
+	yes = db.DeniedKeys.HasFeed(ctx, okFeed)
 	r.False(yes)
 
 	r.NoError(db.Close())
 }
 
-func TestDeniedListUnique(t *testing.T) {
+func TestDeniedKeysUnique(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 
@@ -84,21 +90,21 @@ func TestDeniedListUnique(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
-	err = db.DeniedList.Add(ctx, feedA)
+	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("b33f"), 8), Algo: refs.RefAlgoFeedSSB1}
+	err = db.DeniedKeys.Add(ctx, feedA, "test comment")
 	r.NoError(err)
 
-	err = db.DeniedList.Add(ctx, feedA)
+	err = db.DeniedKeys.Add(ctx, feedA, "test comment")
 	r.Error(err)
 
-	lst, err := db.DeniedList.List(ctx)
+	lst, err := db.DeniedKeys.List(ctx)
 	r.NoError(err)
 	r.Len(lst, 1)
 
 	r.NoError(db.Close())
 }
 
-func TestDeniedListByID(t *testing.T) {
+func TestDeniedKeysByID(t *testing.T) {
 	r := require.New(t)
 	ctx := context.Background()
 
@@ -110,27 +116,27 @@ func TestDeniedListByID(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
-	err = db.DeniedList.Add(ctx, feedA)
+	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("b33f"), 8), Algo: refs.RefAlgoFeedSSB1}
+	err = db.DeniedKeys.Add(ctx, feedA, "nope")
 	r.NoError(err)
 
-	lst, err := db.DeniedList.List(ctx)
+	lst, err := db.DeniedKeys.List(ctx)
 	r.NoError(err)
 	r.Len(lst, 1)
 
-	yes := db.DeniedList.HasID(ctx, lst[0].ID)
+	yes := db.DeniedKeys.HasID(ctx, lst[0].ID)
 	r.True(yes)
 
-	yes = db.DeniedList.HasID(ctx, 666)
+	yes = db.DeniedKeys.HasID(ctx, 666)
 	r.False(yes)
 
-	err = db.DeniedList.RemoveID(ctx, 666)
+	err = db.DeniedKeys.RemoveID(ctx, 666)
 	r.Error(err)
 	r.EqualError(err, roomdb.ErrNotFound.Error())
 
-	err = db.DeniedList.RemoveID(ctx, lst[0].ID)
+	err = db.DeniedKeys.RemoveID(ctx, lst[0].ID)
 	r.NoError(err)
 
-	yes = db.DeniedList.HasID(ctx, lst[0].ID)
+	yes = db.DeniedKeys.HasID(ctx, lst[0].ID)
 	r.False(yes)
 }

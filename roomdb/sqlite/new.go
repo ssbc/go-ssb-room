@@ -37,12 +37,12 @@ type Database struct {
 
 	Members Members
 	Aliases Aliases
+	Invites Invites
+
+	DeniedKeys DeniedKeys
 
 	PinnedNotices PinnedNotices
 	Notices       Notices
-
-	Invites Invites
-	// DeniedList Denied
 }
 
 // Open looks for a database file 'fname'
@@ -99,18 +99,14 @@ func Open(r repo.Interface) (*Database, error) {
 
 	admindb := &Database{
 		db: db,
-		// DeniedList:    DeniedList{db},
+
 		Aliases:       Aliases{db},
 		AuthFallback:  AuthFallback{db},
-		PinnedNotices: PinnedNotices{db},
+		DeniedKeys:    DeniedKeys{db},
+		Invites:       Invites{db: db, members: ml},
 		Notices:       Notices{db},
-
-		Members: ml,
-
-		Invites: Invites{
-			db:      db,
-			members: ml,
-		},
+		Members:       ml,
+		PinnedNotices: PinnedNotices{db},
 	}
 
 	return admindb, nil

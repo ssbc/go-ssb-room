@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 
-// +build ignore
-
 package sqlite
 
 import (
@@ -20,32 +18,25 @@ import (
 )
 
 // compiler assertion to ensure the struct fullfills the interface
-var _ roomdb.DeniedListService = (*DeniedList)(nil)
+var _ roomdb.DeniedKeysService = (*DeniedKeys)(nil)
 
-// The DeniedList is backed by the members table
-type DeniedList struct {
+// The DeniedKeys is backed by the members table
+type DeniedKeys struct {
 	db *sql.DB
 }
 
 // Add adds the feed to the list.
-func (al DeniedList) Add(ctx context.Context, a refs.FeedRef) error {
-	// single insert transaction but this makes it easier to re-use in invites.Consume
-	return transact(al.db, func(tx *sql.Tx) error {
-		return al.add(ctx, tx, a)
-	})
-}
-
-// this add is not exported and for internal use with transactions.
-func (al DeniedList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error {
+func (dk DeniedKeys) Add(ctx context.Context, a refs.FeedRef, comment string) error {
 	// TODO: better valid
 	if _, err := refs.ParseFeedRef(a.Ref()); err != nil {
 		return err
 	}
 
-	var entry models.Member
+	var entry models.DeniedKey
 	entry.PubKey.FeedRef = a
+	entry.Comment = comment
 
-	err := entry.Insert(ctx, tx, boil.Whitelist("pub_key"))
+	err := entry.Insert(ctx, dk.db, boil.Whitelist("pub_key", "comment"))
 	if err != nil {
 		var sqlErr sqlite3.Error
 		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
@@ -59,8 +50,8 @@ func (al DeniedList) add(ctx context.Context, tx *sql.Tx, a refs.FeedRef) error 
 }
 
 // HasFeed returns true if a feed is on the list.
-func (al DeniedList) HasFeed(ctx context.Context, h refs.FeedRef) bool {
-	_, err := models.DeniedLists(qm.Where("pub_key = ?", h.Ref())).One(ctx, al.db)
+func (dk DeniedKeys) HasFeed(ctx context.Context, h refs.FeedRef) bool {
+	_, err := models.DeniedKeys(qm.Where("pub_key = ?", h.Ref())).One(ctx, dk.db)
 	if err != nil {
 		return false
 	}
@@ -68,8 +59,8 @@ func (al DeniedList) HasFeed(ctx context.Context, h refs.FeedRef) bool {
 }
 
 // HasID returns true if a feed is on the list.
-func (al DeniedList) HasID(ctx context.Context, id int64) bool {
-	_, err := models.FindDeniedList(ctx, al.db, id)
+func (dk DeniedKeys) HasID(ctx context.Context, id int64) bool {
+	_, err := models.FindDeniedKey(ctx, dk.db, id)
 	if err != nil {
 		return false
 	}
@@ -77,43 +68,45 @@ func (al DeniedList) HasID(ctx context.Context, id int64) bool {
 }
 
 // GetByID returns the entry if a feed with that ID is on the list.
-func (al DeniedList) GetByID(ctx context.Context, id int64) (roomdb.ListEntry, error) {
-	var le roomdb.ListEntry
-	entry, err := models.FindDeniedList(ctx, al.db, id)
+func (dk DeniedKeys) GetByID(ctx context.Context, id int64) (roomdb.ListEntry, error) {
+	var entry roomdb.ListEntry
+	found, err := models.FindDeniedKey(ctx, dk.db, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return le, roomdb.ErrNotFound
+			return entry, roomdb.ErrNotFound
 		}
-		return le, err
+		return entry, err
 	}
 
-	le.ID = entry.ID
-	le.PubKey = entry.PubKey.FeedRef
-
-	return le, nil
+	entry.ID = found.ID
+	entry.PubKey = found.PubKey.FeedRef
+	entry.Comment = found.Comment
+	entry.CreatedAt = found.CreatedAt
+	return entry, nil
 }
 
 // List returns a list of all the feeds.
-func (al DeniedList) List(ctx context.Context) (roomdb.ListEntries, error) {
-	all, err := models.DeniedLists().All(ctx, al.db)
+func (dk DeniedKeys) List(ctx context.Context) ([]roomdb.ListEntry, error) {
+	all, err := models.DeniedKeys().All(ctx, dk.db)
 	if err != nil {
 		return nil, err
 	}
+	n := len(all)
 
-	var asRefs = make(roomdb.ListEntries, len(all))
-	for i, Denieded := range all {
-		asRefs[i] = roomdb.ListEntry{
-			ID:     Denieded.ID,
-			PubKey: Denieded.PubKey.FeedRef,
-		}
+	var lst = make([]roomdb.ListEntry, n)
+	for i, entry := range all {
+		lst[i].ID = entry.ID
+		lst[i].PubKey = entry.PubKey.FeedRef
+		lst[i].Comment = entry.Comment
+		lst[i].CreatedAt = entry.CreatedAt
 	}
 
-	return asRefs, nil
+	return lst, nil
 }
 
 // RemoveFeed removes the feed from the list.
-func (al DeniedList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
-	entry, err := models.DeniedLists(qm.Where("pub_key = ?", r.Ref())).One(ctx, al.db)
+func (dk DeniedKeys) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
+	entry, err := models.DeniedKeys(qm.Where("pub_key = ?", r.Ref())).One(ctx, dk.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound
@@ -121,7 +114,7 @@ func (al DeniedList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 		return err
 	}
 
-	_, err = entry.Delete(ctx, al.db)
+	_, err = entry.Delete(ctx, dk.db)
 	if err != nil {
 		return err
 	}
@@ -130,8 +123,8 @@ func (al DeniedList) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 }
 
 // RemoveID removes the feed from the list.
-func (al DeniedList) RemoveID(ctx context.Context, id int64) error {
-	entry, err := models.FindDeniedList(ctx, al.db, id)
+func (dk DeniedKeys) RemoveID(ctx context.Context, id int64) error {
+	entry, err := models.FindDeniedKey(ctx, dk.db, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound
@@ -139,7 +132,7 @@ func (al DeniedList) RemoveID(ctx context.Context, id int64) error {
 		return err
 	}
 
-	_, err = entry.Delete(ctx, al.db)
+	_, err = entry.Delete(ctx, dk.db)
 	if err != nil {
 		return err
 	}

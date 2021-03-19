@@ -46,6 +46,7 @@ var HTMLTemplates = []string{
 type Databases struct {
 	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
+	DeniedList    roomdb.DeniedListService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
 	Members       roomdb.MembersService

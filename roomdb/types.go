@@ -81,6 +81,9 @@ type Invite struct {
 type ListEntry struct {
 	ID     int64
 	PubKey refs.FeedRef
+
+	CreatedAt time.Time
+	Comment   string
 }
 
 // DBFeedRef wraps a feed reference and implements the SQL marshaling interfaces.

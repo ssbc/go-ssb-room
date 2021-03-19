@@ -247,9 +247,10 @@ func runroomsrv() error {
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
-			Members:       db.Members,
+			DeniedList:    db.DeniedList,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
+			Members:       db.Members,
 			PinnedNotices: db.PinnedNotices,
 		},
 	)
