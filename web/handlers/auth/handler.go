@@ -29,8 +29,8 @@ func Handler(m *mux.Router, r *render.Renderer, a *auth.Handler) http.Handler {
 	}))
 
 	// hook up the auth handler to the router
-	m.Get(router.AuthFallbackSignIn).HandlerFunc(ah.Authorize)
-	m.Get(router.AuthFallbackSignOut).HandlerFunc(ah.Logout)
+	m.Get(router.AuthFallbackSignIn).HandlerFunc(a.Authorize)
+	m.Get(router.AuthFallbackSignOut).HandlerFunc(a.Logout)
 
 	return m
 }

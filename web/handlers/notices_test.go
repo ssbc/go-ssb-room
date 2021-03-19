@@ -119,12 +119,12 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	}
 
 	// have the database return okay for any user
-	testUser := &roomdb.User{
-		ID:   23,
-		Name: "test admin",
+	testUser := roomdb.Member{
+		ID:       23,
+		Nickname: "test admin",
 	}
 	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
-	ts.AuthFallbackDB.GetByIDReturns(testUser, nil)
+	ts.MembersDB.GetByIDReturns(testUser, nil)
 
 	postEndpoint, err := ts.Router.Get(router.AuthFallbackSignIn).URL()
 	r.Nil(err)
@@ -161,9 +161,11 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts.Client.ClearHeaders()
 	ts.Client.SetHeaders(sessionHeader)
 
+	cnt := ts.MembersDB.GetByIDCallCount()
 	// now we are logged in, anchor tag should be there
 	doc, resp = ts.Client.GetHTML(noticeURL.String())
 	a.Equal(http.StatusOK, resp.Code)
+	a.Equal(cnt+1, ts.MembersDB.GetByIDCallCount())
 
 	a.EqualValues(1, doc.Find(editButtonSelector).Length())
 }

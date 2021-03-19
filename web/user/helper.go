@@ -17,12 +17,12 @@ var roomMemberContextKey roomMemberContextKeyType = "ssb:room:httpcontext:user"
 func FromContext(ctx context.Context) *roomdb.Member {
 	v := ctx.Value(roomMemberContextKey)
 
-	m, ok := v.(*roomdb.Member)
+	m, ok := v.(roomdb.Member)
 	if !ok {
 		return nil
 	}
 
-	return m
+	return &m
 }
 
 // ContextInjecter returns middleware for injecting a user id into the request context

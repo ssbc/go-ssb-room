@@ -19,7 +19,7 @@ import (
 type aliasHandler struct {
 	r *render.Renderer
 
-	db roomdb.AliasService
+	db roomdb.AliasesService
 
 	muxrpcHostAndPort string
 	roomID            refs.FeedRef

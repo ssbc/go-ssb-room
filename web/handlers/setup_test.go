@@ -34,9 +34,9 @@ type testSession struct {
 	// mocked dbs
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
-	AliasesDB      *mockdb.FakeAliasService
-	AllowListDB    *mockdb.FakeAllowListService
-	InvitesDB      *mockdb.FakeInviteService
+	AliasesDB      *mockdb.FakeAliasesService
+	MembersDB      *mockdb.FakeMembersService
+	InvitesDB      *mockdb.FakeInvitesService
 	PinnedDB       *mockdb.FakePinnedNoticesService
 	NoticeDB       *mockdb.FakeNoticesService
 
@@ -63,9 +63,9 @@ func setup(t *testing.T) *testSession {
 
 	ts.AuthDB = new(mockdb.FakeAuthWithSSBService)
 	ts.AuthFallbackDB = new(mockdb.FakeAuthFallbackService)
-	ts.AliasesDB = new(mockdb.FakeAliasService)
-	ts.AllowListDB = new(mockdb.FakeAllowListService)
-	ts.InvitesDB = new(mockdb.FakeInviteService)
+	ts.AliasesDB = new(mockdb.FakeAliasesService)
+	ts.MembersDB = new(mockdb.FakeMembersService)
+	ts.InvitesDB = new(mockdb.FakeInvitesService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	defaultNotice := &roomdb.Notice{
 		Title:   "Default Notice Title",
@@ -98,9 +98,8 @@ func setup(t *testing.T) *testSession {
 		ts.RoomState,
 		Databases{
 			Aliases:       ts.AliasesDB,
-			AuthWithSSB:   ts.AuthDB,
 			AuthFallback:  ts.AuthFallbackDB,
-			AllowList:     ts.AllowListDB,
+			Members:       ts.MembersDB,
 			Invites:       ts.InvitesDB,
 			Notices:       ts.NoticeDB,
 			PinnedNotices: ts.PinnedDB,

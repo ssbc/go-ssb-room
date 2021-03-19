@@ -44,12 +44,11 @@ var HTMLTemplates = []string{
 
 // Databases is an options stuct for the required databases of the web handlers
 type Databases struct {
-	Aliases       roomdb.AliasService
-	AuthWithSSB   roomdb.AuthWithSSBService
+	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
-	AllowList     roomdb.AllowListService
-	Invites       roomdb.InviteService
+	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
+	Members       roomdb.MembersService
 	PinnedNotices roomdb.PinnedNoticesService
 }
 
@@ -234,7 +233,7 @@ func New(
 		roomState,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
-			AllowList:     dbs.AllowList,
+			Members:       dbs.Members,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
 			PinnedNotices: dbs.PinnedNotices,
@@ -296,7 +295,7 @@ func New(
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
 		logging.InjectHandler(logger),
-		user.ContextInjecter(dbs.AuthFallback, a),
+		user.ContextInjecter(dbs.Members, a),
 		CSRF,
 	}
 
