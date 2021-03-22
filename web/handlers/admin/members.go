@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 )
 
 type membersHandler struct {
@@ -78,8 +78,8 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	currentUser := user.FromContext(req.Context())
-	if currentUser == nil || currentUser.Role != roomdb.RoleAdmin {
+	currentMember := members.FromContext(req.Context())
+	if currentMember == nil || currentMember.Role != roomdb.RoleAdmin {
 		// TODO: proper error type
 		h.r.Error(w, req, http.StatusForbidden, fmt.Errorf("not an admin"))
 		return

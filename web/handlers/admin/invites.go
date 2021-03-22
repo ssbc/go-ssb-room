@@ -12,8 +12,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 type invitesHandler struct {
@@ -54,14 +54,14 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 		return nil, fmt.Errorf("bad request: %w", err)
 	}
 
-	user := user.FromContext(req.Context())
-	if user == nil {
+	member := members.FromContext(req.Context())
+	if member == nil {
 		return nil, fmt.Errorf("warning: no user session for elevated access request")
 	}
 
 	aliasSuggestion := req.Form.Get("alias_suggestion")
 
-	token, err := h.db.Create(req.Context(), user.ID, aliasSuggestion)
+	token, err := h.db.Create(req.Context(), member.ID, aliasSuggestion)
 	if err != nil {
 		return nil, err
 	}

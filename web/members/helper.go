@@ -1,5 +1,5 @@
-// Package user implements helpers for accessing the currently logged in admin or moderator of an active request.
-package user
+// Package members implements helpers for accessing the currently logged in admin or moderator of an active request.
+package members
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 
 type roomMemberContextKeyType string
 
-var roomMemberContextKey roomMemberContextKeyType = "ssb:room:httpcontext:user"
+var roomMemberContextKey roomMemberContextKeyType = "ssb:room:httpcontext:member"
 
-// FromContext returns the user or nil if not logged in
+// FromContext returns the member or nil if not logged in
 func FromContext(ctx context.Context) *roomdb.Member {
 	v := ctx.Value(roomMemberContextKey)
 
@@ -25,7 +25,8 @@ func FromContext(ctx context.Context) *roomdb.Member {
 	return &m
 }
 
-// ContextInjecter returns middleware for injecting a user id into the request context
+// ContextInjecter returns middleware for injecting a member into the context of the request.
+// Retreive it using FromContext(ctx)
 func ContextInjecter(mdb roomdb.MembersService, a *auth.Handler) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -41,13 +42,13 @@ func ContextInjecter(mdb roomdb.MembersService, a *auth.Handler) func(http.Handl
 				return
 			}
 
-			user, err := mdb.GetByID(req.Context(), mid)
+			member, err := mdb.GetByID(req.Context(), mid)
 			if err != nil {
 				next.ServeHTTP(w, req)
 				return
 			}
 
-			ctx := context.WithValue(req.Context(), roomMemberContextKey, user)
+			ctx := context.WithValue(req.Context(), roomMemberContextKey, member)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}
@@ -59,12 +60,12 @@ func TemplateHelper() func(*http.Request) interface{} {
 	return func(r *http.Request) interface{} {
 		no := func() *roomdb.Member { return nil }
 
-		user := FromContext(r.Context())
-		if user == nil {
+		member := FromContext(r.Context())
+		if member == nil {
 			return no
 		}
 
-		yes := func() *roomdb.Member { return user }
+		yes := func() *roomdb.Member { return member }
 		return yes
 	}
 }

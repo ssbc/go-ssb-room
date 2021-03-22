@@ -20,8 +20,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 type testSession struct {
@@ -112,7 +112,7 @@ func newSession(t *testing.T) *testSession {
 		},
 	)
 
-	handler = user.MiddlewareForTests(ts.User)(handler)
+	handler = members.MiddlewareForTests(ts.User)(handler)
 
 	ts.Mux.Handle("/", handler)
 

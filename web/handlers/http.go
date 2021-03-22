@@ -27,8 +27,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 var HTMLTemplates = []string{
@@ -136,7 +136,7 @@ func New(
 				return u
 			}
 		}),
-		render.InjectTemplateFunc("is_logged_in", user.TemplateHelper()),
+		render.InjectTemplateFunc("is_logged_in", members.TemplateHelper()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
@@ -297,7 +297,7 @@ func New(
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
 		logging.InjectHandler(logger),
-		user.ContextInjecter(dbs.Members, a),
+		members.ContextInjecter(dbs.Members, a),
 		CSRF,
 	}
 
