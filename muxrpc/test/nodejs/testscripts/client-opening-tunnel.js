@@ -1,15 +1,21 @@
 const pull = require('pull-stream')
 const { readFileSync } = require('fs')
+const path = require("path")
+const scriptname = path.basename(__filename)
 
 let newConnections = 0
 
 module.exports = (t, client, roomrpc, exit) => {
+  // shadow t.comment to include file making the comment
+  function comment (msg) {
+    t.comment(`[${scriptname}] ${msg}`)
+  }
   newConnections++
-  t.comment('client new connection!' + roomrpc.id)
-  t.comment('total connections:' + newConnections)
+  comment(`new connection: ${roomrpc.id}`)
+  comment(`total connections: ${newConnections}`)
 
   if (newConnections > 1) {
-    t.comment('after call 2 - not doing anything')
+    comment('more than two connnections, not doing anything')
     return
   }
 
@@ -18,7 +24,7 @@ module.exports = (t, client, roomrpc, exit) => {
   pull(
     roomrpc.tunnel.endpoints(),
     pull.drain(el => {
-      t.comment("from roomsrv:" + JSON.stringify(el))
+      comment(`from roomsrv: ${JSON.stringify(el)}`)
     })
   )
 
@@ -27,15 +33,15 @@ module.exports = (t, client, roomrpc, exit) => {
     // announce ourselves to the room/tunnel
     roomrpc.tunnel.announce((err, ret) => {
       t.error(err, 'announce on server')
-      t.comment('announced!')
+      comment('announced!')
 
       // put there by the go test process
       let roomHandle = readFileSync('endpoint_through_room.txt').toString()
-      t.comment("connecting to room handle:", roomHandle)
+      comment(`connecting to room handle: ${roomHandle}`)
 
       client.conn.connect(roomHandle, (err, tunneledrpc) => {
         t.error(err, 'connect through room')
-        t.comment("got tunnel to:", tunneledrpc.id)
+        comment(`got a tunnel to: ${tunneledrpc.id}`)
 
         // check the tunnel connection works
         tunneledrpc.testing.working((err, ok) => {
@@ -46,8 +52,8 @@ module.exports = (t, client, roomrpc, exit) => {
           setTimeout(() => {
             roomrpc.tunnel.leave((err, ret) => {
               t.error(err, 'tunnel.leave')
-              t.comment('left room... exiting in 3s')
-              setTimeout(exit, 3000)
+              comment('left room... exiting in 1s')
+              setTimeout(exit, 1000)
             })
           }, 2000)
         })

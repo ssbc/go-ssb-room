@@ -92,8 +92,10 @@ func TestGoServerLegacyJSClient(t *testing.T) {
 
 	t.Log("waiting for process exits")
 	// it would be nice to have a signal here to know when the legacy client is done.
-	time.Sleep(10 * time.Second)
+	time.Sleep(15 * time.Second)
 
+	// cancels all contexts => kills all the running processes and waits
+	// (everything should have exited by now!)
 	ts.wait()
 }
 

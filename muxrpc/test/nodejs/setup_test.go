@@ -129,6 +129,8 @@ func (ts *testSession) startGoServer(
 
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
+		// if the muxrpc protocol fucks up by e.g. unpacking body data into a header, this type of error will be surfaced here and look scary in the test output
+		// example: https://github.com/ssb-ngi-pointer/go-ssb-room/pull/85#issuecomment-801106687
 		if err != nil && !errors.Is(err, context.Canceled) {
 			err = fmt.Errorf("go server exited: %w", err)
 			ts.t.Log(err)

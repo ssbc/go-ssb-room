@@ -22,8 +22,10 @@ const testName = process.env.TEST_NAME
 // the other peer we are talking to
 const testPeerAddr = process.env.TEST_PEERADDR
 const testPeerRef = process.env.TEST_PEERREF
-
 const testSession = require(process.env['TEST_SESSIONSCRIPT'])
+
+const path = require("path")
+const scriptname = path.basename(__filename)
 
 // load the plugins needed for this session
 for (plug of testSession.secretStackPlugins) {
@@ -40,26 +42,29 @@ function bufFromEnv(evname) {
 
 tape.createStream().pipe(tapSpec()).pipe(process.stderr)
 tape(testName, function (t) {
+  function comment (msg) {
+    t.comment(`[${scriptname}] ${msg}`)
+  }
   let timeoutLength = 30000
   var tapeTimeout = null
   function ready() { // needs to be called by the before block when it's done
     t.timeoutAfter(timeoutLength) // doesn't exit the process
     tapeTimeout = setTimeout(() => {
-      t.comment('!! test did not complete before timeout; shutting everything down')
+      comment('!! test did not complete before timeout; shutting everything down')
       process.exit(1)
     }, timeoutLength)
     const to = `net:${testPeerAddr}~shs:${testPeerRef.substr(1).replace('.ed25519', '')}`
-    t.comment('dialing:' + to)
+    comment(`dialing: ${to}`)
     sbot.conn.connect(to, (err, rpc) => {
       t.error(err, 'connected')
-      t.comment('connected to: '+rpc.id)
+      comment(`connected to: ${rpc.id}`)
       testSession.after(t, sbot, rpc, exit)
     })
   }
 
   function exit() { // call this when you're done
     sbot.close()
-    t.comment('closed client: '+testName)
+    comment(`closed client: ${testName}`)
     clearTimeout(tapeTimeout)
     t.end()
     process.exit(0)
@@ -93,7 +98,7 @@ tape(testName, function (t) {
 
   const sbot = createSbot(opts)
   const alice = sbot.whoami()
-  t.comment('client spawned. I am:' +  alice.id)
+  comment(`client spawned. I am: ${alice.id}`)
   
   console.log(alice.id) // tell go process who's incoming
   testSession.before(t, sbot, ready)

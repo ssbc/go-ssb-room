@@ -20,6 +20,9 @@ const testName = process.env['TEST_NAME']
 const testPort = process.env['TEST_PORT']
 const testSession = require(process.env['TEST_SESSIONSCRIPT'])
 
+const path = require("path")
+const scriptname = path.basename(__filename)
+
 // load the plugins needed for this session
 for (plug of testSession.secretStackPlugins) {
   createSbot = createSbot.use(require(plug))
@@ -27,6 +30,9 @@ for (plug of testSession.secretStackPlugins) {
 
 tape.createStream().pipe(tapSpec()).pipe(process.stderr);
 tape(testName, function (t) {
+  function comment (msg) {
+    t.comment(`[${scriptname}] ${msg}`)
+  }
 // t.timeoutAfter(30000) // doesn't exit the process
 //   const tapeTimeout = setTimeout(() => {
 //     t.comment("test timeout")
@@ -35,7 +41,7 @@ tape(testName, function (t) {
 
   function exit() { // call this when you're done
     sbot.close()
-    t.comment('closed server: '+testName)
+    comment(`closed server: ${testName}`)
     // clearTimeout(tapeTimeout)
     t.end()
     process.exit(0)
@@ -51,16 +57,16 @@ tape(testName, function (t) {
   })
   const alice = sbot.whoami()
 
-  t.comment("sbot spawned, running before")
+  comment("sbot spawned, running before")
  
   function ready() {
-    t.comment('server spawned. I am:' +  alice.id)
+    comment(`server spawned, I am: ${alice.id}`)
     console.log(alice.id) // tell go process who our pubkey
   }
   testSession.before(t, sbot, ready)
 
   sbot.on("rpc:connect", (remote, isClient) => {
-    t.comment("new connection: "+ remote.id)
+    comment(`new connection: ${remote.id}`)
     testSession.after(t, sbot, remote, exit)
   })
 })
