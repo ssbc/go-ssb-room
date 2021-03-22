@@ -143,5 +143,30 @@ func (m Members) SetRole(ctx context.Context, id int64, r roomdb.Role) error {
 		return err
 	}
 
-	panic("TODO")
+	return transact(m.db, func(tx *sql.Tx) error {
+		m, err := models.FindMember(ctx, tx, id)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return roomdb.ErrNotFound
+			}
+			return err
+		}
+
+		// find the number of other admins
+		admins, err := models.Members(
+			qm.Where("id != ?", id),
+			qm.Where("role = ?", roomdb.RoleAdmin),
+		).Count(ctx, tx)
+		if err != nil {
+			return err
+		}
+
+		if admins < 1 {
+			return fmt.Errorf("need at least one other admin")
+		}
+
+		m.Role = int64(r)
+		_, err = m.Update(ctx, tx, boil.Whitelist("role"))
+		return err
+	})
 }

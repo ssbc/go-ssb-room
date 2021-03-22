@@ -1,4 +1,5 @@
 {{ define "menu" }}
+<!-- Icons are taken from https://materialdesignicons.com/ -->
 <div class="flex flex-col my-4 w-40 px-2 sm:pl-0">
   <a
     href="{{urlTo "complete:index"}}"
@@ -36,14 +37,6 @@
     </svg>{{i18n "AdminMembersTitle"}}
   </a>
 
-  <a
-    href="{{urlTo "admin:denied-keys:overview"}}"
-    class="{{if current_page_is "admin:denied-keys:overview"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
-  >
-    <svg class="text-purple-600 w-4 h-4 mr-1" viewBox="0 0 24 24">
-      <path fill="currentColor" d="" />
-    </svg>{{i18n "AdminDeniedKeysTitle"}}
-  </a>
 
   <a
     href="{{urlTo "admin:invites:overview"}}"
@@ -52,6 +45,15 @@
     <svg class="text-purple-600 w-4 h-4 mr-1" viewBox="0 0 24 24">
       <path fill="currentColor" d="M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z" />
     </svg>‍{{i18n "NavAdminInvites"}}
+  </a>
+
+  <a
+    href="{{urlTo "admin:denied-keys:overview"}}"
+    class="{{if current_page_is "admin:denied-keys:overview"}}bg-gray-300 {{else}}hover:bg-gray-200 {{end}}pr-1 pl-2 py-3 sm:py-1 rounded-md flex flex-row items-center font-semibold text-sm text-gray-700 hover:text-gray-800 truncate"
+  >
+    <svg class="text-red-600 w-4 h-4 mr-1" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12,0A12,12 0 0,1 24,12A12,12 0 0,1 12,24A12,12 0 0,1 0,12A12,12 0 0,1 12,0M12,2A10,10 0 0,0 2,12C2,14.4 2.85,16.6 4.26,18.33L18.33,4.26C16.6,2.85 14.4,2 12,2M12,22A10,10 0 0,0 22,12C22,9.6 21.15,7.4 19.74,5.67L5.67,19.74C7.4,21.15 9.6,22 12,22Z" />
+    </svg>{{i18n "AdminDeniedKeysTitle"}}
   </a>
 
   <a

@@ -136,4 +136,88 @@ func TestMembersByID(t *testing.T) {
 
 	_, yes = db.Members.GetByID(ctx, lst[0].ID)
 	r.Error(yes)
+
+	r.NoError(db.Close())
+}
+
+func TestMembersSetRole(t *testing.T) {
+	r := require.New(t)
+	ctx := context.Background()
+
+	testRepo := filepath.Join("testrun", t.Name())
+	os.RemoveAll(testRepo)
+
+	tr := repo.New(testRepo)
+
+	db, err := Open(tr)
+	require.NoError(t, err)
+
+	// create two users
+	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1"), 32), Algo: refs.RefAlgoFeedSSB1}
+	idA, err := db.Members.Add(ctx, "user-a", feedA, roomdb.RoleAdmin)
+	r.NoError(err)
+	t.Log("member A:", idA)
+
+	feedB := refs.FeedRef{ID: bytes.Repeat([]byte("2"), 32), Algo: refs.RefAlgoFeedSSB1}
+	idB, err := db.Members.Add(ctx, "user-b", feedB, roomdb.RoleModerator)
+	r.NoError(err)
+	t.Log("member B:", idB)
+
+	// list and check
+	members, err := db.Members.List(ctx)
+	r.NoError(err)
+	r.Len(members, 2)
+	findMemberWithRole(t, members, idA, roomdb.RoleAdmin)
+	findMemberWithRole(t, members, idB, roomdb.RoleModerator)
+
+	// upgrade B to admin
+	err = db.Members.SetRole(ctx, idB, roomdb.RoleAdmin)
+	r.NoError(err)
+
+	// list and check
+	members, err = db.Members.List(ctx)
+	r.NoError(err)
+	r.Len(members, 2)
+	findMemberWithRole(t, members, idA, roomdb.RoleAdmin)
+	findMemberWithRole(t, members, idB, roomdb.RoleAdmin)
+
+	// downgrade A to member
+	err = db.Members.SetRole(ctx, idA, roomdb.RoleMember)
+	r.NoError(err)
+
+	// list and check
+	members, err = db.Members.List(ctx)
+	r.NoError(err)
+	r.Len(members, 2)
+	findMemberWithRole(t, members, idA, roomdb.RoleMember)
+	findMemberWithRole(t, members, idB, roomdb.RoleAdmin)
+
+	// can't downgrade B to member (need one admin)
+	err = db.Members.SetRole(ctx, idB, roomdb.RoleMember)
+	r.Error(err)
+
+	// unchanged
+	members, err = db.Members.List(ctx)
+	r.NoError(err)
+	r.Len(members, 2)
+	findMemberWithRole(t, members, idA, roomdb.RoleMember)
+	findMemberWithRole(t, members, idB, roomdb.RoleAdmin)
+
+	r.NoError(db.Close())
+}
+
+func findMemberWithRole(t *testing.T, members []roomdb.Member, id int64, r roomdb.Role) {
+	var found = false
+
+	for _, m := range members {
+		if m.ID == id {
+			if m.Role != r {
+				t.Errorf("memberd %d has the wrong role (has %s)", m.ID, m.Role)
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("memberd %d not in the list", id)
+	}
 }

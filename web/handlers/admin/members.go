@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/user"
 )
 
 type membersHandler struct {
@@ -70,6 +71,49 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
+func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		return
+	}
+
+	currentUser := user.FromContext(req.Context())
+	if currentUser == nil || currentUser.Role != roomdb.RoleAdmin {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusForbidden, fmt.Errorf("not an admin"))
+		return
+	}
+
+	memberID, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
+	if err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad member id: %w", err))
+		return
+	}
+
+	if err := req.ParseForm(); err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		return
+	}
+
+	var role roomdb.Role
+	if err := role.UnmarshalText([]byte(req.Form.Get("role"))); err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.db.SetRole(req.Context(), memberID, role); err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("failed to change member role: %w", err))
+		return
+	}
+
+	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
+}
+
 func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	lst, err := h.db.List(req.Context())
 	if err != nil {
@@ -86,6 +130,8 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	}
 
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
+
+	pageData["AllRoles"] = []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
 
 	return pageData, nil
 }

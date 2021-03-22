@@ -36,7 +36,7 @@ func TestDeniedKeys(t *testing.T) {
 
 	// looks ok at least
 	created := time.Now()
-	time.Sleep(time.Second / 2)
+	time.Sleep(time.Second)
 	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("b44d"), 8), Algo: refs.RefAlgoFeedSSB1}
 	err = db.DeniedKeys.Add(ctx, okFeed, "be gone")
 	r.NoError(err)
@@ -53,7 +53,7 @@ func TestDeniedKeys(t *testing.T) {
 	r.Len(lst, 1)
 	r.Equal(okFeed.Ref(), lst[0].PubKey.Ref())
 	r.Equal("be gone", lst[0].Comment)
-	r.True(lst[0].CreatedAt.After(created))
+	r.True(lst[0].CreatedAt.After(created), "not created after the sleep?")
 
 	yes := db.DeniedKeys.HasFeed(ctx, okFeed)
 	r.True(yes)

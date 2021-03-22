@@ -20,6 +20,7 @@ const (
 
 	AdminMembersOverview      = "admin:members:overview"
 	AdminMembersAdd           = "admin:members:add"
+	AdminMembersChangeRole    = "admin:members:change-role"
 	AdminMembersRemoveConfirm = "admin:members:remove:confirm"
 	AdminMembersRemove        = "admin:members:remove"
 
@@ -54,6 +55,7 @@ func Admin(m *mux.Router) *mux.Router {
 
 	m.Path("/members").Methods("GET").Name(AdminMembersOverview)
 	m.Path("/members/add").Methods("POST").Name(AdminMembersAdd)
+	m.Path("/members/change-role").Methods("POST").Name(AdminMembersChangeRole)
 	m.Path("/members/remove/confirm").Methods("GET").Name(AdminMembersRemoveConfirm)
 	m.Path("/members/remove").Methods("POST").Name(AdminMembersRemove)
 

@@ -23,13 +23,13 @@
           type="text"
           name="pub_key"
           placeholder="@                                            .ed25519"
-          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+          class="font-mono truncate w-1/2 mr-2 tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
         >
         <input
           type="text"
           name="comment"
-          placeholder="some comment"
-          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+          placeholder="{{i18n "AdminDeniedKeysComment"}}"
+          class="font-mono truncate w-1/2  tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
         >
         <input
           type="submit"
@@ -41,8 +41,12 @@
     {{range .Entries}}
     <li class="flex flex-row items-center h-12">
       <span
-        class="font-mono truncate flex-auto text-gray-600 tracking-wider"
+        class="font-mono truncate flex-auto text-gray-600 tracking-wider text-xs"
       >{{.PubKey.Ref}}</span>
+
+      <span
+        class="font-mono flex-auto text-gray-600 tracking-wider"
+      >{{.Comment}}</span>
 
       <a
         href="{{urlTo "admin:denied-keys:remove:confirm" "id" .ID}}"

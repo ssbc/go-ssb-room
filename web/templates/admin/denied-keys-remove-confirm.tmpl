@@ -12,6 +12,17 @@
         class="my-4 font-mono truncate max-w-full text-lg text-gray-700"
       >{{.Entry.PubKey.Ref}}</pre>
 
+      <div class="has-tooltip">
+        {{human_time .Entry.CreatedAt}}
+        <span class="tooltip">{{.Entry.CreatedAt.Format "2006-01-02T15:04:05.00"}}</span>
+      </div>
+
+      <span
+        id="welcome"
+        class="text-center"
+      >{{i18n "AdminDeniedKeysCommentDescription"}}</span>
+      <p>{{.Entry.Comment}}</p>
+
       <form id="confirm" action="{{urlTo "admin:denied-keys:remove"}}" method="POST">
         {{ .csrfField }}
         <input type="hidden" name="id" value={{.Entry.ID}}>

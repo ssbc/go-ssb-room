@@ -56,7 +56,10 @@ type MembersService interface {
 	// RemoveID removes the feed for the ID from the list.
 	RemoveID(context.Context, int64) error
 
-	// SetRole
+	// SetRole changes the role of the passed member id.
+	// It will return an error if the member doesn't exist.
+	// It should also return an error if call would remove the last admin,
+	// since only admins can change roles doing so would leave the room in a crippled state.
 	SetRole(context.Context, int64, Role) error
 }
 

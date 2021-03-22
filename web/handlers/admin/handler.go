@@ -96,6 +96,7 @@ func Handler(
 	}
 	mux.HandleFunc("/members", r.HTML("admin/members.tmpl", mh.overview))
 	mux.HandleFunc("/members/add", mh.add)
+	mux.HandleFunc("/members/change-role", mh.changeRole)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/members-remove-confirm.tmpl", mh.removeConfirm))
 	mux.HandleFunc("/members/remove", mh.remove)
 

@@ -58,6 +58,26 @@ const (
 	RoleAdmin
 )
 
+func (r *Role) UnmarshalText(text []byte) error {
+	roleStr := string(text)
+	switch roleStr {
+
+	case RoleAdmin.String():
+		*r = RoleAdmin
+
+	case RoleModerator.String():
+		*r = RoleModerator
+
+	case RoleMember.String():
+		*r = RoleMember
+
+	default:
+		return fmt.Errorf("unknown member role: %q", roleStr)
+	}
+
+	return nil
+}
+
 type ErrAlreadyAdded struct {
 	Ref refs.FeedRef
 }

@@ -23,13 +23,13 @@
           type="text"
           name="nick"
           placeholder="member nickname"
-          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+          class="font-mono truncate w-1/2 tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
         >
         <input
           type="text"
           name="pub_key"
           placeholder="@                                            .ed25519"
-          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+          class="font-mono truncate w-1/2 ml-3 tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
         >
         <input
           type="submit"
@@ -38,14 +38,43 @@
         >
       </div>
     </form>
-    {{range .Entries}}
+    {{range $index, $member := .Entries}}
     <li class="flex flex-row items-center h-12">
       <span
-        class="font-mono truncate flex-auto text-gray-600 tracking-wider"
-      >{{.PubKey.Ref}}</span>
+        class="font-mono truncate flex-auto text-gray-600 tracking-wider w-1/3"
+      >{{$member.Nickname}}</span>
+
+      <form
+        class="change-member-role"
+        action="{{urlTo "admin:members:change-role" "id" $member.ID}}"
+        method="POST"
+      >
+        {{ $.csrfField }}
+        <select name="role">
+          {{range $.AllRoles}}
+            <option
+              value="{{.}}"
+              {{if eq . $member.Role}}
+                selected
+              {{else}}
+                class="changed"
+              {{end}}
+            >{{i18n .String}}</option>
+          {{end}}
+        </select>
+        <!-- TODO: I'd like to keep this button hidden until the option is changed.
+        butt i'm not sure that's possible without client side javascript..?
+        https://stackoverflow.com/questions/16015933/how-can-i-show-a-hidden-div-when-a-select-option-is-selected
+        -->
+        <input type="submit" value="{{i18n "GenericSave"}}">
+      </form>
+
+      <span
+        class="font-mono truncate flex-auto text-gray-600 text-xs"
+      >{{$member.PubKey.Ref}}</span>
 
       <a
-        href="{{urlTo "admin:members:remove:confirm" "id" .ID}}"
+        href="{{urlTo "admin:members:remove:confirm" "id" $member.ID}}"
         class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
       >{{i18n "AdminMembersRemove"}}</a>
     </li>
