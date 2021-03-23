@@ -10,14 +10,13 @@ import (
 	"time"
 
 	"go.cryptoscope.co/muxrpc/v2"
-
 	"go.mindeco.de/http/auth"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 // withssbHandler implements the oauth-like challenge/response dance described in
@@ -103,10 +102,12 @@ func (h withssbHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	}
 
 	// create a cookie for the member
-	err = h.cookieAuth.SaveUserSession(req, w, member.ID)
-	if err != nil {
-		return nil, err
-	}
+	// TODO: pass in session store
+	// TODO: revamp auth check (check different cookie fields, don't reuse password session)
+	// err = h.cookieAuth.SaveUserSession(req, w, member.ID)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// TODO: store the solution for session invalidation
 	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/92

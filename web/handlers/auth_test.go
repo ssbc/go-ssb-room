@@ -9,18 +9,16 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
-
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -316,7 +314,6 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	edpRef := ts.MockedEndpoints.GetEndpointForArgsForCall(0)
 	a.Equal(client.Feed.Ref(), edpRef.Ref())
 
-	// analyse the muxrpc call
+	// check the mock was called
 	a.Equal(1, edp.AsyncCallCount())
-
 }
