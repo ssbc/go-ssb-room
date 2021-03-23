@@ -15,7 +15,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"

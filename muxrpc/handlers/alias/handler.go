@@ -10,14 +10,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	refs "go.mindeco.de/ssb-refs"
 )
 
