@@ -13,9 +13,10 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -25,12 +26,16 @@ type Handler struct {
 	self   refs.FeedRef
 
 	db roomdb.AliasesService
+
+	roomDomain string // the http(s) domain of the room to signal alias addresses
 }
 
 // New returns a fresh alias muxrpc handler
-func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService) Handler {
+func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService, roomDomain string) Handler {
+
 	var h Handler
 	h.self = self
+	h.roomDomain = roomDomain
 	h.logger = log
 	h.db = aliasesDB
 
@@ -38,6 +43,8 @@ func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService) 
 }
 
 const sigSuffix = ".sig.ed25519"
+
+var httpRouter = router.CompleteApp()
 
 // Register is an async muxrpc method handler for registering aliases.
 // It receives two string arguments over muxrpc (alias and signature),
@@ -93,7 +100,14 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, fmt.Errorf("registerAlias: could not register alias: %w", err)
 	}
 
-	return true, nil
+	resolveURL, err := httpRouter.Get(router.CompleteAliasResolve).URL("alias", confirmation.Alias)
+	if err != nil {
+		return nil, err
+	}
+	resolveURL.Host = h.roomDomain
+	resolveURL.Scheme = "https"
+
+	return resolveURL.String(), nil
 }
 
 // Revoke checks that the alias is from that user before revoking the alias from the database.

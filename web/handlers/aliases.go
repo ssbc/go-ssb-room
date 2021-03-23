@@ -11,7 +11,7 @@ import (
 	"go.mindeco.de/http/render"
 	refs "go.mindeco.de/ssb-refs"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 

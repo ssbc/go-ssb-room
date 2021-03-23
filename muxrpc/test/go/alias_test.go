@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"net/url"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -96,10 +97,16 @@ func TestAliasRegister(t *testing.T) {
 	// encode the signature as base64
 	sig := base64.StdEncoding.EncodeToString(confirmation.Signature) + ".sig.ed25519"
 
-	var worked bool
-	err = clientForServer.Async(ctx, &worked, muxrpc.TypeJSON, muxrpc.Method{"room", "registerAlias"}, "bob", sig)
+	var registerResponse string
+	err = clientForServer.Async(ctx, &registerResponse, muxrpc.TypeString, muxrpc.Method{"room", "registerAlias"}, "bob", sig)
 	r.NoError(err)
-	a.True(worked)
+	a.NotEqual("", registerResponse, "response isn't empty")
+
+	resolveURL, err := url.Parse(registerResponse)
+	r.NoError(err)
+	t.Log("got URL:", resolveURL)
+	a.Equal("srv", resolveURL.Host)
+	a.Equal("/bob", resolveURL.Path)
 
 	// server should have the alias now
 	alias, err := serv.Aliases.Resolve(ctx, "bob")

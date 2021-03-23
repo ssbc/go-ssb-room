@@ -28,6 +28,7 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 		kitlog.With(s.logger, "unit", "aliases"),
 		s.Whoami(),
 		aliasDB,
+		s.domain,
 	)
 
 	// register muxrpc commands
