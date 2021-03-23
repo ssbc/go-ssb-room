@@ -26,10 +26,56 @@ type Alias struct {
 	Signature []byte
 }
 
-// User holds all the information an authenticated user of the site has.
-type User struct {
-	ID   int64
-	Name string
+// Member holds all the information an internal user of the room has.
+type Member struct {
+	ID       int64
+	Nickname string // a common handle for the user (no-one want's to remember public keys)
+	Role     Role
+	PubKey   refs.FeedRef
+}
+
+//go:generate stringer -type=Role
+
+// Role describes the authorization level of an internal user (or member).
+// Valid roles are Member, Moderator or Admin.
+// The zero value Uknown is used to detect missing initializion while not falling into a bad default.
+type Role uint
+
+func (r Role) IsValid() error {
+	if r == RoleUnknown {
+		return errors.New("uknown member role")
+	}
+	if r > RoleAdmin {
+		return errors.New("invalid member role")
+	}
+	return nil
+}
+
+const (
+	RoleUnknown Role = iota
+	RoleMember
+	RoleModerator
+	RoleAdmin
+)
+
+func (r *Role) UnmarshalText(text []byte) error {
+	roleStr := string(text)
+	switch roleStr {
+
+	case RoleAdmin.String():
+		*r = RoleAdmin
+
+	case RoleModerator.String():
+		*r = RoleModerator
+
+	case RoleMember.String():
+		*r = RoleMember
+
+	default:
+		return fmt.Errorf("unknown member role: %q", roleStr)
+	}
+
+	return nil
 }
 
 type ErrAlreadyAdded struct {
@@ -45,20 +91,20 @@ func (aa ErrAlreadyAdded) Error() string {
 type Invite struct {
 	ID int64
 
-	CreatedBy User
+	CreatedBy Member
 	CreatedAt time.Time
 
 	AliasSuggestion string
 }
 
-// ListEntry values are returned by Allow- and DenyListServices
+// ListEntry values are returned by the DenyListServices
 type ListEntry struct {
 	ID     int64
 	PubKey refs.FeedRef
-}
 
-// ListEntries is a slice of ListEntries
-type ListEntries []ListEntry
+	CreatedAt time.Time
+	Comment   string
+}
 
 // DBFeedRef wraps a feed reference and implements the SQL marshaling interfaces.
 type DBFeedRef struct{ refs.FeedRef }

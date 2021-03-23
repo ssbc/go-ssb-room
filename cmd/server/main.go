@@ -202,7 +202,7 @@ func runroomsrv() error {
 
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
-		db.AllowList,
+		db.Members,
 		db.Aliases,
 		opts...)
 	if err != nil {
@@ -246,11 +246,11 @@ func runroomsrv() error {
 		roomsrv.StateManager,
 		handlers.Databases{
 			Aliases:       db.Aliases,
-			AuthWithSSB:   db.AuthWithSSB,
 			AuthFallback:  db.AuthFallback,
-			AllowList:     db.AllowList,
+			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
+			Members:       db.Members,
 			PinnedNotices: db.PinnedNotices,
 		},
 	)

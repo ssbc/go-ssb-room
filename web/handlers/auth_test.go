@@ -7,10 +7,11 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
 )
 

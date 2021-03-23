@@ -58,12 +58,12 @@ type Server struct {
 	public typemux.HandlerMux
 	master typemux.HandlerMux
 
-	authorizer roomdb.AllowListService
+	authorizer roomdb.MembersService
 
 	StateManager *roomstate.Manager
 
-	AllowList roomdb.AllowListService
-	Aliases   roomdb.AliasService
+	Members roomdb.MembersService
+	Aliases roomdb.AliasesService
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -71,14 +71,14 @@ func (s Server) Whoami() refs.FeedRef {
 }
 
 func New(
-	allowdb roomdb.AllowListService,
-	aliasdb roomdb.AliasService,
+	membersdb roomdb.MembersService,
+	aliasdb roomdb.AliasesService,
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
-	s.authorizer = allowdb
+	s.authorizer = membersdb
 
-	s.AllowList = allowdb
+	s.Members = membersdb
 	s.Aliases = aliasdb
 
 	for i, opt := range opts {

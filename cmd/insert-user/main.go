@@ -1,34 +1,72 @@
 // SPDX-License-Identifier: MIT
 
+// insert-user is a utility to create a new member and password
 package main
 
 import (
 	"bytes"
 	"context"
+	"flag"
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
+	"strings"
 	"syscall"
+
+	refs "go.mindeco.de/ssb-refs"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/ssh/terminal"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 )
 
 func main() {
+	u, err := user.Current()
+	check(err)
+
+	var (
+		repoPath string
+		role     roomdb.Role = roomdb.RoleAdmin
+	)
+
+	flag.StringVar(&repoPath, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "where the repo of the room is located")
+	flag.Func("role", "which role the new member should have (ie moderator, admin, member. defaults to admin)", func(val string) error {
+		switch strings.ToLower(val) {
+		case "admin":
+			role = roomdb.RoleAdmin
+		case "moderator":
+			role = roomdb.RoleAdmin
+		case "member":
+			role = roomdb.RoleMember
+
+		default:
+			return fmt.Errorf("unknown member role: %q", val)
+		}
+
+		return nil
+	})
+
+	flag.Parse()
 
 	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s <repo-location> <user-name>\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "repo-location: default is $HOME/.ssb-go-room\n")
+		fmt.Fprintf(os.Stderr, "usage: %s <user-name> <@theirPublicKey.ed25519>\n", os.Args[0])
+		flag.Usage()
 		os.Exit(1)
 		return
 	}
 
-	r := repo.New(os.Args[1])
+	r := repo.New(repoPath)
 	db, err := sqlite.Open(r)
 	check(err)
 	defer db.Close()
+
+	pubKey, err := refs.ParseFeedRef(os.Args[2])
+	check(err)
 
 	fmt.Fprintln(os.Stderr, "Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
@@ -45,10 +83,13 @@ func main() {
 	}
 
 	ctx := context.Background()
-	uid, err := db.AuthFallback.Create(ctx, os.Args[2], bytePassword)
+	mid, err := db.Members.Add(ctx, os.Args[1], *pubKey, role)
 	check(err)
 
-	fmt.Fprintln(os.Stderr, "created user with ID", uid)
+	err = db.AuthFallback.Create(ctx, mid, os.Args[1], bytePassword)
+	check(err)
+
+	fmt.Fprintln(os.Stderr, "created member with ID", mid)
 }
 
 func check(err error) {

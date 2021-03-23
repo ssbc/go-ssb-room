@@ -7,6 +7,10 @@ GenericLanguage = "Language"
 
 PageNotFound = "The requested page was not found."
 
+RoleMember = "Member"
+RoleModerator = "Moderator"
+RoleAdmin = "Admin"
+
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
@@ -22,12 +26,21 @@ AdminAliasesTitle = "Aliases"
 AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."
 AdminAliasesRevoke = "Revoke"
 
-AdminAllowListTitle = "Members"
-AdminAllowListWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
-AdminAllowListAdd = "Add"
-AdminAllowListRemove = "Remove"
-AdminAllowListRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
-AdminAllowListRemoveConfirmTitle = "Confirm member removal"
+AdminDeniedKeysTitle = "Banned"
+AdminDeniedKeysWelcome = "This page can be used to ban SSB IDs so that they can't access the room any more."
+AdminDeniedKeysAdd = "Add"
+AdminDeniedKeysRemove = "Remove"
+AdminDeniedKeysComment = "Comment"
+AdminDeniedKeysCommentDescription = "The person who added this ban, added the following comment"
+AdminDeniedKeysRemoveConfirmWelcome = "Are you sure you want to remove this ban? They will will be able to access the room again."
+AdminDeniedKeysRemoveConfirmTitle = "Confirm member removal"
+
+AdminMembersTitle = "Members"
+AdminMembersWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
+AdminMembersAdd = "Add"
+AdminMembersRemove = "Remove"
+AdminMembersRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
+AdminMembersRemoveConfirmTitle = "Confirm member removal"
 
 AdminInvitesTitle = "Invites"
 AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same time as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."

@@ -24,7 +24,7 @@ import (
 type Alias struct {
 	ID        int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Name      string `boil:"name" json:"name" toml:"name" yaml:"name"`
-	UserID    int64  `boil:"user_id" json:"user_id" toml:"user_id" yaml:"user_id"`
+	MemberID  int64  `boil:"member_id" json:"member_id" toml:"member_id" yaml:"member_id"`
 	Signature []byte `boil:"signature" json:"signature" toml:"signature" yaml:"signature"`
 
 	R *aliasR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -34,12 +34,12 @@ type Alias struct {
 var AliasColumns = struct {
 	ID        string
 	Name      string
-	UserID    string
+	MemberID  string
 	Signature string
 }{
 	ID:        "id",
 	Name:      "name",
-	UserID:    "user_id",
+	MemberID:  "member_id",
 	Signature: "signature",
 }
 
@@ -103,25 +103,25 @@ func (w whereHelper__byte) GTE(x []byte) qm.QueryMod { return qmhelper.Where(w.f
 var AliasWhere = struct {
 	ID        whereHelperint64
 	Name      whereHelperstring
-	UserID    whereHelperint64
+	MemberID  whereHelperint64
 	Signature whereHelper__byte
 }{
 	ID:        whereHelperint64{field: "\"aliases\".\"id\""},
 	Name:      whereHelperstring{field: "\"aliases\".\"name\""},
-	UserID:    whereHelperint64{field: "\"aliases\".\"user_id\""},
+	MemberID:  whereHelperint64{field: "\"aliases\".\"member_id\""},
 	Signature: whereHelper__byte{field: "\"aliases\".\"signature\""},
 }
 
 // AliasRels is where relationship names are stored.
 var AliasRels = struct {
-	User string
+	Member string
 }{
-	User: "User",
+	Member: "Member",
 }
 
 // aliasR is where relationships are stored.
 type aliasR struct {
-	User *AllowList `boil:"User" json:"User" toml:"User" yaml:"User"`
+	Member *Member `boil:"Member" json:"Member" toml:"Member" yaml:"Member"`
 }
 
 // NewStruct creates a new relationship struct
@@ -133,9 +133,9 @@ func (*aliasR) NewStruct() *aliasR {
 type aliasL struct{}
 
 var (
-	aliasAllColumns            = []string{"id", "name", "user_id", "signature"}
+	aliasAllColumns            = []string{"id", "name", "member_id", "signature"}
 	aliasColumnsWithoutDefault = []string{}
-	aliasColumnsWithDefault    = []string{"id", "name", "user_id", "signature"}
+	aliasColumnsWithDefault    = []string{"id", "name", "member_id", "signature"}
 	aliasPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -414,23 +414,23 @@ func (q aliasQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 	return count > 0, nil
 }
 
-// User pointed to by the foreign key.
-func (o *Alias) User(mods ...qm.QueryMod) allowListQuery {
+// Member pointed to by the foreign key.
+func (o *Alias) Member(mods ...qm.QueryMod) memberQuery {
 	queryMods := []qm.QueryMod{
-		qm.Where("\"id\" = ?", o.UserID),
+		qm.Where("\"id\" = ?", o.MemberID),
 	}
 
 	queryMods = append(queryMods, mods...)
 
-	query := AllowLists(queryMods...)
-	queries.SetFrom(query.Query, "\"allow_list\"")
+	query := Members(queryMods...)
+	queries.SetFrom(query.Query, "\"members\"")
 
 	return query
 }
 
-// LoadUser allows an eager lookup of values, cached into the
+// LoadMember allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for an N-1 relationship.
-func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAlias interface{}, mods queries.Applicator) error {
+func (aliasL) LoadMember(ctx context.Context, e boil.ContextExecutor, singular bool, maybeAlias interface{}, mods queries.Applicator) error {
 	var slice []*Alias
 	var object *Alias
 
@@ -445,7 +445,7 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 		if object.R == nil {
 			object.R = &aliasR{}
 		}
-		args = append(args, object.UserID)
+		args = append(args, object.MemberID)
 
 	} else {
 	Outer:
@@ -455,12 +455,12 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 			}
 
 			for _, a := range args {
-				if a == obj.UserID {
+				if a == obj.MemberID {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.UserID)
+			args = append(args, obj.MemberID)
 
 		}
 	}
@@ -470,8 +470,8 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 	}
 
 	query := NewQuery(
-		qm.From(`allow_list`),
-		qm.WhereIn(`allow_list.id in ?`, args...),
+		qm.From(`members`),
+		qm.WhereIn(`members.id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -479,19 +479,19 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load AllowList")
+		return errors.Wrap(err, "failed to eager load Member")
 	}
 
-	var resultSlice []*AllowList
+	var resultSlice []*Member
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice AllowList")
+		return errors.Wrap(err, "failed to bind eager loaded slice Member")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results of eager load for allow_list")
+		return errors.Wrap(err, "failed to close results of eager load for members")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for allow_list")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for members")
 	}
 
 	if len(aliasAfterSelectHooks) != 0 {
@@ -508,22 +508,22 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 
 	if singular {
 		foreign := resultSlice[0]
-		object.R.User = foreign
+		object.R.Member = foreign
 		if foreign.R == nil {
-			foreign.R = &allowListR{}
+			foreign.R = &memberR{}
 		}
-		foreign.R.UserAliases = append(foreign.R.UserAliases, object)
+		foreign.R.Aliases = append(foreign.R.Aliases, object)
 		return nil
 	}
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.UserID == foreign.ID {
-				local.R.User = foreign
+			if local.MemberID == foreign.ID {
+				local.R.Member = foreign
 				if foreign.R == nil {
-					foreign.R = &allowListR{}
+					foreign.R = &memberR{}
 				}
-				foreign.R.UserAliases = append(foreign.R.UserAliases, local)
+				foreign.R.Aliases = append(foreign.R.Aliases, local)
 				break
 			}
 		}
@@ -532,10 +532,10 @@ func (aliasL) LoadUser(ctx context.Context, e boil.ContextExecutor, singular boo
 	return nil
 }
 
-// SetUser of the alias to the related item.
-// Sets o.R.User to related.
-// Adds o to related.R.UserAliases.
-func (o *Alias) SetUser(ctx context.Context, exec boil.ContextExecutor, insert bool, related *AllowList) error {
+// SetMember of the alias to the related item.
+// Sets o.R.Member to related.
+// Adds o to related.R.Aliases.
+func (o *Alias) SetMember(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Member) error {
 	var err error
 	if insert {
 		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
@@ -545,7 +545,7 @@ func (o *Alias) SetUser(ctx context.Context, exec boil.ContextExecutor, insert b
 
 	updateQuery := fmt.Sprintf(
 		"UPDATE \"aliases\" SET %s WHERE %s",
-		strmangle.SetParamNames("\"", "\"", 0, []string{"user_id"}),
+		strmangle.SetParamNames("\"", "\"", 0, []string{"member_id"}),
 		strmangle.WhereClause("\"", "\"", 0, aliasPrimaryKeyColumns),
 	)
 	values := []interface{}{related.ID, o.ID}
@@ -559,21 +559,21 @@ func (o *Alias) SetUser(ctx context.Context, exec boil.ContextExecutor, insert b
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.UserID = related.ID
+	o.MemberID = related.ID
 	if o.R == nil {
 		o.R = &aliasR{
-			User: related,
+			Member: related,
 		}
 	} else {
-		o.R.User = related
+		o.R.Member = related
 	}
 
 	if related.R == nil {
-		related.R = &allowListR{
-			UserAliases: AliasSlice{o},
+		related.R = &memberR{
+			Aliases: AliasSlice{o},
 		}
 	} else {
-		related.R.UserAliases = append(related.R.UserAliases, o)
+		related.R.Aliases = append(related.R.Aliases, o)
 	}
 
 	return nil

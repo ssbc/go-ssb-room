@@ -13,10 +13,16 @@ const (
 	AdminAliasesRevokeConfirm = "admin:aliases:revoke:confirm"
 	AdminAliasesRevoke        = "admin:aliases:revoke"
 
-	AdminAllowListOverview      = "admin:allow-list:overview"
-	AdminAllowListAdd           = "admin:allow-list:add"
-	AdminAllowListRemoveConfirm = "admin:allow-list:remove:confirm"
-	AdminAllowListRemove        = "admin:allow-list:remove"
+	AdminDeniedKeysOverview      = "admin:denied-keys:overview"
+	AdminDeniedKeysAdd           = "admin:denied-keys:add"
+	AdminDeniedKeysRemoveConfirm = "admin:denied-keys:remove:confirm"
+	AdminDeniedKeysRemove        = "admin:denied-keys:remove"
+
+	AdminMembersOverview      = "admin:members:overview"
+	AdminMembersAdd           = "admin:members:add"
+	AdminMembersChangeRole    = "admin:members:change-role"
+	AdminMembersRemoveConfirm = "admin:members:remove:confirm"
+	AdminMembersRemove        = "admin:members:remove"
 
 	AdminInvitesOverview      = "admin:invites:overview"
 	AdminInvitesRevokeConfirm = "admin:invites:revoke:confirm"
@@ -42,10 +48,16 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/aliases/revoke/confirm").Methods("GET").Name(AdminAliasesRevokeConfirm)
 	m.Path("/aliases/revoke").Methods("POST").Name(AdminAliasesRevoke)
 
-	m.Path("/members").Methods("GET").Name(AdminAllowListOverview)
-	m.Path("/members/add").Methods("POST").Name(AdminAllowListAdd)
-	m.Path("/members/remove/confirm").Methods("GET").Name(AdminAllowListRemoveConfirm)
-	m.Path("/members/remove").Methods("POST").Name(AdminAllowListRemove)
+	m.Path("/denied").Methods("GET").Name(AdminDeniedKeysOverview)
+	m.Path("/denied/add").Methods("POST").Name(AdminDeniedKeysAdd)
+	m.Path("/denied/remove/confirm").Methods("GET").Name(AdminDeniedKeysRemoveConfirm)
+	m.Path("/denied/remove").Methods("POST").Name(AdminDeniedKeysRemove)
+
+	m.Path("/members").Methods("GET").Name(AdminMembersOverview)
+	m.Path("/members/add").Methods("POST").Name(AdminMembersAdd)
+	m.Path("/members/change-role").Methods("POST").Name(AdminMembersChangeRole)
+	m.Path("/members/remove/confirm").Methods("GET").Name(AdminMembersRemoveConfirm)
+	m.Path("/members/remove").Methods("POST").Name(AdminMembersRemove)
 
 	m.Path("/notice/edit").Methods("GET").Name(AdminNoticeEdit)
 	m.Path("/notice/translation/draft").Methods("GET").Name(AdminNoticeDraftTranslation)

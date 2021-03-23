@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -50,8 +51,9 @@ func TestInvites(t *testing.T) {
 		r.Error(err, "can't create invite for invalid user")
 	})
 
-	testUserName := "test-user"
-	uid, err := db.AuthFallback.Create(ctx, testUserName, []byte("bad-password"))
+	testMemberNick := "test-user"
+	invitingMember := refs.FeedRef{ID: bytes.Repeat([]byte("ohai"), 8), Algo: refs.RefAlgoFeedSSB1}
+	uid, err := db.Members.Add(ctx, testMemberNick, invitingMember, roomdb.RoleModerator)
 	require.NoError(t, err, "failed to create test user")
 
 	t.Run("simple create and consume", func(t *testing.T) {
@@ -71,21 +73,21 @@ func TestInvites(t *testing.T) {
 		r.Len(lst, 1, "expected 1 invite")
 
 		r.Equal("bestie", lst[0].AliasSuggestion)
-		r.Equal(testUserName, lst[0].CreatedBy.Name)
+		r.Equal(testMemberNick, lst[0].CreatedBy.Nickname)
 		r.True(lst[0].CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
-		nope := db.AllowList.HasFeed(ctx, newMember)
-		r.False(nope, "expected feed to not yet be on the allow list")
+		_, nope := db.Members.GetByFeed(ctx, newMember)
+		r.Error(nope, "expected feed to not yet be on the allow list")
 
 		inv, err := db.Invites.Consume(ctx, tok, newMember)
 		r.NoError(err, "failed to consume the invite")
-		r.Equal(testUserName, inv.CreatedBy.Name)
+		r.Equal(testMemberNick, inv.CreatedBy.Nickname)
 		r.NotEqualValues(0, inv.ID, "invite ID unset")
 		r.True(inv.CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
 		// consume also adds it to the allow list
-		yes := db.AllowList.HasFeed(ctx, newMember)
-		r.True(yes, "expected feed on the allow list")
+		_, yes := db.Members.GetByFeed(ctx, newMember)
+		r.NoError(yes, "expected feed on the allow list")
 
 		lst, err = db.Invites.List(ctx)
 		r.NoError(err, "failed to get list of tokens post consume")
@@ -108,7 +110,7 @@ func TestInvites(t *testing.T) {
 		r.Len(lst, 1, "expected 1 invite")
 
 		r.Equal("bestie", lst[0].AliasSuggestion)
-		r.Equal(testUserName, lst[0].CreatedBy.Name)
+		r.Equal(testMemberNick, lst[0].CreatedBy.Nickname)
 
 		err = db.Invites.Revoke(ctx, lst[0].ID)
 		r.NoError(err, "failed to consume the invite")

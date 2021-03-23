@@ -8,13 +8,11 @@ import (
 	"fmt"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
-
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -26,9 +24,12 @@ type AuthFallback struct {
 
 // Check receives the username and password (in clear) and checks them accordingly.
 // If it's a valid combination it returns the user ID, or an error if they are not.
-func (af AuthFallback) Check(name, password string) (interface{}, error) {
+func (af AuthFallback) Check(login, password string) (interface{}, error) {
 	ctx := context.Background()
-	found, err := models.AuthFallbacks(qm.Where("name = ?", name)).One(ctx, af.db)
+	found, err := models.FallbackPasswords(
+		qm.Load("Member"),
+		qm.Where("login = ?", login),
+	).One(ctx, af.db)
 	if err != nil {
 		return nil, err
 	}
@@ -38,35 +39,35 @@ func (af AuthFallback) Check(name, password string) (interface{}, error) {
 		return nil, fmt.Errorf("auth/fallback: password missmatch")
 	}
 
-	return found.ID, nil
+	return found.R.Member.ID, nil
 }
 
-func (af AuthFallback) Create(ctx context.Context, name string, password []byte) (int64, error) {
-	var u models.AuthFallback
-	u.Name = name
+func (af AuthFallback) Create(ctx context.Context, memberID int64, login string, password []byte) error {
+	var newPasswordEntry models.FallbackPassword
+	newPasswordEntry.MemberID = memberID
+	newPasswordEntry.Login = login
 
 	hashed, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {
-		return -1, fmt.Errorf("auth/fallback: failed to hash password for new user")
+		return fmt.Errorf("auth/fallback: failed to hash password for new user")
 	}
+	newPasswordEntry.PasswordHash = hashed
 
-	u.PasswordHash = hashed
-
-	err = u.Insert(ctx, af.db, boil.Infer())
+	err = newPasswordEntry.Insert(ctx, af.db, boil.Infer())
 	if err != nil {
-		return -1, fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
+		return fmt.Errorf("auth/fallback: failed to insert new user: %w", err)
 	}
 
-	return u.ID, nil
+	return nil
 }
 
-func (af AuthFallback) GetByID(ctx context.Context, uid int64) (*roomdb.User, error) {
-	modelU, err := models.FindAuthFallback(ctx, af.db, uid)
-	if err != nil {
-		return nil, err
-	}
-	return &roomdb.User{
-		ID:   modelU.ID,
-		Name: modelU.Name,
-	}, nil
-}
+// func (af AuthFallback) GetByID(ctx context.Context, uid int64) (roomdb.Member, error) {
+// 	modelU, err := models.FindFallbackPassword(ctx, af.db, uid)
+// 	if err != nil {
+// 		return roomdb.Member{}, err
+// 	}
+// 	return roomdb.Member{
+// 		ID:       modelU.ID,
+// 		Nickname: modelU.R.Member.Nick,
+// 	}, nil
+// }

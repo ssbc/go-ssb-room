@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package admin
 
 import (
@@ -8,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,28 +20,28 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-func TestAllowListEmpty(t *testing.T) {
+func TestDeniedKeysEmpty(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	url, err := ts.Router.Get(router.AdminAllowListOverview).URL()
+	url, err := ts.Router.Get(router.AdminDeniedKeysOverview).URL()
 	a.Nil(err)
 
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountPlural"},
+		{"#welcome", "AdminDeniedKeysWelcome"},
+		{"title", "AdminDeniedKeysTitle"},
+		{"#DeniedKeysCount", "MemberCountPlural"},
 	})
 }
 
-func TestAllowListAdd(t *testing.T) {
+func TestDeniedKeysAdd(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	listURL, err := ts.Router.Get(router.AdminAllowListOverview).URL()
+	listURL, err := ts.Router.Get(router.AdminDeniedKeysOverview).URL()
 	a.NoError(err)
 
 	html, resp := ts.Client.GetHTML(listURL.String())
@@ -56,44 +57,48 @@ func TestAllowListAdd(t *testing.T) {
 	action, ok := formSelection.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAllowListAdd).URL()
+	addURL, err := ts.Router.Get(router.AdminDeniedKeysAdd).URL()
 	a.NoError(err)
 
 	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
+		{Name: "comment", Type: "text"},
 	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
 	addVals := url.Values{
+		"comment": []string{"some comment"},
 		// just any key that looks valid
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
-	a.Equal(1, ts.AllowListDB.AddCallCount())
-	_, added := ts.AllowListDB.AddArgsForCall(0)
-	a.Equal(newKey, added.Ref())
+	a.Equal(1, ts.DeniedKeysDB.AddCallCount())
+	_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(0)
+	a.Equal(newKey, addedKey.Ref())
+	a.Equal("some comment", addedComment)
 }
 
-func TestAllowListDontAddInvalid(t *testing.T) {
+func TestDeniedKeysDontAddInvalid(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 	r := require.New(t)
 
-	addURL, err := ts.Router.Get(router.AdminAllowListAdd).URL()
+	addURL, err := ts.Router.Get(router.AdminDeniedKeysAdd).URL()
 	a.NoError(err)
 
 	newKey := "@some-garbage"
 	addVals := url.Values{
+		"comment": []string{"some-comment"},
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
 	a.Equal(http.StatusBadRequest, rec.Code)
 
-	a.Equal(0, ts.AllowListDB.AddCallCount())
+	a.Equal(0, ts.DeniedKeysDB.AddCallCount())
 
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
 	r.NoError(err)
@@ -105,40 +110,40 @@ func TestAllowListDontAddInvalid(t *testing.T) {
 	}
 }
 
-func TestAllowList(t *testing.T) {
+func TestDeniedKeys(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	lst := roomdb.ListEntries{
+	lst := []roomdb.ListEntry{
 		{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
 		{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
 		{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 	}
-	ts.AllowListDB.ListReturns(lst, nil)
+	ts.DeniedKeysDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/members")
+	html, resp := ts.Client.GetHTML("/denied")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountPlural"},
+		{"#welcome", "AdminDeniedKeysWelcome"},
+		{"title", "AdminDeniedKeysTitle"},
+		{"#DeniedKeysCount", "MemberCountPlural"},
 	})
 
 	a.EqualValues(html.Find("#theList li").Length(), 3)
 
-	lst = roomdb.ListEntries{
+	lst = []roomdb.ListEntry{
 		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
-	ts.AllowListDB.ListReturns(lst, nil)
+	ts.DeniedKeysDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/members")
+	html, resp = ts.Client.GetHTML("/denied")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAllowListWelcome"},
-		{"title", "AdminAllowListTitle"},
-		{"#allowListCount", "MemberCountSingular"},
+		{"#welcome", "AdminDeniedKeysWelcome"},
+		{"title", "AdminDeniedKeysTitle"},
+		{"#DeniedKeysCount", "MemberCountSingular"},
 	})
 
 	elems := html.Find("#theList li")
@@ -147,20 +152,20 @@ func TestAllowList(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/members/remove/confirm?id=666", link)
+	a.Equal("/admin/denied/remove/confirm?id=666", link)
 }
 
-func TestAllowListRemoveConfirmation(t *testing.T) {
+func TestDeniedKeysRemoveConfirmation(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
 	testEntry := roomdb.ListEntry{ID: 666, PubKey: *testKey}
-	ts.AllowListDB.GetByIDReturns(testEntry, nil)
+	ts.DeniedKeysDB.GetByIDReturns(testEntry, nil)
 
 	urlTo := web.NewURLTo(ts.Router)
-	urlRemoveConfirm := urlTo(router.AdminAllowListRemoveConfirm, "id", 3)
+	urlRemoveConfirm := urlTo(router.AdminDeniedKeysRemoveConfirm, "id", 3)
 
 	html, resp := ts.Client.GetHTML(urlRemoveConfirm.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
@@ -176,7 +181,7 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 	action, ok := form.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAllowListRemove).URL()
+	addURL, err := ts.Router.Get(router.AdminDeniedKeysRemove).URL()
 	a.NoError(err)
 
 	a.Equal(addURL.String(), action)
@@ -186,25 +191,25 @@ func TestAllowListRemoveConfirmation(t *testing.T) {
 	})
 }
 
-func TestAllowListRemove(t *testing.T) {
+func TestDeniedKeysRemove(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
 	urlTo := web.NewURLTo(ts.Router)
-	urlRemove := urlTo(router.AdminAllowListRemove)
+	urlRemove := urlTo(router.AdminDeniedKeysRemove)
 
-	ts.AllowListDB.RemoveIDReturns(nil)
+	ts.DeniedKeysDB.RemoveIDReturns(nil)
 
 	addVals := url.Values{"id": []string{"666"}}
 	rec := ts.Client.PostForm(urlRemove.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
-	a.Equal(1, ts.AllowListDB.RemoveIDCallCount())
-	_, theID := ts.AllowListDB.RemoveIDArgsForCall(0)
+	a.Equal(1, ts.DeniedKeysDB.RemoveIDCallCount())
+	_, theID := ts.DeniedKeysDB.RemoveIDArgsForCall(0)
 	a.EqualValues(666, theID)
 
 	// now for unknown ID
-	ts.AllowListDB.RemoveIDReturns(roomdb.ErrNotFound)
+	ts.DeniedKeysDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
 	rec = ts.Client.PostForm(urlRemove.String(), addVals)
 	a.Equal(http.StatusNotFound, rec.Code)

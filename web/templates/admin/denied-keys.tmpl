@@ -1,20 +1,20 @@
-{{ define "title" }}{{i18n "AdminAllowListTitle"}}{{ end }}
+{{ define "title" }}{{i18n "AdminDeniedKeysTitle"}}{{ end }}
 {{ define "content" }}
   <h1
     class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
-  >{{i18n "AdminAllowListTitle"}}</h1>
+  >{{i18n "AdminDeniedKeysTitle"}}</h1>
 
-  <p id="welcome" class="my-2">{{i18n "AdminAllowListWelcome"}}</p>
+  <p id="welcome" class="my-2">{{i18n "AdminDeniedKeysWelcome"}}</p>
 
   <p
-    id="allowListCount"
+    id="DeniedKeysCount"
     class="text-lg font-bold my-2"
   >{{i18npl "MemberCount" .Count}}</p>
 
   <ul id="theList" class="divide-y pb-4">
     <form
       id="add-entry"
-      action="{{urlTo "admin:allow-list:add"}}"
+      action="{{urlTo "admin:denied-keys:add"}}"
       method="POST"
     >
       {{ .csrfField }}
@@ -23,11 +23,17 @@
           type="text"
           name="pub_key"
           placeholder="@                                            .ed25519"
-          class="font-mono truncate flex-auto tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+          class="font-mono truncate w-1/2 mr-2 tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
+        >
+        <input
+          type="text"
+          name="comment"
+          placeholder="{{i18n "AdminDeniedKeysComment"}}"
+          class="font-mono truncate w-1/2  tracking-wider h-12 text-gray-900 focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-transparent placeholder-gray-300"
         >
         <input
           type="submit"
-          value="{{i18n "AdminAllowListAdd"}}"
+          value="{{i18n "AdminDeniedKeysAdd"}}"
           class="pl-4 w-20 py-2 text-center text-green-500 hover:text-green-600 font-bold bg-transparent cursor-pointer"
         >
       </div>
@@ -35,13 +41,17 @@
     {{range .Entries}}
     <li class="flex flex-row items-center h-12">
       <span
-        class="font-mono truncate flex-auto text-gray-600 tracking-wider"
+        class="font-mono truncate flex-auto text-gray-600 tracking-wider text-xs"
       >{{.PubKey.Ref}}</span>
 
+      <span
+        class="font-mono flex-auto text-gray-600 tracking-wider"
+      >{{.Comment}}</span>
+
       <a
-        href="{{urlTo "admin:allow-list:remove:confirm" "id" .ID}}"
+        href="{{urlTo "admin:denied-keys:remove:confirm" "id" .ID}}"
         class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
-      >{{i18n "AdminAllowListRemove"}}</a>
+      >{{i18n "AdminDeniedKeysRemove"}}</a>
     </li>
     {{end}}
   </ul>
@@ -52,7 +62,7 @@
   <div class="flex flex-row justify-center">
     {{if not .FirstInView}}
       <a
-        href="{{urlTo "admin:allow-list:overview"}}?page=1"
+        href="{{urlTo "admin:denied-keys:overview"}}?page=1"
         class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
       >1</a>
       <span
@@ -68,7 +78,7 @@
           >{{.}}</span>
         {{else}}
           <a
-            href="{{urlTo "admin:allow-list:overview"}}?page={{.}}"
+            href="{{urlTo "admin:denied-keys:overview"}}?page={{.}}"
             class="rounded px-3 py-2 mx-1 text-pink-600 border-transparent hover:border-pink-400 border-2"
           >{{.}}</a>
         {{end}}
@@ -80,7 +90,7 @@
         class="px-3 py-2 text-gray-400 border-2 border-transparent"
       >..</span>
       <a
-        href="{{urlTo "admin:allow-list:overview"}}?page={{$view.Last}}"
+        href="{{urlTo "admin:denied-keys:overview"}}?page={{$view.Last}}"
         class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
       >{{$view.Last}}</a>
     {{end}}

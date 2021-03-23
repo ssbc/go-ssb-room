@@ -12,6 +12,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	_ "github.com/mattn/go-sqlite3"
@@ -63,7 +65,7 @@ func (bs botServer) Serve(s *roomsrv.Server) func() error {
 	}
 }
 
-func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv.Server {
+func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.MembersService, *roomsrv.Server) {
 	r := require.New(t)
 	testPath := filepath.Join("testrun", t.Name(), "bot-"+name)
 	os.RemoveAll(testPath)
@@ -86,7 +88,7 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) *roomsrv
 			t.Log("db close failed: ", err)
 		}
 	})
-	theBot, err := roomsrv.New(db.AllowList, db.Aliases, botOptions...)
+	theBot, err := roomsrv.New(db.Members, db.Aliases, botOptions...)
 	r.NoError(err)
-	return theBot
+	return db.Members, theBot
 }

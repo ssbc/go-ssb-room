@@ -19,7 +19,7 @@ func TestInvitesOverview(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	testUser := roomdb.User{ID: 23}
+	testUser := roomdb.Member{ID: 23}
 
 	lst := []roomdb.Invite{
 		{ID: 1, CreatedBy: testUser, AliasSuggestion: "foo"},
@@ -102,6 +102,7 @@ func TestInvitesCreateForm(t *testing.T) {
 func TestInvitesCreate(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
+	r := require.New(t)
 
 	urlTo := web.NewURLTo(ts.Router)
 	urlRemove := urlTo(router.AdminInvitesCreate)
@@ -114,7 +115,7 @@ func TestInvitesCreate(t *testing.T) {
 	})
 	a.Equal(http.StatusOK, rec.Code)
 
-	a.Equal(1, ts.InvitesDB.CreateCallCount())
+	r.Equal(1, ts.InvitesDB.CreateCallCount(), "expected one invites.Create call")
 	_, userID, aliasSuggestion := ts.InvitesDB.CreateArgsForCall(0)
 	a.EqualValues(ts.User.ID, userID)
 	a.EqualValues("jerry", aliasSuggestion)

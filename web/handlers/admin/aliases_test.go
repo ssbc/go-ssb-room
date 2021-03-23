@@ -24,7 +24,7 @@ func TestAliasesOverview(t *testing.T) {
 		{ID: 2, Name: "bob", Feed: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
 		{ID: 3, Name: "cleo", Feed: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 	}
-	ts.Aliases.ListReturns(lst, nil)
+	ts.AliasesDB.ListReturns(lst, nil)
 
 	html, resp := ts.Client.GetHTML("/aliases")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
@@ -40,7 +40,7 @@ func TestAliasesOverview(t *testing.T) {
 	lst = []roomdb.Alias{
 		{ID: 666, Name: "dave", Feed: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
-	ts.Aliases.ListReturns(lst, nil)
+	ts.AliasesDB.ListReturns(lst, nil)
 
 	html, resp = ts.Client.GetHTML("/aliases")
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
@@ -67,7 +67,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
 	testEntry := roomdb.Alias{ID: 666, Name: "the-test-name", Feed: *testKey}
-	ts.Aliases.GetByIDReturns(testEntry, nil)
+	ts.AliasesDB.GetByIDReturns(testEntry, nil)
 
 	urlTo := web.NewURLTo(ts.Router)
 	urlRevokeConfirm := urlTo(router.AdminAliasesRevokeConfirm, "id", 3)
@@ -103,18 +103,18 @@ func TestAliasesRevoke(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 	urlRevoke := urlTo(router.AdminAliasesRevoke)
 
-	ts.Aliases.RevokeReturns(nil)
+	ts.AliasesDB.RevokeReturns(nil)
 
 	addVals := url.Values{"name": []string{"the-name"}}
 	rec := ts.Client.PostForm(urlRevoke.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
-	a.Equal(1, ts.Aliases.RevokeCallCount())
-	_, theName := ts.Aliases.RevokeArgsForCall(0)
+	a.Equal(1, ts.AliasesDB.RevokeCallCount())
+	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
 	a.EqualValues("the-name", theName)
 
 	// now for unknown ID
-	ts.Aliases.RevokeReturns(roomdb.ErrNotFound)
+	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"name": []string{"nope"}}
 	rec = ts.Client.PostForm(urlRevoke.String(), addVals)
 	a.Equal(http.StatusNotFound, rec.Code)

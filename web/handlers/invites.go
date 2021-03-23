@@ -17,8 +17,8 @@ import (
 )
 
 type inviteHandler struct {
-	invites roomdb.InviteService
-	aliases roomdb.AliasService
+	invites roomdb.InvitesService
+	aliases roomdb.AliasesService
 
 	muxrpcHostAndPort string
 	roomPubKey        ed25519.PublicKey
