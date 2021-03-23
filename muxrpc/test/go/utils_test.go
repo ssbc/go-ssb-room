@@ -88,7 +88,7 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 			t.Log("db close failed: ", err)
 		}
 	})
-	theBot, err := roomsrv.New(db.Members, db.Aliases, botOptions...)
+	theBot, err := roomsrv.New(db.Members, db.Aliases, name, botOptions...)
 	r.NoError(err)
 	return db.Members, theBot
 }

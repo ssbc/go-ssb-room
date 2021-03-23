@@ -45,6 +45,8 @@ type Server struct {
 	wsAddr     string
 	dialer     netwrap.Dialer
 
+	domain string // the DNS domain name of the room
+
 	loadUnixSock bool
 
 	repo     repo.Interface
@@ -73,6 +75,7 @@ func (s Server) Whoami() refs.FeedRef {
 func New(
 	membersdb roomdb.MembersService,
 	aliasdb roomdb.AliasesService,
+	domainName string,
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
@@ -80,6 +83,8 @@ func New(
 
 	s.Members = membersdb
 	s.Aliases = aliasdb
+
+	s.domain = domainName
 
 	for i, opt := range opts {
 		err := opt(&s)

@@ -123,8 +123,11 @@ func runroomsrv() error {
 		return nil
 	}
 
-	if httpsDomain == "" && !development {
-		return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
+	if httpsDomain == "" {
+		if !development {
+			return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
+		}
+		httpsDomain = "dev.testing.local"
 	}
 
 	// validate listen addresses to bail out on invalid flag input before doing anything else
@@ -204,6 +207,7 @@ func runroomsrv() error {
 	roomsrv, err := mksrv.New(
 		db.Members,
 		db.Aliases,
+		httpsDomain,
 		opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)

@@ -26,12 +26,21 @@ func TestGoServerJSClientAliases(t *testing.T) {
 	// allow all peers (there arent any we dont want to allow)
 	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
 
+	// setup mocks for this test
+	aliasesDB.RegisterReturns(nil)
+
 	alice := ts.startJSClient("alice", "./testscripts/modern_aliases.js",
 		srv.Network.GetListenAddr(),
 		srv.Whoami(),
 	)
 
-	time.Sleep(10 * time.Second)
+	// the revoke call checks who the alias belongs to
+	aliasesDB.ResolveReturns(roomdb.Alias{
+		Name: "alice",
+		Feed: alice,
+	}, nil)
+
+	time.Sleep(5 * time.Second)
 
 	// wait for both to exit
 	ts.wait()
