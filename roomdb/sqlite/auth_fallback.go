@@ -60,14 +60,3 @@ func (af AuthFallback) Create(ctx context.Context, memberID int64, login string,
 
 	return nil
 }
-
-// func (af AuthFallback) GetByID(ctx context.Context, uid int64) (roomdb.Member, error) {
-// 	modelU, err := models.FindFallbackPassword(ctx, af.db, uid)
-// 	if err != nil {
-// 		return roomdb.Member{}, err
-// 	}
-// 	return roomdb.Member{
-// 		ID:       modelU.ID,
-// 		Nickname: modelU.R.Member.Nick,
-// 	}, nil
-// }

@@ -212,12 +212,12 @@ func findMemberWithRole(t *testing.T, members []roomdb.Member, id int64, r roomd
 	for _, m := range members {
 		if m.ID == id {
 			if m.Role != r {
-				t.Errorf("memberd %d has the wrong role (has %s)", m.ID, m.Role)
+				t.Errorf("member %d has the wrong role (has %s)", m.ID, m.Role)
 			}
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("memberd %d not in the list", id)
+		t.Errorf("member %d not in the list", id)
 	}
 }

@@ -81,6 +81,7 @@ type aliasJSONResponder struct {
 }
 
 func newAliasJSONResponder(rw http.ResponseWriter) aliasResponder {
+	rw.Header().Set("Content-Type", "application/json")
 	return &aliasJSONResponder{
 		enc: json.NewEncoder(rw),
 	}

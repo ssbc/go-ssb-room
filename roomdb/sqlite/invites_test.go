@@ -53,7 +53,7 @@ func TestInvites(t *testing.T) {
 
 	testMemberNick := "test-user"
 	invitingMember := refs.FeedRef{ID: bytes.Repeat([]byte("ohai"), 8), Algo: refs.RefAlgoFeedSSB1}
-	uid, err := db.Members.Add(ctx, testMemberNick, invitingMember, roomdb.RoleModerator)
+	mid, err := db.Members.Add(ctx, testMemberNick, invitingMember, roomdb.RoleModerator)
 	require.NoError(t, err, "failed to create test user")
 
 	t.Run("simple create and consume", func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestInvites(t *testing.T) {
 		// i really don't want to do a mocked time functions and rather solve the comment in migration 6 instead
 		before := time.Now()
 
-		tok, err := db.Invites.Create(ctx, uid, "bestie")
+		tok, err := db.Invites.Create(ctx, mid, "bestie")
 		r.NoError(err, "failed to create invite token")
 
 		_, err = base64.URLEncoding.DecodeString(tok)
@@ -102,7 +102,7 @@ func TestInvites(t *testing.T) {
 	t.Run("simple create but revoke before use", func(t *testing.T) {
 		r := require.New(t)
 
-		tok, err := db.Invites.Create(ctx, uid, "bestie")
+		tok, err := db.Invites.Create(ctx, mid, "bestie")
 		r.NoError(err, "failed to create invite token")
 
 		lst, err := db.Invites.List(ctx)
