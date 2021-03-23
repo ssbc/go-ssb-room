@@ -11,7 +11,9 @@ module.exports = {
 
       sbot.roomClient.registerAlias(rpc.id, "alice", (err, ret) => {
         t.error(err, 'registerAlias')
-        t.comment(`registerAlias value: ${ret}`)
+        t.ok(ret)
+        t.equals(typeof ret, 'string')
+        t.ok(new URL(ret))
         
         sbot.roomClient.revokeAlias(rpc.id, "alice", (err, ret) => {
           t.error(err, 'revokeAlias')
