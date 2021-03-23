@@ -13,12 +13,20 @@ proably by turning the exported object into an init function which returns the {
 // const pull = require('pull-stream')
 
 module.exports = {
-    before: (sbot, ready) => {
+    secretStackPlugins: ['ssb-blobs', 'ssb-what-ever-you-need'],
+
+    // t is the tape instance for assertions
+    // sbot is the local sbot api
+    // ready is a function to signal that preperation is done
+    before: (t, sbot, ready) => {
         console.warn('before connect...')
         setTimeout(ready, 1000)
     },
 
-    after: (sbot, exit) => {
+    // t and sbot are same as above
+    // clientRpc is the muxrpc client to the other remote (i.e a rpc handle for the room the client is connected to)
+    // exit() is a function that needs to be called to halt the process and exit (it also calls t.end())
+    after: (t, sbot, clientRpc, exit) => {
         console.warn('after connect...')
 
         setTimeout(exit, 5000)

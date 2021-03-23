@@ -1,5 +1,6 @@
 const Path = require('path')
 const { loadOrCreateSync } = require('ssb-keys')
+const tapSpec = require("tap-spec")
 const tape = require('tape')
 const theStack = require('secret-stack')
 const ssbCaps = require('ssb-caps')
@@ -11,18 +12,25 @@ if (testSHSappKey !== false) {
   testAppkey = testSHSappKey
 }
 
-const createSbot = theStack({caps: {shs: testAppkey } })
-  .use(require('ssb-db'))
-  .use(require('ssb-conn'))
-  .use(require('ssb-room/tunnel/client'))
+let createSbot = theStack({caps: {shs: testAppkey } })
+  .use(require('ssb-db2'))
+  .use(require('ssb-db2/compat/db'))
+  .use(require('./testscripts/secretstack_testplugin.js'))
 
 const testName = process.env.TEST_NAME
 
 // the other peer we are talking to
 const testPeerAddr = process.env.TEST_PEERADDR
 const testPeerRef = process.env.TEST_PEERREF
-
 const testSession = require(process.env['TEST_SESSIONSCRIPT'])
+
+const path = require("path")
+const scriptname = path.basename(__filename)
+
+// load the plugins needed for this session
+for (plug of testSession.secretStackPlugins) {
+  createSbot = createSbot.use(require(plug))
+}
 
 function bufFromEnv(evname) {
   const has = process.env[evname]
@@ -32,28 +40,31 @@ function bufFromEnv(evname) {
   return false
 }
 
-tape.createStream().pipe(process.stderr)
+tape.createStream().pipe(tapSpec()).pipe(process.stderr)
 tape(testName, function (t) {
-  let timeoutLength = 15000
+  function comment (msg) {
+    t.comment(`[${scriptname}] ${msg}`)
+  }
+  let timeoutLength = 30000
   var tapeTimeout = null
   function ready() { // needs to be called by the before block when it's done
     t.timeoutAfter(timeoutLength) // doesn't exit the process
     tapeTimeout = setTimeout(() => {
-      t.comment('test timeout')
+      comment('!! test did not complete before timeout; shutting everything down')
       process.exit(1)
-    }, timeoutLength*1.25)
+    }, timeoutLength)
     const to = `net:${testPeerAddr}~shs:${testPeerRef.substr(1).replace('.ed25519', '')}`
-    t.comment('dialing:' + to)
+    comment(`dialing: ${to}`)
     sbot.conn.connect(to, (err, rpc) => {
       t.error(err, 'connected')
-      t.comment('connected to: '+rpc.id)
-      testSession.after(sbot, rpc, exit)
+      comment(`connected to: ${rpc.id}`)
+      testSession.after(t, sbot, rpc, exit)
     })
   }
 
   function exit() { // call this when you're done
     sbot.close()
-    t.comment('closed sbot')
+    comment(`closed client: ${testName}`)
     clearTimeout(tapeTimeout)
     t.end()
     process.exit(0)
@@ -87,8 +98,8 @@ tape(testName, function (t) {
 
   const sbot = createSbot(opts)
   const alice = sbot.whoami()
-  t.comment('client spawned. I am:' +  alice.id)
+  comment(`client spawned. I am: ${alice.id}`)
   
   console.log(alice.id) // tell go process who's incoming
-  testSession.before(sbot, ready)
+  testSession.before(t, sbot, ready)
 })
