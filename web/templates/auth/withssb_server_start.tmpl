@@ -1,0 +1,15 @@
+{{ define "title" }}{{i18n "AuthWithSSBTitle"}}{{ end }}
+{{ define "content" }}
+      <div id="page-header">
+        <h1 id="welcome" class="text-lg">{{i18n "AuthWithSSBWelcome"}}</h1>
+      </div>
+      <div>
+        <h3>Template Data</h3>
+        <pre>{{.}}</pre>
+
+        <h3>Server events</h3>
+        <ul id="event-list"></ul>
+      </div>
+      <div id="stream-name" stream="{{.StreamName}}"></div>
+      <script src="/assets/events-demo.js"></script>
+{{end}}

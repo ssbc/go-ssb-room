@@ -5,17 +5,23 @@ package auth
 import (
 	"context"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 	"net/http"
 	"time"
 
+	kitlog "github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/render"
+	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/randutil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
@@ -57,6 +63,10 @@ func NewWithSSBHandler(
 	ssb.cookieStore = cookies
 
 	m.Get(router.AuthWithSSBSignIn).HandlerFunc(r.HTML("auth/withssb_sign_in.tmpl", ssb.login))
+
+	m.HandleFunc("/sse/login/{sc}", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
+
+	m.HandleFunc("/sse/events", ssb.eventSource)
 
 	return &ssb
 }
@@ -252,4 +262,127 @@ func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return
+}
+
+// server-sent-events stuff
+
+func (h WithSSBHandler) startWithServer(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+	logger := logging.FromContext(req.Context())
+
+	streamName := randutil.String(20)
+	// h.events.CreateStream(streamName)
+
+	logger = level.Debug(logger)
+	logger = kitlog.With(logger, "event", streamName)
+
+	logger.Log("event", "started stream")
+
+	// tick := time.NewTicker(5 * time.Second)
+	// go func() {
+
+	// 	var (
+	// 		evtBuf = make([]byte, 4)
+	// 		evtID  = uint32(0)
+	// 	)
+	// 	for range tick.C {
+	// 		binary.BigEndian.PutUint32(evtBuf, evtID)
+	// 		evtID++
+	// 		h.events.Publish(streamName, &sse.Event{
+	// 			ID:    evtBuf,
+	// 			Data:  []byte(fmt.Sprintf("boring: %d", evtID)),
+	// 			Event: []byte("testing"),
+	// 		})
+	// 		logger.Log("event", "sent", "id", evtID)
+	// 	}
+	// }()
+
+	// go func() {
+	// 	time.Sleep(1 * time.Minute)
+	// 	tick.Stop()
+	// 	logger.Log("event", "stopped")
+	// }()
+
+	return struct {
+		StreamName string
+	}{streamName}, nil
+}
+
+type event struct {
+	ID, Data, Event []byte
+}
+
+func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
+	flusher, err := w.(http.Flusher)
+	if !err {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Transfer-Encoding", "chunked")
+
+	// Get the StreamID from the URL
+	streamID := r.URL.Query().Get("stream")
+	if streamID == "" {
+		http.Error(w, "Please specify a stream!", http.StatusInternalServerError)
+		return
+	}
+	logger := logging.FromContext(r.Context())
+	logger = level.Debug(logger)
+	logger = kitlog.With(logger, "stream", streamID)
+
+	logger.Log("event", "stream opened")
+
+	// TODO: load map with channel
+
+	// tick := time.NewTicker(time.Second / 4)
+	tick := time.NewTicker(time.Second)
+	notify := w.(http.CloseNotifier).CloseNotify()
+	go func() {
+		<-notify
+		tick.Stop()
+		logger.Log("event", "request closed")
+	}()
+
+	go func() {
+		time.Sleep(5 * time.Minute)
+		tick.Stop()
+		logger.Log("event", "stopped")
+	}()
+
+	start := time.Now()
+	flusher.Flush()
+
+	// Push events to client
+	var (
+		evtBuf = make([]byte, 4)
+		evtID  = uint32(0)
+		evt    event
+	)
+
+	for range tick.C {
+		binary.BigEndian.PutUint32(evtBuf, evtID)
+		evtID++
+
+		evt = event{
+			ID:    []byte(fmt.Sprintf("%d", evtID)),
+			Data:  []byte(fmt.Sprintf("age: %s", time.Since(start))),
+			Event: []byte("testing"),
+		}
+
+		fmt.Fprintf(w, "id: %s\n", evt.ID)
+		fmt.Fprintf(w, "data: %s\n", evt.Data)
+		if len(evt.Event) > 0 {
+			fmt.Fprintf(w, "event: %s\n", evt.Event)
+		}
+		// if len(evt.Retry) > 0 {
+		// 	fmt.Fprintf(w, "retry: %s\n", evt.Retry)
+		// }
+		fmt.Fprint(w, "\n")
+		flusher.Flush()
+
+		logger.Log("event", "sent", "id", evtID)
+	}
 }

@@ -34,6 +34,10 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 
 	siwssbHandler := signinwithssb.New(
 		kitlog.With(s.logger, "unit", "auth-with-ssb"),
+		s.Whoami(),
+		s.authWithSSB,
+		s.Members,
+		s.domain,
 	)
 
 	// register muxrpc commands
