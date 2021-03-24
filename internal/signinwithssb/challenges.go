@@ -15,16 +15,16 @@ import (
 const challengeLength = 32
 
 func DecodeChallengeString(c string) ([]byte, error) {
-	challangeBytes, err := base64.URLEncoding.DecodeString(c)
+	challengeBytes, err := base64.URLEncoding.DecodeString(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid challenge encoding: %w", err)
 	}
 
-	if n := len(challangeBytes); n != challengeLength {
+	if n := len(challengeBytes); n != challengeLength {
 		return nil, fmt.Errorf("invalid challenge length: expected %d but got %d", challengeLength, n)
 	}
 
-	return challangeBytes, nil
+	return challengeBytes, nil
 }
 
 func GenerateChallenge() string {
@@ -37,8 +37,8 @@ func GenerateChallenge() string {
 type ClientRequest struct {
 	ClientID, ServerID refs.FeedRef
 
-	ClientChallange string
-	ServerChallange string
+	ClientChallenge string
+	ServerChallenge string
 }
 
 // recreate the signed message
@@ -49,9 +49,9 @@ func (cr ClientRequest) createMessage() []byte {
 	msg.WriteString(":")
 	msg.WriteString(cr.ClientID.Ref())
 	msg.WriteString(":")
-	msg.WriteString(cr.ServerChallange)
+	msg.WriteString(cr.ServerChallenge)
 	msg.WriteString(":")
-	msg.WriteString(cr.ClientChallange)
+	msg.WriteString(cr.ClientChallenge)
 	return msg.Bytes()
 }
 

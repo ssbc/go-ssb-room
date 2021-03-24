@@ -67,12 +67,12 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	var clientReq signinwithssb.ClientRequest
 	clientReq.ServerID = h.roomID // fll inthe server
 
-	// validate and update client challange
+	// validate and update client challenge
 	cc := queryParams.Get("cc")
 	if _, err := signinwithssb.DecodeChallengeString(cc); err != nil {
-		return nil, weberrors.ErrBadRequest{Where: "client-challange", Details: err}
+		return nil, weberrors.ErrBadRequest{Where: "client-challenge", Details: err}
 	}
-	clientReq.ClientChallange = cc
+	clientReq.ClientChallenge = cc
 
 	// check who the client is
 	var client refs.FeedRef
@@ -106,9 +106,9 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 		return nil, weberrors.ErrForbidden{Details: fmt.Errorf("sign-in: client not connected to room")}
 	}
 
-	// roll a challange from the server
+	// roll a Challenge from the server
 	sc := signinwithssb.GenerateChallenge()
-	clientReq.ServerChallange = sc
+	clientReq.ServerChallenge = sc
 
 	ctx, cancel := context.WithTimeout(req.Context(), 1*time.Minute)
 	defer cancel()

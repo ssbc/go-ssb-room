@@ -27,7 +27,7 @@ type AuthWithSSB struct {
 const siwssbTokenLength = 32
 
 // CreateToken is used to generate a token that is stored inside a cookie.
-// It is used after a valid solution for a challange was provided.
+// It is used after a valid solution for a challenge was provided.
 func (a AuthWithSSB) CreateToken(ctx context.Context, memberID int64) (string, error) {
 
 	var newToken = models.SIWSSBSession{

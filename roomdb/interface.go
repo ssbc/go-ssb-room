@@ -32,13 +32,13 @@ type AuthFallbackService interface {
 	// Remove(pwid)
 }
 
-// AuthWithSSBService defines utility functions for the challange/response system of sign-in with ssb
-// They are particualarly of service to check valid sessions (after the client provided a solution for a challange)
+// AuthWithSSBService defines utility functions for the challenge/response system of sign-in with ssb
+// They are particualarly of service to check valid sessions (after the client provided a solution for a challenge)
 // And to log out valid sessions from the clients device.
 type AuthWithSSBService interface {
 
 	// CreateToken is used to generate a token that is stored inside a cookie.
-	// It is used after a valid solution for a challange was provided.
+	// It is used after a valid solution for a challenge was provided.
 	CreateToken(ctx context.Context, memberID int64) (string, error)
 
 	// CheckToken checks if the passed token is still valid and returns the member id if so

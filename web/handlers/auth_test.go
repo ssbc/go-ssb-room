@@ -266,15 +266,15 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 
 		r.Len(args, 2, "expected two args")
 
-		serverChallange, ok := args[0].(string)
+		serverChallenge, ok := args[0].(string)
 		r.True(ok, "argument[0] is not a string: %T", args[0])
-		a.NotEqual("", serverChallange)
+		a.NotEqual("", serverChallenge)
 		// update the challenge
-		req.ServerChallange = serverChallange
+		req.ServerChallenge = serverChallenge
 
-		clientChallange, ok := args[1].(string)
+		clientChallenge, ok := args[1].(string)
 		r.True(ok, "argument[1] is not a string: %T", args[1])
-		a.Equal(req.ClientChallange, clientChallange)
+		a.Equal(req.ClientChallenge, clientChallenge)
 
 		strptr, ok := ret.(*string)
 		r.True(ok, "return is not a string pointer: %T", ret)
@@ -291,7 +291,7 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 	// update the challenge
-	req.ClientChallange = cc
+	req.ClientChallenge = cc
 
 	// prepare the url
 	signInStartURL := web.NewURLTo(ts.Router)(router.AuthWithSSBSignIn,

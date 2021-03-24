@@ -19,8 +19,8 @@ func TestClientRequestString(t *testing.T) {
 	req.ServerID = server
 	req.ClientID = client
 
-	req.ServerChallange = "fooo"
-	req.ClientChallange = "barr"
+	req.ServerChallenge = "fooo"
+	req.ClientChallenge = "barr"
 
 	want := "=http-auth-sign-in:@AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=.test:@AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=.test:fooo:barr"
 
