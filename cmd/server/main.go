@@ -308,9 +308,10 @@ func runroomsrv() error {
 			Addr: httpLis.Addr().String(),
 
 			// Good practice to set timeouts to avoid Slowloris attacks.
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
+			// Keep in mind that the SSE stuff for "sign-in with ssb" can take a moment, thou
+			ReadHeaderTimeout: time.Second * 15,
+			WriteTimeout:      time.Minute * 3,
+			IdleTimeout:       time.Minute * 3,
 
 			Handler: secureMiddleware.Handler(dashboardH),
 		}
