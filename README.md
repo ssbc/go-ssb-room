@@ -105,10 +105,13 @@ Aside: I would have used `sqlc` since it's a bit more minimal and uses hand writ
 ```bash
 cd cmd/insert-user
 go build
-./insert-user $HOME/.ssb-go-room/roomdb my-user
+# optional step: run a script to generate a valid ssb id @<pubkey>.ed25519, useful for trying things out quickly
+./generate-fake-id.sh   
+./insert-user -name <username> -key <@pubkey.ed25519>
 ```
-
 Then repeat your password twice and you are all set for development.
+
+Run `insert-user` without any flags to see all the options.
 
 ## Testing
 ### Rooms

@@ -30,43 +30,61 @@ func main() {
 	check(err)
 
 	var (
-		repoPath string
+		name     string
+		pubKey   *refs.FeedRef
 		role     roomdb.Role = roomdb.RoleAdmin
+		repoPath string
 	)
 
-	flag.StringVar(&repoPath, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "where the repo of the room is located")
-	flag.Func("role", "which role the new member should have (ie moderator, admin, member. defaults to admin)", func(val string) error {
+	flag.StringVar(&name, "name", "", "username (used when logging into the room's web ui)")
+	flag.Func("key", "the public key of the user, format: @<base64-encoded public-key>.ed25519", func(val string) error {
+		if len(val) == 0 {
+			return fmt.Errorf("the public key is required. if you are just testing things out, generate one by running 'cmd/insert-user/generate-fake-id.sh'\n")
+		}
+		key, err := refs.ParseFeedRef(val)
+		if err != nil {
+			return fmt.Errorf("%s\n", err)
+		}
+		pubKey = key
+		return nil
+	})
+	flag.StringVar(&repoPath, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "[optional] where the locally stored files of the room is located")
+	flag.Func("role", "[optional] which role the new member should have (values: mod[erator], admin, or member. default is admin)", func(val string) error {
 		switch strings.ToLower(val) {
 		case "admin":
 			role = roomdb.RoleAdmin
+		case "mod":
+			fallthrough
 		case "moderator":
-			role = roomdb.RoleAdmin
+			role = roomdb.RoleModerator
 		case "member":
 			role = roomdb.RoleMember
-
 		default:
 			return fmt.Errorf("unknown member role: %q", val)
 		}
 
 		return nil
 	})
-
 	flag.Parse()
 
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s <user-name> <@theirPublicKey.ed25519>\n", os.Args[0])
-		flag.Usage()
-		os.Exit(1)
-		return
+	/* we require at least 5 arguments: <executable> + -name <val> + -key <val> */
+	/*                                  1              2     3       4    5     */
+	if len(os.Args) < 5 {
+		cliMissingArguments("please provide the default arguments -name and -key")
+	}
+
+	if name == "" {
+		cliMissingArguments("please provide a username with -name <username>")
+	}
+
+	if pubKey == nil {
+		cliMissingArguments("please provide a public key with -key")
 	}
 
 	r := repo.New(repoPath)
 	db, err := sqlite.Open(r)
 	check(err)
 	defer db.Close()
-
-	pubKey, err := refs.ParseFeedRef(os.Args[2])
-	check(err)
 
 	fmt.Fprintln(os.Stderr, "Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
@@ -77,7 +95,7 @@ func main() {
 	check(err)
 
 	if !bytes.Equal(bytePassword, bytePasswordRepeat) {
-		fmt.Fprintln(os.Stderr, "passwords didn't match")
+		fmt.Fprintln(os.Stderr, "Passwords didn't match")
 		os.Exit(1)
 		return
 	}
@@ -89,7 +107,14 @@ func main() {
 	err = db.AuthFallback.Create(ctx, mid, os.Args[1], bytePassword)
 	check(err)
 
-	fmt.Fprintln(os.Stderr, "created member with ID", mid)
+	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", name, role, mid)
+}
+
+func cliMissingArguments(message string) {
+	executable := strings.TrimPrefix(os.Args[0], "./")
+	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s -name <user-name> -key <@<base64-encoded public key>.ed25519> <optional flags>\n", executable, message, executable)
+	flag.Usage()
+	os.Exit(1)
 }
 
 func check(err error) {
