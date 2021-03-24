@@ -23,6 +23,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	refs "go.mindeco.de/ssb-refs"
@@ -67,7 +68,8 @@ type Server struct {
 	Members roomdb.MembersService
 	Aliases roomdb.AliasesService
 
-	authWithSSB roomdb.AuthWithSSBService
+	authWithSSB       roomdb.AuthWithSSBService
+	authWithSSBBridge *signinwithssb.SignalBridge
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -78,6 +80,7 @@ func New(
 	membersdb roomdb.MembersService,
 	aliasdb roomdb.AliasesService,
 	awsdb roomdb.AuthWithSSBService,
+	bridge *signinwithssb.SignalBridge,
 	domainName string,
 	opts ...Option,
 ) (*Server, error) {
@@ -88,6 +91,7 @@ func New(
 	s.Aliases = aliasdb
 
 	s.authWithSSB = awsdb
+	s.authWithSSBBridge = bridge
 
 	s.domain = domainName
 
@@ -148,7 +152,7 @@ func New(
 
 	s.StateManager = roomstate.NewManager(s.rootCtx, s.logger)
 
-	s.initHandlers(aliasdb)
+	s.initHandlers()
 
 	if err := s.initNetwork(); err != nil {
 		return nil, err

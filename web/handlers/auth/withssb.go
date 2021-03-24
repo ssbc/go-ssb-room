@@ -5,23 +5,25 @@ package auth
 import (
 	"context"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"html/template"
+	"image/color"
+	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-
+	"github.com/skip2/go-qrcode"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/randutil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
@@ -41,7 +43,11 @@ type WithSSBHandler struct {
 	cookieStore sessions.Store
 
 	endpoints network.Endpoints
+
+	bridge *signinwithssb.SignalBridge
 }
+
+type registerToEventSourceMap map[string]<-chan signinwithssb.Event
 
 func NewWithSSBHandler(
 	m *mux.Router,
@@ -52,6 +58,7 @@ func NewWithSSBHandler(
 	membersDB roomdb.MembersService,
 	sessiondb roomdb.AuthWithSSBService,
 	cookies sessions.Store,
+	bridge *signinwithssb.SignalBridge,
 ) *WithSSBHandler {
 
 	var ssb WithSSBHandler
@@ -61,11 +68,11 @@ func NewWithSSBHandler(
 	ssb.endpoints = endpoints
 	ssb.sessiondb = sessiondb
 	ssb.cookieStore = cookies
+	ssb.bridge = bridge
 
 	m.Get(router.AuthWithSSBSignIn).HandlerFunc(r.HTML("auth/withssb_sign_in.tmpl", ssb.login))
 
 	m.HandleFunc("/sse/login/{sc}", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
-
 	m.HandleFunc("/sse/events", ssb.eventSource)
 
 	return &ssb
@@ -267,48 +274,41 @@ func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
 // server-sent-events stuff
 
 func (h WithSSBHandler) startWithServer(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-	logger := logging.FromContext(req.Context())
+	sc := h.bridge.RegisterSession()
 
-	streamName := randutil.String(20)
-	// h.events.CreateStream(streamName)
+	var queryParams = make(url.Values)
+	queryParams.Set("action", "start-http-auth")
 
-	logger = level.Debug(logger)
-	logger = kitlog.With(logger, "event", streamName)
+	var startAuthURI url.URL
+	startAuthURI.Scheme = "ssb"
+	startAuthURI.Opaque = "experimental"
+	startAuthURI.RawQuery = queryParams.Encode()
 
-	logger.Log("event", "started stream")
+	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.High)
+	if err != nil {
+		return nil, err
+	}
+	qrCode.BackgroundColor = color.RGBA{R: 0xf9, G: 0xfa, B: 0xfb}
+	qrCode.ForegroundColor = color.Black
 
-	// tick := time.NewTicker(5 * time.Second)
-	// go func() {
+	qrCodeData, err := qrCode.PNG(-8)
+	if err != nil {
+		return nil, err
+	}
 
-	// 	var (
-	// 		evtBuf = make([]byte, 4)
-	// 		evtID  = uint32(0)
-	// 	)
-	// 	for range tick.C {
-	// 		binary.BigEndian.PutUint32(evtBuf, evtID)
-	// 		evtID++
-	// 		h.events.Publish(streamName, &sse.Event{
-	// 			ID:    evtBuf,
-	// 			Data:  []byte(fmt.Sprintf("boring: %d", evtID)),
-	// 			Event: []byte("testing"),
-	// 		})
-	// 		logger.Log("event", "sent", "id", evtID)
-	// 	}
-	// }()
-
-	// go func() {
-	// 	time.Sleep(1 * time.Minute)
-	// 	tick.Stop()
-	// 	logger.Log("event", "stopped")
-	// }()
+	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 
 	return struct {
-		StreamName string
-	}{streamName}, nil
+		SSBURI          template.URL
+		QRCodeURI       template.URL
+		ServerChallenge string
+	}{template.URL(startAuthURI.String()), template.URL(qrURI), sc}, nil
 }
 
 type event struct {
-	ID, Data, Event []byte
+	ID    uint32
+	Data  string
+	Event string
 }
 
 func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
@@ -317,37 +317,40 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
 		return
 	}
+	notifier, ok := w.(http.CloseNotifier)
+	if !ok {
+		http.Error(w, "cant notify about closed requests", http.StatusInternalServerError)
+		return
+	}
 
+	// setup server-sent events
+	// https://html.spec.whatwg.org/multipage/server-sent-events.html
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Transfer-Encoding", "chunked")
 
 	// Get the StreamID from the URL
-	streamID := r.URL.Query().Get("stream")
-	if streamID == "" {
-		http.Error(w, "Please specify a stream!", http.StatusInternalServerError)
+	sc := r.URL.Query().Get("sc")
+	if sc == "" {
+		http.Error(w, "Please specify a stream!", http.StatusBadRequest)
 		return
 	}
+
 	logger := logging.FromContext(r.Context())
 	logger = level.Debug(logger)
-	logger = kitlog.With(logger, "stream", streamID)
-
+	logger = kitlog.With(logger, "stream", sc)
 	logger.Log("event", "stream opened")
 
-	// TODO: load map with channel
+	evtCh, has := h.bridge.GetEventChannel(sc)
+	if !has {
+		http.Error(w, "No such session!", http.StatusBadRequest)
+		return
+	}
 
-	// tick := time.NewTicker(time.Second / 4)
-	tick := time.NewTicker(time.Second)
-	notify := w.(http.CloseNotifier).CloseNotify()
+	tick := time.NewTicker(3 * time.Second)
 	go func() {
-		<-notify
-		tick.Stop()
-		logger.Log("event", "request closed")
-	}()
-
-	go func() {
-		time.Sleep(5 * time.Minute)
+		time.Sleep(3 * time.Minute)
 		tick.Stop()
 		logger.Log("event", "stopped")
 	}()
@@ -357,32 +360,52 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 
 	// Push events to client
 	var (
-		evtBuf = make([]byte, 4)
-		evtID  = uint32(0)
-		evt    event
+		evtID = uint32(0)
 	)
 
-	for range tick.C {
-		binary.BigEndian.PutUint32(evtBuf, evtID)
+	notify := notifier.CloseNotify()
+	for {
+		select {
+
+		case <-notify:
+			logger.Log("event", "request closed")
+			return
+
+		case <-tick.C:
+			msg := fmt.Sprintf("Waiting for solution (session age: %s)", time.Since(start))
+			sendServerEvent(w, event{
+				ID:    evtID,
+				Data:  msg,
+				Event: "ping",
+			})
+			logger.Log("event", "sent", "ping", evtID)
+
+		case update := <-evtCh:
+			evt := event{
+				ID:    evtID,
+				Data:  "challange validation failed",
+				Event: "failed",
+			}
+
+			if update.Worked {
+				evt.Event = "success"
+				evt.Data = update.Token
+			}
+
+			sendServerEvent(w, evt)
+
+			logger.Log("event", "sent", "worked", update.Worked)
+		}
 		evtID++
-
-		evt = event{
-			ID:    []byte(fmt.Sprintf("%d", evtID)),
-			Data:  []byte(fmt.Sprintf("age: %s", time.Since(start))),
-			Event: []byte("testing"),
-		}
-
-		fmt.Fprintf(w, "id: %s\n", evt.ID)
-		fmt.Fprintf(w, "data: %s\n", evt.Data)
-		if len(evt.Event) > 0 {
-			fmt.Fprintf(w, "event: %s\n", evt.Event)
-		}
-		// if len(evt.Retry) > 0 {
-		// 	fmt.Fprintf(w, "retry: %s\n", evt.Retry)
-		// }
-		fmt.Fprint(w, "\n")
 		flusher.Flush()
-
-		logger.Log("event", "sent", "id", evtID)
 	}
+}
+
+func sendServerEvent(w io.Writer, evt event) {
+	fmt.Fprintf(w, "id: %d\n", evt.ID)
+	fmt.Fprintf(w, "data: %s\n", evt.Data)
+	if len(evt.Event) > 0 {
+		fmt.Fprintf(w, "event: %s\n", evt.Event)
+	}
+	fmt.Fprint(w, "\n")
 }

@@ -19,6 +19,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+
 	// debug
 	"net/http"
 	_ "net/http/pprof"
@@ -203,11 +205,14 @@ func runroomsrv() error {
 		return fmt.Errorf("failed to initiate database: %w", err)
 	}
 
+	bridge := signinwithssb.NewSignalBridge()
+
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
 		db.Members,
 		db.Aliases,
 		db.AuthWithSSB,
+		bridge,
 		httpsDomain,
 		opts...)
 	if err != nil {
@@ -250,6 +255,7 @@ func runroomsrv() error {
 		},
 		roomsrv.StateManager,
 		roomsrv.Network,
+		bridge,
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
@@ -286,7 +292,8 @@ func runroomsrv() error {
 		STSIncludeSubdomains: false,
 
 		// See for more https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-		ContentSecurityPolicy: "default-src 'self'", // enforce no external content
+		// helpful: https://report-uri.com/home/generate
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' data:", // enforce no external content
 
 		BrowserXssFilter: true,
 		FrameDeny:        true,

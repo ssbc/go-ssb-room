@@ -20,6 +20,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
@@ -71,6 +72,7 @@ func New(
 	netInfo NetworkInfo,
 	roomState *roomstate.Manager,
 	roomEndpoints network.Endpoints,
+	bridge *signinwithssb.SignalBridge,
 	dbs Databases,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
@@ -237,6 +239,7 @@ func New(
 		dbs.Members,
 		dbs.AuthWithSSB,
 		cookieStore,
+		bridge,
 	)
 
 	// just hooks up the router to the handler
