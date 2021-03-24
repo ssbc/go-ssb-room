@@ -296,7 +296,7 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	// prepare the url
 	signInStartURL := web.NewURLTo(ts.Router)(router.AuthWithSSBSignIn,
 		"cid", client.Feed.Ref(),
-		"challenge", cc,
+		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
 

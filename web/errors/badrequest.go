@@ -4,6 +4,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -31,3 +32,5 @@ type ErrForbidden struct {
 func (f ErrForbidden) Error() string {
 	return fmt.Sprintf("rooms/web: access denied: %s", f.Details)
 }
+
+var ErrNotAuthorized = errors.New("rooms/web: not authorized")

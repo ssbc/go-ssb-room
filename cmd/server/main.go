@@ -252,6 +252,7 @@ func runroomsrv() error {
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
+			AuthWithSSB:   db.AuthWithSSB,
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
