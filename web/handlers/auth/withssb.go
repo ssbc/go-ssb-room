@@ -13,13 +13,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"go.cryptoscope.co/muxrpc/v2"
+	"go.mindeco.de/http/render"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"go.mindeco.de/http/render"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -65,7 +65,7 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	queryParams := req.URL.Query()
 
 	var clientReq signinwithssb.ClientRequest
-	clientReq.ServerID = h.roomID // fll inthe server
+	clientReq.ServerID = h.roomID // fill in the server
 
 	// validate and update client challenge
 	cc := queryParams.Get("cc")

@@ -4,6 +4,7 @@ package roomsrv
 
 import (
 	kitlog "github.com/go-kit/kit/log"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	muxrpc "go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
@@ -31,6 +32,10 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 		s.domain,
 	)
 
+	siwssbHandler := signinwithssb.New(
+		kitlog.With(s.logger, "unit", "auth-with-ssb"),
+	)
+
 	// register muxrpc commands
 	registries := []typemux.HandlerMux{s.public, s.master}
 
@@ -47,5 +52,10 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 
 		mux.RegisterAsync(append(method, "registerAlias"), typemux.AsyncFunc(aliasHandler.Register))
 		mux.RegisterAsync(append(method, "revokeAlias"), typemux.AsyncFunc(aliasHandler.Revoke))
+
+		method = muxrpc.Method{"httpAuth"}
+		mux.RegisterAsync(append(method, "invalidateAllSolutions"), typemux.AsyncFunc(siwssbHandler.InvalidateAllSolutions))
+		mux.RegisterAsync(append(method, "sendSolution"), typemux.AsyncFunc(siwssbHandler.SendSolution))
+
 	}
 }
