@@ -207,6 +207,7 @@ func runroomsrv() error {
 	roomsrv, err := mksrv.New(
 		db.Members,
 		db.Aliases,
+		db.AuthWithSSB,
 		httpsDomain,
 		opts...)
 	if err != nil {

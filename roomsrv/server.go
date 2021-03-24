@@ -66,6 +66,8 @@ type Server struct {
 
 	Members roomdb.MembersService
 	Aliases roomdb.AliasesService
+
+	authWithSSB roomdb.AuthWithSSBService
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -75,6 +77,7 @@ func (s Server) Whoami() refs.FeedRef {
 func New(
 	membersdb roomdb.MembersService,
 	aliasdb roomdb.AliasesService,
+	awsdb roomdb.AuthWithSSBService,
 	domainName string,
 	opts ...Option,
 ) (*Server, error) {
@@ -83,6 +86,8 @@ func New(
 
 	s.Members = membersdb
 	s.Aliases = aliasdb
+
+	s.authWithSSB = awsdb
 
 	s.domain = domainName
 

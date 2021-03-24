@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/require"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 )
 
