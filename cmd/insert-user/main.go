@@ -101,10 +101,10 @@ func main() {
 	}
 
 	ctx := context.Background()
-	mid, err := db.Members.Add(ctx, os.Args[1], *pubKey, role)
+	mid, err := db.Members.Add(ctx, name, *pubKey, role)
 	check(err)
 
-	err = db.AuthFallback.Create(ctx, mid, os.Args[1], bytePassword)
+	err = db.AuthFallback.Create(ctx, mid, name, bytePassword)
 	check(err)
 
 	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", name, role, mid)
