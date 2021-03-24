@@ -60,7 +60,7 @@ func TestFallbackAuth(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
 
-	// very cheap client session
+	// very cheap "browser" client session
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
 
@@ -119,6 +119,7 @@ func TestFallbackAuth(t *testing.T) {
 	sessionCookie := resp.Result().Cookies()
 	jar.SetCookies(signInURL, sessionCookie)
 
+	// now request the protected dashboard page
 	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
 	r.Nil(err)
 	dashboardURL.Host = "localhost"
@@ -243,6 +244,10 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
 
+	// very cheap "browser" client session
+	jar, err := cookiejar.New(nil)
+	r.NoError(err)
+
 	// the request to be signed later
 	var req signinwithssb.ClientRequest
 	req.ServerID = ts.NetworkInfo.RoomID
@@ -252,7 +257,13 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	client, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 	testMember.PubKey = client.Feed
+
+	// setup the mocked database
 	ts.MembersDB.GetByFeedReturns(testMember, nil)
+	ts.AuthWithSSB.CreateTokenReturns("abcdefgh", nil)
+	ts.AuthWithSSB.CheckTokenReturns(testMember.ID, nil)
+	ts.MembersDB.GetByIDReturns(testMember, nil)
+
 	// fill the basic infos of the request
 	req.ClientID = client.Feed
 
@@ -298,6 +309,9 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
+	signInStartURL.Host = "localhost"
+	signInStartURL.Scheme = "https"
+
 	r.NotNil(signInStartURL)
 
 	t.Log(signInStartURL.String())
@@ -316,4 +330,43 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 
 	// check the mock was called
 	a.Equal(1, edp.AsyncCallCount())
+
+	// check that we have a new cookie
+	sessionCookie := resp.Result().Cookies()
+	r.True(len(sessionCookie) > 0, "expecting one cookie!")
+	jar.SetCookies(signInStartURL, sessionCookie)
+
+	// now request the protected dashboard page
+	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
+	r.Nil(err)
+	dashboardURL.Host = "localhost"
+	dashboardURL.Scheme = "https"
+
+	var sessionHeader = http.Header(map[string][]string{})
+	cs := jar.Cookies(dashboardURL)
+
+	r.True(len(cs) > 0, "expecting one cookie!")
+	for _, c := range cs {
+		theCookie := c.String()
+		a.NotEqual("", theCookie, "should have a new cookie")
+		sessionHeader.Add("Cookie", theCookie)
+	}
+
+	durl := dashboardURL.String()
+	t.Log(durl)
+
+	// update headers
+	ts.Client.ClearHeaders()
+	ts.Client.SetHeaders(sessionHeader)
+
+	html, resp := ts.Client.GetHTML(durl)
+	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
+		t.Log(html.Find("body").Text())
+	}
+
+	webassert.Localized(t, html, []webassert.LocalizedElement{
+		{"#welcome", "AdminDashboardWelcome"},
+		{"title", "AdminDashboardTitle"},
+	})
+
 }
