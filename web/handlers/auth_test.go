@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package handlers
 
 import (
@@ -193,9 +195,9 @@ func TestAuthWithSSBNotConnected(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
-	signInStartURL := urlTo(router.AuthWithSSBSignIn,
+	signInStartURL := urlTo(router.AuthLogin,
 		"cid", client.Feed.Ref(),
-		"challenge", cc,
+		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
 
@@ -224,9 +226,9 @@ func TestAuthWithSSBNotAllowed(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
-	signInStartURL := urlTo(router.AuthWithSSBSignIn,
+	signInStartURL := urlTo(router.AuthLogin,
 		"cid", client.Feed.Ref(),
-		"challenge", cc,
+		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
 
@@ -293,7 +295,7 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 		// sign the request now that we have the sc
 		clientSig := req.Sign(client.Pair.Secret)
 
-		*strptr = base64.URLEncoding.EncodeToString(clientSig)
+		*strptr = base64.StdEncoding.EncodeToString(clientSig)
 		return nil
 	})
 
@@ -305,7 +307,8 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	req.ClientChallenge = cc
 
 	// prepare the url
-	signInStartURL := web.NewURLTo(ts.Router)(router.AuthWithSSBSignIn,
+	urlTo := web.NewURLTo(ts.Router)
+	signInStartURL := urlTo(router.AuthLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
@@ -316,7 +319,11 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 
 	t.Log(signInStartURL.String())
 	doc, resp := ts.Client.GetHTML(signInStartURL.String())
-	a.Equal(http.StatusOK, resp.Code)
+	a.Equal(http.StatusTemporaryRedirect, resp.Code)
+
+	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
+	r.Nil(err)
+	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		// {"#welcome", "AuthWithSSBWelcome"},
@@ -337,8 +344,7 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	jar.SetCookies(signInStartURL, sessionCookie)
 
 	// now request the protected dashboard page
-	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
-	r.Nil(err)
+
 	dashboardURL.Host = "localhost"
 	dashboardURL.Scheme = "https"
 

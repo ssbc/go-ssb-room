@@ -48,7 +48,7 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 
 	alias, err := a.db.Resolve(req.Context(), name)
 	if err != nil {
-		ar.SendError(err)
+		ar.SendError(fmt.Errorf("aliases: failed to resolve name %q: %w", name, err))
 		return
 	}
 

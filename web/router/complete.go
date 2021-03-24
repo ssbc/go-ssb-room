@@ -24,13 +24,13 @@ const (
 func CompleteApp() *mux.Router {
 	m := mux.NewRouter()
 
-	Auth(m.PathPrefix("/auth").Subrouter())
+	Auth(m)
 	Admin(m.PathPrefix("/admin").Subrouter())
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
 	m.Path("/about").Methods("GET").Name(CompleteAbout)
 
-	m.Path("/{alias}").Methods("GET").Name(CompleteAliasResolve)
+	m.Path("/alias/{alias}").Methods("GET").Name(CompleteAliasResolve)
 
 	m.Path("/invite/accept").Methods("GET").Name(CompleteInviteAccept)
 	m.Path("/invite/consume").Methods("POST").Name(CompleteInviteConsume)

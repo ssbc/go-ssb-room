@@ -38,6 +38,4 @@ func NewFallbackPasswordHandler(
 
 	// hook up the auth handler to the router
 	m.Get(router.AuthFallbackSignIn).HandlerFunc(ah.Authorize)
-
-	m.Get(router.AuthSignOut).HandlerFunc(ah.Logout)
 }

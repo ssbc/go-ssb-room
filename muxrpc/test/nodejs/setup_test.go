@@ -28,7 +28,9 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -117,7 +119,11 @@ func (ts *testSession) startGoServer(
 		}),
 	)
 
-	srv, err := roomsrv.New(membersDB, aliasDB, "go.test.room.server", opts...)
+	// not needed for testing yet
+	sb := signinwithssb.NewSignalBridge()
+	authSessionsDB := new(mockdb.FakeAuthWithSSBService)
+
+	srv, err := roomsrv.New(membersDB, aliasDB, authSessionsDB, sb, "go.test.room.server", opts...)
 	r.NoError(err, "failed to init tees a server")
 	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {

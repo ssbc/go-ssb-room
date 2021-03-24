@@ -23,6 +23,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 )
@@ -88,7 +89,8 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 			t.Log("db close failed: ", err)
 		}
 	})
-	theBot, err := roomsrv.New(db.Members, db.Aliases, name, botOptions...)
+	sb := signinwithssb.NewSignalBridge()
+	theBot, err := roomsrv.New(db.Members, db.Aliases, db.AuthWithSSB, sb, name, botOptions...)
 	r.NoError(err)
 	return db.Members, theBot
 }

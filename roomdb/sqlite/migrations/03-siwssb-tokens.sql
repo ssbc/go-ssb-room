@@ -6,10 +6,10 @@ CREATE TABLE SIWSSB_sessions (
   member_id     INTEGER NOT NULL,
   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  FOREIGN KEY ( member_id ) REFERENCES members( "id" )
+  FOREIGN KEY ( member_id ) REFERENCES members( "id" ) ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX SIWSSB_by_token ON SIWSSB_sessions(token);
-CREATE UNIQUE INDEX SIWSSB_by_member ON SIWSSB_sessions(member_id);
+CREATE INDEX SIWSSB_by_member ON SIWSSB_sessions(member_id);
 
 -- +migrate Down
 DROP TABLE SIWSSB_sessions;

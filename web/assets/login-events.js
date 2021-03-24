@@ -1,5 +1,5 @@
-// get the challange from out of the HTML
-let sc = document.querySelector("#challange").attributes.ch.value
+// get the challenge from out of the HTML
+let sc = document.querySelector("#challenge").attributes.ch.value
 var evtSource = new EventSource(`/sse/events?sc=${sc}`);
 
 var ping = document.querySelector('#ping');

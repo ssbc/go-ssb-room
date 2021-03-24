@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package signinwithssb
 
 import (
@@ -13,18 +15,21 @@ func TestBridge(t *testing.T) {
 	sb := NewSignalBridge()
 
 	// try to use a non-existant session
-	err := sb.CompleteSession("nope", false)
+	err := sb.CompleteSession("nope", false, "nope-token")
 	a.Error(err)
 
 	// make a new session
-	updates, sc := sb.RegisterSession()
+	sc := sb.RegisterSession()
 
 	b, err := DecodeChallengeString(sc)
 	a.NoError(err)
 	a.Len(b, challengeLength)
 
+	updates, has := sb.GetEventChannel(sc)
+	a.True(has)
+
 	go func() {
-		err := sb.CompleteSession(sc, true)
+		err := sb.CompleteSession(sc, true, "a token")
 		a.NoError(err)
 	}()
 
@@ -33,6 +38,7 @@ func TestBridge(t *testing.T) {
 	select {
 	case evt := <-updates:
 		a.True(evt.Worked)
+		a.Equal("a token", evt.Token)
 	default:
 		t.Error("no updates")
 	}

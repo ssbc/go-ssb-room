@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package signinwithssb
 
 import (
@@ -5,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -16,7 +19,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-// Handler implements the muxrpc methods for alias registration and recvocation
+// Handler implements the muxrpc methods for the "Sign-in with SSB" calls. SendSolution and InvalidateAllSolutions.
 type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
@@ -29,7 +32,7 @@ type Handler struct {
 	roomDomain string // the http(s) domain of the room to signal redirect addresses
 }
 
-// New returns a fresh alias muxrpc handler
+// New returns the muxrpc handler for Sign-in with SSB
 func New(
 	log kitlog.Logger,
 	self refs.FeedRef,
@@ -50,6 +53,9 @@ func New(
 	return h
 }
 
+// SendSolution implements the receiving end of httpAuth.sendSolution.
+// It recevies three parameters [sc, cc, sol], does the validation and if it passes creates a token
+// and signals the created token to the SSE HTTP handler using the signal bridge.
 func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 	clientID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
@@ -76,7 +82,7 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 	sol.ClientID = *clientID
 	sol.ClientChallenge = params[1]
 
-	sig, err := base64.StdEncoding.DecodeString(params[2])
+	sig, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(params[2], ".sig.ed25519"))
 	if err != nil {
 		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
 		return nil, fmt.Errorf("signature is not valid base64 data: %w", err)
@@ -92,10 +98,16 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 		return nil, err
 	}
 
-	h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	err = h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	if err != nil {
+		h.sessions.RemoveToken(ctx, tok)
+		return nil, err
+	}
+
 	return true, nil
 }
 
+// InvalidateAllSolutions implements the muxrpc call httpAuth.invalidateAllSolutions
 func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 	// get the feed from the muxrpc connection
 	clientID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
@@ -103,11 +115,13 @@ func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request
 		return nil, err
 	}
 
+	// lookup the member
 	member, err := h.members.GetByFeed(ctx, *clientID)
 	if err != nil {
 		return nil, err
 	}
 
+	// delete all SIWSSB sessions of that member
 	err = h.sessions.WipeTokensForMember(ctx, member.ID)
 	if err != nil {
 		return nil, err

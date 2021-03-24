@@ -16,15 +16,16 @@ import (
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network/mocked"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 type testSession struct {
@@ -45,6 +46,8 @@ type testSession struct {
 	RoomState *roomstate.Manager
 
 	MockedEndpoints *mocked.FakeEndpoints
+
+	SignalBridge *signinwithssb.SignalBridge
 
 	NetworkInfo NetworkInfo
 }
@@ -98,12 +101,15 @@ func setup(t *testing.T) *testSession {
 
 	ts.Router = router.CompleteApp()
 
+	ts.SignalBridge = signinwithssb.NewSignalBridge()
+
 	h, err := New(
 		log,
 		testRepo,
 		ts.NetworkInfo,
 		ts.RoomState,
 		ts.MockedEndpoints,
+		ts.SignalBridge,
 		Databases{
 			Aliases:       ts.AliasesDB,
 			AuthFallback:  ts.AuthFallbackDB,

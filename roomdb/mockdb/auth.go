@@ -37,6 +37,18 @@ type FakeAuthWithSSBService struct {
 		result1 string
 		result2 error
 	}
+	RemoveTokenStub        func(context.Context, string) error
+	removeTokenMutex       sync.RWMutex
+	removeTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	removeTokenReturns struct {
+		result1 error
+	}
+	removeTokenReturnsOnCall map[int]struct {
+		result1 error
+	}
 	WipeTokensForMemberStub        func(context.Context, int64) error
 	wipeTokensForMemberMutex       sync.RWMutex
 	wipeTokensForMemberArgsForCall []struct {
@@ -183,6 +195,68 @@ func (fake *FakeAuthWithSSBService) CreateTokenReturnsOnCall(i int, result1 stri
 	}{result1, result2}
 }
 
+func (fake *FakeAuthWithSSBService) RemoveToken(arg1 context.Context, arg2 string) error {
+	fake.removeTokenMutex.Lock()
+	ret, specificReturn := fake.removeTokenReturnsOnCall[len(fake.removeTokenArgsForCall)]
+	fake.removeTokenArgsForCall = append(fake.removeTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.RemoveTokenStub
+	fakeReturns := fake.removeTokenReturns
+	fake.recordInvocation("RemoveToken", []interface{}{arg1, arg2})
+	fake.removeTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeAuthWithSSBService) RemoveTokenCallCount() int {
+	fake.removeTokenMutex.RLock()
+	defer fake.removeTokenMutex.RUnlock()
+	return len(fake.removeTokenArgsForCall)
+}
+
+func (fake *FakeAuthWithSSBService) RemoveTokenCalls(stub func(context.Context, string) error) {
+	fake.removeTokenMutex.Lock()
+	defer fake.removeTokenMutex.Unlock()
+	fake.RemoveTokenStub = stub
+}
+
+func (fake *FakeAuthWithSSBService) RemoveTokenArgsForCall(i int) (context.Context, string) {
+	fake.removeTokenMutex.RLock()
+	defer fake.removeTokenMutex.RUnlock()
+	argsForCall := fake.removeTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeAuthWithSSBService) RemoveTokenReturns(result1 error) {
+	fake.removeTokenMutex.Lock()
+	defer fake.removeTokenMutex.Unlock()
+	fake.RemoveTokenStub = nil
+	fake.removeTokenReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAuthWithSSBService) RemoveTokenReturnsOnCall(i int, result1 error) {
+	fake.removeTokenMutex.Lock()
+	defer fake.removeTokenMutex.Unlock()
+	fake.RemoveTokenStub = nil
+	if fake.removeTokenReturnsOnCall == nil {
+		fake.removeTokenReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removeTokenReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeAuthWithSSBService) WipeTokensForMember(arg1 context.Context, arg2 int64) error {
 	fake.wipeTokensForMemberMutex.Lock()
 	ret, specificReturn := fake.wipeTokensForMemberReturnsOnCall[len(fake.wipeTokensForMemberArgsForCall)]
@@ -252,6 +326,8 @@ func (fake *FakeAuthWithSSBService) Invocations() map[string][][]interface{} {
 	defer fake.checkTokenMutex.RUnlock()
 	fake.createTokenMutex.RLock()
 	defer fake.createTokenMutex.RUnlock()
+	fake.removeTokenMutex.RLock()
+	defer fake.removeTokenMutex.RUnlock()
 	fake.wipeTokensForMemberMutex.RLock()
 	defer fake.wipeTokensForMemberMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

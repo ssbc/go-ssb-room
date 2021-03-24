@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -106,7 +108,10 @@ func TestAliasRegister(t *testing.T) {
 	r.NoError(err)
 	t.Log("got URL:", resolveURL)
 	a.Equal("srv", resolveURL.Host)
-	a.Equal("/bob", resolveURL.Path)
+
+	wantURL, err := router.CompleteApp().Get(router.CompleteAliasResolve).URL("alias", "bob")
+	r.NoError(err)
+	a.Equal(wantURL.Path, resolveURL.Path)
 
 	// server should have the alias now
 	alias, err := serv.Aliases.Resolve(ctx, "bob")

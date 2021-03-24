@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package signinwithssb
 
 import (
@@ -29,8 +31,7 @@ func NewSignalBridge() *SignalBridge {
 }
 
 // RegisterSession registers a new session on the bridge.
-// It returns a channel from which future events can be read
-// and the server challenge, which acts as the session key.
+// It returns a fresh server challenge, which acts as the session key.
 func (sb *SignalBridge) RegisterSession() string {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
@@ -38,7 +39,7 @@ func (sb *SignalBridge) RegisterSession() string {
 	c := GenerateChallenge()
 	_, used := sb.sessions[c]
 	if used {
-		for used { // generate new challanges until we have an un-used one
+		for used { // generate new challenges until we have an un-used one
 			c = GenerateChallenge()
 			_, used = sb.sessions[c]
 		}
@@ -57,6 +58,8 @@ func (sb *SignalBridge) RegisterSession() string {
 	return c
 }
 
+// GetEventChannel returns the channel for the passed challenge from which future events can be read.
+// If sc doesn't exist, the 2nd argument is false.
 func (sb *SignalBridge) GetEventChannel(sc string) (<-chan Event, bool) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
@@ -64,7 +67,7 @@ func (sb *SignalBridge) GetEventChannel(sc string) (<-chan Event, bool) {
 	return ch, has
 }
 
-// CompleteSession uses the passed challange to send on and close the open channel.
+// CompleteSession uses the passed challenge to send on and close the open channel.
 // It will return an error if the session doesn't exist.
 func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) error {
 	sb.mu.Lock()
@@ -75,14 +78,28 @@ func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) e
 		return fmt.Errorf("no such session")
 	}
 
-	ch <- Event{
-		Worked: success,
-		Token:  token,
-	}
-	close(ch)
+	var (
+		err     error
+		timeout = time.NewTimer(1 * time.Minute)
 
-	// remove session
+		evt = Event{
+			Worked: success,
+			Token:  token,
+		}
+	)
+
+	// handle what happens if the sse client isn't connected
+	select {
+	case <-timeout.C:
+		err = fmt.Errorf("faled to send completed session")
+
+	case ch <- evt:
+		timeout.Stop()
+	}
+
+	// session is finalized either way
+	close(ch)
 	delete(sb.sessions, sc)
 
-	return nil
+	return err
 }

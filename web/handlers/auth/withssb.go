@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -72,7 +73,7 @@ func NewWithSSBHandler(
 
 	m.Get(router.AuthWithSSBSignIn).HandlerFunc(r.HTML("auth/withssb_sign_in.tmpl", ssb.login))
 
-	m.HandleFunc("/sse/login/{sc}", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
+	m.HandleFunc("/sse/login", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
 	m.HandleFunc("/sse/events", ssb.eventSource)
 
 	return &ssb
@@ -86,9 +87,6 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 
 	// validate and update client challenge
 	cc := queryParams.Get("cc")
-	if _, err := signinwithssb.DecodeChallengeString(cc); err != nil {
-		return nil, weberrors.ErrBadRequest{Where: "client-challenge", Details: err}
-	}
 	clientReq.ClientChallenge = cc
 
 	// check who the client is
@@ -110,10 +108,11 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	// check that we have that member
 	member, err := h.membersdb.GetByFeed(req.Context(), client)
 	if err != nil {
+		errMsg := fmt.Errorf("sign-in with ssb: client isnt a member: %w", err)
 		if err == roomdb.ErrNotFound {
-			return nil, weberrors.ErrForbidden{Details: fmt.Errorf("sign-in: client isnt a member")}
+			return nil, weberrors.ErrForbidden{Details: errMsg}
 		}
-		return nil, err
+		return nil, errMsg
 	}
 	clientReq.ClientID = client
 
@@ -134,13 +133,14 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	var solution string
 	err = edp.Async(ctx, &solution, muxrpc.TypeString, muxrpc.Method{"httpAuth", "requestSolution"}, sc, cc)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sign-in with ssb: could not request solution from client: %w", err)
 	}
 
 	// decode and validate the response
-	solutionBytes, err := base64.URLEncoding.DecodeString(solution)
+	solution = strings.TrimSuffix(solution, ".sig.ed25519")
+	solutionBytes, err := base64.StdEncoding.DecodeString(solution)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sign-in with ssb: failed to decode solution: %w", err)
 	}
 
 	if !clientReq.Validate(solutionBytes) {
@@ -150,17 +150,20 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	// create a session for invalidation
 	tok, err := h.sessiondb.CreateToken(req.Context(), member.ID)
 	if err != nil {
+		err = fmt.Errorf("sign-in with ssb: could not create token: %w", err)
 		return nil, err
 	}
 
 	session, err := h.cookieStore.Get(req, siwssbSessionName)
 	if err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to load cookie session: %w", err)
 		return nil, err
 	}
 
 	session.Values[memberToken] = tok
 	session.Values[userTimeout] = time.Now().Add(lifetime)
 	if err := session.Save(req, w); err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to update cookie session: %w", err)
 		return nil, err
 	}
 
@@ -184,19 +187,6 @@ const (
 )
 
 const lifetime = time.Hour * 24
-
-// Authenticate calls the next unless AuthenticateRequest returns an error
-func (h WithSSBHandler) Authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := h.AuthenticateRequest(r); err != nil {
-			// TODO: render.Error
-			http.Error(w, weberrors.ErrNotAuthorized.Error(), http.StatusForbidden)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
 
 // AuthenticateRequest uses the passed request to load and return the session data that was stored previously.
 // If it is invalid or there is no session, it will return ErrNotAuthorized.
@@ -249,26 +239,35 @@ func (h WithSSBHandler) AuthenticateRequest(r *http.Request) (*roomdb.Member, er
 }
 
 // Logout destroys the session data and updates the cookie with an invalidated one.
-func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) error {
 	session, err := h.cookieStore.Get(r, siwssbSessionName)
 	if err != nil {
-		// TODO: render.Error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// ah.errorHandler(w, r, err, http.StatusInternalServerError)
-		return
+		return err
+	}
+
+	tokenVal, ok := session.Values[memberToken]
+	if !ok {
+		// not a sign-in with ssb session
+		return nil
+	}
+
+	token, ok := tokenVal.(string)
+	if !ok {
+		return fmt.Errorf("wrong token type: %T", tokenVal)
+	}
+
+	err = h.sessiondb.RemoveToken(r.Context(), token)
+	if err != nil {
+		return err
 	}
 
 	session.Values[userTimeout] = time.Now().Add(-lifetime)
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
-		// TODO: render.Error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// ah.errorHandler(w, r, err, http.StatusInternalServerError)
-		return
+		return err
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return
+	return nil
 }
 
 // server-sent-events stuff
@@ -278,24 +277,26 @@ func (h WithSSBHandler) startWithServer(w http.ResponseWriter, req *http.Request
 
 	var queryParams = make(url.Values)
 	queryParams.Set("action", "start-http-auth")
+	queryParams.Set("sid", h.roomID.Ref())
+	queryParams.Set("sc", sc)
 
 	var startAuthURI url.URL
 	startAuthURI.Scheme = "ssb"
 	startAuthURI.Opaque = "experimental"
 	startAuthURI.RawQuery = queryParams.Encode()
 
-	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.High)
+	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
+	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.Medium)
 	if err != nil {
 		return nil, err
 	}
 	qrCode.BackgroundColor = color.RGBA{R: 0xf9, G: 0xfa, B: 0xfb}
 	qrCode.ForegroundColor = color.Black
 
-	qrCodeData, err := qrCode.PNG(-8)
+	qrCodeData, err := qrCode.PNG(-5)
 	if err != nil {
 		return nil, err
 	}
-
 	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 
 	return struct {
@@ -383,7 +384,7 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 		case update := <-evtCh:
 			evt := event{
 				ID:    evtID,
-				Data:  "challange validation failed",
+				Data:  "challenge validation failed",
 				Event: "failed",
 			}
 

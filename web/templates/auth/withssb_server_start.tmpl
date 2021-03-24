@@ -4,14 +4,13 @@
         <h1 id="welcome" class="text-lg">{{i18n "AuthWithSSBWelcome"}}</h1>
       </div>
       <div>
-        <h3>TODO: qr code of the code</h3>
-        <img src="{{.QRCodeURI}}" alt="QR-Code to pass challange to an App" />
-        <pre>{{.SSBURI}}</pre>
+        <img src="{{.QRCodeURI}}" alt="QR-Code to pass the challenge to an App" />
+        <a href="{{.SSBURI}}">{{i18n "GenericOpenLink"}}</a>
 
         <h3>Server events</h3>
         <p id="ping"></p>
         <p id="failed" class="text-red-500"></p>
       </div>
-      <div id="challange" ch="{{.ServerChallenge}}"></div>
-      <script src="/assets/events-demo.js"></script>
+      <div id="challenge" ch="{{.ServerChallenge}}"></div>
+      <script src="/assets/login-events.js"></script>
 {{end}}

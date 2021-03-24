@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
@@ -244,6 +245,14 @@ func New(
 
 	// just hooks up the router to the handler
 	roomsAuth.NewFallbackPasswordHandler(m, r, authWithPassword)
+
+	m.Get(router.AuthSignOut).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		err = authWithSSB.Logout(w, req)
+		if err != nil {
+			level.Warn(logging.FromContext(req.Context())).Log("err", err)
+		}
+		authWithPassword.Logout(w, req)
+	})
 
 	adminHandler := admin.Handler(
 		netInfo.Domain,
