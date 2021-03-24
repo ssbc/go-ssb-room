@@ -65,11 +65,10 @@ func main() {
 
 		return nil
 	})
-
 	flag.Parse()
 
-	// we require at least 5 arguments: <executable> + -name <val> + -key <val>
-	//                               1              2     3       4    5
+	/* we require at least 5 arguments: <executable> + -name <val> + -key <val> */
+	/*                                  1              2     3       4    5     */
 	if len(os.Args) < 5 {
 		cliMissingArguments("please provide the default arguments -name and -key")
 	}
@@ -96,7 +95,7 @@ func main() {
 	check(err)
 
 	if !bytes.Equal(bytePassword, bytePasswordRepeat) {
-		fmt.Fprintln(os.Stderr, "passwords didn't match")
+		fmt.Fprintln(os.Stderr, "Passwords didn't match")
 		os.Exit(1)
 		return
 	}
@@ -108,7 +107,7 @@ func main() {
 	err = db.AuthFallback.Create(ctx, mid, os.Args[1], bytePassword)
 	check(err)
 
-	fmt.Fprintln(os.Stderr, "created member with ID", mid)
+	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", name, role, mid)
 }
 
 func cliMissingArguments(message string) {
