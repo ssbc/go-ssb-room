@@ -5,7 +5,6 @@ package roomsrv
 import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	muxrpc "go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
@@ -15,7 +14,7 @@ import (
 )
 
 // instantiate and register the muxrpc handlers
-func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
+func (s *Server) initHandlers() {
 	// inistaniate handler packages
 	whoami := whoami.New(s.Whoami())
 
@@ -28,16 +27,17 @@ func (s *Server) initHandlers(aliasDB roomdb.AliasesService) {
 	aliasHandler := alias.New(
 		kitlog.With(s.logger, "unit", "aliases"),
 		s.Whoami(),
-		aliasDB,
+		s.Aliases,
 		s.domain,
 	)
 
 	siwssbHandler := signinwithssb.New(
 		kitlog.With(s.logger, "unit", "auth-with-ssb"),
 		s.Whoami(),
-		s.authWithSSB,
-		s.Members,
 		s.domain,
+		s.Members,
+		s.authWithSSB,
+		s.authWithSSBBridge,
 	)
 
 	// register muxrpc commands

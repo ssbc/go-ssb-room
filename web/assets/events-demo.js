@@ -1,13 +1,23 @@
-let streamName = document.querySelector("#stream-name").attributes.stream.value
+// get the challange from out of the HTML
+let sc = document.querySelector("#challange").attributes.ch.value
+var evtSource = new EventSource(`/sse/events?sc=${sc}`);
 
-var evtSource = new EventSource(`/sse/events?stream=${streamName}`);
+var ping = document.querySelector('#ping');
+var failed = document.querySelector('#failed');
 
-var eventList = document.querySelector('#event-list');
+evtSource.onerror = (e) => {
+    failed.textContent = "Warning: The connection to the server was interupted."
+}
 
-evtSource.addEventListener("testing", (e) => {
-//   console.log(e)
+evtSource.addEventListener("ping", (e) => {
+  ping.textContent = e.data;
+})
 
-  var newElement = document.createElement("li");
-  newElement.textContent = `(${e.lastEventId}) message: ${e.data}`;
-  eventList.prepend(newElement);
+evtSource.addEventListener("failed", (e) => {
+  failed.textContent = e.data;
+})
+
+evtSource.addEventListener("success", (e) => {
+  console.log('trigger redirect!')
+  alert(e.data)
 })

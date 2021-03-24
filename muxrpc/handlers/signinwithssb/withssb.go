@@ -10,6 +10,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	validate "github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	refs "go.mindeco.de/ssb-refs"
@@ -23,6 +24,8 @@ type Handler struct {
 	sessions roomdb.AuthWithSSBService
 	members  roomdb.MembersService
 
+	bridge *signinwithssb.SignalBridge
+
 	roomDomain string // the http(s) domain of the room to signal redirect addresses
 }
 
@@ -30,9 +33,11 @@ type Handler struct {
 func New(
 	log kitlog.Logger,
 	self refs.FeedRef,
-	sessiondb roomdb.AuthWithSSBService,
+	roomDomain string,
 	membersdb roomdb.MembersService,
-	roomDomain string) Handler {
+	sessiondb roomdb.AuthWithSSBService,
+	bridge *signinwithssb.SignalBridge,
+) Handler {
 
 	var h Handler
 	h.self = self
@@ -40,6 +45,7 @@ func New(
 	h.logger = log
 	h.sessions = sessiondb
 	h.members = membersdb
+	h.bridge = bridge
 
 	return h
 }
@@ -48,6 +54,11 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 	clientID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return nil, err
+	}
+
+	member, err := h.members.GetByFeed(ctx, *clientID)
+	if err != nil {
+		return nil, fmt.Errorf("client is not a room member")
 	}
 
 	var params []string
@@ -67,18 +78,22 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 
 	sig, err := base64.StdEncoding.DecodeString(params[2])
 	if err != nil {
-		return nil, fmt.Errorf("sc is not valid base64 data: %w", err)
+		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
+		return nil, fmt.Errorf("signature is not valid base64 data: %w", err)
 	}
 
 	if !sol.Validate(sig) {
+		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
 		return nil, fmt.Errorf("not a valid solution")
 	}
 
-	// TODO:
-	// h.challenges.Solved(sc)
-	// return true, nil
+	tok, err := h.sessions.CreateToken(ctx, member.ID)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, fmt.Errorf("TODO: update SSE")
+	h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	return true, nil
 }
 
 func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request) (interface{}, error) {

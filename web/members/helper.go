@@ -25,7 +25,7 @@ func AuthenticateFromContext(r *render.Renderer) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			if FromContext(req.Context()) == nil {
-				r.Error(w, req, http.StatusUnauthorized, weberrors.ErrBadRequest{})
+				r.Error(w, req, http.StatusUnauthorized, weberrors.ErrNotAuthorized)
 				return
 			}
 			next.ServeHTTP(w, req)
