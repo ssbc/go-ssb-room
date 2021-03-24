@@ -4,6 +4,7 @@ GenericSave = "Save"
 GenericCreate = "Create"
 GenericPreview = "Preview"
 GenericLanguage = "Language"
+GenericOpenLink = "Open Link"
 
 PageNotFound = "The requested page was not found."
 
@@ -20,7 +21,7 @@ AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
 AuthWithSSBTitle = "Sign-in with SSB"
-AuthWithSSBWelcome = "If you have a compatible device/application, you can sign-in here without a password."
+AuthWithSSBWelcome = "If you have a compatible device/application, you can sign-in here without a password. Open the QR-Code on your mobile device to complete the process or click the link below."
 
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"

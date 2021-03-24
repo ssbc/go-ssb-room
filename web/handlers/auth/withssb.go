@@ -86,9 +86,6 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 
 	// validate and update client challenge
 	cc := queryParams.Get("cc")
-	if _, err := signinwithssb.DecodeChallengeString(cc); err != nil {
-		return nil, weberrors.ErrBadRequest{Where: "client-challenge", Details: err}
-	}
 	clientReq.ClientChallenge = cc
 
 	// check who the client is
@@ -278,24 +275,26 @@ func (h WithSSBHandler) startWithServer(w http.ResponseWriter, req *http.Request
 
 	var queryParams = make(url.Values)
 	queryParams.Set("action", "start-http-auth")
+	queryParams.Set("sid", h.roomID.Ref())
+	queryParams.Set("sc", sc)
 
 	var startAuthURI url.URL
 	startAuthURI.Scheme = "ssb"
 	startAuthURI.Opaque = "experimental"
 	startAuthURI.RawQuery = queryParams.Encode()
 
-	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.High)
+	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
+	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.Medium)
 	if err != nil {
 		return nil, err
 	}
 	qrCode.BackgroundColor = color.RGBA{R: 0xf9, G: 0xfa, B: 0xfb}
 	qrCode.ForegroundColor = color.Black
 
-	qrCodeData, err := qrCode.PNG(-8)
+	qrCodeData, err := qrCode.PNG(-5)
 	if err != nil {
 		return nil, err
 	}
-
 	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 
 	return struct {

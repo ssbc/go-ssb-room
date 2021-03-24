@@ -16,7 +16,7 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-// Handler implements the muxrpc methods for alias registration and recvocation
+// Handler implements the muxrpc methods for the "Sign-in with SSB" calls. SendSolution and InvalidateAllSolutions.
 type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
