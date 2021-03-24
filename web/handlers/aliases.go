@@ -21,12 +21,13 @@ import (
 type aliasHandler struct {
 	r *render.Renderer
 
-	db roomdb.AliasesService
+	db     roomdb.AliasesService
+	config roomdb.RoomConfig
 
 	roomEndpoint network.ServerEndpointDetails
 }
 
-func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
+func (h aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 	respEncoding := req.URL.Query().Get("encoding")
 
 	var ar aliasResponder
@@ -34,10 +35,20 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 	case "json":
 		ar = newAliasJSONResponder(rw)
 	default:
-		ar = newAliasHTMLResponder(a.r, rw, req)
+		ar = newAliasHTMLResponder(h.r, rw, req)
 	}
 
 	ar.UpdateRoomInfo(a.roomEndpoint)
+
+	pm, err := h.config.GetPrivacyMode(req.Context())
+	if err != nil {
+		ar.SendError(fmt.Errorf("room is running an unknown privacy mode"))
+		return
+	}
+	if pm == roomdb.ModeRestricted {
+		ar.SendError(fmt.Errorf("this room is restricted, alias resolving is turned off"))
+		return
+	}
 
 	name := mux.Vars(req)["alias"]
 	if name == "" && !aliases.IsValid(name) {
@@ -45,7 +56,7 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	alias, err := a.db.Resolve(req.Context(), name)
+	alias, err := h.db.Resolve(req.Context(), name)
 	if err != nil {
 		ar.SendError(fmt.Errorf("aliases: failed to resolve name %q: %w", name, err))
 		return

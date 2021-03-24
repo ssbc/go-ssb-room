@@ -29,6 +29,7 @@ type inviteHandler struct {
 
 	invites       roomdb.InvitesService
 	pinnedNotices roomdb.PinnedNoticesService
+	config  roomdb.RoomConfig
 
 	networkInfo network.ServerEndpointDetails
 }

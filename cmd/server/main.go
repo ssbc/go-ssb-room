@@ -34,6 +34,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -52,6 +53,8 @@ var (
 	listenAddrDebug string
 	logToFile       string
 	repoDir         string
+
+	config roomdb.RoomConfig
 
 	// helper
 	log kitlog.Logger
@@ -81,9 +84,23 @@ func checkAndLog(err error) {
 	}
 }
 
+type Config struct {
+	// open, community, restricted
+	privacyMode roomdb.PrivacyMode
+}
+
+func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) {
+	err := c.privacyMode.IsValid()
+	if err != nil {
+		return roomdb.ModeUnknown, err
+	}
+	return c.privacyMode, nil
+}
+
 func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
+	config = Config{privacyMode: roomdb.ModeCommunity} // set default privacy mode to community
 
 	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key (or capability)")
 
@@ -100,6 +117,16 @@ func initFlags() {
 	flag.StringVar(&httpsDomain, "https-domain", "", "which domain to use for TLS and AllowedHosts checks")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
+
+	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
+		privacyMode := roomdb.ParsePrivacyMode(val)
+		err := privacyMode.IsValid()
+		if err != nil {
+			return fmt.Errorf("%s, valid values are open, community, restricted", err)
+		}
+		config = Config{privacyMode: privacyMode}
+		return nil
+	})
 
 	flag.Parse()
 
@@ -215,6 +242,7 @@ func runroomsrv() error {
 		db.Aliases,
 		db.AuthWithSSB,
 		bridge,
+		config,
 		httpsDomain,
 		opts...)
 	if err != nil {
@@ -264,6 +292,7 @@ func runroomsrv() error {
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
 			AuthWithSSB:   db.AuthWithSSB,
+			Config:        config,
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,

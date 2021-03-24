@@ -7,6 +7,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -22,11 +23,13 @@ import (
 }
 */
 
-func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager) *Handler {
+func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager, members roomdb.MembersService, config roomdb.RoomConfig) *Handler {
 	var h = new(Handler)
 	h.self = self
 	h.logger = log
 	h.state = m
+	h.members = members
+	h.config = config
 
 	return h
 }

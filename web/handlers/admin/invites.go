@@ -19,7 +19,8 @@ import (
 type invitesHandler struct {
 	r *render.Renderer
 
-	db roomdb.InvitesService
+	db     roomdb.InvitesService
+	config roomdb.RoomConfig
 
 	domainName string
 }
@@ -57,6 +58,26 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	member := members.FromContext(req.Context())
 	if member == nil {
 		return nil, fmt.Errorf("warning: no user session for elevated access request")
+	}
+	pm, err := h.config.GetPrivacyMode(req.Context())
+	if err != nil {
+		return nil, err
+	}
+    /* We want to check:
+	 * 1. the room's privacy mode
+	 * 2. the role of the member trying to create the invite
+     * and deny unallowed requests (e.g. member creating invite in ModeRestricted)
+	 */
+	switch pm {
+	case roomdb.ModeOpen:
+	case roomdb.ModeCommunity:
+		if member.Role == roomdb.RoleUnknown {
+			return nil, fmt.Errorf("warning: member with unknown role tried to create an invite")
+		}
+	case roomdb.ModeRestricted:
+		if member.Role == roomdb.RoleMember || member.Role == roomdb.RoleUnknown {
+			return nil, fmt.Errorf("warning: non-admin/mod user tried to create an invite")
+		}
 	}
 
 	token, err := h.db.Create(req.Context(), member.ID)
