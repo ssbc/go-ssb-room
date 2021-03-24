@@ -34,6 +34,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -52,6 +53,9 @@ var (
 	listenAddrDebug string
 	logToFile       string
 	repoDir         string
+
+	// open, community, restricted
+	privacyMode roomdb.PrivacyMode
 
 	// helper
 	log kitlog.Logger
@@ -100,6 +104,15 @@ func initFlags() {
 	flag.StringVar(&httpsDomain, "https-domain", "", "which domain to use for TLS and AllowedHosts checks")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
+
+	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
+		privacyMode = roomdb.ParsePrivacyMode(val)
+		err := privacyMode.IsValid()
+		if err != nil {
+			return fmt.Errorf("%s, valid values are open, community, restricted", err)
+		}
+		return nil
+	})
 
 	flag.Parse()
 
