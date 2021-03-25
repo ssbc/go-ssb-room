@@ -239,42 +239,35 @@ func (h WithSSBHandler) AuthenticateRequest(r *http.Request) (*roomdb.Member, er
 }
 
 // Logout destroys the session data and updates the cookie with an invalidated one.
-func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
+func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) error {
 	session, err := h.cookieStore.Get(r, siwssbSessionName)
 	if err != nil {
-		// TODO: render.Error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// ah.errorHandler(w, r, err, http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	tokenVal, ok := session.Values[memberToken]
 	if !ok {
-		http.Error(w, "missing token", http.StatusInternalServerError)
-		return
+		// not a sign-in with ssb session
+		return nil
 	}
 
 	token, ok := tokenVal.(string)
 	if !ok {
-		http.Error(w, "wrong token type", http.StatusInternalServerError)
-		return
+		return fmt.Errorf("wrong token type: %T", tokenVal)
 	}
 
 	err = h.sessiondb.RemoveToken(r.Context(), token)
 	if err != nil {
-		// TODO: render.Error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	session.Values[userTimeout] = time.Now().Add(-lifetime)
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
-		// TODO: render.Error
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		// ah.errorHandler(w, r, err, http.StatusInternalServerError)
-		return
+		return err
 	}
+
+	return nil
 }
 
 // server-sent-events stuff
