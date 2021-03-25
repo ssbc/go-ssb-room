@@ -30,7 +30,7 @@ type Handler struct {
 	roomDomain string // the http(s) domain of the room to signal redirect addresses
 }
 
-// New returns a fresh alias muxrpc handler
+// New returns the muxrpc handler for Sign-in with SSB
 func New(
 	log kitlog.Logger,
 	self refs.FeedRef,
@@ -51,6 +51,9 @@ func New(
 	return h
 }
 
+// SendSolution implements the receiving end of httpAuth.sendSolution.
+// It recevies three parameters [sc, cc, sol], does the validation and if it passes creates a token
+// and signals the created token to the SSE HTTP handler using the signal bridge.
 func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 	clientID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
@@ -97,6 +100,7 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 	return true, nil
 }
 
+// InvalidateAllSolutions implements the muxrpc call httpAuth.invalidateAllSolutions
 func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
 	// get the feed from the muxrpc connection
 	clientID, err := network.GetFeedRefFromAddr(req.RemoteAddr())
@@ -104,11 +108,13 @@ func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request
 		return nil, err
 	}
 
+	// lookup the member
 	member, err := h.members.GetByFeed(ctx, *clientID)
 	if err != nil {
 		return nil, err
 	}
 
+	// delete all SIWSSB sessions of that member
 	err = h.sessions.WipeTokensForMember(ctx, member.ID)
 	if err != nil {
 		return nil, err
