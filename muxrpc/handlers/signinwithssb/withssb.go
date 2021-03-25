@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -76,7 +77,7 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 	sol.ClientID = *clientID
 	sol.ClientChallenge = params[1]
 
-	sig, err := base64.StdEncoding.DecodeString(params[2])
+	sig, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(params[2], ".sig.ed25519"))
 	if err != nil {
 		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
 		return nil, fmt.Errorf("signature is not valid base64 data: %w", err)
