@@ -80,7 +80,7 @@ func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) e
 
 	var (
 		err     error
-		timeout = time.NewTimer(1 * time.Minute)
+		timeout = time.NewTimer(2 * time.Minute)
 
 		evt = Event{
 			Worked: success,

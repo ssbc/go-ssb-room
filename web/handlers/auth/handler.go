@@ -14,9 +14,8 @@ import (
 )
 
 var HTMLTemplates = []string{
+	"auth/start_login_form.tmpl",
 	"auth/fallback_sign_in.tmpl",
-
-	"auth/withssb_sign_in.tmpl",
 	"auth/withssb_server_start.tmpl",
 }
 

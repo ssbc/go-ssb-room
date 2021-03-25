@@ -15,8 +15,11 @@ RoleAdmin = "Admin"
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-AuthFallbackWelcome = "You really shouldn't be here.... Let's get you through this."
-AuthFallbackTitle = "The place of last resort"
+AuthTitle = "Member Authentication"
+AuthWelcome = "Some text about the different login methods(?)"
+
+AuthFallbackWelcome = "Here you can log in with username and password."
+AuthFallbackTitle = "Password Login"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
