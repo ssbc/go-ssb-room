@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 // Package members implements helpers for accessing the currently logged in admin or moderator of an active request.
 package members
 

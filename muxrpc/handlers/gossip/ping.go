@@ -1,8 +1,11 @@
+// SPDX-License-Identifier: MIT
+
 package gossip
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 
@@ -10,6 +13,10 @@ import (
 	"go.mindeco.de/encodedTime"
 )
 
+// Ping implements the server side of gossip.ping.
+// it's idea is mentioned here https://github.com/ssbc/ssb-gossip/#ping-duplex
+// and implemented by https://github.com/dominictarr/pull-ping/
+//
 func Ping(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
 	type arg struct {
 		Timeout int
@@ -65,4 +72,35 @@ func Ping(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, 
 	}
 
 	return nil
+}
+
+// this is how it should work, i think, but it leads to disconnects...
+// From the code it's hard to see but the client sends a timestamp in milliseconds (Date.now() in javascript/json)
+// and the other side responds with it's own timestamp.
+func actualPingPong(ctx context.Context, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
+	peerSnk.SetEncoding(muxrpc.TypeJSON)
+	enc := json.NewEncoder(peerSnk)
+
+	for peerSrc.Next(ctx) {
+		var ping encodedTime.Millisecs
+		err := peerSrc.Reader(func(rd io.Reader) error {
+			return json.NewDecoder(rd).Decode(&ping)
+		})
+		if err != nil {
+			return err
+		}
+
+		when := time.Time(ping)
+		fmt.Printf("got ping: %s - age: %s\n", when.String(), time.Since(when))
+
+		pong := encodedTime.Millisecs(time.Now())
+		err = enc.Encode(pong)
+		if err != nil {
+			return err
+		}
+
+		// time.Sleep(timeout)
+	}
+
+	return peerSrc.Err()
 }

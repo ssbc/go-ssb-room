@@ -19,8 +19,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
-
 	// debug
 	"net/http"
 	_ "net/http/pprof"
@@ -32,6 +30,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
