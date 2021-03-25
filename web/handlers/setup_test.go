@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/tester"
@@ -45,6 +47,8 @@ type testSession struct {
 	RoomState *roomstate.Manager
 
 	MockedEndpoints *mocked.FakeEndpoints
+
+	SignalBridge *signinwithssb.SignalBridge
 
 	NetworkInfo NetworkInfo
 }
@@ -98,12 +102,15 @@ func setup(t *testing.T) *testSession {
 
 	ts.Router = router.CompleteApp()
 
+	ts.SignalBridge = signinwithssb.NewSignalBridge()
+
 	h, err := New(
 		log,
 		testRepo,
 		ts.NetworkInfo,
 		ts.RoomState,
 		ts.MockedEndpoints,
+		ts.SignalBridge,
 		Databases{
 			Aliases:       ts.AliasesDB,
 			AuthFallback:  ts.AuthFallbackDB,

@@ -293,7 +293,7 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 		// sign the request now that we have the sc
 		clientSig := req.Sign(client.Pair.Secret)
 
-		*strptr = base64.URLEncoding.EncodeToString(clientSig)
+		*strptr = base64.StdEncoding.EncodeToString(clientSig)
 		return nil
 	})
 
