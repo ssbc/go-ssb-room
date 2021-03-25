@@ -51,6 +51,7 @@ type Databases struct {
 	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
 	AuthWithSSB   roomdb.AuthWithSSBService
+	Config        roomdb.RoomConfig // cblgh: should this be pluralized as well? "Settings", "Configurables"?
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
@@ -258,6 +259,7 @@ func New(
 		roomState,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
+			Config:        dbs.Config,
 			DeniedKeys:    dbs.DeniedKeys,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
@@ -301,6 +303,7 @@ func New(
 	var ih = inviteHandler{
 		render: r,
 
+		config:  dbs.Config,
 		invites: dbs.Invites,
 
 		networkInfo: netInfo,

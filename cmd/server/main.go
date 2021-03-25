@@ -54,8 +54,7 @@ var (
 	logToFile       string
 	repoDir         string
 
-	// open, community, restricted
-	privacyMode roomdb.PrivacyMode
+	config roomdb.RoomConfig
 
 	// helper
 	log kitlog.Logger
@@ -85,6 +84,20 @@ func checkAndLog(err error) {
 	}
 }
 
+type Config struct {
+	// open, community, restricted
+	privacyMode roomdb.PrivacyMode
+}
+
+// cblgh: i dont get why we need a context here, if it is potentially a bad code smell?
+func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) {
+	err := c.privacyMode.IsValid()
+	if err != nil {
+		return roomdb.ModeUnknown, err
+	}
+	return c.privacyMode, nil
+}
+
 func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
@@ -106,11 +119,12 @@ func initFlags() {
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
 	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
-		privacyMode = roomdb.ParsePrivacyMode(val)
+		privacyMode := roomdb.ParsePrivacyMode(val)
 		err := privacyMode.IsValid()
 		if err != nil {
 			return fmt.Errorf("%s, valid values are open, community, restricted", err)
 		}
+		config = Config{privacyMode: privacyMode}
 		return nil
 	})
 
@@ -277,6 +291,7 @@ func runroomsrv() error {
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
 			AuthWithSSB:   db.AuthWithSSB,
+			Config:        config,
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
