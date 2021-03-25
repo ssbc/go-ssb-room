@@ -96,7 +96,12 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 		return nil, err
 	}
 
-	h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	err = h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	if err != nil {
+		h.sessions.RemoveToken(ctx, tok)
+		return nil, err
+	}
+
 	return true, nil
 }
 
