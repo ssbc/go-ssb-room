@@ -3,6 +3,7 @@ let sc = document.querySelector("#challenge").attributes.ch.value
 var evtSource = new EventSource(`/sse/events?sc=${sc}`);
 
 var ping = document.querySelector('#ping');
+var success = document.querySelector('#success');
 var failed = document.querySelector('#failed');
 
 evtSource.onerror = (e) => {
@@ -18,6 +19,8 @@ evtSource.addEventListener("failed", (e) => {
 })
 
 evtSource.addEventListener("success", (e) => {
-  console.log('trigger redirect!')
-  alert(e.data)
+  success.textContent = "Session established. redirecting in 5 seconds."
+  setTimeout(() => {
+    window.location = `/sse/finalize?token=${e.data}`
+  },5000)
 })
