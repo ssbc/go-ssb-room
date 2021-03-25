@@ -75,6 +75,7 @@ func NewWithSSBHandler(
 
 	m.HandleFunc("/sse/login", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
 	m.HandleFunc("/sse/events", ssb.eventSource)
+	m.HandleFunc("/sse/finalize", ssb.finalizeCookie)
 
 	return &ssb
 }
@@ -154,20 +155,29 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 		return nil, err
 	}
 
-	session, err := h.cookieStore.Get(req, siwssbSessionName)
-	if err != nil {
-		err = fmt.Errorf("sign-in with ssb: failed to load cookie session: %w", err)
-		return nil, err
-	}
-
-	session.Values[memberToken] = tok
-	session.Values[userTimeout] = time.Now().Add(lifetime)
-	if err := session.Save(req, w); err != nil {
-		err = fmt.Errorf("sign-in with ssb: failed to update cookie session: %w", err)
+	if err := h.saveCookie(w, req, tok); err != nil {
 		return nil, err
 	}
 
 	return "you are now logged in!", nil
+}
+
+func (h WithSSBHandler) saveCookie(w http.ResponseWriter, req *http.Request, token string) error {
+
+	session, err := h.cookieStore.Get(req, siwssbSessionName)
+	if err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to load cookie session: %w", err)
+		return err
+	}
+
+	session.Values[memberToken] = token
+	session.Values[userTimeout] = time.Now().Add(lifetime)
+	if err := session.Save(req, w); err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to update cookie session: %w", err)
+		return err
+	}
+
+	return nil
 }
 
 // custom sessionKey type to prevent collision
@@ -396,6 +406,7 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 			sendServerEvent(w, evt)
 
 			logger.Log("event", "sent", "worked", update.Worked)
+			return
 		}
 		evtID++
 		flusher.Flush()
@@ -409,4 +420,19 @@ func sendServerEvent(w io.Writer, evt event) {
 		fmt.Fprintf(w, "event: %s\n", evt.Event)
 	}
 	fmt.Fprint(w, "\n")
+}
+
+func (h WithSSBHandler) finalizeCookie(w http.ResponseWriter, r *http.Request) {
+	tok := r.URL.Query().Get("token")
+
+	if _, err := h.sessiondb.CheckToken(r.Context(), tok); err != nil {
+		http.Error(w, "invalid session token", http.StatusInternalServerError)
+		return
+	}
+
+	if err := h.saveCookie(w, r, tok); err != nil {
+		http.Error(w, "failed to save cookie", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
