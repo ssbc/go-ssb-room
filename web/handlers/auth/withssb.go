@@ -73,7 +73,7 @@ func NewWithSSBHandler(
 
 	m.Get(router.AuthWithSSBSignIn).HandlerFunc(r.HTML("auth/withssb_sign_in.tmpl", ssb.login))
 
-	m.HandleFunc("/sse/login/{sc}", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
+	m.HandleFunc("/sse/login", r.HTML("auth/withssb_server_start.tmpl", ssb.startWithServer))
 	m.HandleFunc("/sse/events", ssb.eventSource)
 
 	return &ssb
