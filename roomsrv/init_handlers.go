@@ -4,11 +4,12 @@ package roomsrv
 
 import (
 	kitlog "github.com/go-kit/kit/log"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/signinwithssb"
 	muxrpc "go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/alias"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/gossip"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/whoami"
 )
@@ -61,5 +62,7 @@ func (s *Server) initHandlers() {
 		mux.RegisterAsync(append(method, "invalidateAllSolutions"), typemux.AsyncFunc(siwssbHandler.InvalidateAllSolutions))
 		mux.RegisterAsync(append(method, "sendSolution"), typemux.AsyncFunc(siwssbHandler.SendSolution))
 
+		method = muxrpc.Method{"gossip"}
+		mux.RegisterDuplex(append(method, "ping"), typemux.DuplexFunc(gossip.Ping))
 	}
 }
