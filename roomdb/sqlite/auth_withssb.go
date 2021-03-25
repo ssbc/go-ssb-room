@@ -114,6 +114,12 @@ func (a AuthWithSSB) CheckToken(ctx context.Context, token string) (int64, error
 	return memberID, nil
 }
 
+// RemoveToken removes a single token from the database
+func (a AuthWithSSB) RemoveToken(ctx context.Context, token string) error {
+	_, err := models.SIWSSBSessions(qm.Where("token = ?", token)).DeleteAll(ctx, a.db)
+	return err
+}
+
 // WipeTokensForMember deletes all tokens currently held for that member
 func (a AuthWithSSB) WipeTokensForMember(ctx context.Context, memberID int64) error {
 	return transact(a.db, func(tx *sql.Tx) error {

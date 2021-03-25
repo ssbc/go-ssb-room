@@ -44,6 +44,9 @@ type AuthWithSSBService interface {
 	// CheckToken checks if the passed token is still valid and returns the member id if so
 	CheckToken(ctx context.Context, token string) (int64, error)
 
+	// RemoveToken removes a single token from the database
+	RemoveToken(ctx context.Context, token string) error
+
 	// WipeTokensForMember deletes all tokens currently held for that member
 	WipeTokensForMember(ctx context.Context, memberID int64) error
 }

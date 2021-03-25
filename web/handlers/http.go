@@ -245,6 +245,11 @@ func New(
 	// just hooks up the router to the handler
 	roomsAuth.NewFallbackPasswordHandler(m, r, authWithPassword)
 
+	m.Get(router.AuthSignOut).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		authWithSSB.Logout(w, req)
+		authWithPassword.Logout(w, req)
+	})
+
 	adminHandler := admin.Handler(
 		netInfo.Domain,
 		r,

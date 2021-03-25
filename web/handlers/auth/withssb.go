@@ -182,19 +182,6 @@ const (
 
 const lifetime = time.Hour * 24
 
-// Authenticate calls the next unless AuthenticateRequest returns an error
-func (h WithSSBHandler) Authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if _, err := h.AuthenticateRequest(r); err != nil {
-			// TODO: render.Error
-			http.Error(w, weberrors.ErrNotAuthorized.Error(), http.StatusForbidden)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 // AuthenticateRequest uses the passed request to load and return the session data that was stored previously.
 // If it is invalid or there is no session, it will return ErrNotAuthorized.
 // Otherwise it will return the member ID that belongs to the session.
@@ -255,6 +242,25 @@ func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tokenVal, ok := session.Values[memberToken]
+	if !ok {
+		http.Error(w, "missing token", http.StatusInternalServerError)
+		return
+	}
+
+	token, ok := tokenVal.(string)
+	if !ok {
+		http.Error(w, "wrong token type", http.StatusInternalServerError)
+		return
+	}
+
+	err = h.sessiondb.RemoveToken(r.Context(), token)
+	if err != nil {
+		// TODO: render.Error
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	session.Values[userTimeout] = time.Now().Add(-lifetime)
 	session.Options.MaxAge = -1
 	if err := session.Save(r, w); err != nil {
@@ -263,9 +269,6 @@ func (h WithSSBHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		// ah.errorHandler(w, r, err, http.StatusInternalServerError)
 		return
 	}
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-	return
 }
 
 // server-sent-events stuff
