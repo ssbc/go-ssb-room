@@ -3,6 +3,7 @@
 package signinwithssb
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -15,7 +16,7 @@ func TestBridge(t *testing.T) {
 	sb := NewSignalBridge()
 
 	// try to use a non-existant session
-	err := sb.CompleteSession("nope", false, "nope-token")
+	err := sb.SessionFailed("nope", fmt.Errorf("just a test"))
 	a.Error(err)
 
 	// make a new session
@@ -29,7 +30,7 @@ func TestBridge(t *testing.T) {
 	a.True(has)
 
 	go func() {
-		err := sb.CompleteSession(sc, true, "a token")
+		err := sb.SessionWorked(sc, "a token")
 		a.NoError(err)
 	}()
 

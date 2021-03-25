@@ -466,12 +466,15 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 			logger.Log("event", "sent ping")
 
 		case update := <-evtCh:
-			data := "challenge validation failed"
-			event := "failed"
+			var event, data string = "failed", "challenge validation failed"
 
 			if update.Worked {
-				data = update.Token
 				event = "success"
+				data = update.Token
+			} else {
+				if update.Reason != nil {
+					data = update.Reason.Error()
+				}
 			}
 
 			sender.send(event, data)
