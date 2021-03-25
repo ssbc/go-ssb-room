@@ -18,7 +18,7 @@ CREATE TABLE fallback_passwords (
 
   member_id     INTEGER NOT NULL,
 
-  FOREIGN KEY ( member_id ) REFERENCES members( "id" )
+  FOREIGN KEY ( member_id ) REFERENCES members( "id" )  ON DELETE CASCADE
 );
 CREATE INDEX fallback_passwords_by_login ON fallback_passwords(login);
 
@@ -32,7 +32,7 @@ CREATE TABLE invites (
   alias_suggestion TEXT NOT NULL DEFAULT "", -- optional
   active boolean   NOT NULL DEFAULT TRUE,
 
-  FOREIGN KEY ( created_by ) REFERENCES members( "id" )
+  FOREIGN KEY ( created_by ) REFERENCES members( "id" )  ON DELETE CASCADE
 );
 CREATE INDEX invite_active_ids ON invites(id) WHERE active=TRUE;
 CREATE UNIQUE INDEX invite_active_tokens ON invites(hashed_token) WHERE active=TRUE;
@@ -45,7 +45,7 @@ CREATE TABLE aliases (
   member_id     INTEGER NOT NULL,
   signature     BLOB NOT NULL,
 
-  FOREIGN KEY ( member_id ) REFERENCES members( "id" )
+  FOREIGN KEY ( member_id ) REFERENCES members( "id" )  ON DELETE CASCADE
 );
 CREATE UNIQUE INDEX aliases_ids ON aliases(id);
 CREATE UNIQUE INDEX aliases_names ON aliases(name);
