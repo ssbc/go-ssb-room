@@ -3,14 +3,36 @@
       <div id="page-header">
         <h1 id="welcome" class="text-lg">{{i18n "AuthWithSSBServerStart"}}</h1>
       </div>
-      <div>
-        <img id="start-auth-qrcode" src="{{.QRCodeURI}}" alt="QR-Code to pass the challenge to an App" />
-        <a id="start-auth-uri" href="{{.SSBURI}}" target="_blank">{{i18n "GenericOpenLink"}}</a>
 
+      <div class="flex flex-col justify-center items-center self-center max-w-lg">
+        <span class="text-center mt-8">{{i18n "AuthWithSSBWelcome"}}</span>
+
+        <a
+          id="start-auth-uri"
+          href="{{.SSBURI}}"
+          target="_blank"
+          class="shadow rounded flex flex-row justify-center items-center mt-8 px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+        >{{i18n "AuthWithSSBTitle"}}</a>
+
+        <div class="mt-8 w-64 h-px bg-gray-200"></div>
+
+        <span class="text-center mt-8">{{i18n "AuthWithSSBInstructQR"}}</span>
+
+        <img
+          id="start-auth-qrcode"
+          src="{{.QRCodeURI}}"
+          alt="QR-Code to pass the challenge to an App"
+          width="160"
+          height="160"
+          class="mt-8"
+        />
+      </div>
+
+      <div class="text-xs">
         <h3>Server events</h3>
         <p id="ping"></p>
         <p id="failed" class="text-red-500"></p>
       </div>
-      <div id="challenge" data-sc="{{.ServerChallenge}}"></div>
+      <div id="challenge" class="hidden" data-sc="{{.ServerChallenge}}"></div>
       <script src="/assets/login-events.js"></script>
 {{end}}

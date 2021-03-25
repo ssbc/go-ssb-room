@@ -28,6 +28,8 @@ AuthWithSSBServerStart = "If you have a compatible device/application, you can s
 AuthFallbackWelcome = "Here you can log in with username and password."
 AuthFallbackTitle = "Password Login"
 
+AuthWithSSBWelcome = "To sign-in with your SSB identity stored on this device, press the button below which will open a compatible SSB app, if it's installed."
+AuthWithSSBInstructQR = "If your SSB app is on another device, you can scan the following QR code to sign-in with that device's SSB identity."
 
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
