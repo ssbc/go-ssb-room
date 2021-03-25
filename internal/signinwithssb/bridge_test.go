@@ -23,6 +23,9 @@ func TestBridge(t *testing.T) {
 	a.NoError(err)
 	a.Len(b, challengeLength)
 
+	updates, has := sb.GetEventChannel(sc)
+	a.True(has)
+
 	go func() {
 		err := sb.CompleteSession(sc, true, "a token")
 		a.NoError(err)
@@ -30,13 +33,10 @@ func TestBridge(t *testing.T) {
 
 	time.Sleep(time.Second / 4)
 
-	updates, has := sb.GetEventChannel(sc)
-	a.True(has)
-
 	select {
 	case evt := <-updates:
 		a.True(evt.Worked)
-		a.Equal("a token", evt.Worked)
+		a.Equal("a token", evt.Token)
 	default:
 		t.Error("no updates")
 	}
