@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -107,10 +108,11 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	// check that we have that member
 	member, err := h.membersdb.GetByFeed(req.Context(), client)
 	if err != nil {
+		errMsg := fmt.Errorf("sign-in with ssb: client isnt a member: %w", err)
 		if err == roomdb.ErrNotFound {
-			return nil, weberrors.ErrForbidden{Details: fmt.Errorf("sign-in: client isnt a member")}
+			return nil, weberrors.ErrForbidden{Details: errMsg}
 		}
-		return nil, err
+		return nil, errMsg
 	}
 	clientReq.ClientID = client
 
@@ -131,13 +133,14 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	var solution string
 	err = edp.Async(ctx, &solution, muxrpc.TypeString, muxrpc.Method{"httpAuth", "requestSolution"}, sc, cc)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sign-in with ssb: could not request solution from client: %w", err)
 	}
 
 	// decode and validate the response
-	solutionBytes, err := base64.URLEncoding.DecodeString(solution)
+	solution = strings.TrimSuffix(solution, ".sig.ed25519")
+	solutionBytes, err := base64.StdEncoding.DecodeString(solution)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sign-in with ssb: failed to decode solution: %w", err)
 	}
 
 	if !clientReq.Validate(solutionBytes) {
@@ -147,17 +150,20 @@ func (h WithSSBHandler) login(w http.ResponseWriter, req *http.Request) (interfa
 	// create a session for invalidation
 	tok, err := h.sessiondb.CreateToken(req.Context(), member.ID)
 	if err != nil {
+		err = fmt.Errorf("sign-in with ssb: could not create token: %w", err)
 		return nil, err
 	}
 
 	session, err := h.cookieStore.Get(req, siwssbSessionName)
 	if err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to load cookie session: %w", err)
 		return nil, err
 	}
 
 	session.Values[memberToken] = tok
 	session.Values[userTimeout] = time.Now().Add(lifetime)
 	if err := session.Save(req, w); err != nil {
+		err = fmt.Errorf("sign-in with ssb: failed to update cookie session: %w", err)
 		return nil, err
 	}
 
