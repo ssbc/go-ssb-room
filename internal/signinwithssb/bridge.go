@@ -38,7 +38,7 @@ func (sb *SignalBridge) RegisterSession() string {
 	c := GenerateChallenge()
 	_, used := sb.sessions[c]
 	if used {
-		for used { // generate new challanges until we have an un-used one
+		for used { // generate new challenges until we have an un-used one
 			c = GenerateChallenge()
 			_, used = sb.sessions[c]
 		}
@@ -64,7 +64,7 @@ func (sb *SignalBridge) GetEventChannel(sc string) (<-chan Event, bool) {
 	return ch, has
 }
 
-// CompleteSession uses the passed challange to send on and close the open channel.
+// CompleteSession uses the passed challenge to send on and close the open channel.
 // It will return an error if the session doesn't exist.
 func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) error {
 	sb.mu.Lock()

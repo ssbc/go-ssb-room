@@ -384,7 +384,7 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 		case update := <-evtCh:
 			evt := event{
 				ID:    evtID,
-				Data:  "challange validation failed",
+				Data:  "challenge validation failed",
 				Event: "failed",
 			}
 
