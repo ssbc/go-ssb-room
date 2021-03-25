@@ -84,21 +84,23 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 
 	sig, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(params[2], ".sig.ed25519"))
 	if err != nil {
-		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
+		h.bridge.SessionFailed(sol.ServerChallenge, err)
 		return nil, fmt.Errorf("signature is not valid base64 data: %w", err)
 	}
 
 	if !sol.Validate(sig) {
-		h.bridge.CompleteSession(sol.ServerChallenge, false, "")
-		return nil, fmt.Errorf("not a valid solution")
+		err = fmt.Errorf("not a valid solution")
+		h.bridge.SessionFailed(sol.ServerChallenge, err)
+		return nil, err
 	}
 
 	tok, err := h.sessions.CreateToken(ctx, member.ID)
 	if err != nil {
+		h.bridge.SessionFailed(sol.ServerChallenge, err)
 		return nil, err
 	}
 
-	err = h.bridge.CompleteSession(sol.ServerChallenge, true, tok)
+	err = h.bridge.SessionWorked(sol.ServerChallenge, tok)
 	if err != nil {
 		h.sessions.RemoveToken(ctx, tok)
 		return nil, err

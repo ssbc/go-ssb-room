@@ -9,10 +9,8 @@ const (
 	AuthFallbackSignInForm = "auth:fallback:signin:form"
 	AuthFallbackSignIn     = "auth:fallback:signin"
 
-	AuthWithSSBSignIn = "auth:ssb:login"
-	// AuthWithSSBSignIn
-
-	AuthSignOut = "auth:logout"
+	AuthLogin  = "auth:login"
+	AuthLogout = "auth:logout"
 )
 
 // Auth constructs a mux.Router containing the routes for sign-in and -out
@@ -21,12 +19,12 @@ func Auth(m *mux.Router) *mux.Router {
 		m = mux.NewRouter()
 	}
 
+	m.Path("/login").Methods("GET").Name(AuthLogin)
+	m.Path("/logout").Methods("GET").Name(AuthLogout)
+
 	// register password fallback
 	m.Path("/password/signin").Methods("GET").Name(AuthFallbackSignInForm)
 	m.Path("/password/signin").Methods("POST").Name(AuthFallbackSignIn)
-
-	m.Path("/login").Methods("GET").Name(AuthWithSSBSignIn)
-	m.Path("/logout").Methods("GET").Name(AuthSignOut)
 
 	return m
 }

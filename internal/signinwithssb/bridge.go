@@ -17,9 +17,15 @@ type SignalBridge struct {
 
 type sessionMap map[string]chan Event
 
+// Event is the unit of information that is sent over the bridge.
 type Event struct {
 	Worked bool
-	Token  string
+
+	// the token value if it did work
+	Token string
+
+	// reason why it didn't work
+	Reason error
 }
 
 // NewSignalBridge returns a new SignalBridge
@@ -67,9 +73,25 @@ func (sb *SignalBridge) GetEventChannel(sc string) (<-chan Event, bool) {
 	return ch, has
 }
 
-// CompleteSession uses the passed challenge to send on and close the open channel.
+// SessionWorked uses the passed challenge to send on and close the open channel.
 // It will return an error if the session doesn't exist.
-func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) error {
+func (sb *SignalBridge) SessionWorked(sc string, token string) error {
+	return sb.sendAndClose(sc, Event{
+		Worked: true,
+		Token:  token,
+	})
+}
+
+// SessionFailed uses the passed challenge to send on and close the open channel.
+// It will return an error if the session doesn't exist.
+func (sb *SignalBridge) SessionFailed(sc string, reason error) error {
+	return sb.sendAndClose(sc, Event{
+		Worked: false,
+		Reason: reason,
+	})
+}
+
+func (sb *SignalBridge) sendAndClose(sc string, evt Event) error {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 
@@ -80,12 +102,7 @@ func (sb *SignalBridge) CompleteSession(sc string, success bool, token string) e
 
 	var (
 		err     error
-		timeout = time.NewTimer(1 * time.Minute)
-
-		evt = Event{
-			Worked: success,
-			Token:  token,
-		}
+		timeout = time.NewTimer(2 * time.Minute)
 	)
 
 	// handle what happens if the sse client isn't connected
