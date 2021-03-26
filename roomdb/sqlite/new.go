@@ -27,13 +27,13 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 
 type Database struct {
 	db *sql.DB
 
-	AuthFallback roomdb.AuthFallbackService
+	AuthFallback AuthFallback
+	AuthWithSSB  AuthWithSSB
 
 	Members Members
 	Aliases Aliases
@@ -102,6 +102,7 @@ func Open(r repo.Interface) (*Database, error) {
 
 		Aliases:       Aliases{db},
 		AuthFallback:  AuthFallback{db},
+		AuthWithSSB:   AuthWithSSB{db},
 		DeniedKeys:    DeniedKeys{db},
 		Invites:       Invites{db: db, members: ml},
 		Notices:       Notices{db},

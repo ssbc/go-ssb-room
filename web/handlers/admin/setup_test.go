@@ -4,7 +4,6 @@ package admin
 
 import (
 	"context"
-	"math/rand"
 	"net/http"
 	"testing"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/randutil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
@@ -60,7 +60,7 @@ func newSession(t *testing.T) *testSession {
 
 	ts.Router = router.CompleteApp()
 
-	ts.Domain = randomString(10)
+	ts.Domain = randutil.String(10)
 
 	// fake user
 	ts.User = roomdb.Member{
@@ -119,16 +119,4 @@ func newSession(t *testing.T) *testSession {
 	ts.Client = tester.New(ts.Mux, t)
 
 	return &ts
-}
-
-// utils
-
-func randomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-	s := make([]rune, n)
-	for i := range s {
-		s[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(s)
 }

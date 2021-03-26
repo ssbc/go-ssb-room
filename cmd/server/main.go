@@ -26,10 +26,13 @@ import (
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/throttled/throttled/v2"
+	"github.com/throttled/throttled/v2/store/memstore"
 	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -203,10 +206,14 @@ func runroomsrv() error {
 		return fmt.Errorf("failed to initiate database: %w", err)
 	}
 
+	bridge := signinwithssb.NewSignalBridge()
+
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
 		db.Members,
 		db.Aliases,
+		db.AuthWithSSB,
+		bridge,
 		httpsDomain,
 		opts...)
 	if err != nil {
@@ -238,7 +245,7 @@ func runroomsrv() error {
 	}()
 
 	// setup web dashboard handlers
-	dashboardH, err := handlers.New(
+	webHandler, err := handlers.New(
 		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
 		handlers.NetworkInfo{
@@ -248,9 +255,12 @@ func runroomsrv() error {
 			RoomID:     roomsrv.Whoami(),
 		},
 		roomsrv.StateManager,
+		roomsrv.Network,
+		bridge,
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
+			AuthWithSSB:   db.AuthWithSSB,
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
@@ -283,13 +293,39 @@ func runroomsrv() error {
 		STSIncludeSubdomains: false,
 
 		// See for more https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-		ContentSecurityPolicy: "default-src 'self'", // enforce no external content
+		// helpful: https://report-uri.com/home/generate
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' data:", // enforce no external content
 
 		BrowserXssFilter: true,
 		FrameDeny:        true,
 		//ContentTypeNosniff: true, // TODO: fix Content-Type headers served from assets
 	})
 
+	// HTTP rate limiter
+	throttleStore, err := memstore.New(65536) // 64k different combinations of limitByPathAndAddr
+	if err != nil {
+		return fmt.Errorf("failed to init HTTP rate limiter store: %w", err)
+	}
+	quota := throttled.RateQuota{
+		MaxRate:  throttled.PerSec(5), // different requests per second per VaryBy
+		MaxBurst: 25,
+	}
+	limiter, err := throttled.NewGCRARateLimiter(throttleStore, quota)
+	if err != nil {
+		return fmt.Errorf("failed to init HTTP rate limiter: %w", err)
+	}
+
+	httpRateLimiter := throttled.HTTPRateLimiter{
+		RateLimiter: limiter,
+		VaryBy:      limitByPathAndAddr{},
+	}
+
+	// wrap dashboard/alias/invite handler in ratlimiter and security middleware
+	var httpHandler http.Handler
+	httpHandler = httpRateLimiter.RateLimit(webHandler)
+	httpHandler = secureMiddleware.Handler(httpHandler)
+
+	// all init was successfull
 	level.Info(log).Log(
 		"event", "serving",
 		"ID", roomsrv.Whoami().Ref(),
@@ -305,11 +341,12 @@ func runroomsrv() error {
 			Addr: httpLis.Addr().String(),
 
 			// Good practice to set timeouts to avoid Slowloris attacks.
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
+			// Keep in mind that the SSE stuff for "sign-in with ssb" can take a moment, thou
+			ReadHeaderTimeout: time.Second * 15,
+			WriteTimeout:      time.Minute * 3,
+			IdleTimeout:       time.Minute * 3,
 
-			Handler: secureMiddleware.Handler(dashboardH),
+			Handler: httpHandler,
 		}
 
 		err = srv.Serve(httpLis)
@@ -341,4 +378,21 @@ func main() {
 		fmt.Fprintf(os.Stderr, "go-ssb-room: %s\n", err)
 		os.Exit(1)
 	}
+}
+
+type limitByPathAndAddr struct{}
+
+func (limitByPathAndAddr) Key(r *http.Request) string {
+	var k strings.Builder
+
+	k.WriteString(r.URL.Path)
+	k.WriteString("\n")
+
+	remoteIP := r.Header.Get("X-Forwarded-For")
+	if remoteIP == "" {
+		remoteIP = r.RemoteAddr
+	}
+	k.WriteString(remoteIP)
+
+	return k.String()
 }

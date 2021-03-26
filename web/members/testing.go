@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package members
 
 import (
@@ -14,7 +16,7 @@ import (
 func MiddlewareForTests(m roomdb.Member) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			ctx := context.WithValue(req.Context(), roomMemberContextKey, m)
+			ctx := context.WithValue(req.Context(), roomMemberContextKey, &m)
 			next.ServeHTTP(w, req.WithContext(ctx))
 		})
 	}

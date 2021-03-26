@@ -31,17 +31,17 @@
           <svg class="text-green-500 w-4 h-4 mr-1" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22,18V22H18V19H15V16H12L9.74,13.74C9.19,13.91 8.61,14 8,14A6,6 0 0,1 2,8A6,6 0 0,1 8,2A6,6 0 0,1 14,8C14,8.61 13.91,9.19 13.74,9.74L22,18M7,5A2,2 0 0,0 5,7A2,2 0 0,0 7,9A2,2 0 0,0 9,7A2,2 0 0,0 7,5Z" />
           </svg>
-          <span class="text-green-500 text-sm">{{$user.Nickname}}</span>
+          <span class="text-green-500 text-sm truncate w-32">{{$user.Nickname}} {{$user.PubKey.Ref}}</span>
         </div>
         <a
-          href="{{urlTo "auth:fallback:logout"}}"
+          href="{{urlTo "auth:logout"}}"
           class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-red-600"
         >{{i18n "AuthSignOut"}}</a>
       </span>
       {{else}}
       <a
-        href="{{urlTo "auth:fallback:signin:form"}}"
-        class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-green-600"
+        href="{{urlTo "auth:login"}}"
+        class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-green-500"
       >{{i18n "AuthSignIn"}}</a>
       {{end}}
     </div>

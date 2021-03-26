@@ -61,6 +61,8 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
+	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
+
 	noticeData := roomdb.Notice{
 		ID:      42,
 		Title:   "Welcome!",
@@ -89,7 +91,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	// when dealing with cookies we also need to have an Host and URL-Scheme
 	// for the jar to save and load them correctly
-	formEndpoint := urlTo(router.AuthFallbackSignInForm)
+	formEndpoint := urlTo(router.AuthFallbackLogin)
 	r.NotNil(formEndpoint)
 	formEndpoint.Host = "localhost"
 	formEndpoint.Scheme = "https"
@@ -126,7 +128,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
 	ts.MembersDB.GetByIDReturns(testUser, nil)
 
-	postEndpoint, err := ts.Router.Get(router.AuthFallbackSignIn).URL()
+	postEndpoint, err := ts.Router.Get(router.AuthFallbackFinalize).URL()
 	r.Nil(err)
 	postEndpoint.Host = "localhost"
 	postEndpoint.Scheme = "https"

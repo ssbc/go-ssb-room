@@ -4,8 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
@@ -46,7 +48,7 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 
 	alias, err := a.db.Resolve(req.Context(), name)
 	if err != nil {
-		ar.SendError(err)
+		ar.SendError(fmt.Errorf("aliases: failed to resolve name %q: %w", name, err))
 		return
 	}
 
@@ -139,11 +141,29 @@ func (html *aliasHTMLResponder) UpdateRoomInfo(hostAndPort string, roomID refs.F
 }
 
 func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
+
+	// construct the ssb:experimental?action=consume-alias&... uri for linking into apps
+	queryParams := url.Values{}
+	queryParams.Set("action", "consume-alias")
+	queryParams.Set("roomId", html.roomID.Ref())
+	queryParams.Set("alias", alias.Name)
+	queryParams.Set("userId", alias.Feed.Ref())
+	queryParams.Set("signature", base64.URLEncoding.EncodeToString(alias.Signature))
+	queryParams.Set("multiserverAddress", html.multiservAddr)
+
+	// html.multiservAddr
+	ssbURI := url.URL{
+		Scheme: "ssb",
+		Opaque: "experimental",
+
+		RawQuery: queryParams.Encode(),
+	}
+
 	err := html.renderer.Render(html.rw, html.req, "aliases-resolved.html", http.StatusOK, struct {
 		Alias roomdb.Alias
 
-		RoomAddr string
-	}{alias, html.multiservAddr})
+		SSBURI template.URL
+	}{alias, template.URL(ssbURI.String())})
 	if err != nil {
 		log.Println("alias-resolve render errr:", err)
 	}

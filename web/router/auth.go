@@ -6,27 +6,32 @@ import "github.com/gorilla/mux"
 
 // constant names for the named routes
 const (
-	AuthFallbackSignInForm = "auth:fallback:signin:form"
-	AuthFallbackSignIn     = "auth:fallback:signin"
-	AuthFallbackSignOut    = "auth:fallback:logout"
+	AuthLogin  = "auth:login"
+	AuthLogout = "auth:logout"
 
-	AuthWithSSBSignIn  = "auth:ssb:signin"
-	AuthWithSSBSignOut = "auth:ssb:logout"
+	AuthFallbackLogin    = "auth:fallback:login"
+	AuthFallbackFinalize = "auth:fallback:finalize"
+
+	AuthWithSSBLogin        = "auth:withssb:login"
+	AuthWithSSBServerEvents = "auth:withssb:sse"
+	AuthWithSSBFinalize     = "auth:withssb:finalize"
 )
 
-// NewSignin constructs a mux.Router containing the routes for sign-in and -out
+// Auth constructs a mux.Router containing the routes for sign-in and -out
 func Auth(m *mux.Router) *mux.Router {
 	if m == nil {
 		m = mux.NewRouter()
 	}
 
-	// register fallback
-	m.Path("/fallback/signin").Methods("GET").Name(AuthFallbackSignInForm)
-	m.Path("/fallback/signin").Methods("POST").Name(AuthFallbackSignIn)
-	m.Path("/fallback/logout").Methods("GET").Name(AuthFallbackSignOut)
+	m.Path("/login").Methods("GET").Name(AuthLogin)
+	m.Path("/logout").Methods("GET").Name(AuthLogout)
 
-	m.Path("/withssb/signin").Methods("GET").Name(AuthWithSSBSignIn)
-	m.Path("/withssb/logout").Methods("GET").Name(AuthWithSSBSignOut)
+	m.Path("/fallback/login").Methods("GET").Name(AuthFallbackLogin)
+	m.Path("/fallback/finalize").Methods("POST").Name(AuthFallbackFinalize)
+
+	m.Path("/withssb/login").Methods("GET").Name(AuthWithSSBLogin)
+	m.Path("/withssb/events").Methods("GET").Name(AuthWithSSBServerEvents)
+	m.Path("/withssb/finalize").Methods("GET").Name(AuthWithSSBFinalize)
 
 	return m
 }

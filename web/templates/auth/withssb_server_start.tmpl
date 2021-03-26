@@ -1,0 +1,33 @@
+{{ define "title" }}{{i18n "AuthWithSSBTitle"}}{{ end }}
+{{ define "content" }}
+      <div class="flex flex-col justify-center items-center self-center max-w-lg">
+        <span id="welcome" class="text-center mt-8">{{i18n "AuthWithSSBWelcome"}}</span>
+
+        <a
+          id="start-auth-uri"
+          href="{{.SSBURI}}"
+          target="_blank"
+          class="shadow rounded flex flex-row justify-center items-center mt-8 px-4 h-8 text-gray-100 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
+        >{{i18n "AuthWithSSBTitle"}}</a>
+
+        <p id="waiting" class="hidden mt-8 animate-pulse text-green-500">Waiting for confirmation</p>
+
+        <p id="failed" class="hidden mt-8 text-red-700 text-center">{{i18n "AuthWithSSBError"}}</p>
+
+        <hr class="mt-8 w-64 h-px bg-gray-200"></hr>
+
+        <span class="text-center mt-8">{{i18n "AuthWithSSBInstructQR"}}</span>
+
+        <img
+          id="start-auth-qrcode"
+          src="{{.QRCodeURI}}"
+          alt="QR-Code to pass the challenge to an App"
+          width="160"
+          height="160"
+          class="mt-8"
+        />
+      </div>
+
+      <div id="challenge" class="hidden" data-sc="{{.ServerChallenge}}"></div>
+      <script src="/assets/login-events.js"></script>
+{{end}}

@@ -32,9 +32,24 @@ type AuthFallbackService interface {
 	// Remove(pwid)
 }
 
-// needed?! not sure we need to hold the challanges
-// AuthWithSSBService defines functions needed for the challange/response system of sign-in with ssb
-type AuthWithSSBService interface{}
+// AuthWithSSBService defines utility functions for the challenge/response system of sign-in with ssb
+// They are particualarly of service to check valid sessions (after the client provided a solution for a challenge)
+// And to log out valid sessions from the clients device.
+type AuthWithSSBService interface {
+
+	// CreateToken is used to generate a token that is stored inside a cookie.
+	// It is used after a valid solution for a challenge was provided.
+	CreateToken(ctx context.Context, memberID int64) (string, error)
+
+	// CheckToken checks if the passed token is still valid and returns the member id if so
+	CheckToken(ctx context.Context, token string) (int64, error)
+
+	// RemoveToken removes a single token from the database
+	RemoveToken(ctx context.Context, token string) error
+
+	// WipeTokensForMember deletes all tokens currently held for that member
+	WipeTokensForMember(ctx context.Context, memberID int64) error
+}
 
 // MembersService stores and retreives the list of internal users (members, mods and admins).
 type MembersService interface {

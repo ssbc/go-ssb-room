@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 // Package members implements helpers for accessing the currently logged in admin or moderator of an active request.
 package members
 
@@ -5,45 +7,80 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"go.mindeco.de/http/auth"
+	"go.mindeco.de/http/render"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	authWithSSB "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
 )
 
 type roomMemberContextKeyType string
 
 var roomMemberContextKey roomMemberContextKeyType = "ssb:room:httpcontext:member"
 
+type Middleware func(next http.Handler) http.Handler
+
+// AuthenticateFromContext calls the next http handler if there is a member stored in the context
+// otherwise it will call r.Error
+func AuthenticateFromContext(r *render.Renderer) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			if FromContext(req.Context()) == nil {
+				r.Error(w, req, http.StatusUnauthorized, weberrors.ErrNotAuthorized)
+				return
+			}
+			next.ServeHTTP(w, req)
+		})
+	}
+}
+
 // FromContext returns the member or nil if not logged in
 func FromContext(ctx context.Context) *roomdb.Member {
 	v := ctx.Value(roomMemberContextKey)
 
-	m, ok := v.(roomdb.Member)
+	m, ok := v.(*roomdb.Member)
 	if !ok {
 		return nil
 	}
 
-	return &m
+	return m
 }
 
 // ContextInjecter returns middleware for injecting a member into the context of the request.
 // Retreive it using FromContext(ctx)
-func ContextInjecter(mdb roomdb.MembersService, a *auth.Handler) func(http.Handler) http.Handler {
+func ContextInjecter(mdb roomdb.MembersService, withPassword *auth.Handler, withSSB *authWithSSB.WithSSBHandler) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			v, err := a.AuthenticateRequest(req)
-			if err != nil {
-				next.ServeHTTP(w, req)
-				return
+			var (
+				member *roomdb.Member
+
+				errWithPassword, errWithSSB error
+			)
+
+			v, errWithPassword := withPassword.AuthenticateRequest(req)
+			if errWithPassword == nil {
+				mid, ok := v.(int64)
+				if !ok {
+					next.ServeHTTP(w, req)
+					return
+				}
+
+				m, err := mdb.GetByID(req.Context(), mid)
+				if err != nil {
+					next.ServeHTTP(w, req)
+					return
+				}
+				member = &m
 			}
 
-			mid, ok := v.(int64)
-			if !ok {
-				next.ServeHTTP(w, req)
-				return
+			m, errWithSSB := withSSB.AuthenticateRequest(req)
+			if errWithSSB == nil {
+				member = m
 			}
 
-			member, err := mdb.GetByID(req.Context(), mid)
-			if err != nil {
+			// if both methods failed, don't update the context
+			if errWithPassword != nil && errWithSSB != nil {
 				next.ServeHTTP(w, req)
 				return
 			}
