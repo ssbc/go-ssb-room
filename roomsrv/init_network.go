@@ -32,12 +32,16 @@ func (s *Server) initNetwork() error {
 		if err != nil {
 			return nil, fmt.Errorf("running with unknown privacy mode")
 		}
-		// if privacy mode is open, allow all connections. otherwise, only allow members
-		if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err == nil || pm != roomdb.ModeOpen {
-			return &s.public, nil
+
+		// if privacy mode is restricted, deny connections from non-members
+		if pm == roomdb.ModeRestricted {
+			if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err != nil {
+				return nil, fmt.Errorf("access restricted to members")
+			}
 		}
 
-		return nil, fmt.Errorf("not authorized")
+		// for community + open modes, allow all connections
+		return &s.public, nil
 	}
 
 	// tcp+shs
