@@ -1,6 +1,6 @@
 // get the challenge from out of the HTML
-let sc = document.querySelector("#challenge").attributes.ch.value
-var evtSource = new EventSource(`/sse/events?sc=${sc}`);
+let sc = document.querySelector("#challenge").dataset.sc
+var evtSource = new EventSource(`/withssb/events?sc=${sc}`);
 
 var ping = document.querySelector('#ping');
 var failed = document.querySelector('#failed');
@@ -20,5 +20,5 @@ evtSource.addEventListener("failed", (e) => {
 
 evtSource.addEventListener("success", (e) => {
   evtSource.close()
-  window.location = `/sse/finalize?token=${e.data}`
+  window.location = `/withssb/finalize?token=${e.data}`
 })

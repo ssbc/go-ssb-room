@@ -97,9 +97,8 @@ func NewWithSSBHandler(
 	ssb.bridge = bridge
 
 	m.Get(router.AuthLogin).HandlerFunc(ssb.decideMethod)
-
-	m.HandleFunc("/sse/events", ssb.eventSource)
-	m.HandleFunc("/sse/finalize", ssb.finalizeCookie)
+	m.Get(router.AuthWithSSBServerEvents).HandlerFunc(ssb.eventSource)
+	m.Get(router.AuthWithSSBFinalize).HandlerFunc(ssb.finalizeCookie)
 
 	return &ssb
 }
@@ -264,9 +263,13 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// ?cid=CID does server-initiated http-auth
-	// ?alias=ALIAS does server-initiated http-auth
-	h.render.HTML("auth/withssb_server_start.tmpl", h.serverInitiated).ServeHTTP(w, req)
+	// assume server-init sse dance
+	data, err := h.serverInitiated()
+	if err != nil {
+		h.render.Error(w, req, http.StatusInternalServerError, err)
+		return
+	}
+	h.render.Render(w, req, "auth/withssb_server_start.tmpl", http.StatusOK, data)
 }
 
 // clientInitiated is called with a client challange (?cc=123) and calls back to the passed client using muxrpc to request a signed solution
@@ -346,7 +349,13 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 
 // server-sent-events stuff
 
-func (h WithSSBHandler) serverInitiated(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+type templateData struct {
+	SSBURI          template.URL
+	QRCodeURI       template.URL
+	ServerChallenge string
+}
+
+func (h WithSSBHandler) serverInitiated() (templateData, error) {
 	sc := h.bridge.RegisterSession()
 
 	// prepare the ssb-uri
@@ -364,7 +373,7 @@ func (h WithSSBHandler) serverInitiated(w http.ResponseWriter, req *http.Request
 	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
 	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.Medium)
 	if err != nil {
-		return nil, err
+		return templateData{}, err
 	}
 
 	qrCode.BackgroundColor = color.Transparent // transparent to fit into the page
@@ -372,16 +381,12 @@ func (h WithSSBHandler) serverInitiated(w http.ResponseWriter, req *http.Request
 
 	qrCodeData, err := qrCode.PNG(-5)
 	if err != nil {
-		return nil, err
+		return templateData{}, err
 	}
 	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 
 	// template.URL signals the template engine that those aren't fishy and from a trusted source
-	type templateData struct {
-		SSBURI          template.URL
-		QRCodeURI       template.URL
-		ServerChallenge string
-	}
+
 	data := templateData{
 		SSBURI:    template.URL(startAuthURI.String()),
 		QRCodeURI: template.URL(qrURI),
@@ -409,6 +414,9 @@ func (h WithSSBHandler) finalizeCookie(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
+// the time after which the SSE dance is considered failed
+const sseTimeout = 3 * time.Minute
+
 // eventSource is the server-side of our server-sent events (SSE) session
 // https://html.spec.whatwg.org/multipage/server-sent-events.html
 func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
@@ -417,10 +425,23 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "ssb http auth: server-initiated method needs streaming support", http.StatusInternalServerError)
 		return
 	}
+
+	// closes when the http request is closed
+	var notify <-chan bool
+
 	notifier, ok := w.(http.CloseNotifier)
 	if !ok {
-		http.Error(w, "ssb http auth: cant notify about closed requests", http.StatusInternalServerError)
-		return
+		// testing hack
+		// http.Error(w, "ssb http auth: cant notify about closed requests", http.StatusInternalServerError)
+		// return
+		ch := make(chan bool)
+		go func() {
+			time.Sleep(sseTimeout)
+			close(ch)
+		}()
+		notify = ch
+	} else {
+		notify = notifier.CloseNotify()
 	}
 
 	// setup headers for SSE
@@ -451,7 +472,7 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 	// ping ticker
 	tick := time.NewTicker(3 * time.Second)
 	go func() {
-		time.Sleep(3 * time.Minute)
+		time.Sleep(sseTimeout)
 		tick.Stop()
 		logger.Log("event", "stopped")
 	}()
@@ -460,7 +481,7 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 	flusher.Flush()
 
 	// Push events to client
-	notify := notifier.CloseNotify() // closes when the http request is closed
+
 	for {
 		select {
 
