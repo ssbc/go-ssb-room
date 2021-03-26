@@ -244,6 +244,7 @@ func runroomsrv() error {
 		db.AuthWithSSB,
 		bridge,
 		httpsDomain,
+		config,
 		opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)

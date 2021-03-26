@@ -5,9 +5,11 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	refs "go.mindeco.de/ssb-refs"
 
@@ -20,7 +22,9 @@ type Handler struct {
 	logger kitlog.Logger
 	self   refs.FeedRef
 
-	state *roomstate.Manager
+	state   *roomstate.Manager
+	members roomdb.MembersService
+	config  roomdb.RoomConfig
 }
 
 func (h *Handler) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
@@ -57,7 +61,7 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 	return false, nil
 }
 
-func (h *Handler) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
+func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
 	level.Debug(h.logger).Log("called", "endpoints")
 
 	toPeer := newForwarder(snk)
@@ -68,6 +72,23 @@ func (h *Handler) endpoints(_ context.Context, req *muxrpc.Request, snk *muxrpc.
 	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return err
+	}
+
+	// cblgh:
+	// * reject if key in deny list / DeniedKeysService
+	pm, err := h.config.GetPrivacyMode(nil)
+	if err != nil {
+		return fmt.Errorf("running with unknown privacy mode")
+	}
+
+	switch pm {
+	case roomdb.ModeCommunity:
+		fallthrough
+	case roomdb.ModeRestricted:
+		_, err := h.members.GetByFeed(ctx, *ref)
+		if err != nil {
+			return fmt.Errorf("external user tried to join room despite its elevated privacy mode")
+		}
 	}
 
 	has := h.state.AlreadyAdded(*ref, req.Endpoint())
