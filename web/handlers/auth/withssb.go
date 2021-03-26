@@ -234,27 +234,6 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// input either an alias or a feed reference
-	// it is set by the landing form if non of the params are present
-	if input := queryVals.Get("input"); input != "" {
-		// assume ssb id first
-		var err error
-		cid, err = refs.ParseFeedRef(input)
-		if err != nil {
-			// try input as an alias
-			aliasEntry, err := h.aliasesdb.Resolve(req.Context(), input)
-			if err != nil {
-				h.render.Error(w, req, http.StatusBadRequest, err)
-				return
-			}
-			cid = &aliasEntry.Feed
-			alias = aliasEntry.Name
-		}
-
-		// update cid for server-initiated
-		queryVals.Set("cid", cid.Ref())
-	}
-
 	// ?cid=CID&cc=CC does client-initiated http-auth
 	if cc := queryVals.Get("cc"); cc != "" && cid != nil {
 		err := h.clientInitiated(w, req, *cid)

@@ -50,18 +50,14 @@ func TestLoginForm(t *testing.T) {
 
 	a, r := assert.New(t), require.New(t)
 
-	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
-
-	url, err := ts.Router.Get(router.AuthLogin).URL()
+	url, err := ts.Router.Get(router.AuthFallbackLogin).URL()
 	r.Nil(err)
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"title", "AuthTitle"},
-		{"#welcome", "AuthWelcome"},
-		{"#describe-withssb", "AuthWithSSBStart"},
-		{"#describe-password", "AuthFallbackWelcome"},
+		{"#welcome", "AuthFallbackWelcome"},
 	})
 }
 
@@ -73,9 +69,7 @@ func TestFallbackAuth(t *testing.T) {
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
 
-	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
-
-	signInFormURL, err := ts.Router.Get(router.AuthLogin).URL()
+	signInFormURL, err := ts.Router.Get(router.AuthFallbackLogin).URL()
 	r.Nil(err)
 	signInFormURL.Host = "localhost"
 	signInFormURL.Scheme = "https"
@@ -108,7 +102,7 @@ func TestFallbackAuth(t *testing.T) {
 	}
 	ts.AuthFallbackDB.CheckReturns(int64(23), nil)
 
-	signInURL, err := ts.Router.Get(router.AuthFallbackLogin).URL()
+	signInURL, err := ts.Router.Get(router.AuthFallbackFinalize).URL()
 	r.Nil(err)
 
 	signInURL.Host = "localhost"
@@ -205,7 +199,7 @@ func TestAuthWithSSBClientInitNotConnected(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
-	signInStartURL := urlTo(router.AuthLogin,
+	signInStartURL := urlTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
@@ -236,7 +230,7 @@ func TestAuthWithSSBClientInitNotAllowed(t *testing.T) {
 
 	urlTo := web.NewURLTo(ts.Router)
 
-	signInStartURL := urlTo(router.AuthLogin,
+	signInStartURL := urlTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
@@ -318,7 +312,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 
 	// prepare the url
 	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthLogin,
+	signInStartURL := urlTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
@@ -401,7 +395,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 
 	// prepare the url
 	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthLogin,
+	signInStartURL := urlTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 	)
 	r.NotNil(signInStartURL)
@@ -413,7 +407,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"title", "AuthWithSSBTitle"},
-		{"#welcome", "AuthWithSSBServerStart"},
+		{"#welcome", "AuthWithSSBWelcome"},
 	})
 
 	jsFile, has := html.Find("script").Attr("src")
@@ -527,7 +521,7 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 
 	// prepare the url
 	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthLogin,
+	signInStartURL := urlTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 	)
 	r.NotNil(signInStartURL)

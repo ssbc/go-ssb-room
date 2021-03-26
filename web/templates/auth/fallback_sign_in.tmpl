@@ -1,7 +1,7 @@
 {{ define "title" }}{{i18n "AuthTitle"}}{{ end }}
 {{ define "content" }}
 <div class="flex flex-col justify-center items-center self-center max-w-lg">
-  <span class="text-center mt-8">{{i18n "AuthFallbackWelcome"}}</span>
+  <span id="welcome" class="text-center mt-8">{{i18n "AuthFallbackWelcome"}}</span>
 
   <form
     id="password-fallback"

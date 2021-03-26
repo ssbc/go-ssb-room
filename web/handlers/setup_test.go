@@ -55,6 +55,7 @@ type testSession struct {
 var testI18N = justTheKeys()
 
 func setup(t *testing.T) *testSession {
+	t.Parallel()
 	var ts testSession
 
 	testRepoPath := filepath.Join("testrun", t.Name())
