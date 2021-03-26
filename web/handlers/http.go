@@ -294,7 +294,8 @@ func New(
 	var ah = aliasHandler{
 		r: r,
 
-		db: dbs.Aliases,
+		db:     dbs.Aliases,
+		config: dbs.Config,
 
 		roomEndpoint: netInfo,
 	}
