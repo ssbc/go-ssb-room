@@ -32,6 +32,11 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
+var HTMLTemplates = []string{
+	"auth/start_login_form.tmpl",
+	"auth/withssb_server_start.tmpl",
+}
+
 // custom sessionKey type to prevent collision
 type sessionKey uint
 
