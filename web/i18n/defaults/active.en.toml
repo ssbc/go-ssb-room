@@ -15,16 +15,19 @@ RoleAdmin = "Admin"
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-AuthTitle = "Member Authentication"
-AuthWelcome = "Some text about the different login methods(?)"
-
-AuthFallbackWelcome = "Here you can log in with username and password."
-AuthFallbackTitle = "Password Login"
 AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
+AuthTitle = "Member Authentication"
+AuthWelcome = "TODO: Some text about the different login methods"
+
 AuthWithSSBTitle = "Sign-in with SSB"
-AuthWithSSBWelcome = "If you have a compatible device/application, you can sign-in here without a password. Open the QR-Code on your mobile device to complete the process or click the link below."
+AuthWithSSBStart = "To begin, enter your alias on this room or your public key"
+AuthWithSSBServerStart = "If you have a compatible device/application, you can sign-in here without a password. Open the QR-Code on your mobile device to complete the process or click the link below."
+
+AuthFallbackWelcome = "Here you can log in with username and password."
+AuthFallbackTitle = "Password Login"
+
 
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"

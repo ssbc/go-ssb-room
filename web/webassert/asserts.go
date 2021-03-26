@@ -18,7 +18,7 @@ type LocalizedElement struct {
 func Localized(t *testing.T, html *goquery.Document, elems []LocalizedElement) {
 	a := assert.New(t)
 	for i, pair := range elems {
-		a.Equal(pair.Label, html.Find(pair.Selector).Text(), "localized pair %d failed", i+1)
+		a.Equal(pair.Label, html.Find(pair.Selector).Text(), "localized pair %d failed (selector: %s)", i+1, pair.Selector)
 	}
 }
 

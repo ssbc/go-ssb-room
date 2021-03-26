@@ -47,14 +47,18 @@ func TestLoginForm(t *testing.T) {
 
 	a, r := assert.New(t), require.New(t)
 
-	url, err := ts.Router.Get(router.AuthFallbackSignInForm).URL()
+	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
+
+	url, err := ts.Router.Get(router.AuthLogin).URL()
 	r.Nil(err)
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AuthFallbackWelcome"},
-		{"title", "AuthFallbackTitle"},
+		{"title", "AuthTitle"},
+		{"#welcome", "AuthWelcome"},
+		{"#describe-withssb", "AuthWithSSBStart"},
+		{"#describe-password", "AuthFallbackWelcome"},
 	})
 }
 
@@ -66,7 +70,9 @@ func TestFallbackAuth(t *testing.T) {
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
 
-	signInFormURL, err := ts.Router.Get(router.AuthFallbackSignInForm).URL()
+	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
+
+	signInFormURL, err := ts.Router.Get(router.AuthLogin).URL()
 	r.Nil(err)
 	signInFormURL.Host = "localhost"
 	signInFormURL.Scheme = "https"
@@ -79,9 +85,10 @@ func TestFallbackAuth(t *testing.T) {
 
 	jar.SetCookies(signInFormURL, csrfCookie)
 
-	webassert.CSRFTokenPresent(t, doc.Find("form"))
+	passwordForm := doc.Find("#password-fallback")
+	webassert.CSRFTokenPresent(t, passwordForm)
 
-	csrfTokenElem := doc.Find("input[type=hidden]")
+	csrfTokenElem := passwordForm.Find("input[type=hidden]")
 	a.Equal(1, csrfTokenElem.Length())
 
 	csrfName, has := csrfTokenElem.Attr("name")

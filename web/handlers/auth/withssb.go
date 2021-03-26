@@ -17,6 +17,7 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/skip2/go-qrcode"
@@ -256,7 +257,10 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 
 	//  without any query params: shows a form field so you can input alias or SSB ID
 	if alias == "" && cid == nil {
-		h.render.StaticHTML("auth/start_login_form.tmpl").ServeHTTP(w, req)
+		data := map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(req),
+		}
+		h.render.Render(w, req, "auth/start_login_form.tmpl", http.StatusOK, data)
 		return
 	}
 

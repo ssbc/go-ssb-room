@@ -6,8 +6,7 @@ import "github.com/gorilla/mux"
 
 // constant names for the named routes
 const (
-	AuthFallbackSignInForm = "auth:fallback:signin:form"
-	AuthFallbackSignIn     = "auth:fallback:signin"
+	AuthFallbackSignIn = "auth:fallback:signin"
 
 	AuthLogin  = "auth:login"
 	AuthLogout = "auth:logout"
@@ -23,7 +22,6 @@ func Auth(m *mux.Router) *mux.Router {
 	m.Path("/logout").Methods("GET").Name(AuthLogout)
 
 	// register password fallback
-	m.Path("/password/signin").Methods("GET").Name(AuthFallbackSignInForm)
 	m.Path("/password/signin").Methods("POST").Name(AuthFallbackSignIn)
 
 	return m
