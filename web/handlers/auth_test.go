@@ -108,7 +108,7 @@ func TestFallbackAuth(t *testing.T) {
 	}
 	ts.AuthFallbackDB.CheckReturns(int64(23), nil)
 
-	signInURL, err := ts.Router.Get(router.AuthFallbackSignIn).URL()
+	signInURL, err := ts.Router.Get(router.AuthFallbackLogin).URL()
 	r.Nil(err)
 
 	signInURL.Host = "localhost"

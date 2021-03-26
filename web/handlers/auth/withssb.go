@@ -17,7 +17,6 @@ import (
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/skip2/go-qrcode"
@@ -34,7 +33,7 @@ import (
 )
 
 var HTMLTemplates = []string{
-	"auth/start_login_form.tmpl",
+	"auth/decide_method.tmpl",
 	"auth/withssb_server_start.tmpl",
 }
 
@@ -96,7 +95,7 @@ func NewWithSSBHandler(
 	ssb.cookieStore = cookies
 	ssb.bridge = bridge
 
-	m.Get(router.AuthLogin).HandlerFunc(ssb.decideMethod)
+	m.Get(router.AuthWithSSBLogin).HandlerFunc(ssb.decideMethod)
 	m.Get(router.AuthWithSSBServerEvents).HandlerFunc(ssb.eventSource)
 	m.Get(router.AuthWithSSBFinalize).HandlerFunc(ssb.finalizeCookie)
 
@@ -262,15 +261,6 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			h.render.Error(w, req, http.StatusInternalServerError, err)
 		}
-		return
-	}
-
-	//  without any query params: shows a form field so you can input alias or SSB ID
-	if alias == "" && cid == nil {
-		data := map[string]interface{}{
-			csrf.TemplateTag: csrf.TemplateField(req),
-		}
-		h.render.Render(w, req, "auth/start_login_form.tmpl", http.StatusOK, data)
 		return
 	}
 

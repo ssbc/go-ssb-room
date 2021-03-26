@@ -1,0 +1,25 @@
+{{ define "title" }}{{i18n "AuthTitle"}}{{ end }}
+{{ define "content" }}
+<div class="flex flex-col justify-center items-center self-center max-w-lg">
+  <span class="text-center mt-8">{{i18n "AuthFallbackWelcome"}}</span>
+
+  <form
+    id="password-fallback"
+    method="POST"
+    action="{{urlTo "auth:fallback:finalize"}}"
+    class="flex flex-row items-end"
+    >
+    {{ .csrfField }}
+    <div class="flex flex-col w-48">
+      <label class="mt-8 text-sm text-gray-600">Username</label>
+      <input type="text" name="user"
+        class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+      <label class="mt-8 text-sm text-gray-600">Password</label>
+      <input type="password" name="pass"
+        class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent">
+      <button type="submit"
+        class="my-8 shadow rounded px-4 h-8 text-gray-100 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50">Enter</button>
+    </div>
+  </form>
+</div>
+{{end}}

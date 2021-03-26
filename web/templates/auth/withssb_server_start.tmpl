@@ -1,9 +1,5 @@
 {{ define "title" }}{{i18n "AuthWithSSBTitle"}}{{ end }}
 {{ define "content" }}
-      <div id="page-header">
-        <h1 id="welcome" class="text-lg">{{i18n "AuthWithSSBServerStart"}}</h1>
-      </div>
-
       <div class="flex flex-col justify-center items-center self-center max-w-lg">
         <span class="text-center mt-8">{{i18n "AuthWithSSBWelcome"}}</span>
 
@@ -11,10 +7,14 @@
           id="start-auth-uri"
           href="{{.SSBURI}}"
           target="_blank"
-          class="shadow rounded flex flex-row justify-center items-center mt-8 px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+          class="shadow rounded flex flex-row justify-center items-center mt-8 px-4 h-8 text-gray-100 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
         >{{i18n "AuthWithSSBTitle"}}</a>
 
-        <div class="mt-8 w-64 h-px bg-gray-200"></div>
+        <p id="waiting" class="hidden mt-8 animate-pulse text-green-500">Waiting for confirmation</p>
+
+        <p id="failed" class="hidden mt-8 text-red-700 text-center">{{i18n "AuthWithSSBError"}}</p>
+
+        <hr class="mt-8 w-64 h-px bg-gray-200"></hr>
 
         <span class="text-center mt-8">{{i18n "AuthWithSSBInstructQR"}}</span>
 
@@ -28,11 +28,6 @@
         />
       </div>
 
-      <div class="text-xs">
-        <h3>Server events</h3>
-        <p id="ping"></p>
-        <p id="failed" class="text-red-500"></p>
-      </div>
       <div id="challenge" class="hidden" data-sc="{{.ServerChallenge}}"></div>
       <script src="/assets/login-events.js"></script>
 {{end}}

@@ -19,17 +19,17 @@ AuthSignIn = "Sign in"
 AuthSignOut = "Sign out"
 
 AuthTitle = "Member Authentication"
-AuthWelcome = "TODO: Some text about the different login methods"
+AuthWelcome = "If you are a member of this room, you can access the internal dashboard. Click on your preferred sign-in method below:"
 
-AuthWithSSBTitle = "Sign-in with SSB"
-AuthWithSSBStart = "To begin, enter your alias on this room or your public key"
-AuthWithSSBServerStart = "If you have a compatible device/application, you can sign-in here without a password. Open the QR-Code on your mobile device to complete the process or click the link below."
-
-AuthFallbackWelcome = "Here you can log in with username and password."
-AuthFallbackTitle = "Password Login"
-
+AuthWithSSBTitle = "Sign in with SSB"
+AuthWithSSBInstruct = "Easy and secure method, if your SSB app supports it."
 AuthWithSSBWelcome = "To sign-in with your SSB identity stored on this device, press the button below which will open a compatible SSB app, if it's installed."
 AuthWithSSBInstructQR = "If your SSB app is on another device, you can scan the following QR code to sign-in with that device's SSB identity."
+AuthWithSSBError = "Sign-in failed. Please make sure you use an SSB app that supports this method of login, and click the button above within a minute after this page was opened."
+
+AuthFallbackTitle = "Password sign-in"
+AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
+AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
 AdminDashboardWelcome = "Welcome to your dashboard"
 AdminDashboardTitle = "Room Admin Dashboard"
