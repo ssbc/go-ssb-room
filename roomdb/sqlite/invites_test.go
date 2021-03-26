@@ -79,6 +79,10 @@ func TestInvites(t *testing.T) {
 		_, nope := db.Members.GetByFeed(ctx, newMember)
 		r.Error(nope, "expected feed to not yet be on the allow list")
 
+		gotInv, err := db.Invites.GetByToken(ctx, tok)
+		r.NoError(err)
+		r.Equal(lst[0].ID, gotInv.ID)
+
 		inv, err := db.Invites.Consume(ctx, tok, newMember)
 		r.NoError(err, "failed to consume the invite")
 		r.Equal(testMemberNick, inv.CreatedBy.Nickname)

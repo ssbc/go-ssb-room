@@ -7,13 +7,7 @@
         class="text-center"
       >{{i18n "AdminInviteCreatedWelcome"}}</span>
 
-      <a
-        href="{{urlTo "complete:invite:accept" "token" .Token}}"
-        id="accept-link"
-        class="px-4 h-8 shadow rounded flex flex-row justify-center items-center bg-white align-middle text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50"
-      >{{i18n "InviteAccept"}}</a>
-
-      <pre id="invite-accept-link">{{.AccepURL}}</pre>
+      <pre id="invite-facade-link">{{.FacadeURL}}</pre>
 
       {{if ne .AliasSuggestion ""}}
         <!-- https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60 -->

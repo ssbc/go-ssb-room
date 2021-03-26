@@ -131,7 +131,7 @@ func runroomsrv() error {
 		if !development {
 			return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
 		}
-		httpsDomain = "dev.testing.local"
+		httpsDomain = "localhost"
 	}
 
 	// validate listen addresses to bail out on invalid flag input before doing anything else
@@ -254,6 +254,8 @@ func runroomsrv() error {
 			PortHTTPS:  uint(portHTTP),
 			PortMUXRPC: uint(portMUXRPC),
 			RoomID:     roomsrv.Whoami(),
+
+			Development: development,
 		},
 		roomsrv.StateManager,
 		roomsrv.Network,

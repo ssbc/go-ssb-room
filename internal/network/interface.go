@@ -27,6 +27,8 @@ type ServerEndpointDetails struct {
 	RoomID refs.FeedRef
 
 	Domain string
+
+	Development bool
 }
 
 // MultiserverAddress returns net:domain:muxport~shs:roomPubKeyInBase64

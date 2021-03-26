@@ -128,10 +128,10 @@ func TestInvitesCreate(t *testing.T) {
 		{"#welcome", "AdminInviteCreatedWelcome"},
 	})
 
-	wantURL := urlTo(router.CompleteInviteAccept, "token", testInvite)
+	wantURL := urlTo(router.CompleteInviteFacade, "token", testInvite)
 	wantURL.Host = ts.Domain
 	wantURL.Scheme = "https"
 
-	shownLink := doc.Find("#invite-accept-link").Text()
+	shownLink := doc.Find("#invite-facade-link").Text()
 	a.Equal(wantURL.String(), shownLink)
 }

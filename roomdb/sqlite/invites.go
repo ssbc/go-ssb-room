@@ -162,7 +162,7 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 	}
 
 	entry, err := models.Invites(
-		qm.Where("active = true AND token = ?", ht),
+		qm.Where("active = true AND hashed_token = ?", ht),
 		qm.Load("CreatedByMember"),
 	).One(ctx, i.db)
 	if err != nil {

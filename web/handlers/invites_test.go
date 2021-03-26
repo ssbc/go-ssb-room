@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -10,16 +11,15 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestInviteShowAcceptForm(t *testing.T) {
@@ -31,7 +31,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "nonexistant-test-token"
-		acceptURL404 := urlTo(router.CompleteInviteAccept, "token", testToken)
+		acceptURL404 := urlTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(acceptURL404)
 
 		// prep the mocked db for http:404
@@ -65,7 +65,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "existing-test-token"
-		validAcceptURL := urlTo(router.CompleteInviteAccept, "token", testToken)
+		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(validAcceptURL)
 
 		// prep the mocked db for http:200
@@ -87,8 +87,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(testToken, tokenFromArg)
 
 		webassert.Localized(t, doc, []webassert.LocalizedElement{
-			{"#welcome", "InviteAcceptWelcome"},
-			{"title", "InviteAcceptTitle"},
+			{"#welcome", "InviteFacadeWelcome"},
+			{"title", "InviteFacadeTitle"},
 		})
 
 		form := doc.Find("form#consume")
@@ -97,9 +97,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		webassert.CSRFTokenPresent(t, form)
 
 		webassert.ElementsInForm(t, form, []webassert.FormElement{
-			{Name: "token", Type: "hidden", Value: testToken},
-			{Name: "alias", Type: "text", Value: fakeExistingInvite.AliasSuggestion},
-			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},
+			{Name: "invite", Type: "hidden", Value: testToken},
+			{Name: "id", Type: "text", Placeholder: wantNewMemberPlaceholder},
 		})
 	})
 
@@ -107,11 +106,11 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "existing-test-token-2"
-		validAcceptURL := urlTo(router.CompleteInviteAccept, "token", testToken)
+		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(validAcceptURL)
 
-		inviteWithNoAlias := roomdb.Invite{ID: 4321}
-		ts.InvitesDB.GetByTokenReturns(inviteWithNoAlias, nil)
+		testInvite := roomdb.Invite{ID: 4321}
+		ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
 		// request the form
 		validAcceptForm := validAcceptURL.String()
@@ -125,8 +124,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(testToken, tokenFromArg)
 
 		webassert.Localized(t, doc, []webassert.LocalizedElement{
-			{"#welcome", "InviteAcceptWelcome"},
-			{"title", "InviteAcceptTitle"},
+			{"#welcome", "InviteFacadeWelcome"},
+			{"title", "InviteFacadeTitle"},
 		})
 
 		form := doc.Find("form#consume")
@@ -134,26 +133,25 @@ func TestInviteShowAcceptForm(t *testing.T) {
 
 		webassert.CSRFTokenPresent(t, form)
 		webassert.ElementsInForm(t, form, []webassert.FormElement{
-			{Name: "token", Type: "hidden", Value: testToken},
-			{Name: "alias", Type: "text", Placeholder: "you@this.room"},
-			{Name: "new_member", Type: "text", Placeholder: wantNewMemberPlaceholder},
+			{Name: "invite", Type: "hidden", Value: testToken},
+			{Name: "id", Type: "text", Placeholder: wantNewMemberPlaceholder},
 		})
 	})
 }
 
-func TestInviteConsumeInvite(t *testing.T) {
+func TestInviteConsumeInviteHTTP(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
 	urlTo := web.NewURLTo(ts.Router)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := urlTo(router.CompleteInviteAccept, "token", testToken)
+	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
 	r.NotNil(validAcceptURL)
 	validAcceptURL.Host = "localhost"
 	validAcceptURL.Scheme = "https"
 
-	inviteWithNoAlias := roomdb.Invite{ID: 4321}
-	ts.InvitesDB.GetByTokenReturns(inviteWithNoAlias, nil)
+	testInvite := roomdb.Invite{ID: 4321}
+	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
 	// request the form (for a valid csrf token)
 	validAcceptForm := validAcceptURL.String()
@@ -184,8 +182,8 @@ func TestInviteConsumeInvite(t *testing.T) {
 		Algo: refs.RefAlgoFeedSSB1,
 	}
 	consumeVals := url.Values{
-		"token":      []string{testToken},
-		"new_member": []string{testNewMember.Ref()},
+		"invite": []string{testToken},
+		"id":     []string{testNewMember.Ref()},
 
 		csrfName: []string{csrfValue},
 	}
@@ -207,7 +205,7 @@ func TestInviteConsumeInvite(t *testing.T) {
 	ts.Client.SetHeaders(csrfCookieHeader)
 
 	// prepare the mock
-	ts.InvitesDB.ConsumeReturns(inviteWithNoAlias, nil)
+	ts.InvitesDB.ConsumeReturns(testInvite, nil)
 
 	// send the POST
 	resp = ts.Client.PostForm(consumeInviteURL.String(), consumeVals)
@@ -222,11 +220,75 @@ func TestInviteConsumeInvite(t *testing.T) {
 	consumedDoc, err := goquery.NewDocumentFromReader(resp.Body)
 	r.NoError(err)
 
-	gotRA := consumedDoc.Find("#room-address").Text()
+	joinHref, ok := consumedDoc.Find("#join-link").Attr("href")
+	a.True(ok)
 
-	// TODO: this is just a cheap stub for actual ssb-uri parsing
+	// validate ssb-uri
+	joinURI, err := url.Parse(joinHref)
+	r.NoError(err)
+
+	a.Equal("ssb", joinURI.Scheme)
+	a.Equal("experimental", joinURI.Opaque)
+
+	params := joinURI.Query()
+	a.Equal("join-room", params.Get("action"))
+
+	gotRA := params.Get("multiserverAddress")
+
 	a.True(strings.HasPrefix(gotRA, "net:localhost:8008~shs:"), "not for the test host: %s", gotRA)
-	a.True(strings.Contains(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey())), "public key missing? %s", gotRA)
-	a.True(strings.HasSuffix(gotRA, ":SSB+Room+PSK3TLYC2T86EHQCUHBUHASCASE18JBV24="), "magic suffix missing: %s", gotRA)
+	a.True(strings.HasSuffix(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey())), "public key missing? %s", gotRA)
+}
 
+func TestInviteConsumeInviteJSON(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+	urlTo := web.NewURLTo(ts.Router)
+
+	testToken := "existing-test-token-2"
+	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+	r.NotNil(validAcceptURL)
+	validAcceptURL.Host = "localhost"
+	validAcceptURL.Scheme = "https"
+
+	testInvite := roomdb.Invite{ID: 4321}
+	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
+
+	// create the consume request
+	testNewMember := refs.FeedRef{
+		ID:   bytes.Repeat([]byte{1}, 32),
+		Algo: refs.RefAlgoFeedSSB1,
+	}
+
+	var consume inviteConsumePayload
+	consume.Invite = testToken
+	consume.ID = testNewMember
+
+	// construct the consume endpoint url
+	consumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
+	r.Nil(err)
+	consumeInviteURL.Host = "localhost"
+	consumeInviteURL.Scheme = "https"
+
+	// prepare the mock
+	ts.InvitesDB.ConsumeReturns(testInvite, nil)
+
+	// send the POST
+	resp := ts.Client.SendJSON(consumeInviteURL.String(), consume)
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for sign in")
+
+	// check how consume was called
+	r.EqualValues(1, ts.InvitesDB.ConsumeCallCount())
+	_, tokenFromArg, newMemberRef := ts.InvitesDB.ConsumeArgsForCall(0)
+	a.Equal(testToken, tokenFromArg)
+	a.True(newMemberRef.Equal(&testNewMember))
+
+	var jsonConsumeResp inviteConsumeJSONResponse
+	err = json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
+	r.NoError(err)
+
+	a.Equal("successful", jsonConsumeResp.Status)
+
+	gotRA := jsonConsumeResp.RoomAddress
+	a.True(strings.HasPrefix(gotRA, "net:localhost:8008~shs:"), "not for the test host: %s", gotRA)
+	a.True(strings.HasSuffix(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey())), "public key missing? %s", gotRA)
 }
