@@ -47,14 +47,18 @@ func TestLoginForm(t *testing.T) {
 
 	a, r := assert.New(t), require.New(t)
 
-	url, err := ts.Router.Get(router.AuthFallbackSignInForm).URL()
+	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
+
+	url, err := ts.Router.Get(router.AuthLogin).URL()
 	r.Nil(err)
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AuthFallbackWelcome"},
-		{"title", "AuthFallbackTitle"},
+		{"title", "AuthTitle"},
+		{"#welcome", "AuthWelcome"},
+		{"#describe-withssb", "AuthWithSSBStart"},
+		{"#describe-password", "AuthFallbackWelcome"},
 	})
 }
 
@@ -66,7 +70,9 @@ func TestFallbackAuth(t *testing.T) {
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
 
-	signInFormURL, err := ts.Router.Get(router.AuthFallbackSignInForm).URL()
+	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
+
+	signInFormURL, err := ts.Router.Get(router.AuthLogin).URL()
 	r.Nil(err)
 	signInFormURL.Host = "localhost"
 	signInFormURL.Scheme = "https"
@@ -79,9 +85,10 @@ func TestFallbackAuth(t *testing.T) {
 
 	jar.SetCookies(signInFormURL, csrfCookie)
 
-	webassert.CSRFTokenPresent(t, doc.Find("form"))
+	passwordForm := doc.Find("#password-fallback")
+	webassert.CSRFTokenPresent(t, passwordForm)
 
-	csrfTokenElem := doc.Find("input[type=hidden]")
+	csrfTokenElem := passwordForm.Find("input[type=hidden]")
 	a.Equal(1, csrfTokenElem.Length())
 
 	csrfName, has := csrfTokenElem.Attr("name")
@@ -344,14 +351,14 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	jar.SetCookies(signInStartURL, sessionCookie)
 
 	// now request the protected dashboard page
-
 	dashboardURL.Host = "localhost"
 	dashboardURL.Scheme = "https"
 
-	var sessionHeader = http.Header(map[string][]string{})
+	// load the cookie for the dashboard
 	cs := jar.Cookies(dashboardURL)
-
 	r.True(len(cs) > 0, "expecting one cookie!")
+
+	var sessionHeader = http.Header(map[string][]string{})
 	for _, c := range cs {
 		theCookie := c.String()
 		a.NotEqual("", theCookie, "should have a new cookie")
@@ -374,5 +381,4 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
-
 }
