@@ -244,7 +244,7 @@ func TestAuthWithSSBClientInitNotAllowed(t *testing.T) {
 
 	t.Log(signInStartURL.String())
 	doc, resp := ts.Client.GetHTML(signInStartURL.String())
-	a.Equal(http.StatusInternalServerError, resp.Code) // TODO: StatusForbidden
+	a.Equal(http.StatusForbidden, resp.Code)
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		// {"#welcome", "AuthWithSSBWelcome"},
@@ -453,6 +453,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 		r.NoError(err)
 	}()
 
+	// start reading sse
 	sseURL := urlTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
 	resp = ts.Client.GetBody(sseURL.String())
 	a.Equal(http.StatusOK, resp.Result().StatusCode)
@@ -467,6 +468,8 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	a.True(strings.Contains(sseBody, wantDataToken), "token data")
 	a.True(strings.Contains(sseBody, "event: success\n"), "success event")
 
+	// use the token and go to /withssb/finalize and get a cookie
+	// (this happens in the browser engine via login-events.js)
 	finalizeURL := urlTo(router.AuthWithSSBFinalize, "token", testToken)
 	finalizeURL.Host = "localhost"
 	finalizeURL.Scheme = "https"
@@ -479,7 +482,6 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	// very cheap "browser" client session
 	jar, err := cookiejar.New(nil)
 	r.NoError(err)
-
 	jar.SetCookies(finalizeURL, csrfCookie)
 
 	// now request the protected dashboard page
@@ -491,16 +493,12 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	// load the cookie for the dashboard
 	cs := jar.Cookies(dashboardURL)
 	r.True(len(cs) > 0, "expecting one cookie!")
-
 	var sessionHeader = http.Header(map[string][]string{})
 	for _, c := range cs {
 		theCookie := c.String()
 		a.NotEqual("", theCookie, "should have a new cookie")
 		sessionHeader.Add("Cookie", theCookie)
 	}
-
-	// update headers
-	ts.Client.ClearHeaders()
 	ts.Client.SetHeaders(sessionHeader)
 
 	html, resp = ts.Client.GetHTML(dashboardURL.String())
@@ -512,4 +510,61 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
+}
+
+func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the keypair for our client
+	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+	testMember.PubKey = client.Feed
+
+	// setup the mocked database
+	ts.MembersDB.GetByFeedReturns(testMember, nil)
+
+	// prepare the url
+	urlTo := web.NewURLTo(ts.Router)
+	signInStartURL := urlTo(router.AuthLogin,
+		"cid", client.Feed.Ref(),
+	)
+	r.NotNil(signInStartURL)
+
+	html, resp := ts.Client.GetHTML(signInStartURL.String())
+	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
+		t.Log(html.Find("body").Text())
+	}
+
+	serverChallenge, has := html.Find("#challenge").Attr("data-sc")
+	a.True(has, "should have server challenge")
+	a.NotEqual("", serverChallenge)
+
+	// simulate muxrpc client
+	ts.AuthWithSSB.CheckTokenReturns(-1, roomdb.ErrNotFound)
+	go func() {
+		time.Sleep(4 * time.Second)
+		err = ts.SignalBridge.SessionFailed(serverChallenge, fmt.Errorf("wrong solution"))
+		r.NoError(err)
+	}()
+
+	// start reading sse
+	sseURL := urlTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
+	resp = ts.Client.GetBody(sseURL.String())
+	a.Equal(http.StatusOK, resp.Result().StatusCode)
+
+	// check contents of sse channel
+	sseBody := resp.Body.String()
+
+	a.True(strings.Contains(sseBody, "data: Waiting for solution"), "ping data")
+	a.True(strings.Contains(sseBody, "event: ping\n"), "ping event")
+
+	a.True(strings.Contains(sseBody, "data: wrong solution\n"), "reason data")
+	a.True(strings.Contains(sseBody, "event: failed\n"), "success event")
+
+	// use an invalid token
+	finalizeURL := urlTo(router.AuthWithSSBFinalize, "token", "wrong")
+	resp = ts.Client.GetBody(finalizeURL.String())
+	a.Equal(http.StatusForbidden, resp.Result().StatusCode)
 }

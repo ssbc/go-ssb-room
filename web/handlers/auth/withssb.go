@@ -216,6 +216,17 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 		parsedCID, err := refs.ParseFeedRef(cidString)
 		if err == nil {
 			cid = parsedCID
+
+			_, err := h.membersdb.GetByFeed(req.Context(), *cid)
+			if err != nil {
+				if err == roomdb.ErrNotFound {
+					errMsg := fmt.Errorf("ssb http auth: client isn't a member: %w", err)
+					h.render.Error(w, req, http.StatusForbidden, errMsg)
+					return
+				}
+				h.render.Error(w, req, http.StatusInternalServerError, err)
+				return
+			}
 		}
 	} else {
 		aliasEntry, err := h.aliasesdb.Resolve(req.Context(), alias)
@@ -402,7 +413,7 @@ func (h WithSSBHandler) finalizeCookie(w http.ResponseWriter, r *http.Request) {
 
 	// check the token is correct
 	if _, err := h.sessiondb.CheckToken(r.Context(), tok); err != nil {
-		http.Error(w, "invalid session token", http.StatusInternalServerError)
+		http.Error(w, "invalid session token", http.StatusForbidden)
 		return
 	}
 
