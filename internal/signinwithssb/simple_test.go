@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -28,4 +30,16 @@ func TestClientRequestString(t *testing.T) {
 
 	got := req.createMessage()
 	assert.Equal(t, want, string(got))
+}
+
+func TestGenerateAndDecode(t *testing.T) {
+	r := require.New(t)
+
+	b, err := DecodeChallengeString(GenerateChallenge())
+	r.NoError(err)
+	r.Len(b, challengeLength)
+
+	b, err = DecodeChallengeString("toshort")
+	r.Error(err)
+	r.Nil(b)
 }

@@ -16,6 +16,9 @@ import (
 // sign-in with ssb uses 256-bit nonces
 const challengeLength = 32
 
+// DecodeChallengeString accepts base64 encoded strings and decodes them,
+// checks their length to be equal to challengeLength,
+// and returns the decoded bytes
 func DecodeChallengeString(c string) ([]byte, error) {
 	challengeBytes, err := base64.URLEncoding.DecodeString(c)
 	if err != nil {
@@ -29,13 +32,15 @@ func DecodeChallengeString(c string) ([]byte, error) {
 	return challengeBytes, nil
 }
 
+// GenerateChallenge returs a base64 encoded string
+//  with challangeLength bytes of random data
 func GenerateChallenge() string {
 	buf := make([]byte, challengeLength)
 	rand.Read(buf)
 	return base64.URLEncoding.EncodeToString(buf)
 }
 
-// this structure is used to verify an incoming client response
+// ClientRequest is used to verify an incoming client response
 type ClientRequest struct {
 	ClientID, ServerID refs.FeedRef
 
@@ -57,11 +62,14 @@ func (cr ClientRequest) createMessage() []byte {
 	return msg.Bytes()
 }
 
+// Sign returns the signature created with the passed privateKey
 func (cr ClientRequest) Sign(privateKey ed25519.PrivateKey) []byte {
 	msg := cr.createMessage()
 	return ed25519.Sign(privateKey, msg)
 }
 
+// Validate checks the signature by calling createMessage() and ed25519.Verify()
+// together with the ClientID public key.
 func (cr ClientRequest) Validate(signature []byte) bool {
 	msg := cr.createMessage()
 	return ed25519.Verify(cr.ClientID.PubKey(), msg, signature)
