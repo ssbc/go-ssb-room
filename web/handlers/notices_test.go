@@ -128,7 +128,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
 	ts.MembersDB.GetByIDReturns(testUser, nil)
 
-	postEndpoint, err := ts.Router.Get(router.AuthFallbackSignIn).URL()
+	postEndpoint, err := ts.Router.Get(router.AuthFallbackLogin).URL()
 	r.Nil(err)
 	postEndpoint.Host = "localhost"
 	postEndpoint.Scheme = "https"

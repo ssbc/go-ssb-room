@@ -6,11 +6,13 @@ import "github.com/gorilla/mux"
 
 // constant names for the named routes
 const (
-	AuthFallbackSignIn = "auth:fallback:signin"
-
 	AuthLogin  = "auth:login"
 	AuthLogout = "auth:logout"
 
+	AuthFallbackLogin    = "auth:fallback:login"
+	AuthFallbackFinalize = "auth:fallback:finalize"
+
+	AuthWithSSBLogin        = "auth:withssb:login"
 	AuthWithSSBServerEvents = "auth:withssb:sse"
 	AuthWithSSBFinalize     = "auth:withssb:finalize"
 )
@@ -24,9 +26,10 @@ func Auth(m *mux.Router) *mux.Router {
 	m.Path("/login").Methods("GET").Name(AuthLogin)
 	m.Path("/logout").Methods("GET").Name(AuthLogout)
 
-	// register password fallback
-	m.Path("/password/signin").Methods("POST").Name(AuthFallbackSignIn)
+	m.Path("/fallback/login").Methods("GET").Name(AuthFallbackLogin)
+	m.Path("/fallback/finalize").Methods("POST").Name(AuthFallbackFinalize)
 
+	m.Path("/withssb/login").Methods("GET").Name(AuthWithSSBLogin)
 	m.Path("/withssb/events").Methods("GET").Name(AuthWithSSBServerEvents)
 	m.Path("/withssb/finalize").Methods("GET").Name(AuthWithSSBFinalize)
 

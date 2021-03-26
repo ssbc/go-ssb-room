@@ -39,6 +39,7 @@ var HTMLTemplates = []string{
 	"aliases-resolved.html",
 	"invite/accept.tmpl",
 	"invite/consumed.tmpl",
+	"auth/fallback_sign_in.tmpl",
 	"notice/list.tmpl",
 	"notice/show.tmpl",
 	"error.tmpl",
@@ -243,7 +244,15 @@ func New(
 		bridge,
 	)
 
-	m.Get(router.AuthFallbackSignIn).HandlerFunc(authWithPassword.Authorize)
+	m.Get(router.AuthLogin).Handler(r.StaticHTML("auth/decide_method.tmpl"))
+
+	m.Get(router.AuthFallbackFinalize).HandlerFunc(authWithPassword.Authorize)
+
+	m.Get(router.AuthFallbackLogin).Handler(r.HTML("auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		return map[string]interface{}{
+			csrf.TemplateTag: csrf.TemplateField(req),
+		}, nil
+	}))
 
 	m.Get(router.AuthLogout).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err = authWithSSB.Logout(w, req)
