@@ -76,7 +76,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 
 	// cblgh:
 	// * reject if key in deny list / DeniedKeysService
-	pm, err := h.config.GetPrivacyMode(nil)
+	pm, err := h.config.GetPrivacyMode(ctx)
 	if err != nil {
 		return fmt.Errorf("running with unknown privacy mode")
 	}
@@ -87,7 +87,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	case roomdb.ModeRestricted:
 		_, err := h.members.GetByFeed(ctx, *ref)
 		if err != nil {
-			return fmt.Errorf("external user tried to join room despite its elevated privacy mode")
+			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
 
