@@ -101,6 +101,7 @@ func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) 
 func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
+	config = Config{privacyMode: roomdb.ModeCommunity} // set default privacy mode to community
 
 	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key (or capability)")
 
