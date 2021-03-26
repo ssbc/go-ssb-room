@@ -344,14 +344,14 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 	jar.SetCookies(signInStartURL, sessionCookie)
 
 	// now request the protected dashboard page
-
 	dashboardURL.Host = "localhost"
 	dashboardURL.Scheme = "https"
 
-	var sessionHeader = http.Header(map[string][]string{})
+	// load the cookie for the dashboard
 	cs := jar.Cookies(dashboardURL)
-
 	r.True(len(cs) > 0, "expecting one cookie!")
+
+	var sessionHeader = http.Header(map[string][]string{})
 	for _, c := range cs {
 		theCookie := c.String()
 		a.NotEqual("", theCookie, "should have a new cookie")
@@ -374,5 +374,4 @@ func TestAuthWithSSBHasClient(t *testing.T) {
 		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
-
 }

@@ -449,8 +449,6 @@ func (h WithSSBHandler) eventSource(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		time.Sleep(3 * time.Minute)
 		tick.Stop()
-		sender.send("ping", "Warning: reached waiting time of 3 minutes.")
-		flusher.Flush()
 		logger.Log("event", "stopped")
 	}()
 

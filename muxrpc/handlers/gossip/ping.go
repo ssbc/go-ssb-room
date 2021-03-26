@@ -28,19 +28,16 @@ func Ping(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, 
 		return err
 	}
 
-	var timeout = time.Minute * 5
-	if len(args) == 1 {
-		timeout = time.Minute * time.Duration(args[0].Timeout/(60*1000))
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	// var timeout = time.Minute * 5
+	// if len(args) == 1 {
+	// 	timeout = time.Minute * time.Duration(args[0].Timeout/(60*1000))
+	// }
 
 	go func() {
 		peerSnk.SetEncoding(muxrpc.TypeJSON)
 		enc := json.NewEncoder(peerSnk)
 
-		tick := time.NewTicker(time.Second)
+		tick := time.NewTicker(5 * time.Second)
 		defer tick.Stop()
 
 		for {
