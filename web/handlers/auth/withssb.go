@@ -288,12 +288,12 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request, client refs.FeedRef) error {
 	queryParams := req.URL.Query()
 
-	var clientReq signinwithssb.ClientRequest
-	clientReq.ServerID = h.roomID // fill in the server
+	var payload signinwithssb.ClientPayload
+	payload.ServerID = h.roomID // fill in the server
 
 	// validate and update client challenge
 	cc := queryParams.Get("cc")
-	clientReq.ClientChallenge = cc
+	payload.ClientChallenge = cc
 
 	// check that we have that member
 	member, err := h.membersdb.GetByFeed(req.Context(), client)
@@ -304,7 +304,7 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 		}
 		return errMsg
 	}
-	clientReq.ClientID = client
+	payload.ClientID = client
 
 	// get the connected client for that member
 	edp, connected := h.endpoints.GetEndpointFor(client)
@@ -314,7 +314,7 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 
 	// roll a Challenge from the server
 	sc := signinwithssb.GenerateChallenge()
-	clientReq.ServerChallenge = sc
+	payload.ServerChallenge = sc
 
 	ctx, cancel := context.WithTimeout(req.Context(), 1*time.Minute)
 	defer cancel()
@@ -333,7 +333,7 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 		return fmt.Errorf("ssb http auth: failed to decode solution: %w", err)
 	}
 
-	if !clientReq.Validate(solutionBytes) {
+	if !payload.Validate(solutionBytes) {
 		return fmt.Errorf("ssb http auth: validation of client solution failed")
 	}
 

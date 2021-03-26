@@ -12,13 +12,12 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-func TestClientRequestString(t *testing.T) {
+func TestPayloadString(t *testing.T) {
 
 	server := refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "test"}
-
 	client := refs.FeedRef{ID: bytes.Repeat([]byte{2}, 32), Algo: "test"}
 
-	var req ClientRequest
+	var req ClientPayload
 
 	req.ServerID = server
 	req.ClientID = client

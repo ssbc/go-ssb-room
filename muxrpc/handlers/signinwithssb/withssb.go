@@ -76,31 +76,31 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 		return nil, fmt.Errorf("expected 3 arguments (sc, cc, sol) but got %d", n)
 	}
 
-	var sol validate.ClientRequest
-	sol.ServerID = h.self
-	sol.ServerChallenge = params[0]
-	sol.ClientID = *clientID
-	sol.ClientChallenge = params[1]
+	var payload validate.ClientPayload
+	payload.ServerID = h.self
+	payload.ServerChallenge = params[0]
+	payload.ClientID = *clientID
+	payload.ClientChallenge = params[1]
 
 	sig, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(params[2], ".sig.ed25519"))
 	if err != nil {
-		h.bridge.SessionFailed(sol.ServerChallenge, err)
+		h.bridge.SessionFailed(payload.ServerChallenge, err)
 		return nil, fmt.Errorf("signature is not valid base64 data: %w", err)
 	}
 
-	if !sol.Validate(sig) {
+	if !payload.Validate(sig) {
 		err = fmt.Errorf("not a valid solution")
-		h.bridge.SessionFailed(sol.ServerChallenge, err)
+		h.bridge.SessionFailed(payload.ServerChallenge, err)
 		return nil, err
 	}
 
 	tok, err := h.sessions.CreateToken(ctx, member.ID)
 	if err != nil {
-		h.bridge.SessionFailed(sol.ServerChallenge, err)
+		h.bridge.SessionFailed(payload.ServerChallenge, err)
 		return nil, err
 	}
 
-	err = h.bridge.SessionWorked(sol.ServerChallenge, tok)
+	err = h.bridge.SessionWorked(payload.ServerChallenge, tok)
 	if err != nil {
 		h.sessions.RemoveToken(ctx, tok)
 		return nil, err

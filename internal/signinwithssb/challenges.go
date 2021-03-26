@@ -40,8 +40,8 @@ func GenerateChallenge() string {
 	return base64.URLEncoding.EncodeToString(buf)
 }
 
-// ClientRequest is used to verify an incoming client response
-type ClientRequest struct {
+// ClientPayload is used to create and verify solutions
+type ClientPayload struct {
 	ClientID, ServerID refs.FeedRef
 
 	ClientChallenge string
@@ -49,7 +49,7 @@ type ClientRequest struct {
 }
 
 // recreate the signed message
-func (cr ClientRequest) createMessage() []byte {
+func (cr ClientPayload) createMessage() []byte {
 	var msg bytes.Buffer
 	msg.WriteString("=http-auth-sign-in:")
 	msg.WriteString(cr.ServerID.Ref())
@@ -63,14 +63,14 @@ func (cr ClientRequest) createMessage() []byte {
 }
 
 // Sign returns the signature created with the passed privateKey
-func (cr ClientRequest) Sign(privateKey ed25519.PrivateKey) []byte {
+func (cr ClientPayload) Sign(privateKey ed25519.PrivateKey) []byte {
 	msg := cr.createMessage()
 	return ed25519.Sign(privateKey, msg)
 }
 
 // Validate checks the signature by calling createMessage() and ed25519.Verify()
 // together with the ClientID public key.
-func (cr ClientRequest) Validate(signature []byte) bool {
+func (cr ClientPayload) Validate(signature []byte) bool {
 	msg := cr.createMessage()
 	return ed25519.Verify(cr.ClientID.PubKey(), msg, signature)
 }

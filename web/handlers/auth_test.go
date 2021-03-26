@@ -261,8 +261,8 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	r.NoError(err)
 
 	// the request to be signed later
-	var req signinwithssb.ClientRequest
-	req.ServerID = ts.NetworkInfo.RoomID
+	var payload signinwithssb.ClientPayload
+	payload.ServerID = ts.NetworkInfo.RoomID
 
 	// the keypair for our client
 	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
@@ -277,7 +277,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	ts.MembersDB.GetByIDReturns(testMember, nil)
 
 	// fill the basic infos of the request
-	req.ClientID = client.Feed
+	payload.ClientID = client.Feed
 
 	// this is our fake "connected" client
 	var edp muxrpc.FakeEndpoint
@@ -293,17 +293,17 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 		r.True(ok, "argument[0] is not a string: %T", args[0])
 		a.NotEqual("", serverChallenge)
 		// update the challenge
-		req.ServerChallenge = serverChallenge
+		payload.ServerChallenge = serverChallenge
 
 		clientChallenge, ok := args[1].(string)
 		r.True(ok, "argument[1] is not a string: %T", args[1])
-		a.Equal(req.ClientChallenge, clientChallenge)
+		a.Equal(payload.ClientChallenge, clientChallenge)
 
 		strptr, ok := ret.(*string)
 		r.True(ok, "return is not a string pointer: %T", ret)
 
 		// sign the request now that we have the sc
-		clientSig := req.Sign(client.Pair.Secret)
+		clientSig := payload.Sign(client.Pair.Secret)
 
 		*strptr = base64.StdEncoding.EncodeToString(clientSig)
 		return nil
@@ -314,7 +314,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 	// update the challenge
-	req.ClientChallenge = cc
+	payload.ClientChallenge = cc
 
 	// prepare the url
 	urlTo := web.NewURLTo(ts.Router)
