@@ -243,8 +243,7 @@ func New(
 		bridge,
 	)
 
-	// just hooks up the router to the handler
-	roomsAuth.NewFallbackPasswordHandler(m, r, authWithPassword)
+	m.Get(router.AuthFallbackSignIn).HandlerFunc(authWithPassword.Authorize)
 
 	m.Get(router.AuthLogout).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err = authWithSSB.Logout(w, req)
