@@ -26,10 +26,13 @@ type EndpointStat struct {
 
 //go:generate counterfeiter -o mocked/endpoints.go . Endpoints
 
+// Endpoints returns the connected endpoint for the passed feed,
+// or false if there is none.
 type Endpoints interface {
 	GetEndpointFor(refs.FeedRef) (muxrpc.Endpoint, bool)
 }
 
+// Network supplies all network related functionalitiy
 type Network interface {
 	Connect(ctx context.Context, addr net.Addr) error
 	Serve(context.Context, ...muxrpc.HandlerWrapper) error
