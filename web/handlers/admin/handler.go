@@ -65,28 +65,16 @@ func Handler(
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		onlineRefs := roomState.List()
 		onlineCount := len(onlineRefs)
-		members, err := dbs.Members.List(req.Context())
-		memberCount := 0
-		if err == nil {
-			memberCount = len(members)
-		}
-		invites, err := dbs.Invites.List(req.Context())
-		inviteCount := 0
-		if err == nil {
-			inviteCount = len(invites)
-		}
-		banned, err := dbs.DeniedKeys.List(req.Context())
-		bannedCount := 0
-		if err == nil {
-			bannedCount = len(banned)
-		}
+		memberCount := dbs.Members.Count(req.Context())
+		inviteCount := dbs.Invites.Count(req.Context())
+		deniedCount := dbs.DeniedKeys.Count(req.Context())
 		return struct {
 			OnlineRefs  []string
 			OnlineCount int
-			MemberCount int
-			InviteCount int
-			BannedCount int
-		}{onlineRefs, onlineCount, memberCount, inviteCount, bannedCount}, nil
+			MemberCount uint
+			InviteCount uint
+			DeniedCount uint
+		}{onlineRefs, onlineCount, memberCount, inviteCount, deniedCount}, nil
 	}))
 	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{}, nil

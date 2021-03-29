@@ -97,6 +97,14 @@ func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
 	return members, nil
 }
 
+func (m Members) Count(ctx context.Context) uint {
+	count, err := models.Members().Count(ctx, m.db)
+	if err != nil {
+		return 0
+	}
+	return uint(count)
+}
+
 // RemoveFeed removes the feed from the list.
 func (m Members) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 	entry, err := models.Members(qm.Where("pub_key = ?", r.Ref())).One(ctx, m.db)

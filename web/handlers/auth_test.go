@@ -369,11 +369,6 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 		t.Log(html.Find("body").Text())
 	}
 
-	a.Equal(1, html.Find("#online").Size())
-	a.Equal(1, html.Find("#members").Size())
-	a.Equal(1, html.Find("#invites").Size())
-	a.Equal(1, html.Find("#banned").Size())
-
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"title", "AdminDashboardTitle"},
 	})

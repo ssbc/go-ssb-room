@@ -23,6 +23,17 @@ type FakeDeniedKeysService struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CountStub        func(context.Context) uint
+	countMutex       sync.RWMutex
+	countArgsForCall []struct {
+		arg1 context.Context
+	}
+	countReturns struct {
+		result1 uint
+	}
+	countReturnsOnCall map[int]struct {
+		result1 uint
+	}
 	GetByIDStub        func(context.Context, int64) (roomdb.ListEntry, error)
 	getByIDMutex       sync.RWMutex
 	getByIDArgsForCall []struct {
@@ -162,6 +173,67 @@ func (fake *FakeDeniedKeysService) AddReturnsOnCall(i int, result1 error) {
 	}
 	fake.addReturnsOnCall[i] = struct {
 		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeniedKeysService) Count(arg1 context.Context) uint {
+	fake.countMutex.Lock()
+	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
+	fake.countArgsForCall = append(fake.countArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.CountStub
+	fakeReturns := fake.countReturns
+	fake.recordInvocation("Count", []interface{}{arg1})
+	fake.countMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeDeniedKeysService) CountCallCount() int {
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
+	return len(fake.countArgsForCall)
+}
+
+func (fake *FakeDeniedKeysService) CountCalls(stub func(context.Context) uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = stub
+}
+
+func (fake *FakeDeniedKeysService) CountArgsForCall(i int) context.Context {
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
+	argsForCall := fake.countArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeDeniedKeysService) CountReturns(result1 uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = nil
+	fake.countReturns = struct {
+		result1 uint
+	}{result1}
+}
+
+func (fake *FakeDeniedKeysService) CountReturnsOnCall(i int, result1 uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = nil
+	if fake.countReturnsOnCall == nil {
+		fake.countReturnsOnCall = make(map[int]struct {
+			result1 uint
+		})
+	}
+	fake.countReturnsOnCall[i] = struct {
+		result1 uint
 	}{result1}
 }
 
@@ -547,6 +619,8 @@ func (fake *FakeDeniedKeysService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
 	fake.getByIDMutex.RLock()
 	defer fake.getByIDMutex.RUnlock()
 	fake.hasFeedMutex.RLock()

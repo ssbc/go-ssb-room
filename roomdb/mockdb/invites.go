@@ -25,6 +25,17 @@ type FakeInvitesService struct {
 		result1 roomdb.Invite
 		result2 error
 	}
+	CountStub        func(context.Context) uint
+	countMutex       sync.RWMutex
+	countArgsForCall []struct {
+		arg1 context.Context
+	}
+	countReturns struct {
+		result1 uint
+	}
+	countReturnsOnCall map[int]struct {
+		result1 uint
+	}
 	CreateStub        func(context.Context, int64) (string, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
@@ -160,6 +171,67 @@ func (fake *FakeInvitesService) ConsumeReturnsOnCall(i int, result1 roomdb.Invit
 		result1 roomdb.Invite
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeInvitesService) Count(arg1 context.Context) uint {
+	fake.countMutex.Lock()
+	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
+	fake.countArgsForCall = append(fake.countArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.CountStub
+	fakeReturns := fake.countReturns
+	fake.recordInvocation("Count", []interface{}{arg1})
+	fake.countMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeInvitesService) CountCallCount() int {
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
+	return len(fake.countArgsForCall)
+}
+
+func (fake *FakeInvitesService) CountCalls(stub func(context.Context) uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = stub
+}
+
+func (fake *FakeInvitesService) CountArgsForCall(i int) context.Context {
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
+	argsForCall := fake.countArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeInvitesService) CountReturns(result1 uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = nil
+	fake.countReturns = struct {
+		result1 uint
+	}{result1}
+}
+
+func (fake *FakeInvitesService) CountReturnsOnCall(i int, result1 uint) {
+	fake.countMutex.Lock()
+	defer fake.countMutex.Unlock()
+	fake.CountStub = nil
+	if fake.countReturnsOnCall == nil {
+		fake.countReturnsOnCall = make(map[int]struct {
+			result1 uint
+		})
+	}
+	fake.countReturnsOnCall[i] = struct {
+		result1 uint
+	}{result1}
 }
 
 func (fake *FakeInvitesService) Create(arg1 context.Context, arg2 int64) (string, error) {
@@ -488,6 +560,8 @@ func (fake *FakeInvitesService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.consumeMutex.RLock()
 	defer fake.consumeMutex.RUnlock()
+	fake.countMutex.RLock()
+	defer fake.countMutex.RUnlock()
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	fake.getByIDMutex.RLock()
