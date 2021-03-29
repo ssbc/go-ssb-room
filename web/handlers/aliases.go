@@ -11,9 +11,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 
@@ -23,8 +23,7 @@ type aliasHandler struct {
 
 	db roomdb.AliasesService
 
-	muxrpcHostAndPort string
-	roomID            refs.FeedRef
+	roomEndpoint network.ServerEndpointDetails
 }
 
 func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
@@ -38,7 +37,7 @@ func (a aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 		ar = newAliasHTMLResponder(a.r, rw, req)
 	}
 
-	ar.UpdateRoomInfo(a.muxrpcHostAndPort, a.roomID)
+	ar.UpdateRoomInfo(a.roomEndpoint)
 
 	name := mux.Vars(req)["alias"]
 	if name == "" && !aliases.IsValid(name) {
@@ -61,7 +60,7 @@ type aliasResponder interface {
 	SendConfirmation(roomdb.Alias)
 	SendError(error)
 
-	UpdateRoomInfo(hostAndPort string, roomID refs.FeedRef)
+	UpdateRoomInfo(netInfo network.ServerEndpointDetails)
 }
 
 // aliasJSONResponse dictates the field names and format of the JSON response for the alias web endpoint
@@ -78,8 +77,7 @@ type aliasJSONResponse struct {
 type aliasJSONResponder struct {
 	enc *json.Encoder
 
-	roomID        refs.FeedRef
-	multiservAddr string
+	netInfo network.ServerEndpointDetails
 }
 
 func newAliasJSONResponder(rw http.ResponseWriter) aliasResponder {
@@ -89,18 +87,15 @@ func newAliasJSONResponder(rw http.ResponseWriter) aliasResponder {
 	}
 }
 
-func (json *aliasJSONResponder) UpdateRoomInfo(hostAndPort string, roomID refs.FeedRef) {
-	json.roomID = roomID
-
-	roomPubKey := base64.StdEncoding.EncodeToString(roomID.PubKey())
-	json.multiservAddr = fmt.Sprintf("net:%s~shs:%s", hostAndPort, roomPubKey)
+func (json *aliasJSONResponder) UpdateRoomInfo(netInfo network.ServerEndpointDetails) {
+	json.netInfo = netInfo
 }
 
 func (json aliasJSONResponder) SendConfirmation(alias roomdb.Alias) {
 	var resp = aliasJSONResponse{
 		Status:    "successful",
-		RoomID:    json.roomID.Ref(),
-		Address:   json.multiservAddr,
+		RoomID:    json.netInfo.RoomID.Ref(),
+		Address:   json.netInfo.MultiserverAddress(),
 		Alias:     alias.Name,
 		UserID:    alias.Feed.Ref(),
 		Signature: base64.StdEncoding.EncodeToString(alias.Signature),
@@ -121,8 +116,7 @@ type aliasHTMLResponder struct {
 	rw       http.ResponseWriter
 	req      *http.Request
 
-	roomID        refs.FeedRef
-	multiservAddr string
+	netInfo network.ServerEndpointDetails
 }
 
 func newAliasHTMLResponder(r *render.Renderer, rw http.ResponseWriter, req *http.Request) aliasResponder {
@@ -133,11 +127,8 @@ func newAliasHTMLResponder(r *render.Renderer, rw http.ResponseWriter, req *http
 	}
 }
 
-func (html *aliasHTMLResponder) UpdateRoomInfo(hostAndPort string, roomID refs.FeedRef) {
-	html.roomID = roomID
-
-	roomPubKey := base64.StdEncoding.EncodeToString(roomID.PubKey())
-	html.multiservAddr = fmt.Sprintf("net:%s~shs:%s", hostAndPort, roomPubKey)
+func (html *aliasHTMLResponder) UpdateRoomInfo(netInfo network.ServerEndpointDetails) {
+	html.netInfo = netInfo
 }
 
 func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
@@ -145,11 +136,11 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 	// construct the ssb:experimental?action=consume-alias&... uri for linking into apps
 	queryParams := url.Values{}
 	queryParams.Set("action", "consume-alias")
-	queryParams.Set("roomId", html.roomID.Ref())
+	queryParams.Set("roomId", html.netInfo.RoomID.Ref())
 	queryParams.Set("alias", alias.Name)
 	queryParams.Set("userId", alias.Feed.Ref())
 	queryParams.Set("signature", base64.URLEncoding.EncodeToString(alias.Signature))
-	queryParams.Set("multiserverAddress", html.multiservAddr)
+	queryParams.Set("multiserverAddress", html.netInfo.MultiserverAddress())
 
 	// html.multiservAddr
 	ssbURI := url.URL{

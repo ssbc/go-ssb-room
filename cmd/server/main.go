@@ -31,6 +31,7 @@ import (
 	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
@@ -248,7 +249,7 @@ func runroomsrv() error {
 	webHandler, err := handlers.New(
 		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
-		handlers.NetworkInfo{
+		network.ServerEndpointDetails{
 			Domain:     httpsDomain,
 			PortHTTPS:  uint(portHTTP),
 			PortMUXRPC: uint(portMUXRPC),

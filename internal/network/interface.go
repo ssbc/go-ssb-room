@@ -4,7 +4,9 @@ package network
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -15,6 +17,24 @@ import (
 	"go.cryptoscope.co/secretstream"
 	refs "go.mindeco.de/ssb-refs"
 )
+
+// ServerEndpointDetails encapsulates the endpoint information.
+// Like domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
+type ServerEndpointDetails struct {
+	PortMUXRPC uint
+	PortHTTPS  uint // 0 assumes default (443)
+
+	RoomID refs.FeedRef
+
+	Domain string
+}
+
+// MultiserverAddress returns net:domain:muxport~shs:roomPubKeyInBase64
+// ie: the room servers https://github.com/ssbc/multiserver-address
+func (sed ServerEndpointDetails) MultiserverAddress() string {
+	var roomPubKey = base64.StdEncoding.EncodeToString(sed.RoomID.PubKey())
+	return fmt.Sprintf("net:%s:%d~shs:%s", sed.Domain, sed.PortMUXRPC, roomPubKey)
+}
 
 // EndpointStat gives some information about a connected peer
 type EndpointStat struct {

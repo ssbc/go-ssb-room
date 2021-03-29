@@ -30,7 +30,6 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 var HTMLTemplates = []string{
@@ -57,21 +56,11 @@ type Databases struct {
 	PinnedNotices roomdb.PinnedNoticesService
 }
 
-// NetworkInfo encapsulates the domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
-type NetworkInfo struct {
-	PortMUXRPC uint
-	PortHTTPS  uint // 0 assumes default (443)
-
-	RoomID refs.FeedRef
-
-	Domain string
-}
-
 // New initializes the whole web stack for rooms, with all the sub-modules and routing.
 func New(
 	logger logging.Interface,
 	repo repo.Interface,
-	netInfo NetworkInfo,
+	netInfo network.ServerEndpointDetails,
 	roomState *roomstate.Manager,
 	roomEndpoints network.Endpoints,
 	bridge *signinwithssb.SignalBridge,
@@ -236,8 +225,7 @@ func New(
 	authWithSSB := roomsAuth.NewWithSSBHandler(
 		m,
 		r,
-		netInfo.RoomID,
-		muxrpcHostAndPort,
+		netInfo,
 		roomEndpoints,
 		dbs.Aliases,
 		dbs.Members,
@@ -306,8 +294,7 @@ func New(
 
 		db: dbs.Aliases,
 
-		roomID:            netInfo.RoomID,
-		muxrpcHostAndPort: muxrpcHostAndPort,
+		roomEndpoint: netInfo,
 	}
 	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
 
