@@ -431,6 +431,8 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	a.Equal("start-http-auth", qry.Get("action"))
 	a.Equal(serverChallenge, qry.Get("sc"))
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), qry.Get("sid"))
+	var msaddr = fmt.Sprintf("net:%s:%d~shs:%s", ts.NetworkInfo.Domain, ts.NetworkInfo.PortMUXRPC, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey()))
+	a.Equal(msaddr, qry.Get("multiserverAddress"))
 
 	qrCode, has := html.Find("#start-auth-qrcode").Attr("src")
 	a.True(has, "should have the inline image data")

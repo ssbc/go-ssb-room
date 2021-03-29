@@ -17,6 +17,7 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network/mocked"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
@@ -49,7 +50,7 @@ type testSession struct {
 
 	SignalBridge *signinwithssb.SignalBridge
 
-	NetworkInfo NetworkInfo
+	NetworkInfo network.ServerEndpointDetails
 }
 
 var testI18N = justTheKeys()
@@ -85,7 +86,7 @@ func setup(t *testing.T) *testSession {
 
 	ts.MockedEndpoints = new(mocked.FakeEndpoints)
 
-	ts.NetworkInfo = NetworkInfo{
+	ts.NetworkInfo = network.ServerEndpointDetails{
 		Domain:     "localhost",
 		PortMUXRPC: 8008,
 		PortHTTPS:  443,

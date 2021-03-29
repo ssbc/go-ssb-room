@@ -60,7 +60,10 @@ const sessionLifetime = time.Hour * 24
 type WithSSBHandler struct {
 	render *render.Renderer
 
-	roomID refs.FeedRef
+	// roomID            refs.FeedRef
+	// muxrpcHostAndPort string
+
+	netInfo network.ServerEndpointDetails
 
 	membersdb roomdb.MembersService
 	aliasesdb roomdb.AliasesService
@@ -76,7 +79,7 @@ type WithSSBHandler struct {
 func NewWithSSBHandler(
 	m *mux.Router,
 	r *render.Renderer,
-	roomID refs.FeedRef,
+	netInfo network.ServerEndpointDetails,
 	endpoints network.Endpoints,
 	aliasDB roomdb.AliasesService,
 	membersDB roomdb.MembersService,
@@ -87,7 +90,7 @@ func NewWithSSBHandler(
 
 	var ssb WithSSBHandler
 	ssb.render = r
-	ssb.roomID = roomID
+	ssb.netInfo = netInfo
 	ssb.aliasesdb = aliasDB
 	ssb.membersdb = membersDB
 	ssb.endpoints = endpoints
@@ -258,7 +261,7 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 	queryParams := req.URL.Query()
 
 	var payload signinwithssb.ClientPayload
-	payload.ServerID = h.roomID // fill in the server
+	payload.ServerID = h.netInfo.RoomID // fill in the server
 
 	// validate and update client challenge
 	cc := queryParams.Get("cc")
@@ -342,8 +345,9 @@ func (h WithSSBHandler) serverInitiated() (templateData, error) {
 	// https://ssb-ngi-pointer.github.io/ssb-http-auth-spec/#list-of-new-ssb-uris
 	var queryParams = make(url.Values)
 	queryParams.Set("action", "start-http-auth")
-	queryParams.Set("sid", h.roomID.Ref())
+	queryParams.Set("sid", h.netInfo.RoomID.Ref())
 	queryParams.Set("sc", sc)
+	queryParams.Set("multiserverAddress", h.netInfo.MultiserverAddress())
 
 	var startAuthURI url.URL
 	startAuthURI.Scheme = "ssb"
