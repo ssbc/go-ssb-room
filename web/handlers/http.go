@@ -231,11 +231,13 @@ func New(
 	mainMux := &http.ServeMux{}
 
 	// start hooking up handlers to the router
+	var muxrpcHostAndPort = fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC)
 
 	authWithSSB := roomsAuth.NewWithSSBHandler(
 		m,
 		r,
 		netInfo.RoomID,
+		muxrpcHostAndPort,
 		roomEndpoints,
 		dbs.Aliases,
 		dbs.Members,
@@ -305,7 +307,7 @@ func New(
 		db: dbs.Aliases,
 
 		roomID:            netInfo.RoomID,
-		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
+		muxrpcHostAndPort: muxrpcHostAndPort,
 	}
 	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
 
@@ -313,7 +315,7 @@ func New(
 		invites: dbs.Invites,
 
 		roomPubKey:        netInfo.RoomID.PubKey(),
-		muxrpcHostAndPort: fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC),
+		muxrpcHostAndPort: muxrpcHostAndPort,
 	}
 	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
 	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))

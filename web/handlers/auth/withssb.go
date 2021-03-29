@@ -60,7 +60,8 @@ const sessionLifetime = time.Hour * 24
 type WithSSBHandler struct {
 	render *render.Renderer
 
-	roomID refs.FeedRef
+	roomID            refs.FeedRef
+	muxrpcHostAndPort string
 
 	membersdb roomdb.MembersService
 	aliasesdb roomdb.AliasesService
@@ -77,6 +78,7 @@ func NewWithSSBHandler(
 	m *mux.Router,
 	r *render.Renderer,
 	roomID refs.FeedRef,
+	muxrpcHostAndPort string,
 	endpoints network.Endpoints,
 	aliasDB roomdb.AliasesService,
 	membersDB roomdb.MembersService,
@@ -88,6 +90,7 @@ func NewWithSSBHandler(
 	var ssb WithSSBHandler
 	ssb.render = r
 	ssb.roomID = roomID
+	ssb.muxrpcHostAndPort = muxrpcHostAndPort
 	ssb.aliasesdb = aliasDB
 	ssb.membersdb = membersDB
 	ssb.endpoints = endpoints
@@ -344,6 +347,9 @@ func (h WithSSBHandler) serverInitiated() (templateData, error) {
 	queryParams.Set("action", "start-http-auth")
 	queryParams.Set("sid", h.roomID.Ref())
 	queryParams.Set("sc", sc)
+	var roomPubKey = base64.StdEncoding.EncodeToString(h.roomID.PubKey())
+	var msaddr = fmt.Sprintf("net:%s~shs:%s", h.muxrpcHostAndPort, roomPubKey)
+	queryParams.Set("multiserverAddress", msaddr)
 
 	var startAuthURI url.URL
 	startAuthURI.Scheme = "ssb"
