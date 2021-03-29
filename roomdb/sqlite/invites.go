@@ -226,12 +226,12 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 	return invs, nil
 }
 
-func (i Invites) Count(ctx context.Context) uint {
+func (i Invites) Count(ctx context.Context) (uint, error) {
 	count, err := models.Members().Count(ctx, i.db)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return uint(count)
+	return uint(count), nil
 }
 
 // Revoke removes a active invite and invalidates it for future use.

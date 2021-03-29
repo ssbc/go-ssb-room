@@ -97,12 +97,12 @@ func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
 	return members, nil
 }
 
-func (m Members) Count(ctx context.Context) uint {
+func (m Members) Count(ctx context.Context) (uint, error) {
 	count, err := models.Members().Count(ctx, m.db)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return uint(count)
+	return uint(count), nil
 }
 
 // RemoveFeed removes the feed from the list.

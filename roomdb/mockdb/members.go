@@ -25,16 +25,18 @@ type FakeMembersService struct {
 		result1 int64
 		result2 error
 	}
-	CountStub        func(context.Context) uint
+	CountStub        func(context.Context) (uint, error)
 	countMutex       sync.RWMutex
 	countArgsForCall []struct {
 		arg1 context.Context
 	}
 	countReturns struct {
 		result1 uint
+		result2 error
 	}
 	countReturnsOnCall map[int]struct {
 		result1 uint
+		result2 error
 	}
 	GetByFeedStub        func(context.Context, refs.FeedRef) (roomdb.Member, error)
 	getByFeedMutex       sync.RWMutex
@@ -184,7 +186,7 @@ func (fake *FakeMembersService) AddReturnsOnCall(i int, result1 int64, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeMembersService) Count(arg1 context.Context) uint {
+func (fake *FakeMembersService) Count(arg1 context.Context) (uint, error) {
 	fake.countMutex.Lock()
 	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
 	fake.countArgsForCall = append(fake.countArgsForCall, struct {
@@ -198,9 +200,9 @@ func (fake *FakeMembersService) Count(arg1 context.Context) uint {
 		return stub(arg1)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeMembersService) CountCallCount() int {
@@ -209,7 +211,7 @@ func (fake *FakeMembersService) CountCallCount() int {
 	return len(fake.countArgsForCall)
 }
 
-func (fake *FakeMembersService) CountCalls(stub func(context.Context) uint) {
+func (fake *FakeMembersService) CountCalls(stub func(context.Context) (uint, error)) {
 	fake.countMutex.Lock()
 	defer fake.countMutex.Unlock()
 	fake.CountStub = stub
@@ -222,27 +224,30 @@ func (fake *FakeMembersService) CountArgsForCall(i int) context.Context {
 	return argsForCall.arg1
 }
 
-func (fake *FakeMembersService) CountReturns(result1 uint) {
+func (fake *FakeMembersService) CountReturns(result1 uint, result2 error) {
 	fake.countMutex.Lock()
 	defer fake.countMutex.Unlock()
 	fake.CountStub = nil
 	fake.countReturns = struct {
 		result1 uint
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeMembersService) CountReturnsOnCall(i int, result1 uint) {
+func (fake *FakeMembersService) CountReturnsOnCall(i int, result1 uint, result2 error) {
 	fake.countMutex.Lock()
 	defer fake.countMutex.Unlock()
 	fake.CountStub = nil
 	if fake.countReturnsOnCall == nil {
 		fake.countReturnsOnCall = make(map[int]struct {
 			result1 uint
+			result2 error
 		})
 	}
 	fake.countReturnsOnCall[i] = struct {
 		result1 uint
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeMembersService) GetByFeed(arg1 context.Context, arg2 refs.FeedRef) (roomdb.Member, error) {

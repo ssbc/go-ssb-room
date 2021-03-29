@@ -104,12 +104,12 @@ func (dk DeniedKeys) List(ctx context.Context) ([]roomdb.ListEntry, error) {
 	return lst, nil
 }
 
-func (dk DeniedKeys) Count(ctx context.Context) uint {
+func (dk DeniedKeys) Count(ctx context.Context) (uint, error) {
 	count, err := models.DeniedKeys().Count(ctx, dk.db)
 	if err != nil {
-		return 0
+		return 0, err
 	}
-	return uint(count)
+	return uint(count), nil
 }
 
 // RemoveFeed removes the feed from the list.

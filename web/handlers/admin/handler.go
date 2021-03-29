@@ -65,9 +65,18 @@ func Handler(
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 		onlineRefs := roomState.List()
 		onlineCount := len(onlineRefs)
-		memberCount := dbs.Members.Count(req.Context())
-		inviteCount := dbs.Invites.Count(req.Context())
-		deniedCount := dbs.DeniedKeys.Count(req.Context())
+		memberCount, err := dbs.Members.Count(req.Context())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count members: %w", err)
+		}
+		inviteCount, err := dbs.Invites.Count(req.Context())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count invites: %w", err)
+		}
+		deniedCount, err := dbs.DeniedKeys.Count(req.Context())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count denied keys: %w", err)
+		}
 		return struct {
 			OnlineRefs  []string
 			OnlineCount int

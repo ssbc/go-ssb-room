@@ -66,7 +66,7 @@ type MembersService interface {
 	List(context.Context) ([]Member, error)
 
 	// Count returns the total number of members.
-	Count(context.Context) uint
+	Count(context.Context) (uint, error)
 
 	// RemoveFeed removes the feed from the list.
 	RemoveFeed(context.Context, refs.FeedRef) error
@@ -99,7 +99,7 @@ type DeniedKeysService interface {
 	List(context.Context) ([]ListEntry, error)
 
 	// Count returns the total number of denied keys.
-	Count(context.Context) uint
+	Count(context.Context) (uint, error)
 
 	// RemoveFeed removes the feed from the list.
 	RemoveFeed(context.Context, refs.FeedRef) error
@@ -148,7 +148,7 @@ type InvitesService interface {
 	List(ctx context.Context) ([]Invite, error)
 
 	// Count returns the total number of invites.
-	Count(context.Context) uint
+	Count(context.Context) (uint, error)
 
 	// Revoke removes a active invite and invalidates it for future use.
 	Revoke(ctx context.Context, id int64) error

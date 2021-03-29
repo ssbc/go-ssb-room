@@ -17,9 +17,9 @@ func TestDashoard(t *testing.T) {
 
 	testRef := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{0}, 16)}
 	ts.RoomState.AddEndpoint(testRef, nil) // 1 online
-	ts.MembersDB.CountReturns(4)           // 4 members
-	ts.InvitesDB.CountReturns(3)           // 3 invites
-	ts.DeniedKeysDB.CountReturns(2)        // 2 banned
+	ts.MembersDB.CountReturns(4, nil)      // 4 members
+	ts.InvitesDB.CountReturns(3, nil)      // 3 invites
+	ts.DeniedKeysDB.CountReturns(2, nil)   // 2 banned
 
 	url, err := ts.Router.Get(router.AdminDashboard).URL()
 	a.Nil(err)
