@@ -63,11 +63,30 @@ func Handler(
 	// TODO: configure 404 handler
 
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-		lst := roomState.List()
+		onlineRefs := roomState.List()
+		onlineCount := len(onlineRefs)
+		members, err := dbs.Members.List(req.Context())
+		memberCount := 0
+		if err == nil {
+			memberCount = len(members)
+		}
+		invites, err := dbs.Invites.List(req.Context())
+		inviteCount := 0
+		if err == nil {
+			inviteCount = len(invites)
+		}
+		banned, err := dbs.DeniedKeys.List(req.Context())
+		bannedCount := 0
+		if err == nil {
+			bannedCount = len(banned)
+		}
 		return struct {
-			Clients []string
-			Count   int
-		}{lst, len(lst)}, nil
+			OnlineRefs  []string
+			OnlineCount int
+			MemberCount int
+			InviteCount int
+			BannedCount int
+		}{onlineRefs, onlineCount, memberCount, inviteCount, bannedCount}, nil
 	}))
 	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{}, nil

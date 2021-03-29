@@ -1,16 +1,84 @@
 {{ define "title" }}{{i18n "AdminDashboardTitle"}}{{ end }}
 {{ define "content" }}
-<div class="page-header">
-  <h1 id="welcome">{{i18n "AdminDashboardWelcome"}}</h1>
-</div>
-<div class="row">
-    <div class="text-xs">
-    <p class="text-xl" id="roomCount">{{i18npl "AdminRoomCount" .Count}}</p>
-    <ul>
-    {{range .Clients}}
-     <li>{{.}}</li>
-    {{end}}
-    </ul>
+  <h1
+    class="text-3xl tracking-tight font-black text-black mt-2 mb-0"
+  >{{i18n "AdminDashboardTitle"}}</h1>
+
+  <div class="flex flex-col-reverse sm:flex-row justify-start items-stretch ">
+    <div
+      class="sm:mr-4 mt-6 py-6 px-4 border-gray-200 border-2 rounded-3xl flex flex-col justify-start items-start"
+      >
+      <div class="grid grid-rows-2 grid-flow-col gap-x-4 gap-y-0">
+        {{if gt .OnlineCount 0}}
+        <div class="row-span-2 w-14 h-14 bg-green-50 rounded flex flex-col justify-center items-center">
+          <div class="w-3 h-3 bg-green-500 rounded-full relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
+          </div>
+        </div>
+        {{else}}
+        <div class="row-span-2 w-14 h-14 bg-gray-100 rounded flex flex-col justify-center items-center">
+          <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+        </div>
+        {{end}}
+        <div class="col-span-2 font-black text-black text-xl">{{.OnlineCount}}</div>
+        <div class="col-span-2 text-gray-500">Online</div>
+      </div>
     </div>
-</div> <!-- /row -->
+
+    <div
+      class="sm:mr-4 mt-6 py-6 px-4 border-gray-200 border-2 rounded-3xl flex flex-col justify-start items-start"
+      >
+      <div class="grid grid-rows-2 grid-flow-col gap-x-4 gap-y-0">
+        <div class="row-span-2 w-14 h-14 bg-purple-50 rounded flex flex-col justify-center items-center">
+          <svg class="text-purple-600 w-8 h-8" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,6A2,2 0 0,0 10,8A2,2 0 0,0 12,10A2,2 0 0,0 14,8A2,2 0 0,0 12,6M12,13C14.67,13 20,14.33 20,17V20H4V17C4,14.33 9.33,13 12,13M12,14.9C9.03,14.9 5.9,16.36 5.9,17V18.1H18.1V17C18.1,16.36 14.97,14.9 12,14.9Z" />
+          </svg>
+        </div>
+        <div class="col-span-2 font-black text-black text-xl">{{.MemberCount}}</div>
+        <div class="col-span-2 text-gray-500">{{i18n "AdminMembersTitle"}}</div>
+      </div>
+    </div>
+
+    <div
+      class="sm:mr-4 mt-6 py-6 px-4 border-gray-200 border-2 rounded-3xl flex flex-col justify-start items-start"
+      >
+      <div class="grid grid-rows-2 grid-flow-col gap-x-4 gap-y-0">
+        <div class="row-span-2 w-14 h-14 bg-purple-50 rounded flex flex-col justify-center items-center">
+          <svg class="text-purple-600 w-8 h-8" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M15,4A4,4 0 0,0 11,8A4,4 0 0,0 15,12A4,4 0 0,0 19,8A4,4 0 0,0 15,4M15,5.9C16.16,5.9 17.1,6.84 17.1,8C17.1,9.16 16.16,10.1 15,10.1A2.1,2.1 0 0,1 12.9,8A2.1,2.1 0 0,1 15,5.9M4,7V10H1V12H4V15H6V12H9V10H6V7H4M15,13C12.33,13 7,14.33 7,17V20H23V17C23,14.33 17.67,13 15,13M15,14.9C17.97,14.9 21.1,16.36 21.1,17V18.1H8.9V17C8.9,16.36 12,14.9 15,14.9Z" />
+          </svg>
+        </div>
+        <div class="col-span-2 font-black text-black text-xl">{{.InviteCount}}</div>
+        <div class="col-span-2 text-gray-500">{{i18n "AdminInvitesTitle"}}</div>
+      </div>
+    </div>
+
+    <div
+      class="sm:mr-4 mt-6 py-6 px-4 border-gray-200 border-2 rounded-3xl flex flex-col justify-start items-start"
+      >
+      <div class="grid grid-rows-2 grid-flow-col gap-x-4 gap-y-0">
+        <div class="row-span-2 w-14 h-14 bg-red-50 rounded flex flex-col justify-center items-center">
+          <svg class="text-red-600 w-6 h-6" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12,0A12,12 0 0,1 24,12A12,12 0 0,1 12,24A12,12 0 0,1 0,12A12,12 0 0,1 12,0M12,2A10,10 0 0,0 2,12C2,14.4 2.85,16.6 4.26,18.33L18.33,4.26C16.6,2.85 14.4,2 12,2M12,22A10,10 0 0,0 22,12C22,9.6 21.15,7.4 19.74,5.67L5.67,19.74C7.4,21.15 9.6,22 12,22Z" />
+          </svg>
+        </div>
+        <div class="col-span-2 font-black text-black text-xl">{{.BannedCount}}</div>
+        <div class="col-span-2 text-gray-500">{{i18n "AdminDeniedKeysTitle"}}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-8">
+    {{if gt .OnlineCount 0}}
+    <div class="ml-11 h-8 w-0.5 bg-gray-200"></div>
+    {{end}}
+
+    {{range .OnlineRefs}}
+    <div class="ml-11 h-8 w-0.5 bg-gray-200"></div>
+    <div class="ml-11 relative h-3">
+      <div class="absolute inline-flex w-3 h-3 bg-green-500 rounded-full -left-1 -ml-px"></div>
+      <div class="absolute w-44 sm:w-auto -top-1.5 ml-5 pl-1 font-mono truncate flex-auto text-gray-700">{{.}}</div>
+    </div>
+    {{end}}
+  </div>
 {{end}}
