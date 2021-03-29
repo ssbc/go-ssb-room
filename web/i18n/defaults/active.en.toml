@@ -72,9 +72,8 @@ AdminInviteCreatedBy = "Created by:"
 AdminInviteSuggestedAliasIs = "The suggested alias is:"
 AdminInviteSuggestedAliasIsShort = "Alias:"
 
-AdminInviteCreatedTitle = "Invite created successfully"
-AdminInviteCreatedWelcome = "Here is the invite you created. Please copy it before closing the page or it will be lost."
-
+AdminInviteCreatedTitle = "Invite created successfully!"
+AdminInviteCreatedInstruct = "Now, copy the link below and paste it to a friend who you want to invite to this room."
 
 NavAdminLanding = "Home"
 NavAdminDashboard = "Dashboard"
