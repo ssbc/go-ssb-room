@@ -19,9 +19,12 @@ func TestDashoard(t *testing.T) {
 	html, resp := ts.Client.GetHTML(url.String())
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
+	a.Equal(1, html.Find("#online").Size())
+	a.Equal(1, html.Find("#members").Size())
+	a.Equal(1, html.Find("#invites").Size())
+	a.Equal(1, html.Find("#banned").Size())
+
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
-		{"#roomCount", "AdminRoomCountPlural"},
 	})
 }
