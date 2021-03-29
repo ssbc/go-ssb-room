@@ -34,7 +34,7 @@ type Member struct {
 	PubKey   refs.FeedRef
 }
 
-//go:generate stringer -type=Role
+//go:generate go run golang.org/x/tools/cmd/stringer -type=Role
 
 // Role describes the authorization level of an internal user (or member).
 // Valid roles are Member, Moderator or Admin.
