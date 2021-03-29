@@ -59,9 +59,7 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 		return nil, fmt.Errorf("warning: no user session for elevated access request")
 	}
 
-	aliasSuggestion := req.Form.Get("alias_suggestion")
-
-	token, err := h.db.Create(req.Context(), member.ID, aliasSuggestion)
+	token, err := h.db.Create(req.Context(), member.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +71,6 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 
 	return map[string]interface{}{
 		"FacadeURL": facadeURL.String(),
-
-		"AliasSuggestion": aliasSuggestion,
 	}, nil
 }
 

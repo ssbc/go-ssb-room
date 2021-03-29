@@ -64,9 +64,8 @@ func newSession(t *testing.T) *testSession {
 
 	// fake user
 	ts.User = roomdb.Member{
-		ID:       1234,
-		Nickname: "room mate",
-		Role:     roomdb.RoleModerator,
+		ID:   1234,
+		Role: roomdb.RoleModerator,
 	}
 
 	// setup rendering

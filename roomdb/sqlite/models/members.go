@@ -25,7 +25,6 @@ import (
 type Member struct {
 	ID     int64            `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Role   int64            `boil:"role" json:"role" toml:"role" yaml:"role"`
-	Nick   string           `boil:"nick" json:"nick" toml:"nick" yaml:"nick"`
 	PubKey roomdb.DBFeedRef `boil:"pub_key" json:"pub_key" toml:"pub_key" yaml:"pub_key"`
 
 	R *memberR `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -35,12 +34,10 @@ type Member struct {
 var MemberColumns = struct {
 	ID     string
 	Role   string
-	Nick   string
 	PubKey string
 }{
 	ID:     "id",
 	Role:   "role",
-	Nick:   "nick",
 	PubKey: "pub_key",
 }
 
@@ -49,12 +46,10 @@ var MemberColumns = struct {
 var MemberWhere = struct {
 	ID     whereHelperint64
 	Role   whereHelperint64
-	Nick   whereHelperstring
 	PubKey whereHelperroomdb_DBFeedRef
 }{
 	ID:     whereHelperint64{field: "\"members\".\"id\""},
 	Role:   whereHelperint64{field: "\"members\".\"role\""},
-	Nick:   whereHelperstring{field: "\"members\".\"nick\""},
 	PubKey: whereHelperroomdb_DBFeedRef{field: "\"members\".\"pub_key\""},
 }
 
@@ -88,9 +83,9 @@ func (*memberR) NewStruct() *memberR {
 type memberL struct{}
 
 var (
-	memberAllColumns            = []string{"id", "role", "nick", "pub_key"}
+	memberAllColumns            = []string{"id", "role", "pub_key"}
 	memberColumnsWithoutDefault = []string{}
-	memberColumnsWithDefault    = []string{"id", "role", "nick", "pub_key"}
+	memberColumnsWithDefault    = []string{"id", "role", "pub_key"}
 	memberPrimaryKeyColumns     = []string{"id"}
 )
 

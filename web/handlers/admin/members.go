@@ -38,13 +38,6 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	memberNick := req.Form.Get("nick")
-	if memberNick == "" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad nick: %q", memberNick))
-		return
-	}
-
 	newEntry := req.Form.Get("pub_key")
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
@@ -53,7 +46,7 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = h.db.Add(req.Context(), memberNick, *newEntryParsed, roomdb.RoleMember)
+	_, err = h.db.Add(req.Context(), *newEntryParsed, roomdb.RoleMember)
 	if err != nil {
 		code := http.StatusInternalServerError
 		var aa roomdb.ErrAlreadyAdded

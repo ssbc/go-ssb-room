@@ -20,11 +20,11 @@ type Members struct {
 	db *sql.DB
 }
 
-func (m Members) Add(ctx context.Context, nick string, pubKey refs.FeedRef, role roomdb.Role) (int64, error) {
+func (m Members) Add(ctx context.Context, pubKey refs.FeedRef, role roomdb.Role) (int64, error) {
 	var newID int64
 	err := transact(m.db, func(tx *sql.Tx) error {
 		var err error
-		newID, err = m.add(ctx, tx, nick, pubKey, role)
+		newID, err = m.add(ctx, tx, pubKey, role)
 		return err
 	})
 	if err != nil {
@@ -34,7 +34,7 @@ func (m Members) Add(ctx context.Context, nick string, pubKey refs.FeedRef, role
 }
 
 // no receiver name because it needs to use the passed transaction
-func (Members) add(ctx context.Context, tx *sql.Tx, nick string, pubKey refs.FeedRef, role roomdb.Role) (int64, error) {
+func (Members) add(ctx context.Context, tx *sql.Tx, pubKey refs.FeedRef, role roomdb.Role) (int64, error) {
 	if err := role.IsValid(); err != nil {
 		return -1, err
 	}
@@ -44,7 +44,6 @@ func (Members) add(ctx context.Context, tx *sql.Tx, nick string, pubKey refs.Fee
 	}
 
 	var newMember models.Member
-	newMember.Nick = nick
 	newMember.PubKey = roomdb.DBFeedRef{FeedRef: pubKey}
 	newMember.Role = int64(role)
 
@@ -62,10 +61,9 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 		return roomdb.Member{}, err
 	}
 	return roomdb.Member{
-		ID:       entry.ID,
-		Role:     roomdb.Role(entry.Role),
-		Nickname: entry.Nick,
-		PubKey:   entry.PubKey.FeedRef,
+		ID:     entry.ID,
+		Role:   roomdb.Role(entry.Role),
+		PubKey: entry.PubKey.FeedRef,
 	}, nil
 }
 
@@ -76,10 +74,9 @@ func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, 
 		return roomdb.Member{}, err
 	}
 	return roomdb.Member{
-		ID:       entry.ID,
-		Role:     roomdb.Role(entry.Role),
-		Nickname: entry.Nick,
-		PubKey:   entry.PubKey.FeedRef,
+		ID:     entry.ID,
+		Role:   roomdb.Role(entry.Role),
+		PubKey: entry.PubKey.FeedRef,
 	}, nil
 }
 
@@ -93,7 +90,6 @@ func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
 	var members = make([]roomdb.Member, len(all))
 	for i, listEntry := range all {
 		members[i].ID = listEntry.ID
-		members[i].Nickname = listEntry.Nick
 		members[i].Role = roomdb.Role(listEntry.Role)
 		members[i].PubKey = listEntry.PubKey.FeedRef
 	}

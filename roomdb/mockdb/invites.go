@@ -25,12 +25,11 @@ type FakeInvitesService struct {
 		result1 roomdb.Invite
 		result2 error
 	}
-	CreateStub        func(context.Context, int64, string) (string, error)
+	CreateStub        func(context.Context, int64) (string, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 string
 	}
 	createReturns struct {
 		result1 string
@@ -163,20 +162,19 @@ func (fake *FakeInvitesService) ConsumeReturnsOnCall(i int, result1 roomdb.Invit
 	}{result1, result2}
 }
 
-func (fake *FakeInvitesService) Create(arg1 context.Context, arg2 int64, arg3 string) (string, error) {
+func (fake *FakeInvitesService) Create(arg1 context.Context, arg2 int64) (string, error) {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 string
-	}{arg1, arg2, arg3})
+	}{arg1, arg2})
 	stub := fake.CreateStub
 	fakeReturns := fake.createReturns
-	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("Create", []interface{}{arg1, arg2})
 	fake.createMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -190,17 +188,17 @@ func (fake *FakeInvitesService) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeInvitesService) CreateCalls(stub func(context.Context, int64, string) (string, error)) {
+func (fake *FakeInvitesService) CreateCalls(stub func(context.Context, int64) (string, error)) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = stub
 }
 
-func (fake *FakeInvitesService) CreateArgsForCall(i int) (context.Context, int64, string) {
+func (fake *FakeInvitesService) CreateArgsForCall(i int) (context.Context, int64) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	argsForCall := fake.createArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeInvitesService) CreateReturns(result1 string, result2 error) {

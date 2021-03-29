@@ -22,31 +22,28 @@ import (
 
 // Invite is an object representing the database table.
 type Invite struct {
-	ID              int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
-	HashedToken     string    `boil:"hashed_token" json:"hashed_token" toml:"hashed_token" yaml:"hashed_token"`
-	CreatedBy       int64     `boil:"created_by" json:"created_by" toml:"created_by" yaml:"created_by"`
-	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	AliasSuggestion string    `boil:"alias_suggestion" json:"alias_suggestion" toml:"alias_suggestion" yaml:"alias_suggestion"`
-	Active          bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
+	ID          int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	HashedToken string    `boil:"hashed_token" json:"hashed_token" toml:"hashed_token" yaml:"hashed_token"`
+	CreatedBy   int64     `boil:"created_by" json:"created_by" toml:"created_by" yaml:"created_by"`
+	CreatedAt   time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	Active      bool      `boil:"active" json:"active" toml:"active" yaml:"active"`
 
 	R *inviteR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L inviteL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var InviteColumns = struct {
-	ID              string
-	HashedToken     string
-	CreatedBy       string
-	CreatedAt       string
-	AliasSuggestion string
-	Active          string
+	ID          string
+	HashedToken string
+	CreatedBy   string
+	CreatedAt   string
+	Active      string
 }{
-	ID:              "id",
-	HashedToken:     "hashed_token",
-	CreatedBy:       "created_by",
-	CreatedAt:       "created_at",
-	AliasSuggestion: "alias_suggestion",
-	Active:          "active",
+	ID:          "id",
+	HashedToken: "hashed_token",
+	CreatedBy:   "created_by",
+	CreatedAt:   "created_at",
+	Active:      "active",
 }
 
 // Generated where
@@ -61,19 +58,17 @@ func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field
 func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var InviteWhere = struct {
-	ID              whereHelperint64
-	HashedToken     whereHelperstring
-	CreatedBy       whereHelperint64
-	CreatedAt       whereHelpertime_Time
-	AliasSuggestion whereHelperstring
-	Active          whereHelperbool
+	ID          whereHelperint64
+	HashedToken whereHelperstring
+	CreatedBy   whereHelperint64
+	CreatedAt   whereHelpertime_Time
+	Active      whereHelperbool
 }{
-	ID:              whereHelperint64{field: "\"invites\".\"id\""},
-	HashedToken:     whereHelperstring{field: "\"invites\".\"hashed_token\""},
-	CreatedBy:       whereHelperint64{field: "\"invites\".\"created_by\""},
-	CreatedAt:       whereHelpertime_Time{field: "\"invites\".\"created_at\""},
-	AliasSuggestion: whereHelperstring{field: "\"invites\".\"alias_suggestion\""},
-	Active:          whereHelperbool{field: "\"invites\".\"active\""},
+	ID:          whereHelperint64{field: "\"invites\".\"id\""},
+	HashedToken: whereHelperstring{field: "\"invites\".\"hashed_token\""},
+	CreatedBy:   whereHelperint64{field: "\"invites\".\"created_by\""},
+	CreatedAt:   whereHelpertime_Time{field: "\"invites\".\"created_at\""},
+	Active:      whereHelperbool{field: "\"invites\".\"active\""},
 }
 
 // InviteRels is where relationship names are stored.
@@ -97,9 +92,9 @@ func (*inviteR) NewStruct() *inviteR {
 type inviteL struct{}
 
 var (
-	inviteAllColumns            = []string{"id", "hashed_token", "created_by", "created_at", "alias_suggestion", "active"}
+	inviteAllColumns            = []string{"id", "hashed_token", "created_by", "created_at", "active"}
 	inviteColumnsWithoutDefault = []string{}
-	inviteColumnsWithDefault    = []string{"id", "hashed_token", "created_by", "created_at", "alias_suggestion", "active"}
+	inviteColumnsWithDefault    = []string{"id", "hashed_token", "created_by", "created_at", "active"}
 	invitePrimaryKeyColumns     = []string{"id"}
 )
 

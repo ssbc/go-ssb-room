@@ -28,10 +28,9 @@ type Alias struct {
 
 // Member holds all the information an internal user of the room has.
 type Member struct {
-	ID       int64
-	Nickname string // a common handle for the user (no-one want's to remember public keys)
-	Role     Role
-	PubKey   refs.FeedRef
+	ID     int64
+	Role   Role
+	PubKey refs.FeedRef
 }
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Role
@@ -93,8 +92,6 @@ type Invite struct {
 
 	CreatedBy Member
 	CreatedAt time.Time
-
-	AliasSuggestion string
 }
 
 // ListEntry values are returned by the DenyListServices

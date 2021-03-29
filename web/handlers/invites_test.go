@@ -69,10 +69,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		r.NotNil(validAcceptURL)
 
 		// prep the mocked db for http:200
-		fakeExistingInvite := roomdb.Invite{
-			ID:              1234,
-			AliasSuggestion: "bestie",
-		}
+		fakeExistingInvite := roomdb.Invite{ID: 1234}
 		ts.InvitesDB.GetByTokenReturns(fakeExistingInvite, nil)
 
 		// request the form
@@ -247,8 +244,6 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	testToken := "existing-test-token-2"
 	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
 	r.NotNil(validAcceptURL)
-	validAcceptURL.Host = "localhost"
-	validAcceptURL.Scheme = "https"
 
 	testInvite := roomdb.Invite{ID: 4321}
 	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
@@ -264,10 +259,8 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	consume.ID = testNewMember
 
 	// construct the consume endpoint url
-	consumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
-	r.Nil(err)
-	consumeInviteURL.Host = "localhost"
-	consumeInviteURL.Scheme = "https"
+	consumeInviteURL := urlTo(router.CompleteInviteConsume)
+	r.NotNil(consumeInviteURL)
 
 	// prepare the mock
 	ts.InvitesDB.ConsumeReturns(testInvite, nil)
@@ -283,7 +276,7 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	a.True(newMemberRef.Equal(&testNewMember))
 
 	var jsonConsumeResp inviteConsumeJSONResponse
-	err = json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
+	err := json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
 	r.NoError(err)
 
 	a.Equal("successful", jsonConsumeResp.Status)

@@ -8,10 +8,5 @@
       >{{i18n "AdminInviteCreatedWelcome"}}</span>
 
       <pre id="invite-facade-link">{{.FacadeURL}}</pre>
-
-      {{if ne .AliasSuggestion ""}}
-        <!-- https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60 -->
-        <p>{{i18n "AdminInviteSuggestedAliasIs"}} {{.AliasSuggestion}}</p>
-      {{end}}
     </div>
 {{end}}

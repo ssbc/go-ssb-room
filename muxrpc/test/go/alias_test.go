@@ -68,12 +68,12 @@ func TestAliasRegister(t *testing.T) {
 	})
 
 	// adds
-	_, err = srvMembers.Add(ctx, "bob", bob.Whoami(), roomdb.RoleMember)
+	_, err = srvMembers.Add(ctx, bob.Whoami(), roomdb.RoleMember)
 	r.NoError(err)
 
 	// allow bots to dial the remote
 	// side-effect of re-using a room-server as the client
-	_, err = bobsMembers.Add(ctx, "the-room", serv.Whoami(), roomdb.RoleMember)
+	_, err = bobsMembers.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 	r.NoError(err)
 
 	// should work (we allowed A)

@@ -65,7 +65,7 @@ func TestAliases(t *testing.T) {
 		r.Error(err)
 
 		// allow the member
-		_, err = db.Members.Add(ctx, "flaky's nick", newMember, roomdb.RoleMember)
+		_, err = db.Members.Add(ctx, newMember, roomdb.RoleMember)
 		r.NoError(err)
 
 		err = db.Aliases.Register(ctx, testName, newMember, testSig)

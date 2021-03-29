@@ -54,7 +54,7 @@ type AuthWithSSBService interface {
 // MembersService stores and retreives the list of internal users (members, mods and admins).
 type MembersService interface {
 	// Add adds a new member
-	Add(_ context.Context, nickName string, pubKey refs.FeedRef, r Role) (int64, error)
+	Add(_ context.Context, pubKey refs.FeedRef, r Role) (int64, error)
 
 	// GetByID returns the member if it exists
 	GetByID(context.Context, int64) (Member, error)
@@ -125,7 +125,7 @@ type InvitesService interface {
 	// Create creates a new invite for a new member. It returns the token or an error.
 	// createdBy is user ID of the admin or moderator who created it.
 	// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
-	Create(ctx context.Context, createdBy int64, aliasSuggestion string) (string, error)
+	Create(ctx context.Context, createdBy int64) (string, error)
 
 	// Consume checks if the passed token is still valid.
 	// If it is it adds newMember to the members of the room and invalidates the token.

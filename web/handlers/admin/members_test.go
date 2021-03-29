@@ -63,22 +63,19 @@ func TestMembersAdd(t *testing.T) {
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
-		{Name: "nick", Type: "text"},
 	})
 
 	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
 	addVals := url.Values{
 		// just any key that looks valid
 		"pub_key": []string{newKey},
-		"nick":    []string{"test-member"},
 	}
 	rec := ts.Client.PostForm(addURL.String(), addVals)
 	a.Equal(http.StatusFound, rec.Code)
 
 	a.Equal(1, ts.MembersDB.AddCallCount())
-	_, addedNick, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
+	_, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
 	a.Equal(newKey, addedPubKey.Ref())
-	a.Equal("test-member", addedNick)
 	a.Equal(roomdb.RoleMember, addedRole)
 
 }
@@ -116,9 +113,9 @@ func TestMembers(t *testing.T) {
 	a := assert.New(t)
 
 	lst := []roomdb.Member{
-		{ID: 1, Nickname: "one", Role: roomdb.RoleMember, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
-		{ID: 2, Nickname: "two", Role: roomdb.RoleModerator, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
-		{ID: 3, Nickname: "three", Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
+		{ID: 1, Role: roomdb.RoleMember, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
+		{ID: 2, Role: roomdb.RoleModerator, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
+		{ID: 3, Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
@@ -134,7 +131,7 @@ func TestMembers(t *testing.T) {
 	a.EqualValues(html.Find("#theList li").Length(), 3)
 
 	lst = []roomdb.Member{
-		{ID: 666, Nickname: "four", Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
+		{ID: 666, Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
