@@ -172,18 +172,18 @@ type NoticesService interface {
 
 // for tests we use generated mocks from these interfaces created with https://github.com/maxbrunsfeld/counterfeiter
 
-//go:generate counterfeiter -o mockdb/aliases.go . AliasesService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/aliases.go . AliasesService
 
-//go:generate counterfeiter -o mockdb/auth.go . AuthWithSSBService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/auth.go . AuthWithSSBService
 
-//go:generate counterfeiter -o mockdb/auth_fallback.go . AuthFallbackService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/auth_fallback.go . AuthFallbackService
 
-//go:generate counterfeiter -o mockdb/denied.go . DeniedKeysService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/denied.go . DeniedKeysService
 
-//go:generate counterfeiter -o mockdb/fixed_pages.go . PinnedNoticesService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/fixed_pages.go . PinnedNoticesService
 
-//go:generate counterfeiter -o mockdb/invites.go . InvitesService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/invites.go . InvitesService
 
-//go:generate counterfeiter -o mockdb/members.go . MembersService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/members.go . MembersService
 
-//go:generate counterfeiter -o mockdb/pages.go . NoticesService
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/pages.go . NoticesService

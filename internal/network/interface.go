@@ -44,7 +44,7 @@ type EndpointStat struct {
 	Endpoint muxrpc.Endpoint
 }
 
-//go:generate counterfeiter -o mocked/endpoints.go . Endpoints
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mocked/endpoints.go . Endpoints
 
 // Endpoints returns the connected endpoint for the passed feed,
 // or false if there is none.

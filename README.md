@@ -70,7 +70,6 @@ go generate -tags dev ./...
 ### Mocks
 
 [`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update the mocks, run `go generate` in package roomdb.
-* TODO: setup tool as dependency (no manual install)
 
 ### Database schema
 

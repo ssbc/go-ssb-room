@@ -14,8 +14,10 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
+	github.com/joefitzgerald/rainbow-reporter v0.1.0 // indirect
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
@@ -34,7 +36,6 @@ require (
 	go.mindeco.de v1.9.0
 	go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/net v0.0.0-20191116160921-f9c825593386 // indirect
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/text v0.3.5
