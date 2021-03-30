@@ -139,6 +139,18 @@ func (l Localizer) LocalizeSimple(messageID string) string {
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
+func (l Localizer) LocalizeWithData(messageID string, tplData map[string]string) string {
+	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
+		MessageID:    messageID,
+		TemplateData: tplData,
+	})
+	if err == nil {
+		return msg
+	}
+
+	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
+}
+
 func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:   messageID,

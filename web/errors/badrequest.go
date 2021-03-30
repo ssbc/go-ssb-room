@@ -8,9 +8,12 @@ import (
 	"fmt"
 )
 
-type ErrNotFound struct {
-	What string
-}
+var (
+	ErrNotAuthorized = errors.New("rooms/web: not authorized")
+	ErrDenied        = errors.New("rooms: this key has been banned")
+)
+
+type ErrNotFound struct{ What string }
 
 func (nf ErrNotFound) Error() string {
 	return fmt.Sprintf("rooms/web: item not found: %s", nf.What)
@@ -25,14 +28,20 @@ func (br ErrBadRequest) Error() string {
 	return fmt.Sprintf("rooms/web: bad request error: %s", br.Details)
 }
 
-type ErrForbidden struct {
-	Details error
-}
+type ErrForbidden struct{ Details error }
 
 func (f ErrForbidden) Error() string {
 	return fmt.Sprintf("rooms/web: access denied: %s", f.Details)
 }
 
-var ErrNotAuthorized = errors.New("rooms/web: not authorized")
+type PageNotFound struct{ Path string }
 
-var ErrDenied = errors.New("rooms: this key has been banned")
+func (e PageNotFound) Error() string {
+	return fmt.Sprintf("rooms/web: page not found: %s", e.Path)
+}
+
+type DatabaseError struct{ Reason error }
+
+func (e DatabaseError) Error() string {
+	return fmt.Sprintf("rooms/web: database failed to complete query: %s", e.Reason.Error())
+}
