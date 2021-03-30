@@ -89,7 +89,6 @@ type Config struct {
 	privacyMode roomdb.PrivacyMode
 }
 
-// cblgh: i dont get why we need a context here, if it is potentially a bad code smell?
 func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) {
 	err := c.privacyMode.IsValid()
 	if err != nil {

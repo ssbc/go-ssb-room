@@ -21,11 +21,11 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-type inviteHandler struct { // cblgh: why is this duplicated in admin and here?
+type inviteHandler struct {
 	render *render.Renderer
 
-	invites roomdb.InvitesService // i'm guessing the answer is "different route permissions"? confused the heck outta me haha
-	config  roomdb.RoomConfig     // wonder if we can do some kind of struct embedding? where admin structs embed the basic struct type, and then extend as needed
+	invites roomdb.InvitesService
+	config  roomdb.RoomConfig
 	aliases roomdb.AliasesService
 
 	networkInfo network.ServerEndpointDetails

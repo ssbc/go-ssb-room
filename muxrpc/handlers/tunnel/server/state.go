@@ -74,8 +74,6 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 		return err
 	}
 
-	// cblgh:
-	// * reject if key in deny list / DeniedKeysService
 	pm, err := h.config.GetPrivacyMode(ctx)
 	if err != nil {
 		return fmt.Errorf("running with unknown privacy mode")

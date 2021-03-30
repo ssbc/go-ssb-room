@@ -63,15 +63,12 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	if err != nil {
 		return nil, err
 	}
-	/* cblgh: here's where we want to check
+    /* We want to check:
 	 * 1. the room's privacy mode
 	 * 2. the role of the member trying to create the invite
+     * and deny unallowed requests (e.g. member creating invite in ModeRestricted)
 	 */
 	switch pm {
-	// cblgh: verify that what matters in the create request is that only that only admins/mods can create invites when restricted
-	// i.e. we don't need to check for ModeOpen or ModeCommunity + member role, because:
-	// ModeOpen => the single invite code should be on a separate public page?
-	// ModeCommunity => only members should be able to access internal routes?
 	case roomdb.ModeOpen:
 	case roomdb.ModeCommunity:
 		if member.Role == roomdb.RoleUnknown {
