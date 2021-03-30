@@ -3,7 +3,6 @@
 package handlers
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -25,6 +24,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	weberrs "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/admin"
 	roomsAuth "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
@@ -78,16 +78,23 @@ func New(
 		return nil, err
 	}
 
+	eh := weberrs.NewErrorHandler(locHelper)
+
+	allTheTemplates := concatTemplates(
+		HTMLTemplates,
+		roomsAuth.HTMLTemplates,
+		admin.HTMLTemplates,
+	)
+	allTheTemplates = append(allTheTemplates, "error.tmpl")
+
 	r, err := render.New(web.Templates,
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
-		render.AddTemplates(concatTemplates(
-			HTMLTemplates,
-			roomsAuth.HTMLTemplates,
-			admin.HTMLTemplates,
-		)...),
-		render.ErrorTemplate("error.tmpl"),
+		render.AddTemplates(allTheTemplates...),
+		// render.ErrorTemplate(),
+		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(web.TemplateFuncs(m)),
+
 		// TODO: move these to the i18n helper pkg
 		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
 			loc := i18n.LocalizerFromRequest(locHelper, r)
@@ -97,6 +104,7 @@ func New(
 			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
 		}),
+
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
 				route := m.Get(routeName)
@@ -110,6 +118,7 @@ func New(
 				return r.RequestURI == url.Path
 			}
 		}),
+
 		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
 			return func(name string) *url.URL {
 				noticeName := roomdb.PinnedNoticeName(name)
@@ -135,11 +144,13 @@ func New(
 				return u
 			}
 		}),
+
 		render.InjectTemplateFunc("is_logged_in", members.TemplateHelper()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
 	}
+	eh.SetRenderer(r)
 
 	cookieCodec, err := web.LoadOrCreateCookieSecrets(repo)
 	if err != nil {
@@ -154,52 +165,14 @@ func New(
 		},
 	}
 
-	// TODO: this is just the error handler for http/auth, not render
-	authErrH := func(rw http.ResponseWriter, req *http.Request, err error, code int) {
-		var ih = i18n.LocalizerFromRequest(locHelper, req)
-
-		// default, unlocalized message
-		msg := err.Error()
-
-		// localize some specific error messages
-		var (
-			aa roomdb.ErrAlreadyAdded
-		)
-		switch {
-		case err == auth.ErrBadLogin:
-			msg = ih.LocalizeSimple("AuthErrorBadLogin")
-
-		case errors.Is(err, roomdb.ErrNotFound):
-			msg = ih.LocalizeSimple("ErrorNotFound")
-
-		case errors.As(err, &aa):
-			msg = ih.LocalizeSimple("ErrorAlreadyAdded")
-		}
-
-		r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-			return errorTemplateData{
-				Err: msg,
-				// TODO: localize?
-				Status:     http.StatusText(code),
-				StatusCode: code,
-			}, nil
-		}).ServeHTTP(rw, req)
-	}
-
-	notAuthorizedH := r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-		statusCode := http.StatusUnauthorized
-		rw.WriteHeader(statusCode)
-		return errorTemplateData{
-			statusCode,
-			"Unauthorized",
-			"you are not authorized to access the requested site",
-		}, nil
-	})
-
 	authWithPassword, err := auth.NewHandler(dbs.AuthFallback,
 		auth.SetStore(cookieStore),
-		auth.SetErrorHandler(authErrH),
-		auth.SetNotAuthorizedHandler(notAuthorizedH),
+		auth.SetErrorHandler(func(rw http.ResponseWriter, req *http.Request, err error, code int) {
+			eh.Handle(rw, req, code, err)
+		}),
+		auth.SetNotAuthorizedHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			eh.Handle(rw, req, http.StatusForbidden, weberrs.ErrNotAuthorized)
+		})),
 		auth.SetLifetime(2*time.Hour), // TODO: configure
 	)
 	if err != nil {
@@ -237,6 +210,7 @@ func New(
 		bridge,
 	)
 
+	// auth routes
 	m.Get(router.AuthLogin).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if label := req.URL.Query().Get("ssb-http-auth"); label != "" {
 			authWithSSB.DecideMethod(w, req)
@@ -246,13 +220,11 @@ func New(
 	})
 
 	m.Get(router.AuthFallbackFinalize).HandlerFunc(authWithPassword.Authorize)
-
 	m.Get(router.AuthFallbackLogin).Handler(r.HTML("auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{
 			csrf.TemplateTag: csrf.TemplateField(req),
 		}, nil
 	}))
-
 	m.Get(router.AuthLogout).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err = authWithSSB.Logout(w, req)
 		if err != nil {
@@ -261,6 +233,7 @@ func New(
 		authWithPassword.Logout(w, req)
 	})
 
+	// all the admin routes
 	adminHandler := admin.Handler(
 		netInfo.Domain,
 		r,
@@ -277,7 +250,10 @@ func New(
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
 
+	// landing page
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+		// TODO: try websocket upgrade (issue #)
+
 		notice, err := dbs.PinnedNotices.Get(req.Context(), roomdb.NoticeDescription, "en-GB")
 		if err != nil {
 			return nil, fmt.Errorf("failed to find description: %w", err)
@@ -292,6 +268,7 @@ func New(
 	}))
 	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
+	// notices (the mini-CMS)
 	var nh = noticeHandler{
 		notices: dbs.Notices,
 		pinned:  dbs.PinnedNotices,
@@ -299,6 +276,7 @@ func New(
 	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
 	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
 
+	// public aliases
 	var ah = aliasHandler{
 		r: r,
 
@@ -309,6 +287,7 @@ func New(
 	}
 	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
 
+	//public invites
 	var ih = inviteHandler{
 		render: r,
 
@@ -324,14 +303,14 @@ func New(
 	m.Get(router.CompleteInviteInsertID).Handler(r.HTML("invite/insert-id.tmpl", ih.presentInsert))
 	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
 
+	// statuc assets
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
-	m.NotFoundHandler = r.HTML("error.tmpl", func(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-		rw.WriteHeader(http.StatusNotFound)
-		msg := i18n.LocalizerFromRequest(locHelper, req).LocalizeSimple("PageNotFound")
-		return errorTemplateData{http.StatusNotFound, "Not Found", msg}, nil
+	m.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		eh.Handle(rw, req, http.StatusNotFound, weberrs.PageNotFound{Path: req.URL.Path})
 	})
 
+	// hook up main stdlib mux to the gorrilla/mux with named routes
 	mainMux.Handle("/", m)
 
 	urlTo := web.NewURLTo(m)
@@ -370,13 +349,6 @@ func New(
 }
 
 // utils
-
-type errorTemplateData struct {
-	StatusCode int
-	Status     string
-	Err        string
-}
-
 func concatTemplates(lst ...[]string) []string {
 	var catted []string
 

@@ -47,17 +47,15 @@ func (h invitesHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 
 func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		return nil, fmt.Errorf("bad request")
+		return nil, weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
 	}
 	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		return nil, fmt.Errorf("bad request: %w", err)
+		return nil, weberrors.ErrBadRequest{Where: "Form data", Details: err}
 	}
 
 	member := members.FromContext(req.Context())
 	if member == nil {
-		return nil, fmt.Errorf("warning: no user session for elevated access request")
+		return nil, weberrors.ErrNotAuthorized
 	}
 	pm, err := h.config.GetPrivacyMode(req.Context())
 	if err != nil {
