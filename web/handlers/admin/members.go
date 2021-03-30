@@ -27,22 +27,22 @@ const redirectToMembers = "/admin/members"
 
 func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	newEntry := req.Form.Get("pub_key")
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad public key: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
@@ -52,11 +52,7 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		var aa roomdb.ErrAlreadyAdded
 		if errors.As(err, &aa) {
 			code = http.StatusBadRequest
-			// TODO: localized error pages
-			// h.r.Error(w, req, http.StatusBadRequest, weberrors.Localize())
-			// return
 		}
-
 		h.r.Error(w, req, code, err)
 		return
 	}
@@ -66,41 +62,42 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 
 func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(w, req, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := req.ParseForm(); err != nil {
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	currentMember := members.FromContext(req.Context())
 	if currentMember == nil || currentMember.Role != roomdb.RoleAdmin {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusForbidden, fmt.Errorf("not an admin"))
+		err := weberrors.ErrForbidden{Details: fmt.Errorf("not an admin")}
+		h.r.Error(w, req, http.StatusForbidden, err)
 		return
 	}
 
 	memberID, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad member id: %w", err))
-		return
-	}
-
-	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "id", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	var role roomdb.Role
 	if err := role.UnmarshalText([]byte(req.Form.Get("role"))); err != nil {
-		// TODO: proper error type
+		err = weberrors.ErrBadRequest{Where: "role", Details: err}
 		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := h.db.SetRole(req.Context(), memberID, role); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("failed to change member role: %w", err))
+		err = weberrors.DatabaseError{Reason: err}
+		// TODO: not found error
+		h.r.Error(w, req, http.StatusInternalServerError, err)
 		return
 	}
 

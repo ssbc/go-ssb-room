@@ -42,3 +42,11 @@ type PageNotFound struct {
 func (e PageNotFound) Error() string {
 	return fmt.Sprintf("rooms/web: page not found: %s", e.Path)
 }
+
+type DatabaseError struct {
+	Reason error
+}
+
+func (e DatabaseError) Error() string {
+	return fmt.Sprintf("rooms/web: database failed to complete query: %s", e.Reason.Error())
+}

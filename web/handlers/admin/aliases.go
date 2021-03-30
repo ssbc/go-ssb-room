@@ -88,11 +88,13 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	err = h.db.Revoke(req.Context(), req.FormValue("name"))
 	if err != nil {
 		if !errors.Is(err, roomdb.ErrNotFound) {
-
+			//  TODO: flash error
 			h.r.Error(rw, req, http.StatusInternalServerError, err)
 			return
 		}
 		status = http.StatusNotFound
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
 	}
 
 	http.Redirect(rw, req, redirectToAliases, status)
