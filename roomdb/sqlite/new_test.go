@@ -40,7 +40,7 @@ func TestBasic(t *testing.T) {
 
 	ctx := context.Background()
 	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
-	memberID, err := db.Members.Add(ctx, "testNick", feedA, roomdb.RoleMember)
+	memberID, err := db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	require.NoError(t, err)
 	require.NotEqual(t, 0, memberID)
 

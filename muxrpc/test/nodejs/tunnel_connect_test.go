@@ -73,7 +73,7 @@ func TestGoServerLegacyJSClient(t *testing.T) {
 	var aliases = &mockdb.FakeAliasesService{}
 	srv := ts.startGoServer(membersDB, aliases)
 	// allow all peers (there arent any we dont want to allow)
-	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
+	membersDB.GetByFeedReturns(roomdb.Member{ID: 1234}, nil)
 
 	alice := ts.startJSClient("alice", "./testscripts/legacy_client.js",
 		srv.Network.GetListenAddr(),
@@ -110,7 +110,7 @@ func TestModernJSClient(t *testing.T) {
 	var membersDB = &mockdb.FakeMembersService{}
 	var aliasesDB = &mockdb.FakeAliasesService{}
 	srv := ts.startGoServer(membersDB, aliasesDB)
-	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
+	membersDB.GetByFeedReturns(roomdb.Member{ID: 1234}, nil)
 
 	// allow all peers (there arent any we dont want to allow in this test)
 

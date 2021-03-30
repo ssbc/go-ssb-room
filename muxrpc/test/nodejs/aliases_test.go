@@ -23,7 +23,7 @@ func TestGoServerJSClientAliases(t *testing.T) {
 	var aliasesDB = &mockdb.FakeAliasesService{}
 	srv := ts.startGoServer(membersDB, aliasesDB)
 	// allow all peers (there arent any we dont want to allow)
-	membersDB.GetByFeedReturns(roomdb.Member{Nickname: "free4all"}, nil)
+	membersDB.GetByFeedReturns(roomdb.Member{ID: 1234}, nil)
 
 	// setup mocks for this test
 	aliasesDB.RegisterReturns(nil)

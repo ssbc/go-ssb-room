@@ -10,13 +10,12 @@ import (
 )
 
 type FakeMembersService struct {
-	AddStub        func(context.Context, string, refs.FeedRef, roomdb.Role) (int64, error)
+	AddStub        func(context.Context, refs.FeedRef, roomdb.Role) (int64, error)
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
-		arg3 refs.FeedRef
-		arg4 roomdb.Role
+		arg2 refs.FeedRef
+		arg3 roomdb.Role
 	}
 	addReturns struct {
 		result1 int64
@@ -108,21 +107,20 @@ type FakeMembersService struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeMembersService) Add(arg1 context.Context, arg2 string, arg3 refs.FeedRef, arg4 roomdb.Role) (int64, error) {
+func (fake *FakeMembersService) Add(arg1 context.Context, arg2 refs.FeedRef, arg3 roomdb.Role) (int64, error) {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-		arg3 refs.FeedRef
-		arg4 roomdb.Role
-	}{arg1, arg2, arg3, arg4})
+		arg2 refs.FeedRef
+		arg3 roomdb.Role
+	}{arg1, arg2, arg3})
 	stub := fake.AddStub
 	fakeReturns := fake.addReturns
-	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("Add", []interface{}{arg1, arg2, arg3})
 	fake.addMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -136,17 +134,17 @@ func (fake *FakeMembersService) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeMembersService) AddCalls(stub func(context.Context, string, refs.FeedRef, roomdb.Role) (int64, error)) {
+func (fake *FakeMembersService) AddCalls(stub func(context.Context, refs.FeedRef, roomdb.Role) (int64, error)) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = stub
 }
 
-func (fake *FakeMembersService) AddArgsForCall(i int) (context.Context, string, refs.FeedRef, roomdb.Role) {
+func (fake *FakeMembersService) AddArgsForCall(i int) (context.Context, refs.FeedRef, roomdb.Role) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeMembersService) AddReturns(result1 int64, result2 error) {

@@ -28,12 +28,12 @@ func TestMembers(t *testing.T) {
 
 	// broken feed (unknown algo)
 	tf := refs.FeedRef{ID: bytes.Repeat([]byte("fooo"), 8), Algo: "nope"}
-	_, err = db.Members.Add(ctx, "dont-add-me", tf, roomdb.RoleMember)
+	_, err = db.Members.Add(ctx, tf, roomdb.RoleMember)
 	r.Error(err)
 
 	// looks ok at least
 	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
-	mid, err := db.Members.Add(ctx, "should-add-me", okFeed, roomdb.RoleMember)
+	mid, err := db.Members.Add(ctx, okFeed, roomdb.RoleMember)
 	r.NoError(err)
 
 	sqlDB := db.Members.db
@@ -51,7 +51,6 @@ func TestMembers(t *testing.T) {
 	okMember, err := db.Members.GetByFeed(ctx, okFeed)
 	r.NoError(err)
 	r.Equal(okMember.ID, mid)
-	r.Equal(okMember.Nickname, "should-add-me")
 	r.Equal(okMember.Role, roomdb.RoleMember)
 	r.True(okMember.PubKey.Equal(&okFeed))
 
@@ -88,10 +87,10 @@ func TestMembersUnique(t *testing.T) {
 	require.NoError(t, err)
 
 	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
-	_, err = db.Members.Add(ctx, "add-me-first", feedA, roomdb.RoleMember)
+	_, err = db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.NoError(err)
 
-	_, err = db.Members.Add(ctx, "dont-add-me-twice", feedA, roomdb.RoleMember)
+	_, err = db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.Error(err)
 
 	lst, err := db.Members.List(ctx)
@@ -114,7 +113,7 @@ func TestMembersByID(t *testing.T) {
 	require.NoError(t, err)
 
 	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
-	_, err = db.Members.Add(ctx, "add-me", feedA, roomdb.RoleMember)
+	_, err = db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.NoError(err)
 
 	lst, err := db.Members.List(ctx)
@@ -154,12 +153,12 @@ func TestMembersSetRole(t *testing.T) {
 
 	// create two users
 	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1"), 32), Algo: refs.RefAlgoFeedSSB1}
-	idA, err := db.Members.Add(ctx, "user-a", feedA, roomdb.RoleAdmin)
+	idA, err := db.Members.Add(ctx, feedA, roomdb.RoleAdmin)
 	r.NoError(err)
 	t.Log("member A:", idA)
 
 	feedB := refs.FeedRef{ID: bytes.Repeat([]byte("2"), 32), Algo: refs.RefAlgoFeedSSB1}
-	idB, err := db.Members.Add(ctx, "user-b", feedB, roomdb.RoleModerator)
+	idB, err := db.Members.Add(ctx, feedB, roomdb.RoleModerator)
 	r.NoError(err)
 	t.Log("member B:", idB)
 

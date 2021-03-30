@@ -22,9 +22,9 @@ func TestInvitesOverview(t *testing.T) {
 	testUser := roomdb.Member{ID: 23}
 
 	lst := []roomdb.Invite{
-		{ID: 1, CreatedBy: testUser, AliasSuggestion: "foo"},
-		{ID: 2, CreatedBy: testUser, AliasSuggestion: "bar"},
-		{ID: 3, CreatedBy: testUser, AliasSuggestion: "baz"},
+		{ID: 1, CreatedBy: testUser},
+		{ID: 2, CreatedBy: testUser},
+		{ID: 3, CreatedBy: testUser},
 	}
 	ts.InvitesDB.ListReturns(lst, nil)
 
@@ -42,7 +42,7 @@ func TestInvitesOverview(t *testing.T) {
 	a.EqualValues(3, html.Find(trSelector).Length()/2, "wrong number of entries on the table (plural)")
 
 	lst = []roomdb.Invite{
-		{ID: 666, CreatedBy: testUser, AliasSuggestion: "single entry"},
+		{ID: 666, CreatedBy: testUser},
 	}
 	ts.InvitesDB.ListReturns(lst, nil)
 
@@ -110,15 +110,12 @@ func TestInvitesCreate(t *testing.T) {
 	testInvite := "your-fake-test-invite"
 	ts.InvitesDB.CreateReturns(testInvite, nil)
 
-	rec := ts.Client.PostForm(urlRemove.String(), url.Values{
-		"alias_suggestion": []string{"jerry"},
-	})
+	rec := ts.Client.PostForm(urlRemove.String(), url.Values{})
 	a.Equal(http.StatusOK, rec.Code)
 
 	r.Equal(1, ts.InvitesDB.CreateCallCount(), "expected one invites.Create call")
-	_, userID, aliasSuggestion := ts.InvitesDB.CreateArgsForCall(0)
+	_, userID := ts.InvitesDB.CreateArgsForCall(0)
 	a.EqualValues(ts.User.ID, userID)
-	a.EqualValues("jerry", aliasSuggestion)
 
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
 	require.NoError(t, err, "failed to parse response")
@@ -128,10 +125,10 @@ func TestInvitesCreate(t *testing.T) {
 		{"#welcome", "AdminInviteCreatedWelcome"},
 	})
 
-	wantURL := urlTo(router.CompleteInviteAccept, "token", testInvite)
+	wantURL := urlTo(router.CompleteInviteFacade, "token", testInvite)
 	wantURL.Host = ts.Domain
 	wantURL.Scheme = "https"
 
-	shownLink := doc.Find("#invite-accept-link").Text()
+	shownLink := doc.Find("#invite-facade-link").Text()
 	a.Equal(wantURL.String(), shownLink)
 }

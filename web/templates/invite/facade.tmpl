@@ -1,0 +1,39 @@
+{{ define "title" }}{{ i18n "InviteFacadeTitle" }}{{ end }}
+{{ define "content" }}
+  <div class="flex flex-col justify-center items-center h-64">
+
+    <span
+      id="welcome"
+      class="text-center"
+    >{{ i18n "InviteFacadeWelcome" }}</span>
+
+    <a
+      href="{{.JoinRoomURI}}"
+      class="my-8 shadow rounded px-4 h-8 text-gray-100 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
+    >Join</a>
+
+    <hr class="mb-10 pt-10">
+    <h3 class="text-red-500">TODO: html form fallback / advanced use</h3>
+
+    <form id="consume" action="{{urlTo "complete:invite:consume"}}" method="POST">
+        {{ .csrfField }}
+        <input type="hidden" name="invite" value={{.Token}}>
+
+
+        <div class="my-4 flex flex-row items-center justify-start">
+            <label class="mr-2">{{ i18n "InviteFacadePublicKey" }}</label>
+            <input
+              type="text"
+              name="id"
+              placeholder="@                                            .ed25519"
+              class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent">
+        </div>
+
+          <button
+            type="submit"
+            class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+          >{{i18n "GenericConfirm"}}</button>
+      </form>
+
+  </div>
+{{ end }}

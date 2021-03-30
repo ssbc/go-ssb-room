@@ -83,12 +83,12 @@ func TestTunnelServerSimple(t *testing.T) {
 	botB := theBots[2].Server
 
 	// allow both clients
-	theBots[0].Members.Add(ctx, "botA", botA.Whoami(), roomdb.RoleMember)
-	theBots[0].Members.Add(ctx, "botB", botB.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[1].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
-	theBots[2].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
+	theBots[1].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[2].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// dial up B->A and C->A
 
@@ -154,12 +154,12 @@ func TestRoomAnnounce(t *testing.T) {
 	botB := theBots[2].Server
 
 	// allow both clients
-	theBots[0].Members.Add(ctx, "botA", botA.Whoami(), roomdb.RoleMember)
-	theBots[0].Members.Add(ctx, "botB", botB.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[0].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[1].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
-	theBots[2].Members.Add(ctx, "srv", serv.Whoami(), roomdb.RoleMember)
+	theBots[1].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[2].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// should work (we allowed A)
 	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())

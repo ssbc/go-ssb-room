@@ -36,11 +36,13 @@ var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
 	"aliases-resolved.html",
-	"invite/accept.tmpl",
+
 	"invite/consumed.tmpl",
-	"auth/fallback_sign_in.tmpl",
+	"invite/facade.tmpl",
+
 	"notice/list.tmpl",
 	"notice/show.tmpl",
+
 	"error.tmpl",
 }
 
@@ -94,7 +96,7 @@ func New(
 		}),
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
-				route := router.CompleteApp().Get(routeName)
+				route := m.Get(routeName)
 				if route == nil {
 					return false
 				}
@@ -115,7 +117,7 @@ func New(
 				if err != nil {
 					return nil
 				}
-				route := router.CompleteApp().GetRoute(router.CompleteNoticeShow)
+				route := m.GetRoute(router.CompleteNoticeShow)
 				if route == nil {
 					return nil
 				}
@@ -220,8 +222,6 @@ func New(
 	mainMux := &http.ServeMux{}
 
 	// start hooking up handlers to the router
-	var muxrpcHostAndPort = fmt.Sprintf("%s:%d", netInfo.Domain, netInfo.PortMUXRPC)
-
 	authWithSSB := roomsAuth.NewWithSSBHandler(
 		m,
 		r,
@@ -299,13 +299,14 @@ func New(
 	m.Get(router.CompleteAliasResolve).HandlerFunc(ah.resolve)
 
 	var ih = inviteHandler{
+		render: r,
+
 		invites: dbs.Invites,
 
-		roomPubKey:        netInfo.RoomID.PubKey(),
-		muxrpcHostAndPort: muxrpcHostAndPort,
+		networkInfo: netInfo,
 	}
-	m.Get(router.CompleteInviteAccept).Handler(r.HTML("invite/accept.tmpl", ih.acceptForm))
-	m.Get(router.CompleteInviteConsume).Handler(r.HTML("invite/consumed.tmpl", ih.consume))
+	m.Get(router.CompleteInviteFacade).Handler(r.HTML("invite/facade.tmpl", ih.presentFacade))
+	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
@@ -317,11 +318,27 @@ func New(
 
 	mainMux.Handle("/", m)
 
+	urlTo := web.NewURLTo(m)
+	consumeURL := urlTo(router.CompleteInviteConsume)
+
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
 		logging.InjectHandler(logger),
 		members.ContextInjecter(dbs.Members, authWithPassword, authWithSSB),
 		CSRF,
+
+		// We disable CSRF for certain requests that are done by apps
+		// only if they already contain some secret (like invite consumption)
+		func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				ct := req.Header.Get("Content-Type")
+				if req.URL.Path == consumeURL.Path && ct == "application/json" {
+					next.ServeHTTP(w, csrf.UnsafeSkipCheck(req))
+					return
+				}
+				next.ServeHTTP(w, req)
+			})
+		},
 	}
 
 	if !web.Production {

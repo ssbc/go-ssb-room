@@ -47,13 +47,12 @@ func TestInvites(t *testing.T) {
 	t.Run("user needs to exist", func(t *testing.T) {
 		r := require.New(t)
 
-		_, err := db.Invites.Create(ctx, 666, "")
+		_, err := db.Invites.Create(ctx, 666)
 		r.Error(err, "can't create invite for invalid user")
 	})
 
-	testMemberNick := "test-user"
 	invitingMember := refs.FeedRef{ID: bytes.Repeat([]byte("ohai"), 8), Algo: refs.RefAlgoFeedSSB1}
-	mid, err := db.Members.Add(ctx, testMemberNick, invitingMember, roomdb.RoleModerator)
+	mid, err := db.Members.Add(ctx, invitingMember, roomdb.RoleModerator)
 	require.NoError(t, err, "failed to create test user")
 
 	t.Run("simple create and consume", func(t *testing.T) {
@@ -62,7 +61,7 @@ func TestInvites(t *testing.T) {
 		// i really don't want to do a mocked time functions and rather solve the comment in migration 6 instead
 		before := time.Now()
 
-		tok, err := db.Invites.Create(ctx, mid, "bestie")
+		tok, err := db.Invites.Create(ctx, mid)
 		r.NoError(err, "failed to create invite token")
 
 		_, err = base64.URLEncoding.DecodeString(tok)
@@ -72,16 +71,17 @@ func TestInvites(t *testing.T) {
 		r.NoError(err, "failed to get list of tokens")
 		r.Len(lst, 1, "expected 1 invite")
 
-		r.Equal("bestie", lst[0].AliasSuggestion)
-		r.Equal(testMemberNick, lst[0].CreatedBy.Nickname)
 		r.True(lst[0].CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
 		_, nope := db.Members.GetByFeed(ctx, newMember)
 		r.Error(nope, "expected feed to not yet be on the allow list")
 
+		gotInv, err := db.Invites.GetByToken(ctx, tok)
+		r.NoError(err)
+		r.Equal(lst[0].ID, gotInv.ID)
+
 		inv, err := db.Invites.Consume(ctx, tok, newMember)
 		r.NoError(err, "failed to consume the invite")
-		r.Equal(testMemberNick, inv.CreatedBy.Nickname)
 		r.NotEqualValues(0, inv.ID, "invite ID unset")
 		r.True(inv.CreatedAt.After(before), "expected CreatedAt to be after the start marker")
 
@@ -102,15 +102,12 @@ func TestInvites(t *testing.T) {
 	t.Run("simple create but revoke before use", func(t *testing.T) {
 		r := require.New(t)
 
-		tok, err := db.Invites.Create(ctx, mid, "bestie")
+		tok, err := db.Invites.Create(ctx, mid)
 		r.NoError(err, "failed to create invite token")
 
 		lst, err := db.Invites.List(ctx)
 		r.NoError(err, "failed to get list of tokens")
 		r.Len(lst, 1, "expected 1 invite")
-
-		r.Equal("bestie", lst[0].AliasSuggestion)
-		r.Equal(testMemberNick, lst[0].CreatedBy.Nickname)
 
 		err = db.Invites.Revoke(ctx, lst[0].ID)
 		r.NoError(err, "failed to consume the invite")

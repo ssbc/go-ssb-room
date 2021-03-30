@@ -189,7 +189,7 @@ func TestAuthWithSSBClientInitNotConnected(t *testing.T) {
 	a, r := assert.New(t), require.New(t)
 
 	// the client is a member but not connected right now
-	ts.MembersDB.GetByFeedReturns(roomdb.Member{ID: 1234, Nickname: "test-member"}, nil)
+	ts.MembersDB.GetByFeedReturns(roomdb.Member{ID: 1234}, nil)
 	ts.MockedEndpoints.GetEndpointForReturns(nil, false)
 
 	client, err := keys.NewKeyPair(nil)
@@ -259,7 +259,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	payload.ServerID = ts.NetworkInfo.RoomID
 
 	// the keypair for our client
-	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
+	testMember := roomdb.Member{ID: 1234}
 	client, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 	testMember.PubKey = client.Feed
@@ -385,7 +385,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	a, r := assert.New(t), require.New(t)
 
 	// the keypair for our client
-	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
+	testMember := roomdb.Member{ID: 1234}
 	client, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 	testMember.PubKey = client.Feed
@@ -431,8 +431,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	a.Equal("start-http-auth", qry.Get("action"))
 	a.Equal(serverChallenge, qry.Get("sc"))
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), qry.Get("sid"))
-	var msaddr = fmt.Sprintf("net:%s:%d~shs:%s", ts.NetworkInfo.Domain, ts.NetworkInfo.PortMUXRPC, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey()))
-	a.Equal(msaddr, qry.Get("multiserverAddress"))
+	a.Equal(ts.NetworkInfo.MultiserverAddress(), qry.Get("multiserverAddress"))
 
 	qrCode, has := html.Find("#start-auth-qrcode").Attr("src")
 	a.True(has, "should have the inline image data")
@@ -513,7 +512,7 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 	a, r := assert.New(t), require.New(t)
 
 	// the keypair for our client
-	testMember := roomdb.Member{ID: 1234, Nickname: "test-member"}
+	testMember := roomdb.Member{ID: 1234}
 	client, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 	testMember.PubKey = client.Feed

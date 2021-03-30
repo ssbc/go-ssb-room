@@ -30,13 +30,13 @@ func main() {
 	check(err)
 
 	var (
-		name     string
+		login    string
 		pubKey   *refs.FeedRef
 		role     roomdb.Role = roomdb.RoleAdmin
 		repoPath string
 	)
 
-	flag.StringVar(&name, "name", "", "username (used when logging into the room's web ui)")
+	flag.StringVar(&login, "login", "", "username (used when logging into the room's web ui)")
 	flag.Func("key", "the public key of the user, format: @<base64-encoded public-key>.ed25519", func(val string) error {
 		if len(val) == 0 {
 			return fmt.Errorf("the public key is required. if you are just testing things out, generate one by running 'cmd/insert-user/generate-fake-id.sh'\n")
@@ -73,8 +73,8 @@ func main() {
 		cliMissingArguments("please provide the default arguments -name and -key")
 	}
 
-	if name == "" {
-		cliMissingArguments("please provide a username with -name <username>")
+	if login == "" {
+		cliMissingArguments("please provide a username with -login <username>")
 	}
 
 	if pubKey == nil {
@@ -101,13 +101,13 @@ func main() {
 	}
 
 	ctx := context.Background()
-	mid, err := db.Members.Add(ctx, name, *pubKey, role)
+	mid, err := db.Members.Add(ctx, *pubKey, role)
 	check(err)
 
-	err = db.AuthFallback.Create(ctx, mid, name, bytePassword)
+	err = db.AuthFallback.Create(ctx, mid, login, bytePassword)
 	check(err)
 
-	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", name, role, mid)
+	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", login, role, mid)
 }
 
 func cliMissingArguments(message string) {

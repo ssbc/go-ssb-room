@@ -59,23 +59,18 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 		return nil, fmt.Errorf("warning: no user session for elevated access request")
 	}
 
-	aliasSuggestion := req.Form.Get("alias_suggestion")
-
-	token, err := h.db.Create(req.Context(), member.ID, aliasSuggestion)
+	token, err := h.db.Create(req.Context(), member.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	urlTo := web.NewURLTo(router.CompleteApp())
-	acceptURL := urlTo(router.CompleteInviteAccept, "token", token)
-	acceptURL.Host = h.domainName
-	acceptURL.Scheme = "https"
+	facadeURL := urlTo(router.CompleteInviteFacade, "token", token)
+	facadeURL.Host = h.domainName
+	facadeURL.Scheme = "https"
 
 	return map[string]interface{}{
-		"Token":    token,
-		"AccepURL": acceptURL.String(),
-
-		"AliasSuggestion": aliasSuggestion,
+		"FacadeURL": facadeURL.String(),
 	}, nil
 }
 

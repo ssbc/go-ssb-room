@@ -3,7 +3,6 @@
 CREATE TABLE members (
   id            INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   role          INTEGER NOT NULL, -- member, moderator or admin
-  nick          TEXT    NOT NULL, -- a nick name for the user (not an alias)
   pub_key       TEXT    NOT NULL UNIQUE,
 
   CHECK(role > 0)
@@ -29,7 +28,6 @@ CREATE TABLE invites (
   created_by       INTEGER NOT NULL,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  alias_suggestion TEXT NOT NULL DEFAULT "", -- optional
   active boolean   NOT NULL DEFAULT TRUE,
 
   FOREIGN KEY ( created_by ) REFERENCES members( "id" )  ON DELETE CASCADE

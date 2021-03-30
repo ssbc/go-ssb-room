@@ -34,10 +34,9 @@ type Invites struct {
 // createdBy is user ID of the admin or moderator who created it.
 // aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
 // The returned token is base64 URL encoded and has inviteTokenLength when decoded.
-func (i Invites) Create(ctx context.Context, createdBy int64, aliasSuggestion string) (string, error) {
+func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 	var newInvite = models.Invite{
-		CreatedBy:       createdBy,
-		AliasSuggestion: aliasSuggestion,
+		CreatedBy: createdBy,
 	}
 
 	tokenBytes := make([]byte, inviteTokenLength)
@@ -106,12 +105,7 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 			return err
 		}
 
-		memberNick := time.Now().Format("new-member 2006-01-02")
-		memberNick += "(invited by:" + entry.R.CreatedByMember.Nick + ")"
-		if entry.AliasSuggestion != "" {
-			memberNick = entry.AliasSuggestion
-		}
-		_, err = i.members.add(ctx, tx, memberNick, newMember, roomdb.RoleMember)
+		_, err = i.members.add(ctx, tx, newMember, roomdb.RoleMember)
 		if err != nil {
 			return err
 		}
@@ -125,10 +119,8 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 
 		inv.ID = entry.ID
 		inv.CreatedAt = entry.CreatedAt
-		inv.AliasSuggestion = entry.AliasSuggestion
 		inv.CreatedBy.ID = entry.R.CreatedByMember.ID
 		inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
-		inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 		return nil
 	})
@@ -162,7 +154,7 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 	}
 
 	entry, err := models.Invites(
-		qm.Where("active = true AND token = ?", ht),
+		qm.Where("active = true AND hashed_token = ?", ht),
 		qm.Load("CreatedByMember"),
 	).One(ctx, i.db)
 	if err != nil {
@@ -174,10 +166,8 @@ func (i Invites) GetByToken(ctx context.Context, token string) (roomdb.Invite, e
 
 	inv.ID = entry.ID
 	inv.CreatedAt = entry.CreatedAt
-	inv.AliasSuggestion = entry.AliasSuggestion
 	inv.CreatedBy.ID = entry.R.CreatedByMember.ID
 	inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
-	inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 	return inv, nil
 }
@@ -198,10 +188,8 @@ func (i Invites) GetByID(ctx context.Context, id int64) (roomdb.Invite, error) {
 
 	inv.ID = entry.ID
 	inv.CreatedAt = entry.CreatedAt
-	inv.AliasSuggestion = entry.AliasSuggestion
 	inv.CreatedBy.ID = entry.R.CreatedByMember.ID
 	inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
-	inv.CreatedBy.Nickname = entry.R.CreatedByMember.Nick
 
 	return inv, nil
 }
@@ -224,9 +212,7 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 			var inv roomdb.Invite
 			inv.ID = e.ID
 			inv.CreatedAt = e.CreatedAt
-			inv.AliasSuggestion = e.AliasSuggestion
 			inv.CreatedBy.ID = e.R.CreatedByMember.ID
-			inv.CreatedBy.Nickname = e.R.CreatedByMember.Nick
 
 			invs[idx] = inv
 		}

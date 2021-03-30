@@ -34,6 +34,7 @@ import (
 
 var HTMLTemplates = []string{
 	"auth/decide_method.tmpl",
+	"auth/fallback_sign_in.tmpl",
 	"auth/withssb_server_start.tmpl",
 }
 
