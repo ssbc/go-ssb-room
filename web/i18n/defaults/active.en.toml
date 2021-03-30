@@ -31,8 +31,8 @@ AuthFallbackTitle = "Password sign-in"
 AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
 AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
+AdminDashboardTitle = "Dashboard"
 AdminDashboardWelcome = "Welcome to your dashboard"
-AdminDashboardTitle = "Room Admin Dashboard"
 
 AdminAliasesTitle = "Aliases"
 AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."

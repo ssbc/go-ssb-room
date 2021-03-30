@@ -154,7 +154,6 @@ func TestFallbackAuth(t *testing.T) {
 	}
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
 
@@ -166,9 +165,7 @@ func TestFallbackAuth(t *testing.T) {
 		t.Log(html.Find("body").Text())
 	}
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
-		{"#roomCount", "AdminRoomCountSingular"},
 	})
 
 	testRef2 := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{1}, 16)}
@@ -178,9 +175,7 @@ func TestFallbackAuth(t *testing.T) {
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
-		{"#roomCount", "AdminRoomCountPlural"},
 	})
 }
 
@@ -375,7 +370,6 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	}
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
 }
@@ -502,7 +496,6 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	}
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminDashboardWelcome"},
 		{"title", "AdminDashboardTitle"},
 	})
 }

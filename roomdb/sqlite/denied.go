@@ -104,6 +104,14 @@ func (dk DeniedKeys) List(ctx context.Context) ([]roomdb.ListEntry, error) {
 	return lst, nil
 }
 
+func (dk DeniedKeys) Count(ctx context.Context) (uint, error) {
+	count, err := models.DeniedKeys().Count(ctx, dk.db)
+	if err != nil {
+		return 0, err
+	}
+	return uint(count), nil
+}
+
 // RemoveFeed removes the feed from the list.
 func (dk DeniedKeys) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
 	entry, err := models.DeniedKeys(qm.Where("pub_key = ?", r.Ref())).One(ctx, dk.db)

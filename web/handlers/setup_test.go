@@ -41,6 +41,7 @@ type testSession struct {
 	AliasesDB      *mockdb.FakeAliasesService
 	MembersDB      *mockdb.FakeMembersService
 	InvitesDB      *mockdb.FakeInvitesService
+	DeniedKeysDB   *mockdb.FakeDeniedKeysService
 	PinnedDB       *mockdb.FakePinnedNoticesService
 	NoticeDB       *mockdb.FakeNoticesService
 
@@ -76,6 +77,7 @@ func setup(t *testing.T) *testSession {
 	ts.AliasesDB = new(mockdb.FakeAliasesService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.InvitesDB = new(mockdb.FakeInvitesService)
+	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	defaultNotice := &roomdb.Notice{
 		Title:   "Default Notice Title",
@@ -118,6 +120,7 @@ func setup(t *testing.T) *testSession {
 			AuthWithSSB:   ts.AuthWithSSB,
 			Members:       ts.MembersDB,
 			Invites:       ts.InvitesDB,
+			DeniedKeys:    ts.DeniedKeysDB,
 			Notices:       ts.NoticeDB,
 			PinnedNotices: ts.PinnedDB,
 		},
