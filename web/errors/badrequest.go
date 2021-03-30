@@ -34,3 +34,11 @@ func (f ErrForbidden) Error() string {
 }
 
 var ErrNotAuthorized = errors.New("rooms/web: not authorized")
+
+type PageNotFound struct {
+	Path string
+}
+
+func (e PageNotFound) Error() string {
+	return fmt.Sprintf("rooms/web: page not found: %s", e.Path)
+}

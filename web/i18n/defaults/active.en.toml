@@ -1,3 +1,6 @@
+# default localiztion file for english
+
+# generic terms
 GenericConfirm = "Yes"
 GenericGoBack = "Back"
 GenericSave = "Save"
@@ -6,37 +9,63 @@ GenericPreview = "Preview"
 GenericLanguage = "Language"
 GenericOpenLink = "Open Link"
 
-PageNotFound = "The requested page was not found."
-
+# roles
 RoleMember = "Member"
 RoleModerator = "Moderator"
 RoleAdmin = "Admin"
 
+# navigation labels (should be single words or as short as possible)
+NavAdminLanding = "Home"
+NavAdminDashboard = "Dashboard"
+NavAdminInvites = "Invites"
+NavAdminNotices = "Notices"
+
+# Error messages
+ErrorAuthBadLogin = "The supplied authentication credentials seem wrong."
+ErrorNotFound = "The database couldn't find the item in question."
+ErrorAlreadyAdded = "The public key <strong>{{.Key}}</strong> already is on the list"
+ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."
+
+# TODO: might be obsolete with notices
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-AuthSignIn = "Sign in"
-AuthSignOut = "Sign out"
+# authentication
+################
 
 AuthTitle = "Member Authentication"
 AuthWelcome = "If you are a member of this room, you can access the internal dashboard. Click on your preferred sign-in method below:"
 
+AuthSignIn = "Sign in"
+AuthSignOut = "Sign out"
+
+# auth with ssb
 AuthWithSSBTitle = "Sign in with SSB"
 AuthWithSSBInstruct = "Easy and secure method, if your SSB app supports it."
 AuthWithSSBWelcome = "To sign-in with your SSB identity stored on this device, press the button below which will open a compatible SSB app, if it's installed."
 AuthWithSSBInstructQR = "If your SSB app is on another device, you can scan the following QR code to sign-in with that device's SSB identity."
 AuthWithSSBError = "Sign-in failed. Please make sure you use an SSB app that supports this method of login, and click the button above within a minute after this page was opened."
 
+# auth with password
 AuthFallbackTitle = "Password sign-in"
 AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
 AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
+# general dashboard stuff
+#########################
+
 AdminDashboardTitle = "Dashboard"
 AdminDashboardWelcome = "Welcome to your dashboard"
+
+# aliases dashboard
+###################
 
 AdminAliasesTitle = "Aliases"
 AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."
 AdminAliasesRevoke = "Revoke"
+
+# banned dashboard
+##################
 
 AdminDeniedKeysTitle = "Banned"
 AdminDeniedKeysWelcome = "This page can be used to ban SSB IDs so that they can't access the room any more."
@@ -47,12 +76,18 @@ AdminDeniedKeysCommentDescription = "The person who added this ban, added the fo
 AdminDeniedKeysRemoveConfirmWelcome = "Are you sure you want to remove this ban? They will will be able to access the room again."
 AdminDeniedKeysRemoveConfirmTitle = "Confirm member removal"
 
+# members dashboard
+###################
+
 AdminMembersTitle = "Members"
 AdminMembersWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
 AdminMembersAdd = "Add"
 AdminMembersRemove = "Remove"
 AdminMembersRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminMembersRemoveConfirmTitle = "Confirm member removal"
+
+# invite dashboard
+##################
 
 AdminInvitesTitle = "Invites"
 AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same time as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
@@ -66,7 +101,6 @@ AdminInviteRevoke = "Revoke"
 AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
 AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
 
-
 # TODO: add placeholder support to the template helpers (https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60)
 AdminInviteCreatedBy = "Created by:"
 AdminInviteSuggestedAliasIs = "The suggested alias is:"
@@ -75,11 +109,8 @@ AdminInviteSuggestedAliasIsShort = "Alias:"
 AdminInviteCreatedTitle = "Invite created successfully"
 AdminInviteCreatedWelcome = "Here is the invite you created. Please copy it before closing the page or it will be lost."
 
-
-NavAdminLanding = "Home"
-NavAdminDashboard = "Dashboard"
-NavAdminInvites = "Invites"
-NavAdminNotices = "Notices"
+# public invites
+################
 
 InviteFacade = "Join Room"
 InviteFacadeTitle = "Join Room"
@@ -90,6 +121,9 @@ InviteFacadePublicKey = "Public Key"
 InviteConsumedTitle = "Invite accepted!"
 InviteConsumedWelcome = "Even more elaborate message that the person is now a member of the room!"
 
+# notices (mini-CMS)
+####################
+
 NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"
 NoticeListWelcome = "Here you can manage the contents of the landing page and other important documents such as code of conduct and privacy policy."
@@ -99,6 +133,13 @@ NoticeCodeOfConduct = "Code of Conduct"
 NoticeNews = "News"
 NoticeDescription = "Description"
 NoticePrivacyPolicy = "Privacy Policy"
+
+# Plurals
+#########
+# These need to use this form and get {{.Count}}
+#   [Label]
+#   one = "singular"
+#   other = "{{.Count}} things"
 
 [MemberCount]
 description = "Number of members"
