@@ -39,6 +39,8 @@ var HTMLTemplates = []string{
 
 	"invite/consumed.tmpl",
 	"invite/facade.tmpl",
+	"invite/facade-fallback.tmpl",
+	"invite/insert-id.tmpl",
 
 	"notice/list.tmpl",
 	"notice/show.tmpl",
@@ -301,11 +303,14 @@ func New(
 	var ih = inviteHandler{
 		render: r,
 
-		invites: dbs.Invites,
+		invites:       dbs.Invites,
+		pinnedNotices: dbs.PinnedNotices,
 
 		networkInfo: netInfo,
 	}
 	m.Get(router.CompleteInviteFacade).Handler(r.HTML("invite/facade.tmpl", ih.presentFacade))
+	m.Get(router.CompleteInviteFacadeFallback).Handler(r.HTML("invite/facade-fallback.tmpl", ih.presentFacadeFallback))
+	m.Get(router.CompleteInviteInsertID).Handler(r.HTML("invite/insert-id.tmpl", ih.presentInsert))
 	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
 
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
