@@ -38,6 +38,7 @@ type Database struct {
 	Members Members
 	Aliases Aliases
 	Invites Invites
+	Config  Config
 
 	DeniedKeys DeniedKeys
 
@@ -103,6 +104,7 @@ func Open(r repo.Interface) (*Database, error) {
 		Aliases:       Aliases{db},
 		AuthFallback:  AuthFallback{db},
 		AuthWithSSB:   AuthWithSSB{db},
+		Config:        Config{db},
 		DeniedKeys:    DeniedKeys{db},
 		Invites:       Invites{db: db, members: ml},
 		Notices:       Notices{db},

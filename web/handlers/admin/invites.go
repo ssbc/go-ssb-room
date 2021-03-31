@@ -63,11 +63,11 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	if err != nil {
 		return nil, err
 	}
-    /* We want to check:
-	 * 1. the room's privacy mode
-	 * 2. the role of the member trying to create the invite
-     * and deny unallowed requests (e.g. member creating invite in ModeRestricted)
-	 */
+	/* We want to check:
+		 * 1. the room's privacy mode
+		 * 2. the role of the member trying to create the invite
+	     * and deny unallowed requests (e.g. member creating invite in ModeRestricted)
+	*/
 	switch pm {
 	case roomdb.ModeOpen:
 	case roomdb.ModeCommunity:
