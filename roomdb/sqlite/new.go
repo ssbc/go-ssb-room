@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-// Package sqlite implements the SQLite backend of the admindb interfaces.
+// Package sqlite implements the SQLite backend of the roomdb interfaces.
 //
-// It uses sql-migrate (github.com/rubenv/sql-migrate) for it's schema definition and maintainace.
+// It uses sql-migrate (github.com/rubenv/sql-migrate) for it's schema definition and maintenance.
 // For query construction/ORM it uses SQLBoiler (https://github.com/volatiletech/sqlboiler).
 //
 // The process of updating the schema and ORM can be summarized as follows:
 //
-// 	1. Make changes to the interfaces in package admindb
+// 	1. Make changes to the interfaces in package roomdb
 //	2. Add a new migration to the 'migrations' folder
 //	3. Run 'go test -run Simple', which applies all the migrations
 //	4. Run sqlboiler to generate package models
@@ -52,7 +52,7 @@ func Open(r repo.Interface) (*Database, error) {
 	if dir := filepath.Dir(fname); dir != "" {
 		err := os.MkdirAll(dir, 0700)
 		if err != nil && !os.IsExist(err) {
-			return nil, fmt.Errorf("admindb: failed to create folder for database (%q): %w", dir, err)
+			return nil, fmt.Errorf("roomdb: failed to create folder for database (%q): %w", dir, err)
 		}
 	}
 
@@ -61,20 +61,20 @@ func Open(r repo.Interface) (*Database, error) {
 
 	db, err := sql.Open("sqlite3", fname)
 	if err != nil {
-		return nil, fmt.Errorf("admindb: failed to open sqlite database: %w", err)
+		return nil, fmt.Errorf("roomdb: failed to open sqlite database: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("admindb: sqlite ping failed: %w", err)
+		return nil, fmt.Errorf("roomdb: sqlite ping failed: %w", err)
 	}
 
 	n, err := migrate.Exec(db, "sqlite3", migrationSource, migrate.Up)
 	if err != nil {
-		return nil, fmt.Errorf("admindb: failed to apply database mirations: %w", err)
+		return nil, fmt.Errorf("roomdb: failed to apply database mirations: %w", err)
 	}
 	if n > 0 {
 		// TODO: hook up logging
-		log.Printf("admindb: applied %d migrations", n)
+		log.Printf("roomdb: applied %d migrations", n)
 	}
 
 	if err := deleteConsumedInvites(db); err != nil {
@@ -90,14 +90,14 @@ func Open(r repo.Interface) (*Database, error) {
 			})
 			if err != nil {
 				// TODO: hook up logging
-				log.Printf("admindb: failed to clean up old invites: %s", err.Error())
+				log.Printf("roomdb: failed to clean up old invites: %s", err.Error())
 			}
 		}
 	}()
 
 	ml := Members{db}
 
-	admindb := &Database{
+	roomdb := &Database{
 		db: db,
 
 		Aliases:       Aliases{db},
@@ -110,7 +110,7 @@ func Open(r repo.Interface) (*Database, error) {
 		PinnedNotices: PinnedNotices{db},
 	}
 
-	return admindb, nil
+	return roomdb, nil
 }
 
 // Close closes the contained sql database object
