@@ -1,10 +1,12 @@
 #!/bin/sh
-
 set -e
 
 # ensure tools are installed
 go get github.com/volatiletech/sqlboiler/v4
 go get github.com/volatiletech/sqlboiler-sqlite3
+
+# make sure we are in the correct directory
+cd "$(dirname $0)"
 
 # run the migrations (creates testrun/TestSchema/roomdb)
 go test -run Schema
