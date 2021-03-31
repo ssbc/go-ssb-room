@@ -19,6 +19,7 @@ import (
 
 type RoomConfig interface {
 	GetPrivacyMode(context.Context) (PrivacyMode, error)
+	SetPrivacyMode(context.Context, PrivacyMode) error
 }
 
 // AuthFallbackService allows password authentication which might be helpful for scenarios
