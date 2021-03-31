@@ -38,7 +38,7 @@ func (h aliasHandler) resolve(rw http.ResponseWriter, req *http.Request) {
 		ar = newAliasHTMLResponder(h.r, rw, req)
 	}
 
-	ar.UpdateRoomInfo(a.roomEndpoint)
+	ar.UpdateRoomInfo(h.roomEndpoint)
 
 	pm, err := h.config.GetPrivacyMode(req.Context())
 	if err != nil {

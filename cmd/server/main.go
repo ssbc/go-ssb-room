@@ -54,7 +54,7 @@ var (
 	logToFile       string
 	repoDir         string
 
-	config roomdb.RoomConfig
+	privacyMode = roomdb.ModeUnknown
 
 	// helper
 	log kitlog.Logger
@@ -84,23 +84,9 @@ func checkAndLog(err error) {
 	}
 }
 
-type Config struct {
-	// open, community, restricted
-	privacyMode roomdb.PrivacyMode
-}
-
-func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) {
-	err := c.privacyMode.IsValid()
-	if err != nil {
-		return roomdb.ModeUnknown, err
-	}
-	return c.privacyMode, nil
-}
-
 func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
-	config = Config{privacyMode: roomdb.ModeCommunity} // set default privacy mode to community
 
 	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key (or capability)")
 
@@ -118,15 +104,13 @@ func initFlags() {
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
-	/* cblgh: TODO change this to use a db.Config.SetPrivacyMode function; guessing database is not loaded yet tho.
-	 * maybe we remove this flag entirely / replace with a small cli tool? idk*/
 	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
-		privacyMode := roomdb.ParsePrivacyMode(val)
-		err := privacyMode.IsValid()
+		pm := roomdb.ParsePrivacyMode(val)
+		err := pm.IsValid()
 		if err != nil {
 			return fmt.Errorf("%s, valid values are open, community, restricted", err)
 		}
-		config = Config{privacyMode: privacyMode}
+		privacyMode = pm
 		return nil
 	})
 
@@ -237,6 +221,10 @@ func runroomsrv() error {
 	}
 
 	bridge := signinwithssb.NewSignalBridge()
+	// the privacy mode flag was passed => update it in the database
+	if privacyMode != roomdb.ModeUnknown {
+		db.Config.SetPrivacyMode(ctx, privacyMode)
+	}
 
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
@@ -293,12 +281,8 @@ func runroomsrv() error {
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
-<<<<<<< HEAD
 			AuthWithSSB:   db.AuthWithSSB,
-			Config:        config,
-=======
 			Config:        db.Config,
->>>>>>> a66b343 (persist privacy mode in sqlite :>)
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
