@@ -118,6 +118,8 @@ func initFlags() {
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
 
+	/* cblgh: TODO change this to use a db.Config.SetPrivacyMode function; guessing database is not loaded yet tho.
+	 * maybe we remove this flag entirely / replace with a small cli tool? idk*/
 	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
 		privacyMode := roomdb.ParsePrivacyMode(val)
 		err := privacyMode.IsValid()
@@ -228,7 +230,7 @@ func runroomsrv() error {
 
 	r := repo.New(repoDir)
 
-	// open the sqlite version of the admindb
+	// open the sqlite version of the roomdb
 	db, err := sqlite.Open(r)
 	if err != nil {
 		return fmt.Errorf("failed to initiate database: %w", err)
@@ -242,7 +244,7 @@ func runroomsrv() error {
 		db.Aliases,
 		db.AuthWithSSB,
 		bridge,
-		config,
+		db.Config,
 		httpsDomain,
 		opts...)
 	if err != nil {
@@ -291,8 +293,12 @@ func runroomsrv() error {
 		handlers.Databases{
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
+<<<<<<< HEAD
 			AuthWithSSB:   db.AuthWithSSB,
 			Config:        config,
+=======
+			Config:        db.Config,
+>>>>>>> a66b343 (persist privacy mode in sqlite :>)
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,
