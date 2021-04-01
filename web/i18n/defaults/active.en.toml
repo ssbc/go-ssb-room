@@ -27,6 +27,7 @@ ErrorAlreadyAdded = "The public key <strong>{{.Key}}</strong> already is on the 
 ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."
 ErrorNotAuthorized = "You are not authorized to access this page."
 ErrorForbidden = "The request could not be executed because of lacking privileges ({{.Details}})"
+ErrorBadRequest = "There was a problem with your Request: {{.Where}} ({{.Details}}"
 
 # TODO: might be obsolete with notices
 LandingTitle = "ohai my room"
