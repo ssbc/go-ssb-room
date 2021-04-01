@@ -21,10 +21,9 @@ func TestDashoard(t *testing.T) {
 	ts.InvitesDB.CountReturns(3, nil)      // 3 invites
 	ts.DeniedKeysDB.CountReturns(2, nil)   // 2 banned
 
-	url, err := ts.Router.Get(router.AdminDashboard).URL()
-	a.Nil(err)
+	dashURL := ts.URLTo(router.AdminDashboard)
 
-	html, resp := ts.Client.GetHTML(url.String())
+	html, resp := ts.Client.GetHTML(dashURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	a.Equal("1", html.Find("#online-count").Text())

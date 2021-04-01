@@ -18,6 +18,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 // HTMLTemplates define the list of files the template system should load.
@@ -58,11 +59,11 @@ func Handler(
 	domainName string,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
+	fh *weberrors.FlashHelper,
 	dbs Databases,
 ) http.Handler {
 	mux := &http.ServeMux{}
 
-	// TODO: configure 404 handler
 	var dashboardHandler = dashboardHandler{
 		r:         r,
 		dbs:       dbs,
@@ -77,14 +78,18 @@ func Handler(
 	}))
 
 	var ah = aliasesHandler{
-		r:  r,
+		r:       r,
+		flashes: fh,
+
 		db: dbs.Aliases,
 	}
 	mux.HandleFunc("/aliases/revoke/confirm", r.HTML("admin/aliases-revoke-confirm.tmpl", ah.revokeConfirm))
 	mux.HandleFunc("/aliases/revoke", ah.revoke)
 
 	var dh = deniedKeysHandler{
-		r:  r,
+		r:       r,
+		flashes: fh,
+
 		db: dbs.DeniedKeys,
 	}
 	mux.HandleFunc("/denied", r.HTML("admin/denied-keys.tmpl", dh.overview))
@@ -93,7 +98,9 @@ func Handler(
 	mux.HandleFunc("/denied/remove", dh.remove)
 
 	var mh = membersHandler{
-		r:  r,
+		r:       r,
+		flashes: fh,
+
 		db: dbs.Members,
 	}
 	mux.HandleFunc("/member", r.HTML("admin/member.tmpl", mh.details))
@@ -104,7 +111,9 @@ func Handler(
 	mux.HandleFunc("/members/remove", mh.remove)
 
 	var ih = invitesHandler{
-		r:      r,
+		r:       r,
+		flashes: fh,
+
 		db:     dbs.Invites,
 		config: dbs.Config,
 
@@ -117,7 +126,9 @@ func Handler(
 	mux.HandleFunc("/invites/revoke", ih.revoke)
 
 	var nh = noticeHandler{
-		r:        r,
+		r:       r,
+		flashes: fh,
+
 		noticeDB: dbs.Notices,
 		pinnedDB: dbs.PinnedNotices,
 	}
@@ -125,6 +136,11 @@ func Handler(
 	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
 	mux.HandleFunc("/notice/translation/add", nh.addTranslation)
 	mux.HandleFunc("/notice/save", nh.save)
+
+	// path:/ matches everything that isn't registerd (ie. its the "Not Found handler")
+	mux.HandleFunc("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		r.Error(rw, req, 404, weberrors.ErrNotFound{What: req.URL.Path})
+	}))
 
 	return customStripPrefix("/admin", mux)
 }

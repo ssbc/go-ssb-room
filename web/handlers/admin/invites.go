@@ -17,7 +17,8 @@ import (
 )
 
 type invitesHandler struct {
-	r *render.Renderer
+	r       *render.Renderer
+	flashes *weberrors.FlashHelper
 
 	db     roomdb.InvitesService
 	config roomdb.RoomConfig
@@ -42,6 +43,10 @@ func (h invitesHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	}
 
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
 	return pageData, nil
 }
 

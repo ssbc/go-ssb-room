@@ -15,6 +15,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"go.mindeco.de/http/render"
 	"golang.org/x/text/language"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
@@ -116,16 +117,40 @@ func New(r repo.Interface) (*Helper, error) {
 	return &Helper{bundle: bundle}, nil
 }
 
+func (h Helper) GetRenderFuncs() []render.Option {
+	var opts = []render.Option{
+		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizePlurals
+		}),
+
+		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizeSimple
+		}),
+	}
+	return opts
+}
+
 type Localizer struct {
 	loc *i18n.Localizer
 }
 
-func (h Helper) NewLocalizer(lang string, accept ...string) *Localizer {
+func (h Helper) newLocalizer(lang string, accept ...string) *Localizer {
 	var langs = []string{lang}
 	langs = append(langs, accept...)
 	var l Localizer
 	l.loc = i18n.NewLocalizer(h.bundle, langs...)
 	return &l
+}
+
+// FromRequest returns a new Localizer for the passed helper,
+// using form value 'lang' and Accept-Language http header from the passed request.
+// TODO: user settings/cookie values?
+func (h Helper) FromRequest(r *http.Request) *Localizer {
+	lang := r.FormValue("lang")
+	accept := r.Header.Get("Accept-Language")
+	return h.newLocalizer(lang, accept)
 }
 
 func (l Localizer) LocalizeSimple(messageID string) string {
@@ -177,13 +202,4 @@ func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tp
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
-}
-
-// LocalizerFromRequest returns a new Localizer for the passed helper,
-// using form value 'lang' and Accept-Language http header from the passed request.
-// TODO: user settings/cookie values?
-func LocalizerFromRequest(helper *Helper, r *http.Request) *Localizer {
-	lang := r.FormValue("lang")
-	accept := r.Header.Get("Accept-Language")
-	return helper.NewLocalizer(lang, accept)
 }

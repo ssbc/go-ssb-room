@@ -32,23 +32,30 @@ func TestAliasResolve(t *testing.T) {
 	}
 	ts.AliasesDB.ResolveReturns(testAlias, nil)
 
+	// to construct the /alias/{name} url we need to bypass urlTo
+	// (which builds ?alias=name)
+	routes := router.CompleteApp()
+
 	// default is HTML
-	htmlURL, err := ts.Router.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
-	r.Nil(err)
+
+	htmlURL, err := routes.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
+	r.NoError(err)
+
 	t.Log("resolving", htmlURL.String())
-	html, resp := ts.Client.GetHTML(htmlURL.String())
+	html, resp := ts.Client.GetHTML(htmlURL)
 	a.Equal(http.StatusOK, resp.Code)
 
 	a.Equal(testAlias.Name, html.Find("title").Text())
 
-	// default is HTML
-	jsonURL, err := ts.Router.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
-	r.Nil(err)
+	// now as JSON
+	jsonURL, err := routes.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
+	r.NoError(err)
+
 	q := jsonURL.Query()
 	q.Set("encoding", "json")
 	jsonURL.RawQuery = q.Encode()
 	t.Log("resolving", jsonURL.String())
-	resp = ts.Client.GetBody(jsonURL.String())
+	resp = ts.Client.GetBody(jsonURL)
 	a.Equal(http.StatusOK, resp.Code)
 
 	var ar aliasJSONResponse
