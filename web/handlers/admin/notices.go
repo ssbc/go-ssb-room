@@ -19,6 +19,8 @@ import (
 type noticeHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	noticeDB roomdb.NoticesService
 	pinnedDB roomdb.PinnedNoticesService
 }

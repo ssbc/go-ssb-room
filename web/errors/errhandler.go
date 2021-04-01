@@ -31,6 +31,12 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 }
 
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
+	var redirectErr ErrRedirect
+	if errors.As(err, &redirectErr) {
+		http.Redirect(rw, req, redirectErr.Path, http.StatusTemporaryRedirect)
+		return
+	}
+
 	var ih = eh.locHelper.FromRequest(req)
 
 	code, msg := localizeError(ih, err)
@@ -74,6 +80,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, string) {
 	code := http.StatusInternalServerError
 
 	switch {
+
 	case err == ErrNotAuthorized:
 		code = http.StatusForbidden
 		msg = ih.LocalizeSimple("ErrorAuthBadLogin")

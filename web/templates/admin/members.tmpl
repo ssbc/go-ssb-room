@@ -7,9 +7,9 @@
   <p id="welcome" class="my-2">{{i18n "AdminMembersWelcome"}}</p>
 
 
-  {{if .Errors}}
-  <ul id="error-list">
-    {{range .Errors}}
+  {{if .Flashes}}
+  <ul id="flashes-list">
+    {{range .Flashes}}
       <li
         class="{{if eq .Kind 1}}text-red-600{{else}}text-green-600{{end}}"
       >

@@ -19,6 +19,8 @@ import (
 type invitesHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	db roomdb.InvitesService
 
 	domainName string

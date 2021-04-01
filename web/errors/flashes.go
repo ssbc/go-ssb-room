@@ -44,10 +44,10 @@ type FlashMessage struct {
 // TODO: rethink error return - maybe panic() / maybe render package?
 
 // AddMessage expects a i18n label, translates it and adds it as a FlashNotification
-func (fh FlashHelper) AddMessage(rw http.ResponseWriter, req *http.Request, label string) error {
+func (fh FlashHelper) AddMessage(rw http.ResponseWriter, req *http.Request, label string) {
 	session, err := fh.store.Get(req, flashSession)
 	if err != nil {
-		return err
+		panic(fmt.Errorf("flashHelper: failed to get session: %w", err))
 	}
 
 	ih := fh.locHelper.FromRequest(req)
@@ -57,14 +57,16 @@ func (fh FlashHelper) AddMessage(rw http.ResponseWriter, req *http.Request, labe
 		Message: ih.LocalizeSimple(label),
 	})
 
-	return session.Save(req, rw)
+	if err := session.Save(req, rw); err != nil {
+		panic(fmt.Errorf("flashHelper: failed to save session: %w", err))
+	}
 }
 
 // AddError adds a FlashError and translates the passed err using localizeError()
-func (fh FlashHelper) AddError(rw http.ResponseWriter, req *http.Request, err error) error {
+func (fh FlashHelper) AddError(rw http.ResponseWriter, req *http.Request, err error) {
 	session, getErr := fh.store.Get(req, flashSession)
 	if getErr != nil {
-		return getErr
+		panic(fmt.Errorf("flashHelper: failed to get session: %w", err))
 	}
 
 	ih := fh.locHelper.FromRequest(req)
@@ -75,8 +77,9 @@ func (fh FlashHelper) AddError(rw http.ResponseWriter, req *http.Request, err er
 		Kind:    FlashError,
 		Message: msg,
 	})
-
-	return session.Save(req, rw)
+	if err := session.Save(req, rw); err != nil {
+		panic(fmt.Errorf("flashHelper: failed to save session: %w", err))
+	}
 }
 
 // GetAll returns all the FlashMessages, emptys and updates the store

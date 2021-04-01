@@ -19,6 +19,8 @@ import (
 type deniedKeysHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	db roomdb.DeniedKeysService
 }
 
@@ -81,9 +83,6 @@ func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (
 	return pageData, nil
 }
 
-// TODO: move to render package so that we can decide to not render a page during the controller
-var ErrRedirected = errors.New("render: not rendered but redirected")
-
 func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
@@ -93,12 +92,8 @@ func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Reque
 
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, roomdb.ErrNotFound) {
-			// TODO "flash" errors
-			http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
-			return nil, ErrRedirected
-		}
-		return nil, err
+		h.flashes.AddError(rw, req, err)
+		return nil, weberrors.ErrRedirect{Path: redirectToDeniedKeys}
 	}
 
 	return map[string]interface{}{

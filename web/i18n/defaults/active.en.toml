@@ -68,7 +68,7 @@ AdminAliasesWelcome = "Here you can see and revoke the registered aliases of thi
 AdminAliasesRevoke = "Revoke"
 AdminAliasesRevokeConfirmTitle = "Revoke Alias"
 AdminAliasesRevokeConfirmWelcome = "Are you sure you want to revoke this alias?"
-
+AdminAliasRevoked = "Alias was revoked"
 
 # banned dashboard
 ##################

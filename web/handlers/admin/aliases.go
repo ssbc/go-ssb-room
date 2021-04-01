@@ -3,7 +3,6 @@
 package admin
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -19,6 +18,8 @@ import (
 // does light validation of the web arguments and passes them through to the roomdb.
 type aliasesHandler struct {
 	r *render.Renderer
+
+	flashes *weberrors.FlashHelper
 
 	db roomdb.AliasesService
 }
@@ -41,6 +42,11 @@ func (h aliasesHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 		return nil, err
 	}
 
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
+
 	return pageData, nil
 }
 
@@ -57,11 +63,8 @@ func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToAliases, http.StatusFound)
-			return nil, ErrRedirected
-		}
-		return nil, err
+		h.flashes.AddError(rw, req, err)
+		return nil, weberrors.ErrRedirect{Path: redirectToAliases}
 	}
 
 	return map[string]interface{}{
@@ -84,17 +87,12 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	status := http.StatusFound
+	status := http.StatusTemporaryRedirect
 	err = h.db.Revoke(req.Context(), req.FormValue("name"))
 	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
-			//  TODO: flash error
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
-		}
-		status = http.StatusNotFound
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
-		return
+		h.flashes.AddError(rw, req, err)
+	} else {
+		h.flashes.AddMessage(rw, req, "AdminAliasRevoked")
 	}
 
 	http.Redirect(rw, req, redirectToAliases, status)

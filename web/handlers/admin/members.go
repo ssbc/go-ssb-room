@@ -59,11 +59,7 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ferr := h.flashes.AddMessage(w, req, "AdminMemberAdded"); ferr != nil {
-		h.r.Error(w, req, http.StatusInternalServerError, ferr)
-		return
-	}
-
+	h.flashes.AddMessage(w, req, "AdminMemberAdded")
 	http.Redirect(w, req, redirectToMembers, http.StatusFound)
 }
 
@@ -107,11 +103,7 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if ferr := h.flashes.AddMessage(w, req, "AdminMemberUpdated"); ferr != nil {
-		h.r.Error(w, req, http.StatusInternalServerError, ferr)
-		return
-	}
-
+	h.flashes.AddMessage(w, req, "AdminMemberUpdated")
 	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 }
 
@@ -134,7 +126,7 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 
 	pageData["AllRoles"] = []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
 
-	pageData["Errors"], err = h.flashes.GetAll(rw, req)
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +144,8 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
-			return nil, ErrRedirected
+			h.flashes.AddError(rw, req, err)
+			return nil, weberrors.ErrRedirect{Path: redirectToMembers}
 		}
 		return nil, err
 	}
@@ -168,10 +160,7 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
-			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
-			return
-		}
+		h.flashes.AddError(rw, req, err)
 		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
@@ -179,25 +168,16 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
-		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
-			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
-			return
-		}
+		h.flashes.AddError(rw, req, err)
 		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
 	err = h.db.RemoveID(req.Context(), id)
 	if err != nil {
-		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
-			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
-			return
-		}
+		h.flashes.AddError(rw, req, err)
 	} else {
-		if ferr := h.flashes.AddMessage(rw, req, "AdminMemberRemoved"); ferr != nil {
-			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
-			return
-		}
+		h.flashes.AddMessage(rw, req, "AdminMemberRemoved")
 	}
 
 	http.Redirect(rw, req, redirectToMembers, http.StatusFound)

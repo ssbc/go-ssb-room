@@ -99,6 +99,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 func TestAliasesRevoke(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
+	// r := require.New(t)
 
 	urlTo := web.NewURLTo(ts.Router)
 	urlRevoke := urlTo(router.AdminAliasesRevoke)
@@ -107,7 +108,17 @@ func TestAliasesRevoke(t *testing.T) {
 
 	addVals := url.Values{"name": []string{"the-name"}}
 	rec := ts.Client.PostForm(urlRevoke.String(), addVals)
-	a.Equal(http.StatusFound, rec.Code)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	// doc, err := goquery.NewDocumentFromReader(rec.Body)
+	// r.NoError(err)
+	// TODO: rework redirect and cookie handling
+	// // check flash messages
+	// flashes := doc.Find("#flashes-list").Children()
+	// a.Equal(1, flashes.Length())
+	// a.Equal("", flashes.Text())
 
 	a.Equal(1, ts.AliasesDB.RevokeCallCount())
 	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
@@ -117,6 +128,17 @@ func TestAliasesRevoke(t *testing.T) {
 	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"name": []string{"nope"}}
 	rec = ts.Client.PostForm(urlRevoke.String(), addVals)
-	a.Equal(http.StatusNotFound, rec.Code)
-	//TODO: update redirect code with flash errors
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	// doc, err = goquery.NewDocumentFromReader(rec.Body)
+	// r.NoError(err)
+
+	// TODO: rework redirect and cookie handling
+
+	// check flash messages
+	// flashes = doc.Find("#flashes-list").Children()
+	// a.Equal(1, flashes.Length())
+	// a.Equal("", flashes.Text())
 }
