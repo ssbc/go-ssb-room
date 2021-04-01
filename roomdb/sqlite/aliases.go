@@ -64,7 +64,6 @@ func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
 
 	var aliases = make([]roomdb.Alias, len(all))
 	for i, entry := range all {
-
 		aliases[i] = roomdb.Alias{
 			ID:        entry.ID,
 			Name:      entry.Name,
