@@ -20,6 +20,8 @@ import (
 type membersHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	db roomdb.MembersService
 }
 
@@ -54,6 +56,11 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 			code = http.StatusBadRequest
 		}
 		h.r.Error(w, req, code, err)
+		return
+	}
+
+	if ferr := h.flashes.AddMessage(w, req, "AdminMemberAdded"); ferr != nil {
+		h.r.Error(w, req, http.StatusInternalServerError, ferr)
 		return
 	}
 
@@ -96,8 +103,12 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 
 	if err := h.db.SetRole(req.Context(), memberID, role); err != nil {
 		err = weberrors.DatabaseError{Reason: err}
-		// TODO: not found error
 		h.r.Error(w, req, http.StatusInternalServerError, err)
+		return
+	}
+
+	if ferr := h.flashes.AddMessage(w, req, "AdminMemberUpdated"); ferr != nil {
+		h.r.Error(w, req, http.StatusInternalServerError, ferr)
 		return
 	}
 
@@ -122,6 +133,11 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
 
 	pageData["AllRoles"] = []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
+
+	pageData["Errors"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
 
 	return pageData, nil
 }
@@ -152,7 +168,10 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		// TODO "flash" errors
+		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
+			return
+		}
 		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
@@ -160,21 +179,26 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
-		// TODO "flash" errors
+		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
+			return
+		}
 		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 		return
 	}
 
-	status := http.StatusFound
 	err = h.db.RemoveID(req.Context(), id)
 	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
-			// TODO "flash" errors
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
+		if ferr := h.flashes.AddError(rw, req, err); ferr != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
 			return
 		}
-		status = http.StatusNotFound
+	} else {
+		if ferr := h.flashes.AddMessage(rw, req, "AdminMemberRemoved"); ferr != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, ferr)
+			return
+		}
 	}
 
-	http.Redirect(rw, req, redirectToMembers, status)
+	http.Redirect(rw, req, redirectToMembers, http.StatusFound)
 }

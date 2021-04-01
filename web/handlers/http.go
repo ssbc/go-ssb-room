@@ -88,7 +88,6 @@ func New(
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(allTheTemplates...),
-		// render.ErrorTemplate(),
 		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(web.TemplateFuncs(m)),
 
@@ -97,6 +96,7 @@ func New(
 			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizePlurals
 		}),
+
 		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
 			loc := i18n.LocalizerFromRequest(locHelper, r)
 			return loc.LocalizeSimple
@@ -161,6 +161,8 @@ func New(
 			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
 		},
 	}
+
+	flashHelper := weberrs.NewFlashHelper(cookieStore, locHelper)
 
 	authWithPassword, err := auth.NewHandler(dbs.AuthFallback,
 		auth.SetStore(cookieStore),
@@ -228,6 +230,7 @@ func New(
 		netInfo.Domain,
 		r,
 		roomState,
+		flashHelper,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
 			DeniedKeys:    dbs.DeniedKeys,

@@ -18,6 +18,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 // HTMLTemplates define the list of files the template system should load.
@@ -57,6 +58,7 @@ func Handler(
 	domainName string,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
+	fh *weberrors.FlashHelper,
 	dbs Databases,
 ) http.Handler {
 	mux := &http.ServeMux{}
@@ -107,7 +109,10 @@ func Handler(
 	mux.HandleFunc("/denied/remove", dh.remove)
 
 	var mh = membersHandler{
-		r:  r,
+		r: r,
+
+		flashes: fh,
+
 		db: dbs.Members,
 	}
 	mux.HandleFunc("/members", r.HTML("admin/members.tmpl", mh.overview))

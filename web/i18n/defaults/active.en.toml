@@ -88,6 +88,9 @@ AdminMembersAdd = "Add"
 AdminMembersRemove = "Remove"
 AdminMembersRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
 AdminMembersRemoveConfirmTitle = "Confirm member removal"
+AdminMemberAdded = "Member added successfully."
+AdminMemberUpdated = "Member updated."
+AdminMemberRemoved = "Member removed."
 
 # invite dashboard
 ##################

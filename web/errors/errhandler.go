@@ -33,6 +33,33 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
 	var ih = i18n.LocalizerFromRequest(eh.locHelper, req)
 
+	code, msg := localizeError(ih, err)
+
+	data := errorTemplateData{
+		Err: template.HTML(msg),
+		// TODO: localize status codes? might be fine with a few
+		Status:     http.StatusText(code),
+		StatusCode: code,
+	}
+
+	renderErr := eh.render.Render(rw, req, "error.tmpl", code, data)
+	if renderErr != nil {
+		logger := logging.FromContext(req.Context())
+		level.Error(logger).Log("event", "error template renderfailed",
+			"orig-err", err,
+			"render-err", renderErr,
+		)
+	}
+}
+
+type errorTemplateData struct {
+	StatusCode int
+	Status     string
+	Err        template.HTML
+}
+
+func localizeError(ih *i18n.Localizer, err error) (int, string) {
+
 	// default, unlocalized message
 	msg := err.Error()
 
@@ -43,6 +70,8 @@ func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code i
 		br  ErrBadRequest
 		f   ErrForbidden
 	)
+
+	code := http.StatusInternalServerError
 
 	switch {
 	case err == ErrNotAuthorized:
@@ -83,25 +112,5 @@ func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code i
 		})
 	}
 
-	data := errorTemplateData{
-		Err: template.HTML(msg),
-		// TODO: localize status codes? might be fine with a few
-		Status:     http.StatusText(code),
-		StatusCode: code,
-	}
-
-	renderErr := eh.render.Render(rw, req, "error.tmpl", code, data)
-	if renderErr != nil {
-		logger := logging.FromContext(req.Context())
-		level.Error(logger).Log("event", "error template renderfailed",
-			"orig-err", err,
-			"render-err", renderErr,
-		)
-	}
-}
-
-type errorTemplateData struct {
-	StatusCode int
-	Status     string
-	Err        template.HTML
+	return code, msg
 }
