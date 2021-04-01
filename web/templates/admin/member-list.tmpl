@@ -6,6 +6,8 @@
 
   <p id="welcome" class="my-2">{{i18n "AdminMembersWelcome"}}</p>
 
+  {{ template "flashes" . }}
+
   <form
     id="add-entry"
     action="{{urlTo "admin:members:add"}}"

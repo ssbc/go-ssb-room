@@ -88,6 +88,7 @@ Settings = "Settings"
 AdminDeniedKeysTitle = "Banned"
 AdminDeniedKeysWelcome = "This page can be used to ban SSB IDs so that they can't access the room any more."
 AdminDeniedKeysAdd = "Add"
+AdminDeniedKeysAdded = "Key was added to the list."
 AdminDeniedKeysRemove = "Remove"
 AdminDeniedKeysComment = "Comment"
 AdminDeniedKeysCommentDescription = "The person who added this ban, added the following comment"
@@ -111,6 +112,10 @@ AdminMemberDetailsAliases = "Aliases"
 AdminMemberDetailsAliasRevoke = "Revoke"
 AdminMemberDetailsExclusion = "Exclusion from this room"
 AdminMemberDetailsRemove = "Remove member"
+
+AdminMemberAdded = "Member added successfully."
+AdminMemberUpdated = "Member updated."
+AdminMemberRemoved = "Member removed."
 
 # invite dashboard
 ##################

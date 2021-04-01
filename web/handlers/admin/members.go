@@ -22,6 +22,8 @@ import (
 type membersHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	db roomdb.MembersService
 }
 
@@ -44,22 +46,19 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
-		h.r.Error(w, req, http.StatusBadRequest, err)
+		h.flashes.AddError(w, req, err)
+		http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
 	_, err = h.db.Add(req.Context(), *newEntryParsed, roomdb.RoleMember)
 	if err != nil {
-		code := http.StatusInternalServerError
-		var aa roomdb.ErrAlreadyAdded
-		if errors.As(err, &aa) {
-			code = http.StatusBadRequest
-		}
-		h.r.Error(w, req, code, err)
-		return
+		h.flashes.AddError(w, req, err)
+	} else {
+		h.flashes.AddMessage(w, req, "AdminMemberAdded")
 	}
 
-	http.Redirect(w, req, redirectToMembers, http.StatusFound)
+	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 }
 
 func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
@@ -98,10 +97,11 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 
 	if err := h.db.SetRole(req.Context(), memberID, role); err != nil {
 		err = weberrors.DatabaseError{Reason: err}
-		// TODO: not found error
 		h.r.Error(w, req, http.StatusInternalServerError, err)
 		return
 	}
+
+	h.flashes.AddMessage(w, req, "AdminMemberUpdated")
 
 	urlTo := web.NewURLTo(router.CompleteApp())
 	memberDetailsURL := urlTo(router.AdminMemberDetails, "id", memberID).String()
@@ -126,6 +126,11 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
 
 	pageData["AllRoles"] = []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
+
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
 
 	return pageData, nil
 }
@@ -162,8 +167,8 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToMembers, http.StatusFound)
-			return nil, ErrRedirected
+			h.flashes.AddError(rw, req, err)
+			return nil, weberrors.ErrRedirect{Path: redirectToMembers}
 		}
 		return nil, err
 	}
@@ -175,32 +180,32 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 }
 
 func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
+	if req.Method != "POST" {
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(rw, req, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := req.ParseForm(); err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		h.r.Error(rw, req, http.StatusBadRequest, err)
 		return
 	}
 
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
-	status := http.StatusFound
 	err = h.db.RemoveID(req.Context(), id)
 	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
-			// TODO "flash" errors
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
-		}
-		status = http.StatusNotFound
+		h.flashes.AddError(rw, req, err)
+	} else {
+		h.flashes.AddMessage(rw, req, "AdminMemberRemoved")
 	}
 
-	http.Redirect(rw, req, redirectToMembers, status)
+	http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 }

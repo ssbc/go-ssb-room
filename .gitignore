@@ -9,6 +9,7 @@ cmd/insert-user/insert-user
 muxrpc/test/go/testrun
 muxrpc/test/nodejs/testrun
 web/handlers/testrun
+web/handlers/admin/testrun
 roomdb/sqlite/testrun
 
 # build artifacts from node.js project web/styles
