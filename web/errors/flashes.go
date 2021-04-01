@@ -50,7 +50,7 @@ func (fh FlashHelper) AddMessage(rw http.ResponseWriter, req *http.Request, labe
 		return err
 	}
 
-	ih := i18n.LocalizerFromRequest(fh.locHelper, req)
+	ih := fh.locHelper.FromRequest(req)
 
 	session.AddFlash(FlashMessage{
 		Kind:    FlashNotification,
@@ -67,7 +67,7 @@ func (fh FlashHelper) AddError(rw http.ResponseWriter, req *http.Request, err er
 		return getErr
 	}
 
-	ih := i18n.LocalizerFromRequest(fh.locHelper, req)
+	ih := fh.locHelper.FromRequest(req)
 
 	_, msg := localizeError(ih, err)
 

@@ -84,23 +84,12 @@ func New(
 	)
 	allTheTemplates = append(allTheTemplates, "error.tmpl")
 
-	r, err := render.New(web.Templates,
+	renderOpts := []render.Option{
 		render.SetLogger(logger),
 		render.BaseTemplates("base.tmpl", "menu.tmpl"),
 		render.AddTemplates(allTheTemplates...),
 		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(web.TemplateFuncs(m)),
-
-		// TODO: move these to the i18n helper pkg
-		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
-			loc := i18n.LocalizerFromRequest(locHelper, r)
-			return loc.LocalizePlurals
-		}),
-
-		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
-			loc := i18n.LocalizerFromRequest(locHelper, r)
-			return loc.LocalizeSimple
-		}),
 
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
@@ -143,7 +132,10 @@ func New(
 		}),
 
 		render.InjectTemplateFunc("is_logged_in", members.TemplateHelper()),
-	)
+	}
+	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
+
+	r, err := render.New(web.Templates, renderOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("web Handler: failed to create renderer: %w", err)
 	}

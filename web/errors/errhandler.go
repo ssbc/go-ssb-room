@@ -31,7 +31,7 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 }
 
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
-	var ih = i18n.LocalizerFromRequest(eh.locHelper, req)
+	var ih = eh.locHelper.FromRequest(req)
 
 	code, msg := localizeError(ih, err)
 

@@ -66,6 +66,9 @@ AdminDashboardWelcome = "Welcome to your dashboard"
 AdminAliasesTitle = "Aliases"
 AdminAliasesWelcome = "Here you can see and revoke the registered aliases of this room."
 AdminAliasesRevoke = "Revoke"
+AdminAliasesRevokeConfirmTitle = "Revoke Alias"
+AdminAliasesRevokeConfirmWelcome = "Are you sure you want to revoke this alias?"
+
 
 # banned dashboard
 ##################
