@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/friendsofgo/errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"golang.org/x/crypto/bcrypt"
@@ -31,6 +32,9 @@ func (af AuthFallback) Check(login, password string) (interface{}, error) {
 		qm.Where("login = ?", login),
 	).One(ctx, af.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return found, roomdb.ErrNotFound
+		}
 		return nil, err
 	}
 
