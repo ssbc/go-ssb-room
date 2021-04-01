@@ -318,6 +318,7 @@ func New(
 
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
+		logging.RecoveryHandler(),
 		logging.InjectHandler(logger),
 		members.ContextInjecter(dbs.Members, authWithPassword, authWithSSB),
 		CSRF,
