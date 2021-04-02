@@ -6,11 +6,11 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/gorilla/mux"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
@@ -21,6 +21,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n/i18ntesting"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	refs "go.mindeco.de/ssb-refs"
@@ -29,7 +30,7 @@ import (
 type testSession struct {
 	Mux    *http.ServeMux
 	Client *tester.Tester
-	Router *mux.Router
+	URLTo  web.URLMaker
 
 	// mocked dbs
 	AuthDB         *mockdb.FakeAuthWithSSBService
@@ -93,7 +94,18 @@ func setup(t *testing.T) *testSession {
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
 
-	ts.Router = router.CompleteApp()
+	// instantiate the urlTo helper (constructs urls for us!)
+	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
+	urlTo := web.NewURLTo(router.CompleteApp())
+	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
+		testURL := urlTo(name, vals...)
+		if testURL == nil {
+			t.Fatalf("no URL for %s", name)
+		}
+		testURL.Host = ts.NetworkInfo.Domain
+		testURL.Scheme = "https" // fake
+		return testURL
+	}
 
 	ts.SignalBridge = signinwithssb.NewSignalBridge()
 

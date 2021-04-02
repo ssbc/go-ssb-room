@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
@@ -25,22 +24,18 @@ import (
 func TestInviteShowAcceptForm(t *testing.T) {
 	ts := setup(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-
 	t.Run("token doesnt exist", func(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "nonexistant-test-token"
-		acceptURL404 := urlTo(router.CompleteInviteFacade, "token", testToken)
+		acceptURL404 := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(acceptURL404)
 
 		// prep the mocked db for http:404
 		ts.InvitesDB.GetByTokenReturns(roomdb.Invite{}, roomdb.ErrNotFound)
 
 		// request the form
-		acceptForm := acceptURL404.String()
-		t.Log(acceptForm)
-		doc, resp := ts.Client.GetHTML(acceptForm)
+		doc, resp := ts.Client.GetHTML(acceptURL404)
 		// 500 until https://github.com/ssb-ngi-pointer/go-ssb-room/issues/66 is fixed
 		a.Equal(http.StatusInternalServerError, resp.Code)
 
@@ -65,7 +60,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "existing-test-token"
-		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+		validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(validAcceptURL)
 
 		// prep the mocked db for http:200
@@ -73,9 +68,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		ts.InvitesDB.GetByTokenReturns(fakeExistingInvite, nil)
 
 		// request the form
-		validAcceptForm := validAcceptURL.String()
-		t.Log(validAcceptForm)
-		doc, resp := ts.Client.GetHTML(validAcceptForm)
+		doc, resp := ts.Client.GetHTML(validAcceptURL)
 		a.Equal(http.StatusOK, resp.Code)
 
 		// check database calls
@@ -103,16 +96,14 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "existing-test-token-2"
-		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+		validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
 		r.NotNil(validAcceptURL)
 
 		testInvite := roomdb.Invite{ID: 4321}
 		ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
 		// request the form
-		validAcceptForm := validAcceptURL.String()
-		t.Log(validAcceptForm)
-		doc, resp := ts.Client.GetHTML(validAcceptForm)
+		doc, resp := ts.Client.GetHTML(validAcceptURL)
 		a.Equal(http.StatusOK, resp.Code)
 
 		// check database calls
@@ -139,10 +130,9 @@ func TestInviteShowAcceptForm(t *testing.T) {
 func TestInviteConsumeInviteHTTP(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
-	urlTo := web.NewURLTo(ts.Router)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+	validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
 	r.NotNil(validAcceptURL)
 	validAcceptURL.Host = "localhost"
 	validAcceptURL.Scheme = "https"
@@ -151,9 +141,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
 	// request the form (for a valid csrf token)
-	validAcceptForm := validAcceptURL.String()
-	t.Log(validAcceptForm)
-	doc, resp := ts.Client.GetHTML(validAcceptForm)
+	doc, resp := ts.Client.GetHTML(validAcceptURL)
 	a.Equal(http.StatusOK, resp.Code)
 
 	// we need a functional jar to unpack the Set-Cookie response for the csrf token
@@ -186,10 +174,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	}
 
 	// construct the consume endpoint url
-	consumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
-	r.Nil(err)
-	consumeInviteURL.Host = "localhost"
-	consumeInviteURL.Scheme = "https"
+	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
 
 	// construct the header with Referer and Cookie
 	var csrfCookieHeader = http.Header(map[string][]string{})
@@ -205,7 +190,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	ts.InvitesDB.ConsumeReturns(testInvite, nil)
 
 	// send the POST
-	resp = ts.Client.PostForm(consumeInviteURL.String(), consumeVals)
+	resp = ts.Client.PostForm(consumeInviteURL, consumeVals)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for sign in")
 
 	// check how consume was called
@@ -239,11 +224,8 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 func TestInviteConsumeInviteJSON(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
-	urlTo := web.NewURLTo(ts.Router)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
-	r.NotNil(validAcceptURL)
 
 	testInvite := roomdb.Invite{ID: 4321}
 	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
@@ -259,14 +241,14 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	consume.ID = testNewMember
 
 	// construct the consume endpoint url
-	consumeInviteURL := urlTo(router.CompleteInviteConsume)
+	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
 	r.NotNil(consumeInviteURL)
 
 	// prepare the mock
 	ts.InvitesDB.ConsumeReturns(testInvite, nil)
 
 	// send the POST
-	resp := ts.Client.SendJSON(consumeInviteURL.String(), consume)
+	resp := ts.Client.SendJSON(consumeInviteURL, consume)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for sign in")
 
 	// check how consume was called

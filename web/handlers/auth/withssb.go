@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"html/template"
 	"image/color"
@@ -222,9 +223,8 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 
 			_, err := h.membersdb.GetByFeed(req.Context(), *cid)
 			if err != nil {
-				if err == roomdb.ErrNotFound {
-					errMsg := fmt.Errorf("ssb http auth: client isn't a member: %w", err)
-					h.render.Error(w, req, http.StatusForbidden, errMsg)
+				if errors.Is(err, roomdb.ErrNotFound) {
+					h.render.Error(w, req, http.StatusForbidden, weberrors.ErrForbidden{Details: err})
 					return
 				}
 				h.render.Error(w, req, http.StatusInternalServerError, err)
@@ -271,11 +271,11 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 	// check that we have that member
 	member, err := h.membersdb.GetByFeed(req.Context(), client)
 	if err != nil {
-		errMsg := fmt.Errorf("ssb http auth: client isn't a member: %w", err)
-		if err == roomdb.ErrNotFound {
+		if errors.Is(err, roomdb.ErrNotFound) {
+			errMsg := fmt.Errorf("ssb http auth: client isn't a member: %w", err)
 			return weberrors.ErrForbidden{Details: errMsg}
 		}
-		return errMsg
+		return err
 	}
 	payload.ClientID = client
 

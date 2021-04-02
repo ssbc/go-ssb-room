@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +24,8 @@ func TestNoticeSmokeTest(t *testing.T) {
 
 	ts.NoticeDB.GetByIDReturns(noticeData, nil)
 
-	html, res := ts.Client.GetHTML("/notice/show?id=1")
+	noticeURL := ts.URLTo(router.CompleteNoticeShow, "id", "1")
+	html, res := ts.Client.GetHTML(noticeURL)
 	a.Equal(http.StatusOK, res.Code, "wrong HTTP status code")
 	a.Equal("Welcome!", html.Find("title").Text())
 }
@@ -47,7 +47,8 @@ Hello world!
 
 	ts.NoticeDB.GetByIDReturns(noticeData, nil)
 
-	html, res := ts.Client.GetHTML("/notice/show?id=1")
+	noticeURL := ts.URLTo(router.CompleteNoticeShow, "id", "1")
+	html, res := ts.Client.GetHTML(noticeURL)
 	a.Equal(http.StatusOK, res.Code, "wrong HTTP status code")
 	a.Equal("Welcome!", html.Find("title").Text())
 	a.Equal("The loveliest of rooms is here", html.Find("h2").Text())
@@ -59,8 +60,6 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-
 	ts.AliasesDB.ResolveReturns(roomdb.Alias{}, roomdb.ErrNotFound)
 
 	noticeData := roomdb.Notice{
@@ -71,12 +70,11 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts.NoticeDB.GetByIDReturns(noticeData, nil)
 
 	// first, we confirm that the button is missing when not logged in
-	noticeURL := urlTo(router.CompleteNoticeShow, "id", 42)
-	noticeURL.Host = "localhost"
-	noticeURL.Scheme = "https"
+	noticeURL := ts.URLTo(router.CompleteNoticeShow, "id", 42)
+
 	editButtonSelector := `#edit-notice`
 
-	doc, resp := ts.Client.GetHTML(noticeURL.String())
+	doc, resp := ts.Client.GetHTML(noticeURL)
 	a.Equal(http.StatusOK, resp.Code)
 
 	// empty selection <=> we have no link
@@ -91,12 +89,9 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	// when dealing with cookies we also need to have an Host and URL-Scheme
 	// for the jar to save and load them correctly
-	formEndpoint := urlTo(router.AuthFallbackLogin)
-	r.NotNil(formEndpoint)
-	formEndpoint.Host = "localhost"
-	formEndpoint.Scheme = "https"
+	formEndpoint := ts.URLTo(router.AuthFallbackLogin)
 
-	doc, resp = ts.Client.GetHTML(formEndpoint.String())
+	doc, resp = ts.Client.GetHTML(formEndpoint)
 	a.Equal(http.StatusOK, resp.Code)
 
 	csrfCookie := resp.Result().Cookies()
@@ -125,10 +120,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
 	ts.MembersDB.GetByIDReturns(testUser, nil)
 
-	postEndpoint, err := ts.Router.Get(router.AuthFallbackFinalize).URL()
-	r.Nil(err)
-	postEndpoint.Host = "localhost"
-	postEndpoint.Scheme = "https"
+	postEndpoint := ts.URLTo(router.AuthFallbackFinalize)
 
 	// construct HTTP Header with Referer and Cookie
 	var csrfCookieHeader = http.Header(map[string][]string{})
@@ -140,7 +132,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	csrfCookieHeader.Set("Cookie", theCookie)
 	ts.Client.SetHeaders(csrfCookieHeader)
 
-	resp = ts.Client.PostForm(postEndpoint.String(), loginVals)
+	resp = ts.Client.PostForm(postEndpoint, loginVals)
 	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
 
 	sessionCookie := resp.Result().Cookies()
@@ -162,7 +154,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 
 	cnt := ts.MembersDB.GetByIDCallCount()
 	// now we are logged in, anchor tag should be there
-	doc, resp = ts.Client.GetHTML(noticeURL.String())
+	doc, resp = ts.Client.GetHTML(noticeURL)
 	a.Equal(http.StatusOK, resp.Code)
 	a.Equal(cnt+1, ts.MembersDB.GetByIDCallCount())
 
