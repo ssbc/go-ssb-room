@@ -28,7 +28,9 @@ func TestInvitesOverview(t *testing.T) {
 	}
 	ts.InvitesDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/invites")
+	invitesOverviewURL := ts.URLTo(router.AdminInvitesOverview)
+
+	html, resp := ts.Client.GetHTML(invitesOverviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -46,7 +48,7 @@ func TestInvitesOverview(t *testing.T) {
 	}
 	ts.InvitesDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/invites")
+	html, resp = ts.Client.GetHTML(invitesOverviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -68,10 +70,9 @@ func TestInvitesCreateForm(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	url, err := ts.Router.Get(router.AdminInvitesOverview).URL()
-	a.Nil(err)
+	overviewURL := ts.URLTo(router.AdminInvitesOverview)
 
-	html, resp := ts.Client.GetHTML(url.String())
+	html, resp := ts.Client.GetHTML(overviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -89,10 +90,8 @@ func TestInvitesCreateForm(t *testing.T) {
 	action, ok := formSelection.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminInvitesCreate).URL()
-	a.NoError(err)
-
-	a.Equal(addURL.String(), action)
+	addURL := ts.URLTo(router.AdminInvitesCreate)
+	a.Equal(addURL.Path, action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "alias_suggestion", Type: "text"},
@@ -110,7 +109,7 @@ func TestInvitesCreate(t *testing.T) {
 	testInvite := "your-fake-test-invite"
 	ts.InvitesDB.CreateReturns(testInvite, nil)
 
-	rec := ts.Client.PostForm(urlRemove.String(), url.Values{})
+	rec := ts.Client.PostForm(urlRemove, url.Values{})
 	a.Equal(http.StatusOK, rec.Code)
 
 	r.Equal(1, ts.InvitesDB.CreateCallCount(), "expected one invites.Create call")

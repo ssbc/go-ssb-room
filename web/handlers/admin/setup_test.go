@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,9 +34,13 @@ import (
 )
 
 type testSession struct {
+	Domain string
 	Mux    *http.ServeMux
+
 	Client *tester.Tester
+
 	Router *mux.Router
+	URLTo  web.URLMaker
 
 	AliasesDB    *mockdb.FakeAliasesService
 	DeniedKeysDB *mockdb.FakeDeniedKeysService
@@ -45,8 +50,6 @@ type testSession struct {
 	PinnedDB     *mockdb.FakePinnedNoticesService
 
 	User roomdb.Member
-
-	Domain string
 
 	RoomState *roomstate.Manager
 }
@@ -66,9 +69,22 @@ func newSession(t *testing.T) *testSession {
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
 
+	ts.Domain = randutil.String(10)
+
 	ts.Router = router.CompleteApp()
 
-	ts.Domain = randutil.String(10)
+	// instantiate the urlTo helper (constructs urls for us!)
+	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
+	urlTo := web.NewURLTo(ts.Router)
+	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
+		testURL := urlTo(name, vals...)
+		if testURL == nil {
+			t.Fatalf("no URL for %s", name)
+		}
+		testURL.Host = ts.Domain
+		testURL.Scheme = "https" // fake
+		return testURL
+	}
 
 	// fake user
 	ts.User = roomdb.Member{
@@ -109,7 +125,7 @@ func newSession(t *testing.T) *testSession {
 
 	renderOpts := []render.Option{
 		render.SetLogger(log),
-		render.BaseTemplates("base.tmpl", "menu.tmpl"),
+		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "error.tmpl")...),
 		render.ErrorTemplate("error.tmpl"),
 		render.FuncMap(testFuncs),

@@ -83,7 +83,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, string) {
 
 	case err == ErrNotAuthorized:
 		code = http.StatusForbidden
-		msg = ih.LocalizeSimple("ErrorAuthBadLogin")
+		msg = ih.LocalizeSimple("ErrorNotAuthorized")
 
 	case err == auth.ErrBadLogin:
 		msg = ih.LocalizeSimple("ErrorAuthBadLogin")

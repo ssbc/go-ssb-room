@@ -82,11 +82,10 @@ func New(
 		roomsAuth.HTMLTemplates,
 		admin.HTMLTemplates,
 	)
-	allTheTemplates = append(allTheTemplates, "error.tmpl")
 
 	renderOpts := []render.Option{
 		render.SetLogger(logger),
-		render.BaseTemplates("base.tmpl", "menu.tmpl"),
+		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(allTheTemplates...),
 		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(web.TemplateFuncs(m)),

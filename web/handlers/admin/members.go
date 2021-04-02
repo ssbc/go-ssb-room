@@ -44,23 +44,19 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
-		h.r.Error(w, req, http.StatusBadRequest, err)
+		h.flashes.AddError(w, req, err)
+		http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
 	_, err = h.db.Add(req.Context(), *newEntryParsed, roomdb.RoleMember)
 	if err != nil {
-		code := http.StatusInternalServerError
-		var aa roomdb.ErrAlreadyAdded
-		if errors.As(err, &aa) {
-			code = http.StatusBadRequest
-		}
-		h.r.Error(w, req, code, err)
-		return
+		h.flashes.AddError(w, req, err)
+	} else {
+		h.flashes.AddMessage(w, req, "AdminMemberAdded")
 	}
 
-	h.flashes.AddMessage(w, req, "AdminMemberAdded")
-	http.Redirect(w, req, redirectToMembers, http.StatusFound)
+	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 }
 
 func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
@@ -157,11 +153,15 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 }
 
 func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
+	if req.Method != "POST" {
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(rw, req, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := req.ParseForm(); err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		h.r.Error(rw, req, http.StatusBadRequest, err)
 		return
 	}
 
@@ -169,7 +169,7 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+		http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -180,5 +180,5 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 		h.flashes.AddMessage(rw, req, "AdminMemberRemoved")
 	}
 
-	http.Redirect(rw, req, redirectToMembers, http.StatusFound)
+	http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 }

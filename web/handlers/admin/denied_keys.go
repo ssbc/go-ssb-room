@@ -42,7 +42,8 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
-		h.r.Error(w, req, http.StatusBadRequest, err)
+		h.flashes.AddError(w, req, err)
+		http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -51,16 +52,12 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 
 	err = h.db.Add(req.Context(), *newEntryParsed, comment)
 	if err != nil {
-		code := http.StatusInternalServerError
-		var aa roomdb.ErrAlreadyAdded
-		if errors.As(err, &aa) {
-			code = http.StatusBadRequest
-		}
-		h.r.Error(w, req, code, err)
-		return
+		h.flashes.AddError(w, req, err)
+	} else {
+		h.flashes.AddMessage(w, req, "AdminDeniedKeysAdded")
 	}
 
-	http.Redirect(w, req, redirectToDeniedKeys, http.StatusFound)
+	http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 }
 
 func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -79,6 +76,10 @@ func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (
 	}
 
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
 
 	return pageData, nil
 }
@@ -107,7 +108,7 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -115,7 +116,7 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 

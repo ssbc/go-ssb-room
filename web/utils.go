@@ -34,12 +34,14 @@ func TemplateFuncs(m *mux.Router) template.FuncMap {
 	}
 }
 
+type URLMaker func(string, ...interface{}) *url.URL
+
 // NewURLTo returns a template helper function for a router.
 // It is usually called with one parameter, the route name, which should be defined in the router package.
 // If it's called with more then one, it has a to be a pair of two values. (1, 3, 5, 7, etc.)
 // The first value of such a pair is the placeholder name in the router (i.e. in '/our/routes/{id:[0-9]+}/test' it would be id )
 // and the 2nd value is the actual value that should be put in place of the placeholder.
-func NewURLTo(appRouter *mux.Router) func(string, ...interface{}) *url.URL {
+func NewURLTo(appRouter *mux.Router) URLMaker {
 	l := logging.Logger("helper.URLTo") // TOOD: inject in a scoped way
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)

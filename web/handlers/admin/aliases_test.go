@@ -26,7 +26,9 @@ func TestAliasesOverview(t *testing.T) {
 	}
 	ts.AliasesDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/aliases")
+	overviewURL := ts.URLTo(router.AdminAliasesOverview)
+
+	html, resp := ts.Client.GetHTML(overviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -42,7 +44,7 @@ func TestAliasesOverview(t *testing.T) {
 	}
 	ts.AliasesDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/aliases")
+	html, resp = ts.Client.GetHTML(overviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -72,7 +74,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 	urlRevokeConfirm := urlTo(router.AdminAliasesRevokeConfirm, "id", 3)
 
-	html, resp := ts.Client.GetHTML(urlRevokeConfirm.String())
+	html, resp := ts.Client.GetHTML(urlRevokeConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
@@ -107,7 +109,7 @@ func TestAliasesRevoke(t *testing.T) {
 	ts.AliasesDB.RevokeReturns(nil)
 
 	addVals := url.Values{"name": []string{"the-name"}}
-	rec := ts.Client.PostForm(urlRevoke.String(), addVals)
+	rec := ts.Client.PostForm(urlRevoke, addVals)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
@@ -127,7 +129,7 @@ func TestAliasesRevoke(t *testing.T) {
 	// now for unknown ID
 	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"name": []string{"nope"}}
-	rec = ts.Client.PostForm(urlRevoke.String(), addVals)
+	rec = ts.Client.PostForm(urlRevoke, addVals)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
