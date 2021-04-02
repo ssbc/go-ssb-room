@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -158,8 +157,7 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 	testEntry := roomdb.Member{ID: 666, PubKey: *testKey}
 	ts.MembersDB.GetByIDReturns(testEntry, nil)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRemoveConfirm := urlTo(router.AdminMembersRemoveConfirm, "id", 3)
+	urlRemoveConfirm := ts.URLTo(router.AdminMembersRemoveConfirm, "id", 3)
 
 	html, resp := ts.Client.GetHTML(urlRemoveConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")

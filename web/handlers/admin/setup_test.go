@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
 	"go.mindeco.de/http/render"
@@ -39,8 +38,7 @@ type testSession struct {
 
 	Client *tester.Tester
 
-	Router *mux.Router
-	URLTo  web.URLMaker
+	URLTo web.URLMaker
 
 	AliasesDB    *mockdb.FakeAliasesService
 	DeniedKeysDB *mockdb.FakeDeniedKeysService
@@ -71,11 +69,10 @@ func newSession(t *testing.T) *testSession {
 
 	ts.Domain = randutil.String(10)
 
-	ts.Router = router.CompleteApp()
-
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
-	urlTo := web.NewURLTo(ts.Router)
+	router := router.CompleteApp()
+	urlTo := web.NewURLTo(router)
 	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
 		testURL := urlTo(name, vals...)
 		if testURL == nil {
@@ -117,7 +114,7 @@ func newSession(t *testing.T) *testSession {
 	// setup rendering
 
 	// TODO: make testing utils and move these there
-	testFuncs := web.TemplateFuncs(ts.Router)
+	testFuncs := web.TemplateFuncs(router)
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
 	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }

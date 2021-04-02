@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 )
@@ -103,8 +102,7 @@ func TestInvitesCreate(t *testing.T) {
 	a := assert.New(t)
 	r := require.New(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRemove := urlTo(router.AdminInvitesCreate)
+	urlRemove := ts.URLTo(router.AdminInvitesCreate)
 
 	testInvite := "your-fake-test-invite"
 	ts.InvitesDB.CreateReturns(testInvite, nil)
@@ -124,9 +122,7 @@ func TestInvitesCreate(t *testing.T) {
 		{"#welcome", "AdminInviteCreatedWelcome"},
 	})
 
-	wantURL := urlTo(router.CompleteInviteFacade, "token", testInvite)
-	wantURL.Host = ts.Domain
-	wantURL.Scheme = "https"
+	wantURL := ts.URLTo(router.CompleteInviteFacade, "token", testInvite)
 
 	shownLink := doc.Find("#invite-facade-link").Text()
 	a.Equal(wantURL.String(), shownLink)

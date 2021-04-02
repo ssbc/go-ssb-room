@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -71,8 +70,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	testEntry := roomdb.Alias{ID: 666, Name: "the-test-name", Feed: *testKey}
 	ts.AliasesDB.GetByIDReturns(testEntry, nil)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRevokeConfirm := urlTo(router.AdminAliasesRevokeConfirm, "id", 3)
+	urlRevokeConfirm := ts.URLTo(router.AdminAliasesRevokeConfirm, "id", 3)
 
 	html, resp := ts.Client.GetHTML(urlRevokeConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
@@ -88,10 +86,8 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	action, ok := form.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAliasesRevoke).URL()
-	a.NoError(err)
-
-	a.Equal(addURL.String(), action)
+	addURL := ts.URLTo(router.AdminAliasesRevoke)
+	a.Equal(addURL.Path, action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "name", Type: "hidden", Value: testEntry.Name},
@@ -101,26 +97,24 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 func TestAliasesRevoke(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// r := require.New(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRevoke := urlTo(router.AdminAliasesRevoke)
+	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
+	overviewURL := ts.URLTo(router.AdminAliasesOverview)
 
 	ts.AliasesDB.RevokeReturns(nil)
 
 	addVals := url.Values{"name": []string{"the-name"}}
 	rec := ts.Client.PostForm(urlRevoke, addVals)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
-	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
+	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
-	// doc, err := goquery.NewDocumentFromReader(rec.Body)
-	// r.NoError(err)
-	// TODO: rework redirect and cookie handling
-	// // check flash messages
-	// flashes := doc.Find("#flashes-list").Children()
-	// a.Equal(1, flashes.Length())
-	// a.Equal("", flashes.Text())
+	// check flash messages
+	doc, resp := ts.Client.GetHTML(overviewURL)
+	a.Equal(http.StatusOK, resp.Code)
+	flashes := doc.Find("#flashes-list").Children()
+	a.Equal(1, flashes.Length())
+	a.Equal("AdminAliasRevoked", flashes.Text())
 
 	a.Equal(1, ts.AliasesDB.RevokeCallCount())
 	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
@@ -131,16 +125,13 @@ func TestAliasesRevoke(t *testing.T) {
 	addVals = url.Values{"name": []string{"nope"}}
 	rec = ts.Client.PostForm(urlRevoke, addVals)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
-	a.Equal(urlTo(router.AdminAliasesOverview).Path, rec.Header().Get("Location"))
+	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
-	// doc, err = goquery.NewDocumentFromReader(rec.Body)
-	// r.NoError(err)
-
-	// TODO: rework redirect and cookie handling
-
 	// check flash messages
-	// flashes = doc.Find("#flashes-list").Children()
-	// a.Equal(1, flashes.Length())
-	// a.Equal("", flashes.Text())
+	doc, resp = ts.Client.GetHTML(overviewURL)
+	a.Equal(http.StatusOK, resp.Code)
+	flashes = doc.Find("#flashes-list").Children()
+	a.Equal(1, flashes.Length())
+	a.Equal("ErrorNotFound", flashes.Text())
 }
