@@ -35,7 +35,12 @@ func (f ErrForbidden) Error() string {
 }
 
 // ErrRedirect decide to not render a page during the controller
-type ErrRedirect struct{ Path string }
+type ErrRedirect struct {
+	Path string
+
+	// reason will be added as a flash error
+	Reason error
+}
 
 func (err ErrRedirect) Error() string {
 	return fmt.Sprintf("rooms/web: redirecting to: %s", err.Path)

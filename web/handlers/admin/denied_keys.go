@@ -93,8 +93,10 @@ func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Reque
 
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		h.flashes.AddError(rw, req, err)
-		return nil, weberrors.ErrRedirect{Path: redirectToDeniedKeys}
+		return nil, weberrors.ErrRedirect{
+			Path:   redirectToDeniedKeys,
+			Reason: err,
+		}
 	}
 
 	return map[string]interface{}{

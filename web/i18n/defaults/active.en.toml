@@ -26,7 +26,7 @@ NavAdminInvites = "Invites"
 NavAdminNotices = "Notices"
 
 # Error messages
-ErrorAuthBadLogin = "The supplied authentication credentials seem wrong."
+ErrorAuthBadLogin = "The supplied authentication credentials (username or password) are incorrect."
 ErrorNotFound = "The database couldn't find the item in question."
 ErrorAlreadyAdded = "The public key <strong>{{.Key}}</strong> already is on the list"
 ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."

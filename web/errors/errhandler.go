@@ -17,11 +17,13 @@ import (
 type ErrorHandler struct {
 	locHelper *i18n.Helper
 	render    *render.Renderer
+	flashes   *FlashHelper
 }
 
-func NewErrorHandler(locHelper *i18n.Helper) *ErrorHandler {
+func NewErrorHandler(locHelper *i18n.Helper, flashes *FlashHelper) *ErrorHandler {
 	return &ErrorHandler{
 		locHelper: locHelper,
+		flashes:   flashes,
 	}
 }
 
@@ -33,7 +35,9 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
 	var redirectErr ErrRedirect
 	if errors.As(err, &redirectErr) {
-		http.Redirect(rw, req, redirectErr.Path, http.StatusTemporaryRedirect)
+		eh.flashes.AddError(rw, req, redirectErr.Reason)
+		// redirecting
+		http.Redirect(rw, req, redirectErr.Path, http.StatusSeeOther)
 		return
 	}
 

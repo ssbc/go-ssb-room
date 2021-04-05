@@ -10,10 +10,12 @@ import (
 	"github.com/friendsofgo/errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"go.mindeco.de/http/auth"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -23,9 +25,15 @@ type AuthFallback struct {
 	db *sql.DB
 }
 
+var redirectPasswordAuthErr = weberrors.ErrRedirect{
+	Path:   "/fallback/login",
+	Reason: auth.ErrBadLogin,
+}
+
 // Check receives the username and password (in clear) and checks them accordingly.
 // If it's a valid combination it returns the user ID, or an error if they are not.
 func (af AuthFallback) Check(login, password string) (interface{}, error) {
+
 	ctx := context.Background()
 	found, err := models.FallbackPasswords(
 		qm.Load("Member"),
@@ -33,14 +41,14 @@ func (af AuthFallback) Check(login, password string) (interface{}, error) {
 	).One(ctx, af.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return found, roomdb.ErrNotFound
+			return nil, redirectPasswordAuthErr
 		}
 		return nil, err
 	}
 
 	err = bcrypt.CompareHashAndPassword(found.PasswordHash, []byte(password))
 	if err != nil {
-		return nil, fmt.Errorf("auth/fallback: password missmatch")
+		return nil, redirectPasswordAuthErr
 	}
 
 	return found.R.Member.ID, nil

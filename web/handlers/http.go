@@ -78,7 +78,22 @@ func New(
 		return nil, err
 	}
 
-	eh := weberrs.NewErrorHandler(locHelper)
+	cookieCodec, err := web.LoadOrCreateCookieSecrets(repo)
+	if err != nil {
+		return nil, err
+	}
+
+	cookieStore := &sessions.CookieStore{
+		Codecs: cookieCodec,
+		Options: &sessions.Options{
+			Path:   "/",
+			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
+		},
+	}
+
+	flashHelper := weberrs.NewFlashHelper(cookieStore, locHelper)
+
+	eh := weberrs.NewErrorHandler(locHelper, flashHelper)
 
 	allTheTemplates := concatTemplates(
 		HTMLTemplates,
@@ -143,21 +158,6 @@ func New(
 	}
 	eh.SetRenderer(r)
 
-	cookieCodec, err := web.LoadOrCreateCookieSecrets(repo)
-	if err != nil {
-		return nil, err
-	}
-
-	cookieStore := &sessions.CookieStore{
-		Codecs: cookieCodec,
-		Options: &sessions.Options{
-			Path:   "/",
-			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
-		},
-	}
-
-	flashHelper := weberrs.NewFlashHelper(cookieStore, locHelper)
-
 	authWithPassword, err := auth.NewHandler(dbs.AuthFallback,
 		auth.SetStore(cookieStore),
 		auth.SetErrorHandler(func(rw http.ResponseWriter, req *http.Request, err error, code int) {
@@ -214,9 +214,14 @@ func New(
 
 	m.Get(router.AuthFallbackFinalize).HandlerFunc(authWithPassword.Authorize)
 	m.Get(router.AuthFallbackLogin).Handler(r.HTML("auth/fallback_sign_in.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
-		return map[string]interface{}{
+		pageData := map[string]interface{}{
 			csrf.TemplateTag: csrf.TemplateField(req),
-		}, nil
+		}
+		pageData["Flashes"], err = flashHelper.GetAll(w, req)
+		if err != nil {
+			return nil, err
+		}
+		return pageData, nil
 	}))
 	m.Get(router.AuthLogout).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		err = authWithSSB.Logout(w, req)
