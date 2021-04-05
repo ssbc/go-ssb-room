@@ -23,6 +23,8 @@ func (s *Server) initHandlers() {
 		kitlog.With(s.logger, "unit", "tunnel"),
 		s.Whoami(),
 		s.StateManager,
+		s.Members,
+		s.Config,
 	)
 
 	aliasHandler := alias.New(

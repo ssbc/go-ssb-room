@@ -6,6 +6,7 @@ package models
 var TableNames = struct {
 	SIWSSBSessions    string
 	Aliases           string
+	Config            string
 	DeniedKeys        string
 	FallbackPasswords string
 	Invites           string
@@ -16,6 +17,7 @@ var TableNames = struct {
 }{
 	SIWSSBSessions:    "SIWSSB_sessions",
 	Aliases:           "aliases",
+	Config:            "config",
 	DeniedKeys:        "denied_keys",
 	FallbackPasswords: "fallback_passwords",
 	Invites:           "invites",

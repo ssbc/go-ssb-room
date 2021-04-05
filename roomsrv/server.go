@@ -70,6 +70,8 @@ type Server struct {
 
 	authWithSSB       roomdb.AuthWithSSBService
 	authWithSSBBridge *signinwithssb.SignalBridge
+
+	Config roomdb.RoomConfig
 }
 
 func (s Server) Whoami() refs.FeedRef {
@@ -82,6 +84,7 @@ func New(
 	awsdb roomdb.AuthWithSSBService,
 	bridge *signinwithssb.SignalBridge,
 	domainName string,
+	config roomdb.RoomConfig,
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
@@ -89,6 +92,7 @@ func New(
 
 	s.Members = membersdb
 	s.Aliases = aliasdb
+	s.Config = config
 
 	s.authWithSSB = awsdb
 	s.authWithSSBBridge = bridge

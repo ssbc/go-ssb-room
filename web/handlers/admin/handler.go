@@ -45,6 +45,7 @@ var HTMLTemplates = []string{
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
 	Aliases       roomdb.AliasesService
+	Config        roomdb.RoomConfig // cblgh: kind of confusing that we have two identically named structs, in different http handler contexts?
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
@@ -127,10 +128,12 @@ func Handler(
 		r:       r,
 		flashes: fh,
 
-		db: dbs.Invites,
+		db:     dbs.Invites,
+		config: dbs.Config,
 
 		domainName: domainName,
 	}
+
 	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))
 	mux.HandleFunc("/invites/create", r.HTML("admin/invite-created.tmpl", ih.create))
 	mux.HandleFunc("/invites/revoke/confirm", r.HTML("admin/invite-revoke-confirm.tmpl", ih.revokeConfirm))
