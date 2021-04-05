@@ -368,6 +368,7 @@ func runroomsrv() error {
 	var httpHandler http.Handler
 	httpHandler = httpRateLimiter.RateLimit(webHandler)
 	httpHandler = secureMiddleware.Handler(httpHandler)
+	httpHandler = roomsrv.Network.WebsockHandler(httpHandler)
 
 	// all init was successfull
 	level.Info(log).Log(

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
@@ -98,23 +99,28 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 }
 
 type updateForwarder struct {
+	mu  sync.Mutex // only one caller to forwarder at a time
 	snk *muxrpc.ByteSink
 	enc *json.Encoder
 }
 
-func newForwarder(snk *muxrpc.ByteSink) updateForwarder {
+func newForwarder(snk *muxrpc.ByteSink) *updateForwarder {
 	enc := json.NewEncoder(snk)
 	snk.SetEncoding(muxrpc.TypeJSON)
-	return updateForwarder{
+	return &updateForwarder{
 		snk: snk,
 		enc: enc,
 	}
 }
 
-func (uf updateForwarder) Update(members []string) error {
+func (uf *updateForwarder) Update(members []string) error {
+	uf.mu.Lock()
+	defer uf.mu.Unlock()
 	return uf.enc.Encode(members)
 }
 
-func (uf updateForwarder) Close() error {
+func (uf *updateForwarder) Close() error {
+	uf.mu.Lock()
+	defer uf.mu.Unlock()
 	return uf.snk.Close()
 }

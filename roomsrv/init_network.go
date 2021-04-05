@@ -60,8 +60,6 @@ func (s *Server) initNetwork() error {
 		ConnTracker:         s.networkConnTracker,
 		BefreCryptoWrappers: s.preSecureWrappers,
 		AfterSecureWrappers: s.postSecureWrappers,
-
-		WebsocketAddr: s.wsAddr,
 	}
 
 	var err error

@@ -43,8 +43,6 @@ type Options struct {
 
 	// AfterSecureWrappers are applied afterwards, usefull to debug muxrpc content
 	AfterSecureWrappers []netwrap.ConnWrapper
-
-	WebsocketAddr string
 }
 
 type node struct {
@@ -109,33 +107,6 @@ func New(opts Options) (Network, error) {
 	n.listening = make(chan struct{})
 
 	n.log = opts.Logger
-
-	// local websocket
-	wsHandler := websockHandler(n)
-	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		url := req.URL.String()
-		if url == "/" {
-			wsHandler(w, req)
-			return
-		}
-		// n.log.Log("http-url-req", url)
-		if n.httpHandler != nil {
-			n.httpHandler.ServeHTTP(w, req)
-		}
-	})
-
-	if addr := opts.WebsocketAddr; addr != "" {
-		n.httpLis, err = net.Listen("tcp", addr)
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO: move to serve
-		go func() {
-			err := http.Serve(n.httpLis, httpHandler)
-			level.Error(n.log).Log("conn", "ssb-ws :8998 listen exited", "err", err)
-		}()
-	}
 
 	return n, nil
 }
