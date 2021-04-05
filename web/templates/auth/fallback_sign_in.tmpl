@@ -3,6 +3,8 @@
 <div class="flex flex-col justify-center items-center self-center max-w-lg">
   <span id="welcome" class="text-center mt-8">{{i18n "AuthFallbackWelcome"}}</span>
 
+  {{ template "flashes" . }}
+
   <form
     id="password-fallback"
     method="POST"

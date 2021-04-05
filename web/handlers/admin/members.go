@@ -140,8 +140,10 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		if errors.Is(err, roomdb.ErrNotFound) {
-			h.flashes.AddError(rw, req, err)
-			return nil, weberrors.ErrRedirect{Path: redirectToMembers}
+			return nil, weberrors.ErrRedirect{
+				Path:   redirectToMembers,
+				Reason: err,
+			}
 		}
 		return nil, err
 	}
