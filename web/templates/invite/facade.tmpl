@@ -1,39 +1,30 @@
 {{ define "title" }}{{ i18n "InviteFacadeTitle" }}{{ end }}
 {{ define "content" }}
-  <div class="flex flex-col justify-center items-center h-64">
+<div class="flex flex-col justify-center items-center self-center max-w-lg">
+  <p id="welcome" class="text-center mt-8 italic">Welcome to {{.RoomTitle}}! {{i18n "InviteFacadeWelcome"}}</p>
+  <p class="text-center mt-3">{{i18n "InviteFacadeInstruct"}}</p>
 
-    <span
-      id="welcome"
-      class="text-center"
-    >{{ i18n "InviteFacadeWelcome" }}</span>
+  <a
+    id="join-room-uri"
+    href="#"
+    data-href="{{.JoinRoomURI}}"
+    data-href-fallback="{{.FallbackURL}}"
+    class="shadow rounded flex flex-row justify-center items-center mt-8 px-4 h-8 text-gray-100 bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+    >{{i18n "InviteFacadeJoin"}}</a>
 
-    <a
-      href="{{.JoinRoomURI}}"
-      class="my-8 shadow rounded px-4 h-8 text-gray-100 bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
-    >Join</a>
+  <hr class="mt-8 w-64 h-px bg-gray-200"></hr>
 
-    <hr class="mb-10 pt-10">
-    <h3 class="text-red-500">TODO: html form fallback / advanced use</h3>
+  <span class="text-center mt-8">{{i18n "AuthWithSSBInstructQR"}}</span>
 
-    <form id="consume" action="{{urlTo "complete:invite:consume"}}" method="POST">
-        {{ .csrfField }}
-        <input type="hidden" name="invite" value={{.Token}}>
+  <img
+    id="start-auth-qrcode"
+    src="{{.QRCodeURI}}"
+    alt="QR-Code to pass the challenge to an App"
+    width="160"
+    height="160"
+    class="mt-8"
+    />
 
-
-        <div class="my-4 flex flex-row items-center justify-start">
-            <label class="mr-2">{{ i18n "InviteFacadePublicKey" }}</label>
-            <input
-              type="text"
-              name="id"
-              placeholder="@                                            .ed25519"
-              class="shadow rounded border border-transparent h-8 p-1 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent">
-        </div>
-
-          <button
-            type="submit"
-            class="shadow rounded px-4 h-8 text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
-          >{{i18n "GenericConfirm"}}</button>
-      </form>
-
-  </div>
+  <script src="/assets/autoredirect.js"></script>
+</div>
 {{ end }}
