@@ -35,8 +35,9 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
 	var redirectErr ErrRedirect
 	if errors.As(err, &redirectErr) {
-		eh.flashes.AddError(rw, req, redirectErr.Reason)
-		// redirecting
+		if redirectErr.Reason != nil {
+			eh.flashes.AddError(rw, req, redirectErr.Reason)
+		}
 		http.Redirect(rw, req, redirectErr.Path, http.StatusSeeOther)
 		return
 	}
@@ -50,6 +51,16 @@ func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code i
 		// TODO: localize status codes? might be fine with a few
 		Status:     http.StatusText(code),
 		StatusCode: code,
+
+		BackURL: req.URL.Path,
+	}
+
+	if code == http.StatusNotFound {
+		data.BackURL = "/"
+		referer := req.Header.Get("Referer")
+		if referer != "" {
+			data.BackURL = referer
+		}
 	}
 
 	renderErr := eh.render.Render(rw, req, "error.tmpl", code, data)
@@ -66,6 +77,8 @@ type errorTemplateData struct {
 	StatusCode int
 	Status     string
 	Err        template.HTML
+
+	BackURL string
 }
 
 func localizeError(ih *i18n.Localizer, err error) (int, string) {
