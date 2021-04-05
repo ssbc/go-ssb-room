@@ -16,10 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
+	"go.mindeco.de/http/auth"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -61,7 +63,66 @@ func TestLoginForm(t *testing.T) {
 	})
 }
 
-func TestFallbackAuth(t *testing.T) {
+func TestFallbackAuthWrongPassword(t *testing.T) {
+	ts := setup(t)
+	a := assert.New(t)
+
+	signInFormURL := ts.URLTo(router.AuthFallbackLogin)
+
+	doc, resp := ts.Client.GetHTML(signInFormURL)
+	a.Equal(http.StatusOK, resp.Code)
+
+	csrfCookie := resp.Result().Cookies()
+	a.True(len(csrfCookie) > 0, "should have one cookie for CSRF protection validation")
+
+	passwordForm := doc.Find("#password-fallback")
+	webassert.CSRFTokenPresent(t, passwordForm)
+
+	csrfTokenElem := passwordForm.Find("input[type=hidden]")
+	a.Equal(1, csrfTokenElem.Length())
+
+	csrfName, has := csrfTokenElem.Attr("name")
+	a.True(has, "should have a name attribute")
+
+	csrfValue, has := csrfTokenElem.Attr("value")
+	a.True(has, "should have value attribute")
+
+	loginVals := url.Values{
+		"user": []string{"test"},
+		"pass": []string{"wong"},
+
+		csrfName: []string{csrfValue},
+	}
+	ts.AuthFallbackDB.CheckReturns(nil, weberrors.ErrRedirect{
+		Path:   "/fallback/login",
+		Reason: auth.ErrBadLogin,
+	})
+
+	signInURL := ts.URLTo(router.AuthFallbackFinalize)
+
+	// important for CSRF
+	var refererHeader = make(http.Header)
+	refererHeader.Set("Referer", "https://localhost")
+	ts.Client.SetHeaders(refererHeader)
+
+	resp = ts.Client.PostForm(signInURL, loginVals)
+	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
+	a.Equal(1, ts.AuthFallbackDB.CheckCallCount())
+
+	// check flash error for bad login
+	res := resp.Result()
+	a.Equal(signInFormURL.Path, res.Header.Get("Location"), "redirecting to overview")
+	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
+
+	html, resp := ts.Client.GetHTML(signInFormURL)
+	a.Equal(http.StatusOK, resp.Code)
+
+	flashes := html.Find("#flashes-list").Children()
+	a.Equal(1, flashes.Length())
+	a.Equal("ErrorAuthBadLogin", flashes.Text())
+}
+
+func TestFallbackAuthWorks(t *testing.T) {
 	ts := setup(t)
 	a := assert.New(t)
 
@@ -95,9 +156,10 @@ func TestFallbackAuth(t *testing.T) {
 
 	signInURL := ts.URLTo(router.AuthFallbackFinalize)
 
-	var csrfCookieHeader = make(http.Header)
-	csrfCookieHeader.Set("Referer", "https://localhost")
-	ts.Client.SetHeaders(csrfCookieHeader)
+	// important for CSRF
+	var refererHeader = make(http.Header)
+	refererHeader.Set("Referer", "https://localhost")
+	ts.Client.SetHeaders(refererHeader)
 
 	resp = ts.Client.PostForm(signInURL, loginVals)
 	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
