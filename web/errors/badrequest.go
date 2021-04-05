@@ -31,7 +31,7 @@ func (f ErrForbidden) Error() string {
 
 var ErrNotAuthorized = errors.New("rooms/web: not authorized")
 
-// ErrRedirect decide to not render a page during the controller
+// ErrRedirect is used when the controller decides to not render a page
 type ErrRedirect struct {
 	Path string
 
