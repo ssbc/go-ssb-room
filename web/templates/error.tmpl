@@ -7,11 +7,7 @@
   <div class="col-sm-12">
     <p id="errBody">{{.Err}}</p>
     <p>
-      <!-- this violates the CSP, since it's an inline script.
-      We probably want to solve https://github.com/ssb-ngi-pointer/go-ssb-room/issues/23
-      but until then it might be nice to include a _previous_ data from the rendere with an url of where to go.
-      -->
-      <a href="javascript:history.back()" class="btn btn-primary">Back</a>
+      <a href="{{.BackURL}}" class="btn btn-primary">Back</a>
     </p>
   </div>
 </div>

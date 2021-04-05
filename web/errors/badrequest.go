@@ -9,8 +9,10 @@ import (
 )
 
 var (
+	// ErrRedirect decide to not render a page during the controller
 	ErrNotAuthorized = errors.New("rooms/web: not authorized")
-	ErrDenied        = errors.New("rooms: this key has been banned")
+
+	ErrDenied = errors.New("rooms: this key has been banned")
 )
 
 type ErrNotFound struct{ What string }
@@ -34,7 +36,7 @@ func (f ErrForbidden) Error() string {
 	return fmt.Sprintf("rooms/web: access denied: %s", f.Details)
 }
 
-// ErrRedirect decide to not render a page during the controller
+// ErrRedirect is used when the controller decides to not render a page
 type ErrRedirect struct {
 	Path string
 
