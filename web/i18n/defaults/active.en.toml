@@ -88,6 +88,7 @@ InviteFacadeTitle = "Join Room"
 InviteFacadeWelcome = "You have permission to become a member of this room because someone has shared this invite with you."
 InviteFacadeInstruct = "To claim the invite, press the button below which will open a compatible SSB app, if it's installed."
 InviteFacadeJoin = "Join this room"
+InviteFacadeWaiting = "Opening SSB app"
 
 InviteFacadeFallbackWelcome = "Are you new to SSB? It seems you don't have an SSB app capable of understanding that link. You can install one of these apps:"
 InviteFacadeFallbackManyverse = "Install Manyverse"
