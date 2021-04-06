@@ -2,11 +2,14 @@ GenericConfirm = "Yes"
 GenericGoBack = "Back"
 GenericSave = "Save"
 GenericCreate = "Create"
+GenericSubmit = "Submit"
 GenericPreview = "Preview"
 GenericLanguage = "Language"
 GenericOpenLink = "Open Link"
 
 PageNotFound = "The requested page was not found."
+
+PubKeyRefPlaceholder = "@                                            .ed25519"
 
 RoleMember = "Member"
 RoleModerator = "Moderator"
@@ -72,9 +75,8 @@ AdminInviteCreatedBy = "Created by:"
 AdminInviteSuggestedAliasIs = "The suggested alias is:"
 AdminInviteSuggestedAliasIsShort = "Alias:"
 
-AdminInviteCreatedTitle = "Invite created successfully"
-AdminInviteCreatedWelcome = "Here is the invite you created. Please copy it before closing the page or it will be lost."
-
+AdminInviteCreatedTitle = "Invite created successfully!"
+AdminInviteCreatedInstruct = "Now, copy the link below and paste it to a friend who you want to invite to this room."
 
 NavAdminLanding = "Home"
 NavAdminDashboard = "Dashboard"
@@ -83,12 +85,19 @@ NavAdminNotices = "Notices"
 
 InviteFacade = "Join Room"
 InviteFacadeTitle = "Join Room"
-InviteFacadeWelcome = "elaborate welcome message for a new member with good words and stuff."
-InviteFacadeAliasSuggestion = "The persone who created thought you might like this alias:"
-InviteFacadePublicKey = "Public Key"
+InviteFacadeWelcome = "You have permission to become a member of this room because someone has shared this invite with you."
+InviteFacadeInstruct = "To claim the invite, press the button below which will open a compatible SSB app, if it's installed."
+InviteFacadeJoin = "Join this room"
+InviteFacadeWaiting = "Opening SSB app"
+
+InviteFacadeFallbackWelcome = "Are you new to SSB? It seems you don't have an SSB app capable of understanding that link. You can install one of these apps:"
+InviteFacadeFallbackManyverse = "Install Manyverse"
+InviteFacadeFallbackInsertID = "Insert SSB ID"
+
+InviteInsertWelcome = "You can claim your invite by inserting your SSB ID below. After that, you'll be able to connect to the room in your SSB app."
 
 InviteConsumedTitle = "Invite accepted!"
-InviteConsumedWelcome = "Even more elaborate message that the person is now a member of the room!"
+InviteConsumedWelcome = "You are now a member of this room. If you need a multiserver address to connect to the room, you can copy-paste the one below:"
 
 NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"

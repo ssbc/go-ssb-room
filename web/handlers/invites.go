@@ -1,15 +1,18 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
+	"image/color"
 	"net/http"
 	"net/url"
 
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
+	"github.com/skip2/go-qrcode"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/logging"
 
@@ -24,22 +27,13 @@ import (
 type inviteHandler struct {
 	render *render.Renderer
 
-	invites roomdb.InvitesService
+	invites       roomdb.InvitesService
+	pinnedNotices roomdb.PinnedNoticesService
 
 	networkInfo network.ServerEndpointDetails
 }
 
-func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-	token := req.URL.Query().Get("token")
-
-	inv, err := h.invites.GetByToken(req.Context(), token)
-	if err != nil {
-		if errors.Is(err, roomdb.ErrNotFound) {
-			return nil, weberrors.ErrNotFound{What: "invite"}
-		}
-		return nil, err
-	}
-
+func buildJoinRoomURI(h inviteHandler, token string) template.URL {
 	var joinRoomURI url.URL
 	joinRoomURI.Scheme = "ssb"
 	joinRoomURI.Opaque = "experimental"
@@ -60,13 +54,88 @@ func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) 
 
 	joinRoomURI.RawQuery = queryVals.Encode()
 
+	return template.URL(joinRoomURI.String())
+}
+
+func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	token := req.URL.Query().Get("token")
+
+	_, err := h.invites.GetByToken(req.Context(), token)
+	if err != nil {
+		if errors.Is(err, roomdb.ErrNotFound) {
+			return nil, weberrors.ErrNotFound{What: "invite"}
+		}
+		return nil, err
+	}
+
+	notice, err := h.pinnedNotices.Get(req.Context(), roomdb.NoticeDescription, "en-GB")
+	if err != nil {
+		return nil, fmt.Errorf("failed to find room's description: %w", err)
+	}
+
+	joinRoomURI := buildJoinRoomURI(h, token)
+
+	urlTo := web.NewURLTo(router.CompleteApp())
+	fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", token)
+
+	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
+	qrCode, err := qrcode.New(string(joinRoomURI), qrcode.Medium)
+	if err != nil {
+		return nil, err
+	}
+
+	qrCode.BackgroundColor = color.Transparent // transparent to fit into the page
+	qrCode.ForegroundColor = color.Black
+
+	qrCodeData, err := qrCode.PNG(-5)
+	if err != nil {
+		return nil, err
+	}
+	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
+
 	return map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(req),
+		"RoomTitle":      notice.Title,
+		"JoinRoomURI":    joinRoomURI,
+		"FallbackURL":    fallbackURL,
+		"QRCodeURI":      template.URL(qrURI),
+	}, nil
+}
 
-		"Invite": inv,
-		"Token":  token,
+func (h inviteHandler) presentFacadeFallback(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	token := req.URL.Query().Get("token")
 
-		"JoinRoomURI": template.URL(joinRoomURI.String()),
+	_, err := h.invites.GetByToken(req.Context(), token)
+	if err != nil {
+		if errors.Is(err, roomdb.ErrNotFound) {
+			return nil, weberrors.ErrNotFound{What: "invite"}
+		}
+		return nil, err
+	}
+
+	urlTo := web.NewURLTo(router.CompleteApp())
+	insertURL := urlTo(router.CompleteInviteInsertID, "token", token)
+
+	return map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(req),
+		"InsertURL":      insertURL,
+	}, nil
+}
+
+func (h inviteHandler) presentInsert(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	token := req.URL.Query().Get("token")
+
+	_, err := h.invites.GetByToken(req.Context(), token)
+	if err != nil {
+		if errors.Is(err, roomdb.ErrNotFound) {
+			return nil, weberrors.ErrNotFound{What: "invite"}
+		}
+		return nil, err
+	}
+
+	return map[string]interface{}{
+		csrf.TemplateTag: csrf.TemplateField(req),
+		"Token":          token,
 	}, nil
 }
 
@@ -213,22 +282,9 @@ func (html *inviteConsumeHTMLResponder) UpdateMultiserverAddr(msaddr string) {
 }
 
 func (html inviteConsumeHTMLResponder) SendSuccess() {
-
-	// construct the ssb:experimental?action=consume-invite&... uri for linking into apps
-	queryParams := url.Values{}
-	queryParams.Set("action", "join-room")
-	queryParams.Set("multiserverAddress", html.multiservAddr)
-
-	// html.multiservAddr
-	ssbURI := url.URL{
-		Scheme:   "ssb",
-		Opaque:   "experimental",
-		RawQuery: queryParams.Encode(),
-	}
-
 	err := html.renderer.Render(html.rw, html.req, "invite/consumed.tmpl", http.StatusOK, struct {
-		SSBURI template.URL
-	}{template.URL(ssbURI.String())})
+		MultiserverAddress string
+	}{(html.multiservAddr)})
 	if err != nil {
 		logger := logging.FromContext(html.req.Context())
 		level.Warn(logger).Log("event", "render failed", "err", err)

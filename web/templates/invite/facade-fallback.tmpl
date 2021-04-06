@@ -1,0 +1,24 @@
+{{ define "title" }}{{ i18n "InviteFacadeTitle" }}{{ end }}
+{{ define "content" }}
+<div class="flex flex-col justify-center items-center self-center max-w-lg">
+  <p class="text-center mt-8">{{i18n "InviteFacadeFallbackWelcome"}}</p>
+
+  <div class="flex flex-col sm:flex-row items-center mt-8">
+    <a
+      href="https://manyver.se"
+      class="shadow rounded flex flex-row justify-center items-center px-4 h-8 text-gray-100 bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+      >{{i18n "InviteFacadeFallbackManyverse"}}</a>
+  </div>
+
+  <hr class="mt-8 w-64 h-px bg-gray-200"></hr>
+
+  <p
+    class="text-center my-8"
+    >Or if you already have an SSB app (such as <a class="text-pink-600 underline" href="https://github.com/ssbc/patchwork" target="_blank">Patchwork</a>, <a class="text-pink-600 underline" href="https://github.com/ssbc/patchbay" target="_blank">Patchbay</a>, <a class="text-pink-600 underline" href="http://git.scuttlebot.io/%25YAg1hicat%2B2GELjE2QJzDwlAWcx0ML%2B1sXEdsWwvdt8%3D.sha256" target="_blank">Patchfoo</a>, <a class="text-pink-600 underline" href="https://github.com/fraction/oasis" target="_blank">Oasis</a>, <a class="text-pink-600 underline" href="https://github.com/planetary-social/planetary-ios" target="_blank">Planetary</a>) and it couldn't process the link for whatever reason, you can manually input your identifier here:</p>
+
+  <a
+    href="{{.InsertURL}}"
+    class="mb-8 shadow rounded flex flex-row justify-center items-center px-4 h-8 text-gray-600 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-600 focus:ring-opacity-50"
+    >{{i18n "InviteFacadeFallbackInsertID"}}</a>
+</div>
+{{ end }}

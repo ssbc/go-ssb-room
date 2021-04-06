@@ -122,7 +122,7 @@ func TestInvitesCreate(t *testing.T) {
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		{"title", "AdminInviteCreatedTitle"},
-		{"#welcome", "AdminInviteCreatedWelcome"},
+		{"#welcome", "AdminInviteCreatedTitle" + "AdminInviteCreatedInstruct"},
 	})
 
 	wantURL := urlTo(router.CompleteInviteFacade, "token", testInvite)
