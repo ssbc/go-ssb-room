@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -59,21 +58,19 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.EqualError(wantErr, gotErr)
 	})
 
-	wantNewMemberPlaceholder := "@                                            .ed25519"
-
 	t.Run("token DOES exist", func(t *testing.T) {
 		a, r := assert.New(t), require.New(t)
 
 		testToken := "existing-test-token"
-		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
-		r.NotNil(validAcceptURL)
+		facadeURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+		r.NotNil(facadeURL)
 
 		// prep the mocked db for http:200
 		fakeExistingInvite := roomdb.Invite{ID: 1234}
 		ts.InvitesDB.GetByTokenReturns(fakeExistingInvite, nil)
 
 		// request the form
-		validAcceptForm := validAcceptURL.String()
+		validAcceptForm := facadeURL.String()
 		t.Log(validAcceptForm)
 		doc, resp := ts.Client.GetHTML(validAcceptForm)
 		a.Equal(http.StatusOK, resp.Code)
@@ -84,55 +81,42 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(testToken, tokenFromArg)
 
 		webassert.Localized(t, doc, []webassert.LocalizedElement{
-			{"#welcome", "InviteFacadeWelcome"},
+			{"#join-room-uri", "InviteFacadeJoin"},
 			{"title", "InviteFacadeTitle"},
 		})
 
-		form := doc.Find("form#consume")
-		r.Equal(1, form.Length())
+		// Empty href
+		joinHref, ok := doc.Find("#join-room-uri").Attr("href")
+		a.Equal("#", joinHref)
+		a.True(ok)
 
-		webassert.CSRFTokenPresent(t, form)
+		// Fallback URL in data-href-fallback
+		fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", testToken)
+		joinDataHrefFallback, ok := doc.Find("#join-room-uri").Attr("data-href-fallback")
+		a.Equal(fallbackURL.String(), joinDataHrefFallback)
+		a.True(ok)
 
-		webassert.ElementsInForm(t, form, []webassert.FormElement{
-			{Name: "invite", Type: "hidden", Value: testToken},
-			{Name: "id", Type: "text", Placeholder: wantNewMemberPlaceholder},
-		})
-	})
+		// ssb-uri in data-href
+		joinDataHref, ok := doc.Find("#join-room-uri").Attr("data-href")
+		a.True(ok)
+		joinURI, err := url.Parse(joinDataHref)
+		r.NoError(err)
 
-	t.Run("token DOES exist but has no suggested alias", func(t *testing.T) {
-		a, r := assert.New(t), require.New(t)
+		a.Equal("ssb", joinURI.Scheme)
+		a.Equal("experimental", joinURI.Opaque)
 
-		testToken := "existing-test-token-2"
-		validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
-		r.NotNil(validAcceptURL)
+		params := joinURI.Query()
+		a.Equal("join-room", params.Get("action"))
 
-		testInvite := roomdb.Invite{ID: 4321}
-		ts.InvitesDB.GetByTokenReturns(testInvite, nil)
+		inviteParam := params.Get("invite")
+		a.Equal(testToken, inviteParam)
 
-		// request the form
-		validAcceptForm := validAcceptURL.String()
-		t.Log(validAcceptForm)
-		doc, resp := ts.Client.GetHTML(validAcceptForm)
-		a.Equal(http.StatusOK, resp.Code)
-
-		// check database calls
-		r.EqualValues(3, ts.InvitesDB.GetByTokenCallCount())
-		_, tokenFromArg := ts.InvitesDB.GetByTokenArgsForCall(2)
-		a.Equal(testToken, tokenFromArg)
-
-		webassert.Localized(t, doc, []webassert.LocalizedElement{
-			{"#welcome", "InviteFacadeWelcome"},
-			{"title", "InviteFacadeTitle"},
-		})
-
-		form := doc.Find("form#consume")
-		r.Equal(1, form.Length())
-
-		webassert.CSRFTokenPresent(t, form)
-		webassert.ElementsInForm(t, form, []webassert.FormElement{
-			{Name: "invite", Type: "hidden", Value: testToken},
-			{Name: "id", Type: "text", Placeholder: wantNewMemberPlaceholder},
-		})
+		postTo := params.Get("postTo")
+		expectedConsumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
+		expectedConsumeInviteURL.Scheme = "https"
+		expectedConsumeInviteURL.Host = "localhost"
+		r.NoError(err)
+		a.Equal(expectedConsumeInviteURL.String(), postTo)
 	})
 }
 
@@ -142,7 +126,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	urlTo := web.NewURLTo(ts.Router)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+	validAcceptURL := urlTo(router.CompleteInviteInsertID, "token", testToken)
 	r.NotNil(validAcceptURL)
 	validAcceptURL.Host = "localhost"
 	validAcceptURL.Scheme = "https"
@@ -155,6 +139,15 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	t.Log(validAcceptForm)
 	doc, resp := ts.Client.GetHTML(validAcceptForm)
 	a.Equal(http.StatusOK, resp.Code)
+
+	form := doc.Find("form#consume")
+	r.Equal(1, form.Length())
+
+	webassert.CSRFTokenPresent(t, form)
+	webassert.ElementsInForm(t, form, []webassert.FormElement{
+		{Name: "invite", Type: "hidden", Value: testToken},
+		{Name: "id", Type: "text"},
+	})
 
 	// we need a functional jar to unpack the Set-Cookie response for the csrf token
 	jar, err := cookiejar.New(nil)
@@ -186,7 +179,12 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	}
 
 	// construct the consume endpoint url
-	consumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
+	consumeInviteURLString, has := form.Attr("action")
+	a.True(has, "form should have an action attribute")
+	expectedConsumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
+	r.Nil(err)
+	a.Equal(expectedConsumeInviteURL.String(), consumeInviteURLString)
+	consumeInviteURL, err := url.Parse(consumeInviteURLString)
 	r.Nil(err)
 	consumeInviteURL.Host = "localhost"
 	consumeInviteURL.Scheme = "https"
@@ -213,27 +211,6 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	_, tokenFromArg, newMemberRef := ts.InvitesDB.ConsumeArgsForCall(0)
 	a.Equal(testToken, tokenFromArg)
 	a.True(newMemberRef.Equal(&testNewMember))
-
-	consumedDoc, err := goquery.NewDocumentFromReader(resp.Body)
-	r.NoError(err)
-
-	joinHref, ok := consumedDoc.Find("#join-link").Attr("href")
-	a.True(ok)
-
-	// validate ssb-uri
-	joinURI, err := url.Parse(joinHref)
-	r.NoError(err)
-
-	a.Equal("ssb", joinURI.Scheme)
-	a.Equal("experimental", joinURI.Opaque)
-
-	params := joinURI.Query()
-	a.Equal("join-room", params.Get("action"))
-
-	gotRA := params.Get("multiserverAddress")
-
-	a.True(strings.HasPrefix(gotRA, "net:localhost:8008~shs:"), "not for the test host: %s", gotRA)
-	a.True(strings.HasSuffix(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey())), "public key missing? %s", gotRA)
 }
 
 func TestInviteConsumeInviteJSON(t *testing.T) {
