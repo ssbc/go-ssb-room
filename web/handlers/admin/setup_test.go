@@ -50,6 +50,8 @@ func newSession(t *testing.T) *testSession {
 	// fake dbs
 	ts.AliasesDB = new(mockdb.FakeAliasesService)
 	ts.ConfigDB = new(mockdb.FakeRoomConfig)
+	// default mode for all tests
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
 	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)

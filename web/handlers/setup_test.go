@@ -78,6 +78,8 @@ func setup(t *testing.T) *testSession {
 	ts.AliasesDB = new(mockdb.FakeAliasesService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.ConfigDB = new(mockdb.FakeRoomConfig)
+	// default mode for all tests
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
 	ts.InvitesDB = new(mockdb.FakeInvitesService)
 	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
@@ -120,6 +122,7 @@ func setup(t *testing.T) *testSession {
 			Aliases:       ts.AliasesDB,
 			AuthFallback:  ts.AuthFallbackDB,
 			AuthWithSSB:   ts.AuthWithSSB,
+			Config:        ts.ConfigDB,
 			Members:       ts.MembersDB,
 			Invites:       ts.InvitesDB,
 			DeniedKeys:    ts.DeniedKeysDB,
