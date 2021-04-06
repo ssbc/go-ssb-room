@@ -44,7 +44,7 @@ var HTMLTemplates = []string{
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
 	Aliases       roomdb.AliasesService
-	Config        roomdb.RoomConfig // cblgh: kind of confusing that we have two identically named structs, in different http handler contexts?
+	Config        roomdb.RoomConfig
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService

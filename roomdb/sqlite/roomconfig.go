@@ -12,9 +12,6 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
-// cblgh: ask cryptix about the details of the syntax of the "compiler assertion" below
-// why two parens? this does not look like a typical type assertion? e.g. <var>.(type)
-// hm-maybe this is a type conversion, forcing "nil" to be a *Aliases?
 var _ roomdb.RoomConfig = (*Config)(nil)
 
 // the database will only ever store one row, which contains all the room settings
@@ -27,8 +24,6 @@ type Config struct {
 	db *sql.DB
 }
 
-// cblgh questions:
-// * is storing the entire config in a single row really ugly? ._.
 func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) {
 	config, err := models.FindConfig(ctx, c.db, configRowID)
 	if err != nil {
@@ -46,7 +41,6 @@ func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) 
 }
 
 func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error {
-	fmt.Println("setting privacy mode!!")
 	// make sure the privacy mode is an ok value
 	err := pm.IsValid()
 	if err != nil {

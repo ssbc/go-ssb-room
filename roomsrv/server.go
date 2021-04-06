@@ -70,7 +70,7 @@ type Server struct {
 
 	authWithSSB       roomdb.AuthWithSSBService
 	authWithSSBBridge *signinwithssb.SignalBridge
-	Config  roomdb.RoomConfig
+	Config            roomdb.RoomConfig
 }
 
 func (s Server) Whoami() refs.FeedRef {
