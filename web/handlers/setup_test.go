@@ -39,6 +39,7 @@ type testSession struct {
 	AuthFallbackDB *mockdb.FakeAuthFallbackService
 	AuthWithSSB    *mockdb.FakeAuthWithSSBService
 	AliasesDB      *mockdb.FakeAliasesService
+	ConfigDB       *mockdb.FakeRoomConfig
 	MembersDB      *mockdb.FakeMembersService
 	InvitesDB      *mockdb.FakeInvitesService
 	DeniedKeysDB   *mockdb.FakeDeniedKeysService
@@ -76,6 +77,7 @@ func setup(t *testing.T) *testSession {
 	ts.AuthWithSSB = new(mockdb.FakeAuthWithSSBService)
 	ts.AliasesDB = new(mockdb.FakeAliasesService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
+	ts.ConfigDB = new(mockdb.FakeRoomConfig)
 	ts.InvitesDB = new(mockdb.FakeInvitesService)
 	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)

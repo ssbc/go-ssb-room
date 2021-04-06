@@ -201,3 +201,5 @@ type NoticesService interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/members.go . MembersService
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/pages.go . NoticesService
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/roomconfig.go . RoomConfig

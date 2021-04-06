@@ -306,8 +306,9 @@ func New(
 	var ih = inviteHandler{
 		render: r,
 
-		config:  dbs.Config,
-		invites: dbs.Invites,
+		config:        dbs.Config,
+		pinnedNotices: dbs.PinnedNotices,
+		invites:       dbs.Invites,
 
 		networkInfo: netInfo,
 	}
