@@ -33,7 +33,7 @@ type inviteHandler struct {
 	networkInfo network.ServerEndpointDetails
 }
 
-func buildJoinRoomURI(h inviteHandler, token string) string {
+func buildJoinRoomURI(h inviteHandler, token string) template.URL {
 	var joinRoomURI url.URL
 	joinRoomURI.Scheme = "ssb"
 	joinRoomURI.Opaque = "experimental"
@@ -54,7 +54,7 @@ func buildJoinRoomURI(h inviteHandler, token string) string {
 
 	joinRoomURI.RawQuery = queryVals.Encode()
 
-	return joinRoomURI.String()
+	return template.URL(joinRoomURI.String())
 }
 
 func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -96,7 +96,7 @@ func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) 
 	return map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(req),
 		"RoomTitle":      notice.Title,
-		"JoinRoomURI":    template.URL(joinRoomURI),
+		"JoinRoomURI":    joinRoomURI,
 		"FallbackURL":    fallbackURL,
 		"QRCodeURI":      template.URL(qrURI),
 	}, nil
