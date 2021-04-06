@@ -123,7 +123,9 @@ func (ts *testSession) startGoServer(
 	sb := signinwithssb.NewSignalBridge()
 	authSessionsDB := new(mockdb.FakeAuthWithSSBService)
 
-	srv, err := roomsrv.New(membersDB, aliasDB, authSessionsDB, sb, "go.test.room.server", opts...)
+	fakeConfig := new(mockdb.FakeRoomConfig)
+
+	srv, err := roomsrv.New(membersDB, aliasDB, authSessionsDB, sb, fakeConfig, "go.test.room.server", opts...)
 	r.NoError(err, "failed to init tees a server")
 	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {

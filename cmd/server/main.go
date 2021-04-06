@@ -34,6 +34,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -52,6 +53,8 @@ var (
 	listenAddrDebug string
 	logToFile       string
 	repoDir         string
+
+	privacyMode = roomdb.ModeUnknown
 
 	// helper
 	log kitlog.Logger
@@ -100,6 +103,16 @@ func initFlags() {
 	flag.StringVar(&httpsDomain, "https-domain", "", "which domain to use for TLS and AllowedHosts checks")
 
 	flag.BoolVar(&flagPrintVersion, "version", false, "print version number and build date")
+
+	flag.Func("mode", "the privacy mode (values: open, community, restricted) determining room access controls", func(val string) error {
+		pm := roomdb.ParsePrivacyMode(val)
+		err := pm.IsValid()
+		if err != nil {
+			return fmt.Errorf("%s, valid values are open, community, restricted", err)
+		}
+		privacyMode = pm
+		return nil
+	})
 
 	flag.Parse()
 
@@ -201,13 +214,17 @@ func runroomsrv() error {
 
 	r := repo.New(repoDir)
 
-	// open the sqlite version of the admindb
+	// open the sqlite version of the roomdb
 	db, err := sqlite.Open(r)
 	if err != nil {
 		return fmt.Errorf("failed to initiate database: %w", err)
 	}
 
 	bridge := signinwithssb.NewSignalBridge()
+	// the privacy mode flag was passed => update it in the database
+	if privacyMode != roomdb.ModeUnknown {
+		db.Config.SetPrivacyMode(ctx, privacyMode)
+	}
 
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
@@ -215,6 +232,7 @@ func runroomsrv() error {
 		db.Aliases,
 		db.AuthWithSSB,
 		bridge,
+		db.Config,
 		httpsDomain,
 		opts...)
 	if err != nil {
@@ -264,6 +282,7 @@ func runroomsrv() error {
 			Aliases:       db.Aliases,
 			AuthFallback:  db.AuthFallback,
 			AuthWithSSB:   db.AuthWithSSB,
+			Config:        db.Config,
 			DeniedKeys:    db.DeniedKeys,
 			Invites:       db.Invites,
 			Notices:       db.Notices,

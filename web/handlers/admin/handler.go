@@ -44,6 +44,7 @@ var HTMLTemplates = []string{
 // Databases is an option struct that encapsualtes the required database services
 type Databases struct {
 	Aliases       roomdb.AliasesService
+	Config        roomdb.RoomConfig
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
@@ -117,11 +118,13 @@ func Handler(
 	mux.HandleFunc("/members/remove", mh.remove)
 
 	var ih = invitesHandler{
-		r:  r,
-		db: dbs.Invites,
+		r:      r,
+		db:     dbs.Invites,
+		config: dbs.Config,
 
 		domainName: domainName,
 	}
+
 	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))
 	mux.HandleFunc("/invites/create", r.HTML("admin/invite-created.tmpl", ih.create))
 	mux.HandleFunc("/invites/revoke/confirm", r.HTML("admin/invite-revoke-confirm.tmpl", ih.revokeConfirm))

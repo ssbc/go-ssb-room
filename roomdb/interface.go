@@ -17,6 +17,11 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
+type RoomConfig interface {
+	GetPrivacyMode(context.Context) (PrivacyMode, error)
+	SetPrivacyMode(context.Context, PrivacyMode) error
+}
+
 // AuthFallbackService allows password authentication which might be helpful for scenarios
 // where one lost access to his ssb device or key.
 type AuthFallbackService interface {
@@ -196,3 +201,5 @@ type NoticesService interface {
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/members.go . MembersService
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/pages.go . NoticesService
+
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/roomconfig.go . RoomConfig

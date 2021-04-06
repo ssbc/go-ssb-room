@@ -90,7 +90,7 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 		}
 	})
 	sb := signinwithssb.NewSignalBridge()
-	theBot, err := roomsrv.New(db.Members, db.Aliases, db.AuthWithSSB, sb, name, botOptions...)
+	theBot, err := roomsrv.New(db.Members, db.Aliases, db.AuthWithSSB, sb, db.Config, name, botOptions...)
 	r.NoError(err)
 	return db.Members, theBot
 }

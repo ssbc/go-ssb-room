@@ -53,6 +53,7 @@ type Databases struct {
 	Aliases       roomdb.AliasesService
 	AuthFallback  roomdb.AuthFallbackService
 	AuthWithSSB   roomdb.AuthWithSSBService
+	Config        roomdb.RoomConfig
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
 	Notices       roomdb.NoticesService
@@ -260,6 +261,7 @@ func New(
 		roomState,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
+			Config:        dbs.Config,
 			DeniedKeys:    dbs.DeniedKeys,
 			Invites:       dbs.Invites,
 			Notices:       dbs.Notices,
@@ -294,7 +296,8 @@ func New(
 	var ah = aliasHandler{
 		r: r,
 
-		db: dbs.Aliases,
+		db:     dbs.Aliases,
+		config: dbs.Config,
 
 		roomEndpoint: netInfo,
 	}
@@ -303,8 +306,9 @@ func New(
 	var ih = inviteHandler{
 		render: r,
 
-		invites:       dbs.Invites,
+		config:        dbs.Config,
 		pinnedNotices: dbs.PinnedNotices,
+		invites:       dbs.Invites,
 
 		networkInfo: netInfo,
 	}

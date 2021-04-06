@@ -9,6 +9,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 
 // opens the shs listener for TCP connections
@@ -27,11 +28,20 @@ func (s *Server) initNetwork() error {
 			return &s.master, nil
 		}
 
-		if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err == nil {
-			return &s.public, nil
+		pm, err := s.Config.GetPrivacyMode(nil)
+		if err != nil {
+			return nil, fmt.Errorf("running with unknown privacy mode")
 		}
 
-		return nil, fmt.Errorf("not authorized")
+		// if privacy mode is restricted, deny connections from non-members
+		if pm == roomdb.ModeRestricted {
+			if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err != nil {
+				return nil, fmt.Errorf("access restricted to members")
+			}
+		}
+
+		// for community + open modes, allow all connections
+		return &s.public, nil
 	}
 
 	// tcp+shs

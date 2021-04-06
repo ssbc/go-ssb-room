@@ -33,6 +33,41 @@ type Member struct {
 	PubKey refs.FeedRef
 }
 
+//go:generate go run golang.org/x/tools/cmd/stringer -type=PrivacyMode
+
+type PrivacyMode uint
+
+func (pm PrivacyMode) IsValid() error {
+	if pm == ModeUnknown || pm > ModeRestricted {
+		return errors.New("No such privacy mode")
+	}
+	return nil
+}
+
+func ParsePrivacyMode(val string) PrivacyMode {
+	switch val {
+	case "open":
+		return ModeOpen
+	case "community":
+		return ModeCommunity
+	case "restricted":
+		return ModeRestricted
+	default:
+		return ModeUnknown
+	}
+}
+
+// PrivacyMode describes the access mode the room server is currently running under.
+// ModeOpen allows anyone to create an room invite
+// ModeCommunity restricts invite creation to pre-existing room members (i.e. "internal users")
+// ModeRestricted only allows admins and moderators to create room invitations
+const (
+	ModeUnknown PrivacyMode = iota
+	ModeOpen
+	ModeCommunity
+	ModeRestricted
+)
+
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Role
 
 // Role describes the authorization level of an internal user (or member).
@@ -42,7 +77,7 @@ type Role uint
 
 func (r Role) IsValid() error {
 	if r == RoleUnknown {
-		return errors.New("uknown member role")
+		return errors.New("unknown member role")
 	}
 	if r > RoleAdmin {
 		return errors.New("invalid member role")
