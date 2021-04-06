@@ -26,14 +26,19 @@ func TestRoomConfig(t *testing.T) {
 	db, err := Open(tr)
 	r.NoError(err)
 
+	// make sure we have the expected default
+	pm, err := db.Config.GetPrivacyMode(ctx)
+	r.NoError(err)
+	r.Equal(pm, roomdb.ModeCommunity, "privacy mode was unknown: %s", pm)
+
 	// test setting a valid privacy mode
-	err = db.Config.SetPrivacyMode(ctx, roomdb.ModeCommunity)
+	err = db.Config.SetPrivacyMode(ctx, roomdb.ModeRestricted)
 	r.NoError(err)
 
 	// make sure the mode was set correctly by getting it
-	pm, err := db.Config.GetPrivacyMode(ctx)
+	pm, err = db.Config.GetPrivacyMode(ctx)
 	r.NoError(err)
-	r.Equal(pm, roomdb.ModeCommunity, "privacy mode was unknown")
+	r.Equal(pm, roomdb.ModeRestricted, "privacy mode was unknown")
 
 	// test setting an invalid privacy mode
 	err = db.Config.SetPrivacyMode(ctx, 1337)

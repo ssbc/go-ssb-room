@@ -1,8 +1,7 @@
 [sqlite3]
-# go test in the admindb/sqlite package will create this
+# go test in the roomdb/sqlite package will create this
 dbname = "testrun/TestSchema/roomdb"
 blacklist = ["gorp_migrations"]
-
 
 # marshal pub_key strings ala @asdjjasd as feed references.
 [[types]]
@@ -14,6 +13,20 @@ blacklist = ["gorp_migrations"]
 
   [types.replace]
     type = "roomdb.DBFeedRef"
+
+  [types.imports]
+    third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"']
+
+# convert from database-stored integers to the type roomdb.RoomConfig
+[[types]]
+  [types.match]
+    name = "privacyMode"
+    tables = ['config']
+    type = "int64"
+    nullable = false
+
+  [types.replace]
+    type = "roomdb.PrivacyMode"
 
   [types.imports]
     third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"']

@@ -68,6 +68,32 @@ const (
 	ModeRestricted
 )
 
+// Implements the SQL marshaling interfaces (Scanner for Scan & Valuer for Value) for PrivacyMode
+
+// Scan implements https://pkg.go.dev/database/sql#Scanner to read integers into a privacy mode
+func (pm *PrivacyMode) Scan(src interface{}) error {
+	dbValue, ok := src.(int64)
+	if !ok {
+		return fmt.Errorf("unexpected type: %T", src)
+	}
+
+	privacyMode := PrivacyMode(dbValue)
+
+	err := privacyMode.IsValid()
+	if err != nil {
+		return err
+	}
+
+	*pm = privacyMode
+	return nil
+}
+
+// Value returns privacy mode references as int64 to the database.
+// https://pkg.go.dev/database/sql/driver#Valuer
+func (pm PrivacyMode) Value() (driver.Value, error) {
+	return driver.Value(int64(pm)), nil
+}
+
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Role
 
 // Role describes the authorization level of an internal user (or member).

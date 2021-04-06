@@ -30,14 +30,7 @@ func (c Config) GetPrivacyMode(ctx context.Context) (roomdb.PrivacyMode, error) 
 		return roomdb.ModeUnknown, err
 	}
 
-	// use a type conversion to tell compiler the returned value is a roomdb.PrivacyMode
-	pm := (roomdb.PrivacyMode)(config.PrivacyMode)
-	err = pm.IsValid()
-	if err != nil {
-		return roomdb.ModeUnknown, err
-	}
-
-	return pm, nil
+	return config.PrivacyMode, nil
 }
 
 func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error {
@@ -56,7 +49,7 @@ func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error
 		}
 
 		// set the new privacy mode
-		config.PrivacyMode = int64(pm)
+		config.PrivacyMode = pm
 		// issue update stmt
 		rowsAffected, err := config.Update(ctx, tx, boil.Infer())
 		if err != nil {
