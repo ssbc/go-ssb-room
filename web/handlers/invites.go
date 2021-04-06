@@ -79,7 +79,7 @@ func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) 
 	fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", token)
 
 	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
-	qrCode, err := qrcode.New(joinRoomURI, qrcode.Medium)
+	qrCode, err := qrcode.New(string(joinRoomURI), qrcode.Medium)
 	if err != nil {
 		return nil, err
 	}
