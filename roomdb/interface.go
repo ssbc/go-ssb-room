@@ -94,7 +94,7 @@ type DeniedKeysService interface {
 	// HasFeed returns true if a feed is on the list.
 	HasFeed(context.Context, refs.FeedRef) bool
 
-	// HasFeed returns true if a feed is on the list.
+	// HasID returns true if a member id is on the list.
 	HasID(context.Context, int64) bool
 
 	// GetByID returns the list entry for that ID or an error

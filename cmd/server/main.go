@@ -229,6 +229,7 @@ func runroomsrv() error {
 	// create the shs+muxrpc server
 	roomsrv, err := mksrv.New(
 		db.Members,
+		db.DeniedKeys,
 		db.Aliases,
 		db.AuthWithSSB,
 		bridge,

@@ -309,6 +309,7 @@ func New(
 		config:        dbs.Config,
 		pinnedNotices: dbs.PinnedNotices,
 		invites:       dbs.Invites,
+		deniedKeys:    dbs.DeniedKeys,
 
 		networkInfo: netInfo,
 	}

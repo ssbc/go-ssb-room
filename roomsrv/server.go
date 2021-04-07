@@ -65,8 +65,9 @@ type Server struct {
 
 	StateManager *roomstate.Manager
 
-	Members roomdb.MembersService
-	Aliases roomdb.AliasesService
+	Members    roomdb.MembersService
+	DeniedKeys roomdb.DeniedKeysService
+	Aliases    roomdb.AliasesService
 
 	authWithSSB       roomdb.AuthWithSSBService
 	authWithSSBBridge *signinwithssb.SignalBridge
@@ -79,6 +80,7 @@ func (s Server) Whoami() refs.FeedRef {
 
 func New(
 	membersdb roomdb.MembersService,
+	deniedkeysdb roomdb.DeniedKeysService,
 	aliasdb roomdb.AliasesService,
 	awsdb roomdb.AuthWithSSBService,
 	bridge *signinwithssb.SignalBridge,
@@ -90,6 +92,7 @@ func New(
 	s.authorizer = membersdb
 
 	s.Members = membersdb
+	s.DeniedKeys = deniedkeysdb
 	s.Aliases = aliasdb
 	s.Config = config
 
