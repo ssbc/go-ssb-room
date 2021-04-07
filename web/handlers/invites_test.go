@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"testing"
@@ -83,9 +82,10 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.True(ok)
 
 		// Fallback URL in data-href-fallback
-		fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", testToken)
+		fallbackURL := ts.URLTo(router.CompleteInviteFacadeFallback, "token", testToken)
+		want := fallbackURL.Path + "?" + fallbackURL.RawQuery
 		joinDataHrefFallback, ok := doc.Find("#join-room-uri").Attr("data-href-fallback")
-		a.Equal(fallbackURL.String(), joinDataHrefFallback)
+		a.Equal(want, joinDataHrefFallback)
 		a.True(ok)
 
 		// ssb-uri in data-href
@@ -104,10 +104,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(testToken, inviteParam)
 
 		postTo := params.Get("postTo")
-		expectedConsumeInviteURL, err := ts.Router.Get(router.CompleteInviteConsume).URL()
-		expectedConsumeInviteURL.Scheme = "https"
-		expectedConsumeInviteURL.Host = "localhost"
-		r.NoError(err)
+		expectedConsumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
 		a.Equal(expectedConsumeInviteURL.String(), postTo)
 	})
 }
@@ -117,11 +114,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	a, r := assert.New(t), require.New(t)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
-	r.NotNil(validAcceptURL)
-	validAcceptURL.Host = "localhost"
-	validAcceptURL.Scheme = "https"
-
+	validAcceptURL := ts.URLTo(router.CompleteInviteInsertID, "token", testToken)
 	testInvite := roomdb.Invite{ID: 4321}
 	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
@@ -142,15 +135,6 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 		{Name: "invite", Type: "hidden", Value: testToken},
 		{Name: "id", Type: "text"},
 	})
-
-	// we need a functional jar to unpack the Set-Cookie response for the csrf token
-	jar, err := cookiejar.New(nil)
-	r.NoError(err)
-
-	// update the jar
-	csrfCookie := resp.Result().Cookies()
-	a.Len(csrfCookie, 1, "should have one cookie for CSRF protection validation")
-	jar.SetCookies(validAcceptURL, csrfCookie)
 
 	// get the corresponding token from the page
 	csrfTokenElem := doc.Find("input[name='gorilla.csrf.Token']")
@@ -175,14 +159,9 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	// construct the consume endpoint url
 	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
 
-	// construct the header with Referer and Cookie
+	// construct the header with the Referer or csrf check
 	var csrfCookieHeader = http.Header(map[string][]string{})
 	csrfCookieHeader.Set("Referer", "https://localhost")
-	cs := jar.Cookies(consumeInviteURL)
-	r.Len(cs, 1, "expecting one cookie for csrf")
-	theCookie := cs[0].String()
-	a.NotEqual("", theCookie, "should have a new cookie")
-	csrfCookieHeader.Set("Cookie", theCookie)
 	ts.Client.SetHeaders(csrfCookieHeader)
 
 	// prepare the mock
