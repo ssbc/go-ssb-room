@@ -13,8 +13,10 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 type membersHandler struct {
@@ -104,7 +106,8 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	memberDetailsURL := fmt.Sprint("/admin/member?id=", memberID)
+	urlTo := web.NewURLTo(router.CompleteApp())
+	memberDetailsURL := urlTo(router.AdminMemberDetails, "id", memberID).String()
 	http.Redirect(w, req, memberDetailsURL, http.StatusTemporaryRedirect)
 }
 
