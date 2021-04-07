@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"bytes"
 	"net/http"
 	"net/url"
 	"testing"
@@ -14,51 +13,6 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
 )
-
-func TestAliasesOverview(t *testing.T) {
-	ts := newSession(t)
-	a := assert.New(t)
-
-	lst := []roomdb.Alias{
-		{ID: 1, Name: "alice", Feed: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
-		{ID: 2, Name: "bob", Feed: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
-		{ID: 3, Name: "cleo", Feed: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
-	}
-	ts.AliasesDB.ListReturns(lst, nil)
-
-	html, resp := ts.Client.GetHTML("/aliases")
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-
-	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAliasesWelcome"},
-		{"title", "AdminAliasesTitle"},
-		{"#aliasCount", "ListCountPlural"},
-	})
-
-	a.EqualValues(html.Find("#theList li").Length(), 3)
-
-	lst = []roomdb.Alias{
-		{ID: 666, Name: "dave", Feed: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
-	}
-	ts.AliasesDB.ListReturns(lst, nil)
-
-	html, resp = ts.Client.GetHTML("/aliases")
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-
-	webassert.Localized(t, html, []webassert.LocalizedElement{
-		{"#welcome", "AdminAliasesWelcome"},
-		{"title", "AdminAliasesTitle"},
-		{"#aliasCount", "ListCountSingular"},
-	})
-
-	elems := html.Find("#theList li")
-	a.EqualValues(elems.Length(), 1)
-
-	// check for link to Revoke confirm link
-	link, yes := elems.ContentsFiltered("a").Attr("href")
-	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/aliases/revoke/confirm?id=666", link)
-}
 
 func TestAliasesRevokeConfirmation(t *testing.T) {
 	ts := newSession(t)
