@@ -227,7 +227,7 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 }
 
 func (i Invites) Count(ctx context.Context) (uint, error) {
-	count, err := models.Members().Count(ctx, i.db)
+	count, err := models.Invites().Count(ctx, i.db)
 	if err != nil {
 		return 0, err
 	}
