@@ -40,6 +40,11 @@ func (s *Server) initNetwork() error {
 			}
 		}
 
+		// if feed is in the deny list, deny their connection
+		if s.DeniedKeys.HasFeed(s.rootCtx, *remote) {
+			return nil, fmt.Errorf("this key has been banned")
+		}
+
 		// for community + open modes, allow all connections
 		return &s.public, nil
 	}
