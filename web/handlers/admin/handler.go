@@ -25,7 +25,6 @@ var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
 	"admin/menu.tmpl",
 
-	"admin/aliases.tmpl",
 	"admin/aliases-revoke-confirm.tmpl",
 
 	"admin/denied-keys.tmpl",
@@ -37,7 +36,8 @@ var HTMLTemplates = []string{
 
 	"admin/notice-edit.tmpl",
 
-	"admin/members.tmpl",
+	"admin/member.tmpl",
+	"admin/member-list.tmpl",
 	"admin/members-remove-confirm.tmpl",
 }
 
@@ -93,7 +93,6 @@ func Handler(
 		r:  r,
 		db: dbs.Aliases,
 	}
-	mux.HandleFunc("/aliases", r.HTML("admin/aliases.tmpl", ah.overview))
 	mux.HandleFunc("/aliases/revoke/confirm", r.HTML("admin/aliases-revoke-confirm.tmpl", ah.revokeConfirm))
 	mux.HandleFunc("/aliases/revoke", ah.revoke)
 
@@ -110,7 +109,8 @@ func Handler(
 		r:  r,
 		db: dbs.Members,
 	}
-	mux.HandleFunc("/members", r.HTML("admin/members.tmpl", mh.overview))
+	mux.HandleFunc("/member", r.HTML("admin/member.tmpl", mh.details))
+	mux.HandleFunc("/members", r.HTML("admin/member-list.tmpl", mh.overview))
 	mux.HandleFunc("/members/add", mh.add)
 	mux.HandleFunc("/members/change-role", mh.changeRole)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/members-remove-confirm.tmpl", mh.removeConfirm))

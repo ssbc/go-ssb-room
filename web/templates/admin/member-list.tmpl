@@ -1,0 +1,96 @@
+{{ define "title" }}{{i18n "AdminMembersTitle"}}{{ end }}
+{{ define "content" }}
+  <h1
+    class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
+  >{{i18n "AdminMembersTitle"}}</h1>
+
+  <p id="welcome" class="my-2">{{i18n "AdminMembersWelcome"}}</p>
+
+  <form
+    id="add-entry"
+    action="{{urlTo "admin:members:add"}}"
+    method="POST"
+  >
+    {{ .csrfField }}
+    <label class="block mt-6 mb-1 text-sm text-gray-500">Add a new member</label>
+    <div class="flex flex-row items-center justify-start mb-6">
+      <input
+        type="text"
+        name="pub_key"
+        placeholder="{{i18n "PubKeyRefPlaceholder"}}"
+        class="w-8/12 self-stretch shadow rounded border border-transparent h-10 p-1 pl-4 font-mono truncate text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent">
+      <button
+        type="submit"
+        class="ml-4 h-10 shadow rounded px-6 text-purple-600 ring-1 ring-purple-400 bg-white hover:bg-purple-600 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        >{{i18n "AdminMembersAdd"}}</button>
+    </div>
+  </form>
+
+  <p
+    id="membersCount"
+    class="text-lg font-bold my-2 ml-4"
+  >{{i18npl "MemberCount" .Count}}</p>
+
+  <ul id="theList" class="pb-4">
+    {{range $index, $member := .Entries}}
+    <li class="odd:bg-gray-100 rounded-lg relative z-0 hover:z-10 hover:bg-white hover:shadow-md">
+      <a href="{{urlTo "admin:member:details" "id" $member.ID}}" class="group flex flex-row items-center h-16 px-4 rounded-lg">
+        <div class="flex flex-col flex-1 justify-center max-w-full">
+          <span class="font-mono truncate text-gray-600 group-hover:text-gray-800">{{$member.PubKey.Ref}}</span>
+
+          <div class="inline-block h-6">
+          {{range $member.Aliases}}
+            <span class="mr-1 text-purple-800 bg-purple-100 rounded-lg px-2">{{.Name}}</span>
+          {{end}}
+          </div>
+        </div>
+
+        <svg class="w-6 h-6 text-gray-400 group-hover:text-purple-600" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+        </svg>
+      </a>
+    </li>
+    {{end}}
+  </ul>
+
+  {{$pageNums := .Paginator.PageNums}}
+  {{$view := .View}}
+  {{if gt $pageNums 1}}
+  <div class="flex flex-row justify-center">
+    {{if not .FirstInView}}
+      <a
+        href="{{urlTo "admin:members:overview"}}?page=1"
+        class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+      >1</a>
+      <span
+        class="px-3 py-2 text-gray-400 border-2 border-transparent"
+      >..</span>
+    {{end}}
+
+    {{range $view.Pages}}
+      {{if le . $pageNums}}
+        {{if eq . $view.Current}}
+          <span
+            class="px-3 py-2 cursor-default text-gray-500 border-2 border-transparent"
+          >{{.}}</span>
+        {{else}}
+          <a
+            href="{{urlTo "admin:members:overview"}}?page={{.}}"
+            class="rounded px-3 py-2 mx-1 text-pink-600 border-transparent hover:border-pink-400 border-2"
+          >{{.}}</a>
+        {{end}}
+      {{end}}
+    {{end}}
+
+    {{if not .LastInView}}
+      <span
+        class="px-3 py-2 text-gray-400 border-2 border-transparent"
+      >..</span>
+      <a
+        href="{{urlTo "admin:members:overview"}}?page={{$view.Last}}"
+        class="rounded px-3 py-2 text-pink-600 border-transparent hover:border-pink-400 border-2"
+      >{{$view.Last}}</a>
+    {{end}}
+  </div>
+  {{end}}
+{{end}}

@@ -1,0 +1,77 @@
+{{ define "title" }}{{i18n "AdminMemberDetailsTitle"}}{{ end }}
+{{ define "content" }}
+  <h1
+    class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
+  >{{i18n "AdminMemberDetailsTitle"}}</h1>
+
+  <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsSSBID"}}</label>
+  <p class="mb-8 font-mono font-bold tracking-wider truncate text-gray-900">{{.Member.PubKey.Ref}}</p>
+
+  <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsRole"}}</label>
+  <details class="mb-8 self-start w-40">
+    <summary class="px-3 py-1 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
+      {{range $.AllRoles}}
+        {{if eq . $.Member.Role}}
+          {{i18n .String}}
+        {{end}}
+      {{end}}
+    </summary>
+
+    <div class="absolute z-10 bg-white w-40 mt-2 shadow-xl ring-1 ring-gray-200 rounded divide-y flex flex-col items-stretch overflow-hidden">
+      {{range $.AllRoles}}
+      {{if ne . $.Member.Role}}
+      <form
+        id="change-role"
+        action="{{urlTo "admin:members:change-role" "id" $.Member.ID}}"
+        method="POST"
+        >
+        {{$.csrfField}}
+        <input type="hidden" name="role" value="{{.}}">
+        <input
+          type="submit"
+          value="{{i18n .String}}"
+          class="pl-10 pr-3 py-2 w-full text-left bg-white text-gray-700 hover:text-gray-900 hover:bg-gray-50 cursor-pointer"
+          />
+      </form>
+      {{else}}
+        <div
+          class="pr-3 py-2 text-gray-600 flex flex-row items-center cursor-default"
+          >
+          <div class="w-10 flex flex-row items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
+            </svg>
+          </div>
+          <span>{{i18n .String}}</span>
+        </div>
+      {{end}}
+      {{end}}
+    </div>
+  </details>
+
+  {{$aliasCount := len .Member.Aliases}} {{if gt $aliasCount 0}}
+  <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsAliases"}}</label>
+  <div class="grid grid-cols-2 gap-y-2 gap-x-4 self-start">
+  {{range .Member.Aliases}}
+    <div class="flex flex-row items-center justify-start">
+      <a
+        href="/alias/{{.Name}}"
+        class="underline text-purple-800 bg-purple-100 rounded-lg px-2 py-1"
+        >{{.Name}}</a>
+    </div>
+
+    <a
+      href="{{urlTo "admin:aliases:revoke:confirm" "id" .ID}}"
+      class="w-20 py-2 text-sm text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+      >({{i18n "AdminMemberDetailsAliasRevoke"}})</a>
+  {{end}}
+  </div>
+  {{end}}
+
+  <label class="mt-10 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsExclusion"}}</label>
+  <a
+    href="{{urlTo "admin:members:remove:confirm" "id" .Member.ID}}"
+    class="mb-8 self-start shadow rounded px-3 py-1 text-red-600 ring-1 ring-red-400 bg-white hover:bg-red-600 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer"
+    >{{i18n "AdminMemberDetailsRemove"}}</a>
+
+{{end}}
