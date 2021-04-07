@@ -30,6 +30,7 @@ type inviteHandler struct {
 	invites       roomdb.InvitesService
 	pinnedNotices roomdb.PinnedNoticesService
 	config        roomdb.RoomConfig
+	deniedKeys    roomdb.DeniedKeysService
 
 	networkInfo network.ServerEndpointDetails
 }
@@ -151,9 +152,9 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) {
 	var (
 		token     string
 		newMember refs.FeedRef
-
-		resp inviteConsumeResponder
+		resp      inviteConsumeResponder
 	)
+
 	ct := req.Header.Get("Content-Type")
 	switch ct {
 	case "application/json":
@@ -171,7 +172,6 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) {
 
 		newMember = body.ID
 		token = body.Invite
-
 	case "application/x-www-form-urlencoded":
 		resp = newinviteConsumeHTMLResponder(h.render, rw, req)
 
@@ -190,11 +190,17 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 		newMember = *parsedID
-
 	default:
 		http.Error(rw, fmt.Sprintf("unhandled Content-Type (%q)", ct), http.StatusBadRequest)
 		return
 	}
+
+	// before consuming the invite: check if the invitee is banned
+	if h.deniedKeys.HasFeed(req.Context(), newMember) {
+		resp.SendError(weberrors.ErrDenied)
+		return
+	}
+
 	resp.UpdateMultiserverAddr(h.networkInfo.MultiserverAddress())
 
 	inv, err := h.invites.Consume(req.Context(), token, newMember)

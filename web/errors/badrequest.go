@@ -34,3 +34,5 @@ func (f ErrForbidden) Error() string {
 }
 
 var ErrNotAuthorized = errors.New("rooms/web: not authorized")
+
+var ErrDenied = errors.New("rooms: this key has been banned")
