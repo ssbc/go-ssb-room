@@ -108,7 +108,6 @@ func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
 		members[i].Role = roomdb.Role(entry.Role)
 		members[i].PubKey = entry.PubKey.FeedRef
 		members[i].Aliases = getAliases(entry)
-		println(len(members[i].Aliases))
 	}
 
 	return members, nil
