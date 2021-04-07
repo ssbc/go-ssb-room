@@ -306,5 +306,5 @@ func TestInviteConsumptionDenied(t *testing.T) {
 	a.Equal("error", jsonConsumeResp.Status)
 
 	// invite should not be consumed
-	r.EqualValues(1, ts.InvitesDB.ConsumeCallCount())
+	r.EqualValues(0, ts.InvitesDB.ConsumeCallCount())
 }
