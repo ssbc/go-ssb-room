@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -22,8 +23,8 @@ import (
 
 // Config is an object representing the database table.
 type Config struct {
-	ID          int64 `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PrivacyMode int64 `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
+	ID          int64              `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PrivacyMode roomdb.PrivacyMode `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
 
 	R *configR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L configL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -39,12 +40,33 @@ var ConfigColumns = struct {
 
 // Generated where
 
+type whereHelperroomdb_PrivacyMode struct{ field string }
+
+func (w whereHelperroomdb_PrivacyMode) EQ(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelperroomdb_PrivacyMode) NEQ(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperroomdb_PrivacyMode) LT(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelperroomdb_PrivacyMode) LTE(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperroomdb_PrivacyMode) GT(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelperroomdb_PrivacyMode) GTE(x roomdb.PrivacyMode) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var ConfigWhere = struct {
 	ID          whereHelperint64
-	PrivacyMode whereHelperint64
+	PrivacyMode whereHelperroomdb_PrivacyMode
 }{
 	ID:          whereHelperint64{field: "\"config\".\"id\""},
-	PrivacyMode: whereHelperint64{field: "\"config\".\"privacyMode\""},
+	PrivacyMode: whereHelperroomdb_PrivacyMode{field: "\"config\".\"privacyMode\""},
 }
 
 // ConfigRels is where relationship names are stored.

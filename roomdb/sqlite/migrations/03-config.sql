@@ -12,7 +12,7 @@ CREATE TABLE config (
 -- to have something to update, we insert the first and only row at id 0
 INSERT INTO config (id, privacyMode) VALUES (
     0,  -- the constant id we will query
-    1   -- community is the default mode unless overridden
+    2   -- community is the default mode unless overridden
 );
 
 -- +migrate Down
