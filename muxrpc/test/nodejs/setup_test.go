@@ -124,7 +124,7 @@ func (ts *testSession) startGoServer(
 	authSessionsDB := new(mockdb.FakeAuthWithSSBService)
 
 	fakeConfig := new(mockdb.FakeRoomConfig)
-  deniedKeysDB := new(mockdb.FakeDeniedKeysService)
+	deniedKeysDB := new(mockdb.FakeDeniedKeysService)
 
 	srv, err := roomsrv.New(membersDB, deniedKeysDB, aliasDB, authSessionsDB, sb, fakeConfig, "go.test.room.server", opts...)
 	r.NoError(err, "failed to init tees a server")

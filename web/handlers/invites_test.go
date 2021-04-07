@@ -262,3 +262,49 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	a.True(strings.HasPrefix(gotRA, "net:localhost:8008~shs:"), "not for the test host: %s", gotRA)
 	a.True(strings.HasSuffix(gotRA, base64.StdEncoding.EncodeToString(ts.NetworkInfo.RoomID.PubKey())), "public key missing? %s", gotRA)
 }
+
+func TestInviteConsumptionDenied(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+	urlTo := web.NewURLTo(ts.Router)
+
+	testToken := "existing-test-token-2"
+	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+	r.NotNil(validAcceptURL)
+
+	testInvite := roomdb.Invite{ID: 4321}
+	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
+
+	ts.DeniedKeysDB.HasFeedReturns(true)
+
+	// create the consume request
+	testNewMember := refs.FeedRef{
+		ID:   bytes.Repeat([]byte{1}, 32),
+		Algo: refs.RefAlgoFeedSSB1,
+	}
+
+	var consume inviteConsumePayload
+	consume.Invite = testToken
+	consume.ID = testNewMember
+
+	// construct the consume endpoint url
+	consumeInviteURL := urlTo(router.CompleteInviteConsume)
+	r.NotNil(consumeInviteURL)
+
+	// prepare the mock
+	ts.InvitesDB.ConsumeReturns(testInvite, nil)
+
+	// send the POST
+	resp := ts.Client.SendJSON(consumeInviteURL.String(), consume)
+
+	// decode the json response
+	var jsonConsumeResp inviteConsumeJSONResponse
+	err := json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
+	r.NoError(err)
+
+	// json response should indicate an error for the denied key
+	a.Equal("error", jsonConsumeResp.Status)
+
+	// invite should not be consumed
+	r.EqualValues(1, ts.InvitesDB.ConsumeCallCount())
+}
