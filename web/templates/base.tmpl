@@ -71,11 +71,21 @@
     {{$cocUrl := urlToNotice "NoticeCodeOfConduct"}}
     {{$ppUrl := urlToNotice "NoticePrivacyPolicy"}}
     <footer class="mb-4 flex flex-row items-center justify-center divide-x divide-gray-300">
+      <a
+        href="{{urlTo "complete:index"}}"
+        class="px-4 text-gray-500 hover:underline"
+        >{{i18n "NavAdminLanding"}}</a>
       {{if $cocUrl}}
-      <a href="{{$cocUrl}}" class="px-4 text-gray-500 hover:underline">{{i18n "NoticeCodeOfConduct"}}</a>
+      <a
+        href="{{$cocUrl}}"
+        class="px-4 text-gray-500 hover:underline"
+        >{{i18n "NoticeCodeOfConduct"}}</a>
       {{end}}
       {{if $ppUrl}}
-      <a href="{{$ppUrl}}" class="px-4 text-gray-500 hover:underline">{{i18n "NoticePrivacyPolicy"}}</a>
+      <a
+        href="{{$ppUrl}}"
+        class="px-4 text-gray-500 hover:underline"
+        >{{i18n "NoticePrivacyPolicy"}}</a>
       {{end}}
     </footer>
     {{end}}
