@@ -20,7 +20,8 @@ type Members struct {
 	db *sql.DB
 }
 
-func getAliases(mEntry *models.Member) []roomdb.Alias {
+// getAliases returns the JOIN-ed aliases for a member as a the wanted roomdb type.
+func (Members) getAliases(mEntry *models.Member) []roomdb.Alias {
 	if mEntry.R == nil || mEntry.R.Aliases == nil {
 		return make([]roomdb.Alias, 0)
 	}
@@ -78,7 +79,7 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 		ID:      entry.ID,
 		Role:    roomdb.Role(entry.Role),
 		PubKey:  entry.PubKey.FeedRef,
-		Aliases: getAliases(entry),
+		Aliases: m.getAliases(entry),
 	}, nil
 }
 
@@ -107,7 +108,7 @@ func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
 		members[i].ID = entry.ID
 		members[i].Role = roomdb.Role(entry.Role)
 		members[i].PubKey = entry.PubKey.FeedRef
-		members[i].Aliases = getAliases(entry)
+		members[i].Aliases = m.getAliases(entry)
 	}
 
 	return members, nil

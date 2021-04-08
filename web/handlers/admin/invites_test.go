@@ -93,10 +93,6 @@ func TestInvitesCreateForm(t *testing.T) {
 	a.NoError(err)
 
 	a.Equal(addURL.String(), action)
-
-	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
-		{Name: "alias_suggestion", Type: "text"},
-	})
 }
 
 func TestInvitesCreate(t *testing.T) {

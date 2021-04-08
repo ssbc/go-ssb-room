@@ -7,17 +7,18 @@
         class="text-center"
       >{{i18n "AdminInviteRevokeConfirmWelcome"}}</span>
 
+      {{$creator := .Invite.CreatedBy.PubKey.Ref}}
+      {{range $index, $alias := .Invite.CreatedBy.Aliases}}
+        {{if eq $index 0}}
+          {{$creator = $alias.Name}}
+        {{end}}
+      {{end}}
       <pre
         class="my-4 font-mono truncate max-w-full text-lg text-gray-700"
-      >{{.Invite.CreatedBy.Nickname}}</pre>
-
-      {{if ne .Invite.AliasSuggestion ""}}
-        <!-- https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60 -->
-        <p>{{i18n "AdminInviteSuggestedAliasIs"}} {{.Invite.AliasSuggestion}}</p>
-      {{end}}
+      >{{.Invite.CreatedAt.Format "2006-01-02T15:04:05.00"}} ({{$creator}})</pre>
 
       <form id="confirm" action="{{urlTo "admin:invites:revoke"}}" method="POST">
-        {{ .csrfField }}
+        {{.csrfField}}
         <input type="hidden" name="id" value={{.Invite.ID}}>
         <div class="grid grid-cols-2 gap-4">
           <a

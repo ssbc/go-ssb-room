@@ -147,7 +147,7 @@ func (aa ErrAlreadyAdded) Error() string {
 	return fmt.Sprintf("roomdb: the item (%s) is already on the list", aa.Ref.Ref())
 }
 
-// Invite is a combination of an invite id, who created it and an (optional) alias suggestion.
+// Invite is a combination of an invite id, who created it and when.
 // The token itself is only visible from the db.Create function and stored hashed in the database
 type Invite struct {
 	ID int64
