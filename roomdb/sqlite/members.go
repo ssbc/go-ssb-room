@@ -20,7 +20,8 @@ type Members struct {
 	db *sql.DB
 }
 
-func (m Members) getAliases(mEntry *models.Member) []roomdb.Alias {
+// getAliases returns the JOIN-ed aliases for a member as a the wanted roomdb type.
+func (Members) getAliases(mEntry *models.Member) []roomdb.Alias {
 	if mEntry.R == nil || mEntry.R.Aliases == nil {
 		return make([]roomdb.Alias, 0)
 	}
