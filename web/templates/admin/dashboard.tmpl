@@ -85,5 +85,21 @@
     </div>
     {{end}}
   </div>
+  <div class="max-w-lg">
+    <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">Privacy Modes</h3>
+    <p class="mb-4">The privacy mode of this room determines who can create invites and who can connect to the
+    room. For more information, see the <a class="text-purple-600" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">rooms 2 specification</a>.</p>
+    <select class="mb-2">
+      <option selected="">Community</option>
+    </select>
+    <div class="mb-2" style="display: grid;grid-template-columns: auto 1fr;grid-column-gap: 1rem;grid-row-gap: 0.25rem;">
+      <div class="text-xl text-gray-500 font-bold">Open</div>
+      <div class="text-md italic">Open invite codes, anyone may connect</div>
+      <div class="text-xl text-gray-500 font-bold">Community</div>
+      <div>Members can create invites, anyone may connect</div>
+      <div class="text-xl text-gray-500 font-bold">Restricted</div>
+      <div>Only admins/Mods can create invites, only members may connect</div>
+    </div>
+  </div>
   </div>
 {{end}}
