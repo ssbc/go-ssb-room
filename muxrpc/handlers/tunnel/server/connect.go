@@ -50,11 +50,6 @@ func (h *Handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *mux
 
 	targetSrc, targetSnk, err := edp.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"tunnel", "connect"}, argWorigin)
 	if err != nil {
-		h.state.Remove(arg.Target)
-		// TODO: the call could fail because of an error with the caller, too.
-		// if we remove the wrong one, tho others might get confused
-		// h.state.Remove(caller)
-
 		return fmt.Errorf("failed to init connect call with target: %w", err)
 	}
 
