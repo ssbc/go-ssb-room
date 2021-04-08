@@ -11,8 +11,8 @@ It includes:
 
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
 * [x] Simple allow-listing, administerd via the web dashboard
-* [ ] Sign-in with SSB
-* [ ] Alias managment
+* [x] Sign-in with SSB
+* [ ] Alias management
 
 ## Development
 
@@ -56,6 +56,8 @@ cd cmd/server && go build -tags dev && ./server
 This can be useful if you are working on:
 * the sqlite migrations, 
 * html templates, 
+* styling elements using [tailwind](https://tailwindcss.com/docs/)
+  * _if you don't run generate with `-tags dev`, the bundled css will only contain the tailwind classes found in *.tmpl at the time of generation!_
 * or website assets
 
 This way, the build won't use the assets embedded in the binary, but instead read them directly from the local filesystem.
