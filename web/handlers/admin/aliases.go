@@ -25,25 +25,6 @@ type aliasesHandler struct {
 
 const redirectToAliases = "/admin/aliases"
 
-func (h aliasesHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-	lst, err := h.db.List(req.Context())
-	if err != nil {
-		return nil, err
-	}
-
-	// Reverse the slice to provide recent-to-oldest results
-	for i, j := 0, len(lst)-1; i < j; i, j = i+1, j-1 {
-		lst[i], lst[j] = lst[j], lst[i]
-	}
-
-	pageData, err := paginate(lst, len(lst), req.URL.Query())
-	if err != nil {
-		return nil, err
-	}
-
-	return pageData, nil
-}
-
 func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	if req.Method != "GET" {
 		return nil, weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected GET request")}

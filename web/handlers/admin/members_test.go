@@ -147,10 +147,66 @@ func TestMembers(t *testing.T) {
 	elems := html.Find("#theList li")
 	a.EqualValues(elems.Length(), 1)
 
-	// check for link to remove confirm link
+	// check for link to member details
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/members/remove/confirm?id=666", link)
+	a.Equal("/admin/member?id=666", link)
+}
+
+func TestMemberDetails(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+
+	feedRef := refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}
+	aliases := []roomdb.Alias{
+		{ID: 11, Name: "robert", Feed: feedRef, Signature: bytes.Repeat([]byte{0}, 4)},
+		{ID: 21, Name: "bob", Feed: feedRef, Signature: bytes.Repeat([]byte{0}, 4)},
+	}
+
+	member := roomdb.Member{
+		ID: 1, Role: roomdb.RoleMember, PubKey: feedRef, Aliases: aliases,
+	}
+	ts.MembersDB.GetByIDReturns(member, nil)
+
+	html, resp := ts.Client.GetHTML("/member?id=1")
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+
+	webassert.Localized(t, html, []webassert.LocalizedElement{
+		{"title", "AdminMemberDetailsTitle"},
+	})
+
+	// check for SSB ID
+	ssbID := html.Find("#ssb-id")
+	a.Equal(feedRef.Ref(), ssbID.Text())
+
+	// check for change-role dropdown
+	roleDropdown := html.Find("#change-role")
+	a.EqualValues(roleDropdown.Length(), 1)
+
+	// check for link to resolve 1st Alias
+	aliasRobertLink, yes := html.Find("#alias-list").Find("a").Eq(0).Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/alias/robert", aliasRobertLink)
+
+	// check for link to revoke 1st Alias
+	revokeRobertLink, yes := html.Find("#alias-list").Find("a").Eq(1).Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/admin/aliases/revoke/confirm?id=11", revokeRobertLink)
+
+	// check for link to resolve 1st Alias
+	aliasBobLink, yes := html.Find("#alias-list").Find("a").Eq(2).Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/alias/bob", aliasBobLink)
+
+	// check for link to revoke 1st Alias
+	revokeBobLink, yes := html.Find("#alias-list").Find("a").Eq(3).Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/admin/aliases/revoke/confirm?id=21", revokeBobLink)
+
+	// check for link to Remove member link
+	removeLink, yes := html.Find("#remove-member").Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	a.Equal("/admin/members/remove/confirm?id=1", removeLink)
 }
 
 func TestMembersRemoveConfirmation(t *testing.T) {

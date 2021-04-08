@@ -13,8 +13,10 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 type membersHandler struct {
@@ -104,7 +106,9 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
+	urlTo := web.NewURLTo(router.CompleteApp())
+	memberDetailsURL := urlTo(router.AdminMemberDetails, "id", memberID).String()
+	http.Redirect(w, req, memberDetailsURL, http.StatusTemporaryRedirect)
 }
 
 func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -127,6 +131,28 @@ func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (int
 	pageData["AllRoles"] = []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
 
 	return pageData, nil
+}
+
+func (h membersHandler) details(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
+	if err != nil {
+		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
+		return nil, err
+	}
+
+	member, err := h.db.GetByID(req.Context(), id)
+	if err != nil {
+		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
+		return nil, err
+	}
+
+	roles := []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
+
+	return map[string]interface{}{
+		"Member":         member,
+		"AllRoles":       roles,
+		csrf.TemplateTag: csrf.TemplateField(req),
+	}, nil
 }
 
 func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {

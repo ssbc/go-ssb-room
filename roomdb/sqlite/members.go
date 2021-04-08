@@ -20,6 +20,20 @@ type Members struct {
 	db *sql.DB
 }
 
+func getAliases(mEntry *models.Member) []roomdb.Alias {
+	if mEntry.R == nil || mEntry.R.Aliases == nil {
+		return make([]roomdb.Alias, 0)
+	}
+	var aliases = make([]roomdb.Alias, len(mEntry.R.Aliases))
+	for j, aEntry := range mEntry.R.Aliases {
+		aliases[j].ID = aEntry.ID
+		aliases[j].Feed = aEntry.R.Member.PubKey.FeedRef
+		aliases[j].Name = aEntry.Name
+		aliases[j].Signature = aEntry.Signature
+	}
+	return aliases
+}
+
 func (m Members) Add(ctx context.Context, pubKey refs.FeedRef, role roomdb.Role) (int64, error) {
 	var newID int64
 	err := transact(m.db, func(tx *sql.Tx) error {
@@ -61,9 +75,10 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 		return roomdb.Member{}, err
 	}
 	return roomdb.Member{
-		ID:     entry.ID,
-		Role:   roomdb.Role(entry.Role),
-		PubKey: entry.PubKey.FeedRef,
+		ID:      entry.ID,
+		Role:    roomdb.Role(entry.Role),
+		PubKey:  entry.PubKey.FeedRef,
+		Aliases: getAliases(entry),
 	}, nil
 }
 
@@ -82,16 +97,17 @@ func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, 
 
 // List returns a list of all the feeds.
 func (m Members) List(ctx context.Context) ([]roomdb.Member, error) {
-	all, err := models.Members().All(ctx, m.db)
+	all, err := models.Members(qm.Load("Aliases")).All(ctx, m.db)
 	if err != nil {
 		return nil, err
 	}
 
 	var members = make([]roomdb.Member, len(all))
-	for i, listEntry := range all {
-		members[i].ID = listEntry.ID
-		members[i].Role = roomdb.Role(listEntry.Role)
-		members[i].PubKey = listEntry.PubKey.FeedRef
+	for i, entry := range all {
+		members[i].ID = entry.ID
+		members[i].Role = roomdb.Role(entry.Role)
+		members[i].PubKey = entry.PubKey.FeedRef
+		members[i].Aliases = getAliases(entry)
 	}
 
 	return members, nil

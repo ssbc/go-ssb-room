@@ -9,7 +9,6 @@ const (
 	AdminDashboard = "admin:dashboard"
 	AdminMenu      = "admin:menu"
 
-	AdminAliasesOverview      = "admin:aliases:overview"
 	AdminAliasesRevokeConfirm = "admin:aliases:revoke:confirm"
 	AdminAliasesRevoke        = "admin:aliases:revoke"
 
@@ -17,6 +16,8 @@ const (
 	AdminDeniedKeysAdd           = "admin:denied-keys:add"
 	AdminDeniedKeysRemoveConfirm = "admin:denied-keys:remove:confirm"
 	AdminDeniedKeysRemove        = "admin:denied-keys:remove"
+
+	AdminMemberDetails = "admin:member:details"
 
 	AdminMembersOverview      = "admin:members:overview"
 	AdminMembersAdd           = "admin:members:add"
@@ -44,7 +45,6 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
 	m.Path("/menu").Methods("GET").Name(AdminMenu)
 
-	m.Path("/aliases").Methods("GET").Name(AdminAliasesOverview)
 	m.Path("/aliases/revoke/confirm").Methods("GET").Name(AdminAliasesRevokeConfirm)
 	m.Path("/aliases/revoke").Methods("POST").Name(AdminAliasesRevoke)
 
@@ -52,6 +52,8 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/denied/add").Methods("POST").Name(AdminDeniedKeysAdd)
 	m.Path("/denied/remove/confirm").Methods("GET").Name(AdminDeniedKeysRemoveConfirm)
 	m.Path("/denied/remove").Methods("POST").Name(AdminDeniedKeysRemove)
+
+	m.Path("/member").Methods("GET").Name(AdminMemberDetails)
 
 	m.Path("/members").Methods("GET").Name(AdminMembersOverview)
 	m.Path("/members/add").Methods("POST").Name(AdminMembersAdd)

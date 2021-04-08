@@ -28,9 +28,10 @@ type Alias struct {
 
 // Member holds all the information an internal user of the room has.
 type Member struct {
-	ID     int64
-	Role   Role
-	PubKey refs.FeedRef
+	ID      int64
+	Role    Role
+	PubKey  refs.FeedRef
+	Aliases []Alias
 }
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=PrivacyMode
