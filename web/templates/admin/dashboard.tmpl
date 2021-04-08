@@ -86,19 +86,21 @@
     {{end}}
   </div>
   <div class="max-w-lg">
-    <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">Privacy Modes</h3>
-    <p class="mb-4">The privacy mode of this room determines who can create invites and who can connect to the
-    room. For more information, see the <a class="text-purple-600" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">rooms 2 specification</a>.</p>
+    <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">{{i18n "PrivacyModesTitle"}}</h2>
+    <p class="mb-4">
+      {{i18n "ExplanationPrivacyModes"}} 
+      <a class="text-purple-600 font-bold" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">{{ i18n "RoomsSpecification" }}</a>.
+    </p>
     <select class="mb-2">
       <option selected="">Community</option>
     </select>
     <div class="grid grid-cols-3 gap-y-2 mb-2">
       <div class="text-xl text-gray-500 font-bold">Open</div>
-      <div class="text-md col-span-2 italic">Open invite codes, anyone may connect</div>
+      <div class="text-md col-span-2 italic">{{ i18n "ExplanationOpen" }}</div>
       <div class="text-xl text-gray-500 font-bold">Community</div>
-      <div class="text-md col-span-2 italic">Members can create invites, anyone may connect</div>
+      <div class="text-md col-span-2 italic">{{ i18n "ExplanationCommunity" }}</div>
       <div class="text-xl text-gray-500 font-bold">Restricted</div>
-      <div class="text-md col-span-2 italic">Only admins/Mods can create invites, only members may connect</div>
+      <div class="text-md col-span-2 italic">{{ i18n "ExplanationRestricted" }}</div>
     </div>
   </div>
   </div>
