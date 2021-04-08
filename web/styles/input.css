@@ -14,7 +14,7 @@ html {
 }
 
 .has-tooltip:hover .tooltip {
-  @apply visible z-50 p-1 rounded border border-gray-200 bg-gray-100 shadow-lg ml-4 text-sm;
+  @apply visible z-50 p-1 rounded border border-gray-200 bg-gray-100 text-gray-600 shadow-lg ml-4 text-sm;
 }
 
 /* custom markdown styling */

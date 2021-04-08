@@ -190,6 +190,8 @@ func (i Invites) GetByID(ctx context.Context, id int64) (roomdb.Invite, error) {
 	inv.CreatedAt = entry.CreatedAt
 	inv.CreatedBy.ID = entry.R.CreatedByMember.ID
 	inv.CreatedBy.Role = roomdb.Role(entry.R.CreatedByMember.Role)
+	inv.CreatedBy.PubKey = entry.R.CreatedByMember.PubKey.FeedRef
+	inv.CreatedBy.Aliases = i.members.getAliases(entry.R.CreatedByMember)
 
 	return inv, nil
 }
@@ -213,6 +215,8 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 			inv.ID = e.ID
 			inv.CreatedAt = e.CreatedAt
 			inv.CreatedBy.ID = e.R.CreatedByMember.ID
+			inv.CreatedBy.PubKey = e.R.CreatedByMember.PubKey.FeedRef
+			inv.CreatedBy.Aliases = i.members.getAliases(e.R.CreatedByMember)
 
 			invs[idx] = inv
 		}

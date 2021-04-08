@@ -62,14 +62,13 @@ AdminMemberDetailsExclusion = "Exclusion from this room"
 AdminMemberDetailsRemove = "Remove member"
 
 AdminInvitesTitle = "Invites"
-AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. At the same time as you create an invite, you can also (optionally) attach an alias to it so that the person who receives the invite can automatically use that claim that alias for themselves."
-AdminInvitesAliasSuggestion = "(Optional) Alias suggestion"
+AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. On this page you can also see previously created invites that are still not unclaimed by new members."
+AdminInvitesCreate = "Create new invite"
 AdminInvitesCreatedAtColumn = "Created at"
 AdminInvitesCreatorColumn = "Created by"
-AdminInvitesAliasColumn = "Alias suggestion"
-AdminInvitesSummaryFrom = "From"
-AdminInvitesSummaryTo = "to"
+AdminInvitesActionColumn = "Action"
 AdminInviteRevoke = "Revoke"
+
 AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
 AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
 
