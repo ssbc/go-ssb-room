@@ -2,6 +2,7 @@ package roomstate
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"time"
 
@@ -73,6 +74,7 @@ func (rsm roomStateMap) AsList() []string {
 	for m := range rsm {
 		memberList = append(memberList, m)
 	}
+	sort.Strings(memberList)
 	return memberList
 }
 
