@@ -91,6 +91,7 @@
       {{ i18n "ExplanationPrivacyModes" }} 
       <a class="text-purple-600 font-bold" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">{{ i18n "RoomsSpecification" }}</a>.
     </p>
+  <h3 class="text-gray-600 text-sm font-bold mb-2">{{ i18n "SetPrivacyModeTitle" }}</h3>
   <details class="mb-8 self-start w-96" id="change-privacy">
     <summary class="px-3 py-1 w-96 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
     {{ i18n .CurrentMode.String }}
@@ -100,7 +101,7 @@
       {{ range .PrivacyModes }}
           {{ if ne . $.CurrentMode }}
           <form
-            action="/dashboard/set-privacy"
+            action="{{urlTo "admin:dashboard:set-privacy" }}"
             method="POST"
             >
             {{$.csrfField}}

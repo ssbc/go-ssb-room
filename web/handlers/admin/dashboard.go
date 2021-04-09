@@ -13,6 +13,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	// weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 type dashboardHandler struct {
@@ -54,8 +56,32 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	}, nil
 }
 
-func (h dashboardHandler) setPrivacy(w http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h dashboardHandler) setPrivacy(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		return
+	}
+
+	if err := req.ParseForm(); err != nil {
+		// TODO: proper error type
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		return
+	}
+
 	pmValue := req.Form.Get("privacy_mode")
-	fmt.Println(pmValue)
-	return nil, nil
+
+	pm := roomdb.ParsePrivacyMode(pmValue)
+	if pm == roomdb.ModeUnknown {
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("unknown privacy mode was being set: %v", pmValue))
+	}
+
+	err := h.dbs.Config.SetPrivacyMode(req.Context(), pm)
+	if err != nil {
+		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("something went wrong when setting the privacy mode: %w", err))
+	}
+
+	urlTo := web.NewURLTo(router.CompleteApp())
+	dashboard := urlTo(router.AdminDashboard).String()
+	http.Redirect(w, req, dashboard, http.StatusFound)
 }

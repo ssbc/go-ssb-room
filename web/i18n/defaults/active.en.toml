@@ -115,6 +115,7 @@ ModeOpen = "Open"
 ModeCommunity = "Community"
 ModeRestricted = "Restricted"
 
+SetPrivacyModeTitle = "Set Privacy Mode"
 PrivacyModesTitle = "Privacy Modes"
 RoomsSpecification = "rooms 2 specification"
 ExplanationPrivacyModes = "The privacy mode of this room determines who can create invites and who can connect to the room. For more information, see the"

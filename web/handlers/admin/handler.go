@@ -70,7 +70,7 @@ func Handler(
 	}
 
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", dashboardHandler.overview))
-	mux.HandleFunc("/dashboard/set-privacy", r.HTML("admin/dashboard.tmpl", dashboardHandler.setPrivacy))
+	mux.HandleFunc("/dashboard/set-privacy", dashboardHandler.setPrivacy)
 
 	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{}, nil
