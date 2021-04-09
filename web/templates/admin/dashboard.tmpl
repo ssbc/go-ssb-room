@@ -88,13 +88,43 @@
   <div class="max-w-lg">
     <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">{{i18n "PrivacyModesTitle"}}</h2>
     <p class="mb-4">
-      {{i18n "ExplanationPrivacyModes"}} 
+      {{ i18n "ExplanationPrivacyModes" }} 
       <a class="text-purple-600 font-bold" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">{{ i18n "RoomsSpecification" }}</a>.
     </p>
-    <select class="mb-2">
-      <option selected="">Community</option>
-    </select>
-    <div class="grid grid-cols-3 gap-y-2 mb-2">
+  <details class="mb-8 self-start w-96" id="change-privacy">
+    <summary class="px-3 py-1 w-96 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
+    {{ i18n .CurrentMode.String }}
+    </summary>
+
+    <div class="absolute w-96 z-10 bg-white mt-2 shadow-xl ring-1 ring-gray-200 rounded divide-y flex flex-col items-stretch overflow-hidden">
+      {{ range .PrivacyModes }}
+          {{ if ne . $.CurrentMode }}
+          <form
+            action="/dashboard/set-privacy"
+            method="POST"
+            >
+            {{$.csrfField}}
+            <input type="hidden" name="privacy_mode" value="{{.}}">
+            <input
+              type="submit"
+              value="{{ i18n .String }}"
+              class="pl-3 pr-3 py-2 w-full text-left bg-white text-gray-700 hover:text-gray-900 hover:bg-gray-50 cursor-pointer"
+              />
+          </form>
+          {{ else }}
+          <div class="pr-3 py-2 text-gray-600 flex flex-row items-center cursor-default">
+            <div class="w-10 flex flex-row items-center justify-center">
+              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
+              </svg>
+            </div>
+            <span>{{ i18n .String }}</span>
+          </div>
+          {{end}}
+      {{end}}
+    </div>
+  </details>
+    <div class="grid max-w-lg grid-cols-3 gap-y-2 mb-8">
       <div class="text-xl text-gray-500 font-bold">Open</div>
       <div class="text-md col-span-2 italic">{{ i18n "ExplanationOpen" }}</div>
       <div class="text-xl text-gray-500 font-bold">Community</div>
