@@ -47,10 +47,16 @@ func (pm PrivacyMode) IsValid() error {
 
 func ParsePrivacyMode(val string) PrivacyMode {
 	switch val {
+	case "ModeOpen":
+		fallthrough
 	case "open":
 		return ModeOpen
+	case "ModeCommunity":
+		fallthrough
 	case "community":
 		return ModeCommunity
+	case "ModeRestricted":
+		fallthrough
 	case "restricted":
 		return ModeRestricted
 	default:
