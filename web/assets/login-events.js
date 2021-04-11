@@ -23,8 +23,22 @@ evtSource.addEventListener('failed', (e) => {
   console.error(e.data);
 });
 
+// prepare for the case that the success event happens while the browser is not on screen.
+let hasFocus = true;
+window.addEventListener('blur', () => {
+  hasFocus = false;
+});
+
 evtSource.addEventListener('success', (e) => {
   waitingElem.classList.add('hidden');
   evtSource.close();
-  window.location = `/withssb/finalize?token=${e.data}`;
+  const redirectTo = `/withssb/finalize?token=${e.data}`
+  if (hasFocus) {
+    window.location.replace(redirectTo);
+  } else {
+  // wait for the browser to be back in focus and redirect then
+    window.addEventListener('focus', () => {
+      window.location.replace(redirectTo);
+    });
+  }
 });
