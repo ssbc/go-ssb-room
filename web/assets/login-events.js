@@ -36,6 +36,7 @@ evtSource.addEventListener('success', (e) => {
   if (hasFocus) {
     window.location.replace(redirectTo);
   } else {
+  // wait for the browser to be back in focus and redirect then
     window.addEventListener('focus', () => {
       window.location.replace(redirectTo);
     });
