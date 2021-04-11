@@ -241,6 +241,39 @@ func TestAuthWithSSBClientInitNotAllowed(t *testing.T) {
 	})
 }
 
+func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the client isnt a member
+	ts.MembersDB.GetByFeedReturns(roomdb.Member{}, roomdb.ErrNotFound)
+	ts.MockedEndpoints.GetEndpointForReturns(nil, false)
+
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+
+	cc := signinwithssb.GenerateChallenge()
+
+	urlTo := web.NewURLTo(ts.Router)
+
+	loginURL := urlTo(router.AuthLogin,
+		"ssb-http-auth", 1,
+		"cid", client.Feed.Ref(),
+		"cc", cc,
+	)
+	r.NotNil(loginURL)
+
+	t.Log(loginURL.String())
+	doc, resp := ts.Client.GetHTML(loginURL.String())
+	t.Log()
+	a.Equal(http.StatusForbidden, resp.Code)
+
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
+		// {"#welcome", "AuthWithSSBWelcome"},
+		// {"title", "AuthWithSSBTitle"},
+	})
+}
+
 func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)

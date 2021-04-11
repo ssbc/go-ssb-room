@@ -99,7 +99,7 @@ func NewWithSSBHandler(
 	ssb.cookieStore = cookies
 	ssb.bridge = bridge
 
-	m.Get(router.AuthWithSSBLogin).HandlerFunc(ssb.decideMethod)
+	m.Get(router.AuthWithSSBLogin).HandlerFunc(ssb.DecideMethod)
 	m.Get(router.AuthWithSSBServerEvents).HandlerFunc(ssb.eventSource)
 	m.Get(router.AuthWithSSBFinalize).HandlerFunc(ssb.finalizeCookie)
 
@@ -206,8 +206,9 @@ func (h WithSSBHandler) saveCookie(w http.ResponseWriter, req *http.Request, tok
 	return nil
 }
 
-// this is the /login landing page which branches out to the different methods based on the query parameters that are present
-func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
+// this is the /login landing page which branches out to the different methods
+// based on the query parameters that are present
+func (h WithSSBHandler) DecideMethod(w http.ResponseWriter, req *http.Request) {
 	queryVals := req.URL.Query()
 
 	var (
@@ -256,7 +257,8 @@ func (h WithSSBHandler) decideMethod(w http.ResponseWriter, req *http.Request) {
 	h.render.Render(w, req, "auth/withssb_server_start.tmpl", http.StatusOK, data)
 }
 
-// clientInitiated is called with a client challange (?cc=123) and calls back to the passed client using muxrpc to request a signed solution
+// clientInitiated is called with a client challange (?cc=123) and calls back to
+// the passed client using muxrpc to request a signed solution.
 // if everything checks out it redirects to the admin dashboard
 func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request, client refs.FeedRef) error {
 	queryParams := req.URL.Query()

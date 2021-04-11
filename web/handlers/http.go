@@ -237,7 +237,13 @@ func New(
 		bridge,
 	)
 
-	m.Get(router.AuthLogin).Handler(r.StaticHTML("auth/decide_method.tmpl"))
+	m.Get(router.AuthLogin).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if label := req.URL.Query().Get("ssb-http-auth"); label != "" {
+			authWithSSB.DecideMethod(w, req)
+		} else {
+			r.Render(w, req, "auth/decide_method.tmpl", http.StatusOK, nil)
+		}
+	})
 
 	m.Get(router.AuthFallbackFinalize).HandlerFunc(authWithPassword.Authorize)
 
