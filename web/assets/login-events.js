@@ -23,6 +23,7 @@ evtSource.addEventListener('failed', (e) => {
   console.error(e.data);
 });
 
+// prepare for the case that the success event happens while the browser is not on screen.
 let hasFocus = true;
 window.addEventListener('blur', () => {
   hasFocus = false;
