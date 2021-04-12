@@ -123,6 +123,7 @@ ExplanationOpen = "Open invite codes, anyone may connect"
 ExplanationCommunity = "Members can create invites, anyone may connect"
 ExplanationRestricted = "Only admins/mods can create invites, only members may connect"
 
+Settings = "Settings"
 
 [MemberCount]
 description = "Number of members"

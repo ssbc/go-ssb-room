@@ -6,9 +6,11 @@ import "github.com/gorilla/mux"
 
 // constant names for the named routes
 const (
-	AdminDashboard           = "admin:dashboard"
-	AdminDashboardSetPrivacy = "admin:dashboard:set-privacy"
-	AdminMenu                = "admin:menu"
+	AdminDashboard = "admin:dashboard"
+	AdminMenu      = "admin:menu"
+
+	AdminSettings           = "admin:settings:overview"
+	AdminSettingsSetPrivacy = "admin:settings:set-privacy"
 
 	AdminAliasesRevokeConfirm = "admin:aliases:revoke:confirm"
 	AdminAliasesRevoke        = "admin:aliases:revoke"
@@ -44,7 +46,9 @@ func Admin(m *mux.Router) *mux.Router {
 	}
 
 	m.Path("/dashboard").Methods("GET").Name(AdminDashboard)
-	m.Path("/dashboard/set-privacy").Methods("POST").Name(AdminDashboardSetPrivacy)
+
+	m.Path("/settings").Methods("GET").Name(AdminSettings)
+	m.Path("/settings/set-privacy").Methods("POST").Name(AdminSettingsSetPrivacy)
 
 	m.Path("/menu").Methods("GET").Name(AdminMenu)
 
