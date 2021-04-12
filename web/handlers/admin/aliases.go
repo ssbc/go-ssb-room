@@ -25,8 +25,6 @@ type aliasesHandler struct {
 	db roomdb.AliasesService
 }
 
-const redirectToAliases = "/admin/aliases"
-
 func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	if req.Method != "GET" {
 		return nil, weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected GET request")}
@@ -41,7 +39,7 @@ func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
 		return nil, weberrors.ErrRedirect{
-			Path:   redirectToAliases,
+			Path:   redirectToMembers,
 			Reason: err,
 		}
 	}
@@ -102,5 +100,5 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 		h.flashes.AddMessage(rw, req, "AdminAliasRevoked")
 	}
 
-	http.Redirect(rw, req, redirectToAliases, status)
+	http.Redirect(rw, req, redirectToMembers, status)
 }

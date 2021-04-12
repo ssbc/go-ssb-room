@@ -1,5 +1,8 @@
 {{ define "title" }}{{.Title}}{{ end }}
 {{ define "content" }}
+
+  {{ template "flashes" . }}
+  
   <h1
     class="text-3xl tracking-tight font-black text-black mt-2 mb-4"
   >{{.Title}}</h1>
