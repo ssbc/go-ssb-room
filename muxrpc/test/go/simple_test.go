@@ -33,9 +33,8 @@ func TestTunnelServerSimple(t *testing.T) {
 	botA := theBots[indexA].Server
 	botB := theBots[indexB].Server
 
-	// allow both clients
+	// only allow A
 	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
-	theBots[indexSrv].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
 	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
@@ -51,15 +50,15 @@ func TestTunnelServerSimple(t *testing.T) {
 	err = botB.Network.Connect(ctx, serv.Network.GetListenAddr())
 	r.NoError(err, "connect B to the Server") // we dont see an error because it just establishes the tcp connection
 
-	// t.Log("letting handshaking settle..")
-	// time.Sleep(1 * time.Second)
+	t.Log("letting handshaking settle..")
+	time.Sleep(1 * time.Second)
 
 	var srvWho struct {
 		ID refs.FeedRef
 	}
 
 	endpointB, has := botB.Network.GetEndpointFor(serv.Whoami())
-	r.False(has, "botB has an endpoint for the server!")
+	r.False(has, "botB has an endpoint for the server")
 	if endpointB != nil {
 		a.Nil(endpointB, "should not have an endpoint on B")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})

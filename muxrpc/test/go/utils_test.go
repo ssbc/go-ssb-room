@@ -94,6 +94,10 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 			t.Log("db close failed: ", err)
 		}
 	})
+
+	err = db.Config.SetPrivacyMode(context.TODO(), roomdb.ModeRestricted)
+	r.NoError(err)
+
 	sb := signinwithssb.NewSignalBridge()
 	theBot, err := roomsrv.New(db.Members, db.DeniedKeys, db.Aliases, db.AuthWithSSB, sb, db.Config, name, botOptions...)
 	r.NoError(err)
