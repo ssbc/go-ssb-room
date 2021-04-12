@@ -125,17 +125,24 @@ const (
 	RoleAdmin
 )
 
+var (
+	roleAdminString  = RoleAdmin.String()
+	roleModString    = RoleModerator.String()
+	roleMemberString = RoleMember.String()
+)
+
+// UnmarshalText checks if a string is a valid role
 func (r *Role) UnmarshalText(text []byte) error {
 	roleStr := string(text)
 	switch roleStr {
 
-	case RoleAdmin.String():
+	case roleAdminString:
 		*r = RoleAdmin
 
-	case RoleModerator.String():
+	case roleModString:
 		*r = RoleModerator
 
-	case RoleMember.String():
+	case roleMemberString:
 		*r = RoleMember
 
 	default:
