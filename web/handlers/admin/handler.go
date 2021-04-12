@@ -67,7 +67,9 @@ func Handler(
 	mux := &http.ServeMux{}
 
 	var dashboardHandler = dashboardHandler{
-		r:         r,
+		r:       r,
+		flashes: fh,
+
 		dbs:       dbs,
 		roomState: roomState,
 	}

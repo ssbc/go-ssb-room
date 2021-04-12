@@ -269,9 +269,7 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 
-	urlTo := web.NewURLTo(ts.Router)
-
-	loginURL := urlTo(router.AuthLogin,
+	loginURL := ts.URLTo(router.AuthLogin,
 		"ssb-http-auth", 1,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
@@ -279,7 +277,7 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 	r.NotNil(loginURL)
 
 	t.Log(loginURL.String())
-	doc, resp := ts.Client.GetHTML(loginURL.String())
+	doc, resp := ts.Client.GetHTML(loginURL)
 	t.Log()
 	a.Equal(http.StatusForbidden, resp.Code)
 

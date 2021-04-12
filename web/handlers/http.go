@@ -269,6 +269,8 @@ func New(
 
 	// notices (the mini-CMS)
 	var nh = noticeHandler{
+		flashes: flashHelper,
+
 		notices: dbs.Notices,
 		pinned:  dbs.PinnedNotices,
 	}

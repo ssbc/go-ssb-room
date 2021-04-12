@@ -97,7 +97,7 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
 	} else {
-		h.flashes.AddMessage(rw, req, "AdminAliasRevoked")
+		h.flashes.AddMessage(rw, req, "AdminMemberDetailsAliasRevoked")
 	}
 
 	http.Redirect(rw, req, redirectToMembers, status)

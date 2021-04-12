@@ -228,10 +228,9 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 func TestInviteConsumptionDenied(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
-	urlTo := web.NewURLTo(ts.Router)
 
 	testToken := "existing-test-token-2"
-	validAcceptURL := urlTo(router.CompleteInviteFacade, "token", testToken)
+	validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
 	r.NotNil(validAcceptURL)
 
 	testInvite := roomdb.Invite{ID: 4321}
@@ -250,14 +249,14 @@ func TestInviteConsumptionDenied(t *testing.T) {
 	consume.ID = testNewMember
 
 	// construct the consume endpoint url
-	consumeInviteURL := urlTo(router.CompleteInviteConsume)
+	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
 	r.NotNil(consumeInviteURL)
 
 	// prepare the mock
 	ts.InvitesDB.ConsumeReturns(testInvite, nil)
 
 	// send the POST
-	resp := ts.Client.SendJSON(consumeInviteURL.String(), consume)
+	resp := ts.Client.SendJSON(consumeInviteURL, consume)
 
 	// decode the json response
 	var jsonConsumeResp inviteConsumeJSONResponse

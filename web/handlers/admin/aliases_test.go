@@ -51,7 +51,7 @@ func TestAliasesRevoke(t *testing.T) {
 	a := assert.New(t)
 
 	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
-	overviewURL := ts.URLTo(router.AdminAliasesOverview)
+	overviewURL := ts.URLTo(router.AdminMembersOverview)
 
 	ts.AliasesDB.RevokeReturns(nil)
 
@@ -61,12 +61,7 @@ func TestAliasesRevoke(t *testing.T) {
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
-	// check flash messages
-	doc, resp := ts.Client.GetHTML(overviewURL)
-	a.Equal(http.StatusOK, resp.Code)
-	flashes := doc.Find("#flashes-list").Children()
-	a.Equal(1, flashes.Length())
-	a.Equal("AdminAliasRevoked", flashes.Text())
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "AdminMemberDetailsAliasRevoked")
 
 	a.Equal(1, ts.AliasesDB.RevokeCallCount())
 	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
@@ -80,10 +75,5 @@ func TestAliasesRevoke(t *testing.T) {
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
-	// check flash messages
-	doc, resp = ts.Client.GetHTML(overviewURL)
-	a.Equal(http.StatusOK, resp.Code)
-	flashes = doc.Find("#flashes-list").Children()
-	a.Equal(1, flashes.Length())
-	a.Equal("ErrorNotFound", flashes.Text())
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "ErrorNotFound")
 }

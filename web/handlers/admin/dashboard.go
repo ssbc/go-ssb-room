@@ -9,10 +9,13 @@ import (
 	"go.mindeco.de/http/render"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 )
 
 type dashboardHandler struct {
-	r         *render.Renderer
+	r       *render.Renderer
+	flashes *weberrors.FlashHelper
+
 	roomState *roomstate.Manager
 	dbs       Databases
 }
@@ -33,11 +36,18 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 		return nil, fmt.Errorf("failed to count denied keys: %w", err)
 	}
 
-	return map[string]interface{}{
+	pageData := map[string]interface{}{
 		"OnlineRefs":  onlineRefs,
 		"OnlineCount": onlineCount,
 		"MemberCount": memberCount,
 		"InviteCount": inviteCount,
 		"DeniedCount": deniedCount,
-	}, nil
+	}
+
+	pageData["Flashes"], err = h.flashes.GetAll(w, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageData, nil
 }

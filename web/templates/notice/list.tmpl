@@ -7,6 +7,8 @@
 
   <p id="welcome" class="my-2">{{i18n "NoticeListWelcome"}}</p>
 
+  {{ template "flashes" . }}
+
   {{range .AllNotices}}
     <div class="my-4">
       <h3 class="text-xl text-black">{{i18n .Name.String}}</h3>

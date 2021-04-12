@@ -110,12 +110,17 @@ AdminMemberDetailsSSBID = "SSB Identifier"
 AdminMemberDetailsRole = "Permission level"
 AdminMemberDetailsAliases = "Aliases"
 AdminMemberDetailsAliasRevoke = "Revoke"
+AdminMemberDetailsAliasRevoked = "Alias was revoked"
 AdminMemberDetailsExclusion = "Exclusion from this room"
 AdminMemberDetailsRemove = "Remove member"
 
 AdminMemberAdded = "Member added successfully."
 AdminMemberUpdated = "Member updated."
 AdminMemberRemoved = "Member removed."
+
+AdminAliasesRevoke = "Revoke"
+AdminAliasesRevokeConfirmTitle = "Revoke Alias"
+AdminAliasesRevokeConfirmWelcome = "Are you sure you want to revoke this alias?"
 
 # invite dashboard
 ##################
@@ -165,6 +170,7 @@ NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"
 NoticeListWelcome = "Here you can manage the contents of the landing page and other important documents such as code of conduct and privacy policy."
 NoticeAddTranslation = "Add"
+NoticeUpdated = "Notice updated"
 
 NoticeCodeOfConduct = "Code of Conduct"
 NoticeNews = "News"

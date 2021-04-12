@@ -95,12 +95,7 @@ func TestDeniedKeysDontAddInvalid(t *testing.T) {
 	a.Equal(listURL.Path, res.Header.Get("Location"), "redirecting to overview")
 	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
 
-	doc, resp := ts.Client.GetHTML(listURL)
-	a.Equal(http.StatusOK, resp.Code)
-
-	flashes := doc.Find("#flashes-list").Children()
-	a.Equal(1, flashes.Length())
-	a.Equal("ErrorBadRequest", flashes.Text())
+	webassert.HasFlashMessages(t, ts.Client, listURL, "ErrorBadRequest")
 }
 
 func TestDeniedKeys(t *testing.T) {

@@ -3,10 +3,14 @@ package webassert
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.mindeco.de/http/tester"
 )
 
 type LocalizedElement struct {
@@ -69,4 +73,17 @@ func ElementsInForm(t *testing.T, form *goquery.Selection, elems []FormElement) 
 			a.Equal(e.Placeholder, tipe, "wrong placeholder attribute on input[name=%s]", e.Name)
 		}
 	}
+}
+
+func HasFlashMessages(t *testing.T, client *tester.Tester, url *url.URL, labels ...string) {
+	a := assert.New(t)
+
+	doc, resp := client.GetHTML(url)
+	a.Equal(http.StatusOK, resp.Code)
+	flashes := doc.Find("#flashes-list").Children()
+	require.Equal(t, len(labels), flashes.Length(), "number of labels is wrong")
+
+	flashes.Each(func(idx int, sel *goquery.Selection) {
+		a.Equal(labels[idx], sel.Text(), "wrong text on label %d", idx)
+	})
 }

@@ -12,8 +12,15 @@ import (
 )
 
 type noticeHandler struct {
+	flashes *errors.FlashHelper
+
 	pinned  roomdb.PinnedNoticesService
 	notices roomdb.NoticesService
+}
+
+type noticesListData struct {
+	AllNotices roomdb.SortedPinnedNotices
+	Flashes    []errors.FlashMessage
 }
 
 func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -23,15 +30,23 @@ func (h noticeHandler) list(rw http.ResponseWriter, req *http.Request) (interfac
 		return nil, err
 	}
 
-	return struct {
-		AllNotices roomdb.SortedPinnedNotices
-	}{lst.Sorted()}, nil
+	pageData := noticesListData{
+		AllNotices: lst.Sorted(),
+	}
+	pageData.Flashes, err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageData, nil
 }
 
 type noticeShowData struct {
 	ID              int64
 	Title, Language string
 	Content         template.HTML
+
+	Flashes []errors.FlashMessage
 }
 
 func (h noticeHandler) show(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -47,10 +62,17 @@ func (h noticeHandler) show(rw http.ResponseWriter, req *http.Request) (interfac
 
 	markdown := blackfriday.Run([]byte(notice.Content), blackfriday.WithNoExtensions())
 
-	return noticeShowData{
+	pageData := noticeShowData{
 		ID:       noticeID,
 		Title:    notice.Title,
 		Content:  template.HTML(markdown),
 		Language: notice.Language,
-	}, nil
+	}
+
+	pageData.Flashes, err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageData, nil
 }

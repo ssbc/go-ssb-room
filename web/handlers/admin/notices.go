@@ -51,6 +51,7 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
 		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
+		return
 	}
 
 	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
@@ -149,7 +150,12 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 
 	redirect := req.FormValue("redirect")
 	if redirect == "" {
-		redirect = "/"
+		noticesURL, err := router.CompleteApp().Get(router.CompleteNoticeList).URL()
+		if err != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, err)
+			return
+		}
+		redirect = noticesURL.Path
 	}
 
 	var n roomdb.Notice

@@ -45,22 +45,37 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	u := ts.URLTo(router.AdminNoticeSave)
 	emptyParams := url.Values{}
 	resp := ts.Client.PostForm(u, emptyParams)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without id should not work")
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without id should not work")
+
+	loc := resp.Header().Get("Location")
+
+	noticesList := ts.URLTo(router.CompleteNoticeList)
+	a.Equal(noticesList.Path, loc)
+
+	// we should get noticesList here but
+	// due to issue #35 we cant get /notices/list in package admin tests
+	// but it doesn't really matter since the flash messages are rendered on whatever page the client goes to next
+	sigh := ts.URLTo(router.AdminDashboard)
+
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without title */
 	formValues := url.Values{"id": id, "content": content, "language": language}
 	resp = ts.Client.PostForm(u, formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without title should not work")
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without title should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without content */
 	formValues = url.Values{"id": id, "title": title, "language": language}
 	resp = ts.Client.PostForm(u, formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without content should not work")
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without content should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without language */
 	formValues = url.Values{"id": id, "title": title, "content": content}
 	resp = ts.Client.PostForm(u, formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without language should not work")
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without language should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	a.Equal(0, ts.NoticeDB.SaveCallCount(), "noticedb should never save incomplete requests")
 }

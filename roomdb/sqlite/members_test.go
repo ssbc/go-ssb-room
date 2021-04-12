@@ -7,11 +7,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+	refs "go.mindeco.de/ssb-refs"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
-	"github.com/stretchr/testify/require"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestMembers(t *testing.T) {
@@ -219,4 +220,39 @@ func findMemberWithRole(t *testing.T, members []roomdb.Member, id int64, r roomd
 	if !found {
 		t.Errorf("member %d not in the list", id)
 	}
+}
+
+func TestMembersAliases(t *testing.T) {
+	r := require.New(t)
+	ctx := context.Background()
+
+	testRepo := filepath.Join("testrun", t.Name())
+	os.RemoveAll(testRepo)
+
+	tr := repo.New(testRepo)
+
+	db, err := Open(tr)
+	require.NoError(t, err)
+
+	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
+	mid, err := db.Members.Add(ctx, feedA, roomdb.RoleMember)
+	r.NoError(err)
+
+	lst, err := db.Members.List(ctx)
+	r.NoError(err)
+	r.Len(lst, 1)
+
+	err = db.Aliases.Register(ctx, "foo", feedA, []byte("just-a-test"))
+	r.NoError(err)
+
+	err = db.Aliases.Register(ctx, "bar", feedA, []byte("just-a-test-two"))
+	r.NoError(err)
+
+	storedMember, err := db.Members.GetByID(ctx, mid)
+	r.NoError(err)
+	r.Len(storedMember.Aliases, 2)
+
+	storedMember, err = db.Members.GetByFeed(ctx, feedA)
+	r.NoError(err)
+	r.Len(storedMember.Aliases, 2)
 }

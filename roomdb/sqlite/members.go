@@ -29,7 +29,7 @@ func (Members) getAliases(mEntry *models.Member) []roomdb.Alias {
 	var aliases = make([]roomdb.Alias, len(mEntry.R.Aliases))
 	for j, aEntry := range mEntry.R.Aliases {
 		aliases[j].ID = aEntry.ID
-		aliases[j].Feed = aEntry.R.Member.PubKey.FeedRef
+		aliases[j].Feed = mEntry.PubKey.FeedRef
 		aliases[j].Name = aEntry.Name
 		aliases[j].Signature = aEntry.Signature
 	}
@@ -83,6 +83,14 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 		}
 		return roomdb.Member{}, err
 	}
+
+	// resolve alias relation
+	entry.R = entry.R.NewStruct()
+	entry.R.Aliases, err = entry.Aliases().All(ctx, m.db)
+	if err != nil {
+		return roomdb.Member{}, err
+	}
+
 	return roomdb.Member{
 		ID:      entry.ID,
 		Role:    roomdb.Role(entry.Role),
@@ -100,10 +108,19 @@ func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, 
 		}
 		return roomdb.Member{}, err
 	}
+
+	// resolve alias relation
+	entry.R = entry.R.NewStruct()
+	entry.R.Aliases, err = entry.Aliases().All(ctx, m.db)
+	if err != nil {
+		return roomdb.Member{}, err
+	}
+
 	return roomdb.Member{
-		ID:     entry.ID,
-		Role:   roomdb.Role(entry.Role),
-		PubKey: entry.PubKey.FeedRef,
+		ID:      entry.ID,
+		Role:    roomdb.Role(entry.Role),
+		PubKey:  entry.PubKey.FeedRef,
+		Aliases: m.getAliases(entry),
 	}, nil
 }
 
