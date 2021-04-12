@@ -85,13 +85,17 @@
     </div>
     {{end}}
   </div>
+  
+  {{ if member_is_admin }}
+  <!-- privacy mode stuff-->
   <div class="max-w-lg">
     <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">{{i18n "PrivacyModesTitle"}}</h2>
     <p class="mb-4">
       {{ i18n "ExplanationPrivacyModes" }} 
       <a class="text-pink-600 underline" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">{{ i18n "RoomsSpecification" }}</a>.
     </p>
-  <h3 class="text-gray-400 text-sm font-bold mb-2">{{ i18n "SetPrivacyModeTitle" }}</h3>
+  
+    <h3 class="text-gray-400 text-sm font-bold mb-2">{{ i18n "SetPrivacyModeTitle" }}</h3>
   <details class="mb-8 self-start w-96" id="change-privacy">
     <summary class="px-3 py-1 w-96 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
     {{ i18n .CurrentMode.String }}
@@ -134,5 +138,7 @@
       <div class="text-md col-span-2 italic">{{ i18n "ExplanationRestricted" }}</div>
     </div>
   </div>
+  <!-- end of privacy mode stuff-->
+  {{end}}
   </div>
 {{end}}

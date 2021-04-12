@@ -147,10 +147,10 @@ func New(
 				return u
 			}
 		}),
-
-		render.InjectTemplateFunc("is_logged_in", members.TemplateHelper()),
 	}
+
 	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
+	renderOpts = append(renderOpts, members.TemplateHelpers()...)
 
 	r, err := render.New(web.Templates, renderOpts...)
 	if err != nil {
