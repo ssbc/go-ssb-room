@@ -4,8 +4,6 @@ package go_test
 
 import (
 	"context"
-	"crypto/rand"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,61 +12,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
-	"golang.org/x/sync/errgroup"
-
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
 	refs "go.mindeco.de/ssb-refs"
 )
-
-type testBot struct {
-	Server  *roomsrv.Server
-	Members roomdb.MembersService
-}
-
-func createServerAndBots(t *testing.T, ctx context.Context, count uint) []testBot {
-	testInit(t)
-	r := require.New(t)
-
-	botgroup, ctx := errgroup.WithContext(ctx)
-
-	bs := newBotServer(ctx, mainLog)
-
-	appKey := make([]byte, 32)
-	rand.Read(appKey)
-
-	netOpts := []roomsrv.Option{
-		roomsrv.WithAppKey(appKey),
-		roomsrv.WithContext(ctx),
-	}
-	theBots := []testBot{}
-
-	srvsMembers, serv := makeNamedTestBot(t, "srv", netOpts)
-	botgroup.Go(bs.Serve(serv))
-	theBots = append(theBots, testBot{
-		Server:  serv,
-		Members: srvsMembers,
-	})
-
-	for i := uint(1); i < count+1; i++ {
-		botMembers, botSrv := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
-		botgroup.Go(bs.Serve(botSrv))
-		theBots = append(theBots, testBot{
-			Server:  botSrv,
-			Members: botMembers,
-		})
-	}
-
-	t.Cleanup(func() {
-		time.Sleep(1 * time.Second)
-		for _, bot := range theBots {
-			bot.Server.Shutdown()
-			r.NoError(bot.Server.Close())
-		}
-		r.NoError(botgroup.Wait())
-	})
-
-	return theBots
-}
 
 func TestTunnelServerSimple(t *testing.T) {
 	// defer leakcheck.Check(t)
@@ -78,17 +23,23 @@ func TestTunnelServerSimple(t *testing.T) {
 	r := require.New(t)
 	a := assert.New(t)
 
-	serv := theBots[0].Server
-	botA := theBots[1].Server
-	botB := theBots[2].Server
+	const (
+		indexSrv = iota
+		indexA
+		indexB
+	)
+
+	serv := theBots[indexSrv].Server
+	botA := theBots[indexA].Server
+	botB := theBots[indexB].Server
 
 	// allow both clients
-	theBots[0].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
-	theBots[0].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[1].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
-	theBots[2].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexB].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// dial up B->A and C->A
 
@@ -107,19 +58,19 @@ func TestTunnelServerSimple(t *testing.T) {
 		ID refs.FeedRef
 	}
 
-	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
+	endpointB, has := botB.Network.GetEndpointFor(serv.Whoami())
 	r.False(has, "botB has an endpoint for the server!")
-	if edpOfB != nil {
-		a.Nil(edpOfB, "should not have an endpoint on B")
-		err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	if endpointB != nil {
+		a.Nil(endpointB, "should not have an endpoint on B")
+		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
 		t.Log(srvWho.ID.Ref())
 	}
 
-	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
+	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
 	r.True(has, "botA has no endpoint for the server")
 
-	err = edpOfA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
 	t.Log("server whoami:", srvWho.ID.Ref())
@@ -127,12 +78,12 @@ func TestTunnelServerSimple(t *testing.T) {
 
 	// start testing basic room stuff
 	var yes bool
-	err = edpOfA.Async(ctx, &yes, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	err = endpointA.Async(ctx, &yes, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
 	r.NoError(err)
 	a.True(yes, "srv is not a room?!")
 
 	var ts int
-	err = edpOfA.Async(ctx, &ts, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "ping"})
+	err = endpointA.Async(ctx, &ts, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "ping"})
 	r.NoError(err)
 	t.Log("ping:", ts)
 
@@ -149,17 +100,23 @@ func TestRoomAnnounce(t *testing.T) {
 	r := require.New(t)
 	a := assert.New(t)
 
-	serv := theBots[0].Server
-	botA := theBots[1].Server
-	botB := theBots[2].Server
+	const (
+		indexSrv = iota
+		indexA
+		indexB
+	)
+
+	serv := theBots[indexSrv].Server
+	botA := theBots[indexA].Server
+	botB := theBots[indexB].Server
 
 	// allow both clients
-	theBots[0].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
-	theBots[0].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[1].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
-	theBots[2].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexB].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// should work (we allowed A)
 	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())
@@ -175,22 +132,22 @@ func TestRoomAnnounce(t *testing.T) {
 	var srvWho struct {
 		ID refs.FeedRef
 	}
-	edpOfA, has := botA.Network.GetEndpointFor(serv.Whoami())
+	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
 	r.True(has, "botA has no endpoint for the server")
 
-	edpOfB, has := botB.Network.GetEndpointFor(serv.Whoami())
+	endpointB, has := botB.Network.GetEndpointFor(serv.Whoami())
 	r.True(has, "botB has no endpoint for the server!")
 
-	err = edpOfA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 	a.True(serv.Whoami().Equal(&srvWho.ID))
 
-	err = edpOfB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
+	err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 	a.True(serv.Whoami().Equal(&srvWho.ID))
 
 	// let B listen for changes
-	newRoomMember, err := edpOfB.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
+	newRoomMember, err := endpointB.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
 	r.NoError(err)
 
 	newMemberChan := make(chan string)
@@ -211,7 +168,7 @@ func TestRoomAnnounce(t *testing.T) {
 
 	// announce A
 	var ret bool
-	err = edpOfA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
+	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
 	r.NoError(err)
 	a.False(ret) // <ascii-shrugg>
 
@@ -224,7 +181,7 @@ func TestRoomAnnounce(t *testing.T) {
 	}
 	time.Sleep(5 * time.Second)
 
-	err = edpOfA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
+	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
 	a.False(ret) // <ascii-shrugg>
 
