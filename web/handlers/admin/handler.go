@@ -25,6 +25,8 @@ var HTMLTemplates = []string{
 	"admin/dashboard.tmpl",
 	"admin/menu.tmpl",
 
+	"admin/settings.tmpl",
+
 	"admin/aliases-revoke-confirm.tmpl",
 
 	"admin/denied-keys.tmpl",
@@ -68,9 +70,14 @@ func Handler(
 		dbs:       dbs,
 		roomState: roomState,
 	}
-
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", dashboardHandler.overview))
-	mux.HandleFunc("/dashboard/set-privacy", dashboardHandler.setPrivacy)
+
+	var sh = settingsHandler{
+		r:  r,
+		db: dbs.Config,
+	}
+	mux.HandleFunc("/settings", r.HTML("admin/settings.tmpl", sh.overview))
+	mux.HandleFunc("/settings/set-privacy", sh.setPrivacy)
 
 	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{}, nil
