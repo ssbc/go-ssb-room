@@ -11,14 +11,19 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+
 	// weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 type dashboardHandler struct {
-	r         *render.Renderer
+	r       *render.Renderer
+	flashes *weberrors.FlashHelper
+
 	roomState *roomstate.Manager
 	dbs       Databases
 }
@@ -44,7 +49,7 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 		return nil, fmt.Errorf("failed to retrieve current privacy mode: %w", err)
 	}
 
-	return map[string]interface{}{
+	dashboardData := map[string]interface{}{
 		"OnlineRefs":     onlineRefs,
 		"OnlineCount":    onlineCount,
 		"MemberCount":    memberCount,
@@ -53,19 +58,33 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 		"CurrentMode":    currentMode,
 		"PrivacyModes":   privacyModes,
 		csrf.TemplateTag: csrf.TemplateField(req),
-	}, nil
+	}
+
+	dashboardData["Flashes"], err = h.flashes.GetAll(w, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return dashboardData, nil
 }
 
 func (h dashboardHandler) setPrivacy(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
+		return
+	}
+
+	currentMember := members.FromContext(req.Context())
+	if currentMember == nil || currentMember.Role != roomdb.RoleAdmin {
+		err := weberrors.ErrForbidden{Details: fmt.Errorf("not an admin")}
+		h.r.Error(w, req, http.StatusForbidden, err)
 		return
 	}
 
@@ -74,11 +93,15 @@ func (h dashboardHandler) setPrivacy(w http.ResponseWriter, req *http.Request) {
 	pm := roomdb.ParsePrivacyMode(pmValue)
 	if pm == roomdb.ModeUnknown {
 		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("unknown privacy mode was being set: %v", pmValue))
+		return
 	}
 
 	err := h.dbs.Config.SetPrivacyMode(req.Context(), pm)
 	if err != nil {
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("something went wrong when setting the privacy mode: %w", err))
+		err = fmt.Errorf("something went wrong when setting the privacy mode: %w", err)
+		h.flashes.AddError(w, req, err)
+	} else {
+		h.flashes.AddMessage(w, req, "PrivacyModeUpdated")
 	}
 
 	urlTo := web.NewURLTo(router.CompleteApp())
