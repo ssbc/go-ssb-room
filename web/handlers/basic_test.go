@@ -4,10 +4,10 @@ package handlers
 
 import (
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
@@ -17,11 +17,10 @@ func TestIndex(t *testing.T) {
 	ts := setup(t)
 
 	a := assert.New(t)
-	r := require.New(t)
 
-	url, err := ts.Router.Get(router.CompleteIndex).URL()
-	r.Nil(err)
-	html, resp := ts.Client.GetHTML(url.String())
+	url := ts.URLTo(router.CompleteIndex)
+
+	html, resp := ts.Client.GetHTML(url)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"h1", "Default Notice Title"},
@@ -36,11 +35,10 @@ func TestAbout(t *testing.T) {
 	ts := setup(t)
 
 	a := assert.New(t)
-	r := require.New(t)
 
-	url, err := ts.Router.Get(router.CompleteAbout).URL()
-	r.Nil(err)
-	html, resp := ts.Client.GetHTML(url.String())
+	url := ts.URLTo(router.CompleteAbout)
+
+	html, resp := ts.Client.GetHTML(url)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 	found := html.Find("h1").Text()
 	a.Equal("The about page", found)
@@ -51,7 +49,10 @@ func TestNotFound(t *testing.T) {
 
 	a := assert.New(t)
 
-	html, resp := ts.Client.GetHTML("/some/random/ASDKLANZXC")
+	url404, err := url.Parse("/some/random/ASDKLANZXC")
+	a.NoError(err)
+
+	html, resp := ts.Client.GetHTML(url404)
 	a.Equal(http.StatusNotFound, resp.Code, "wrong HTTP status code")
 	found := html.Find("h1").Text()
 	a.Equal("Error #404 - Not Found", found)

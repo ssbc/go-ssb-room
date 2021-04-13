@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -23,10 +22,9 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	testEntry := roomdb.Alias{ID: 666, Name: "the-test-name", Feed: *testKey}
 	ts.AliasesDB.GetByIDReturns(testEntry, nil)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRevokeConfirm := urlTo(router.AdminAliasesRevokeConfirm, "id", 3)
+	urlRevokeConfirm := ts.URLTo(router.AdminAliasesRevokeConfirm, "id", 3)
 
-	html, resp := ts.Client.GetHTML(urlRevokeConfirm.String())
+	html, resp := ts.Client.GetHTML(urlRevokeConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
@@ -40,10 +38,8 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	action, ok := form.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminAliasesRevoke).URL()
-	a.NoError(err)
-
-	a.Equal(addURL.String(), action)
+	addURL := ts.URLTo(router.AdminAliasesRevoke)
+	a.Equal(addURL.Path, action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "name", Type: "hidden", Value: testEntry.Name},
@@ -54,14 +50,18 @@ func TestAliasesRevoke(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRevoke := urlTo(router.AdminAliasesRevoke)
+	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
+	overviewURL := ts.URLTo(router.AdminMembersOverview)
 
 	ts.AliasesDB.RevokeReturns(nil)
 
 	addVals := url.Values{"name": []string{"the-name"}}
-	rec := ts.Client.PostForm(urlRevoke.String(), addVals)
-	a.Equal(http.StatusFound, rec.Code)
+	rec := ts.Client.PostForm(urlRevoke, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "AdminMemberDetailsAliasRevoked")
 
 	a.Equal(1, ts.AliasesDB.RevokeCallCount())
 	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
@@ -70,7 +70,10 @@ func TestAliasesRevoke(t *testing.T) {
 	// now for unknown ID
 	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"name": []string{"nope"}}
-	rec = ts.Client.PostForm(urlRevoke.String(), addVals)
-	a.Equal(http.StatusNotFound, rec.Code)
-	//TODO: update redirect code with flash errors
+	rec = ts.Client.PostForm(urlRevoke, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "ErrorNotFound")
 }

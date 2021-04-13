@@ -102,6 +102,9 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 			qm.Load("CreatedByMember"),
 		).One(ctx, tx)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return roomdb.ErrNotFound
+			}
 			return err
 		}
 

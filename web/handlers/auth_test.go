@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"testing"
@@ -17,11 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
+	"go.mindeco.de/http/auth"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -29,30 +29,32 @@ import (
 
 func TestRestricted(t *testing.T) {
 	ts := setup(t)
-
 	a := assert.New(t)
 
 	testURLs := []string{
-		"/admin/admin",
-		"/admin/admin/",
+		"/admin/",
+		"/admin/anything/",
 	}
 
-	for _, turl := range testURLs {
+	for _, tstr := range testURLs {
+		turl, err := url.Parse(tstr)
+		if err != nil {
+			t.Fatal(err)
+		}
 		html, resp := ts.Client.GetHTML(turl)
-		a.Equal(http.StatusUnauthorized, resp.Code, "wrong HTTP status code for %q", turl)
+		a.Equal(http.StatusForbidden, resp.Code, "wrong HTTP status code for %q", turl)
 		found := html.Find("h1").Text()
-		a.Equal("Error #401 - Unauthorized", found, "wrong error message code for %q", turl)
+		a.Equal("Error #403 - Forbidden", found, "wrong error message code for %q", turl)
 	}
 }
 
 func TestLoginForm(t *testing.T) {
 	ts := setup(t)
+	a := assert.New(t)
 
-	a, r := assert.New(t), require.New(t)
+	url := ts.URLTo(router.AuthFallbackLogin)
 
-	url, err := ts.Router.Get(router.AuthFallbackLogin).URL()
-	r.Nil(err)
-	html, resp := ts.Client.GetHTML(url.String())
+	html, resp := ts.Client.GetHTML(url)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -61,26 +63,76 @@ func TestLoginForm(t *testing.T) {
 	})
 }
 
-func TestFallbackAuth(t *testing.T) {
+func TestFallbackAuthWrongPassword(t *testing.T) {
 	ts := setup(t)
-	a, r := assert.New(t), require.New(t)
+	a := assert.New(t)
 
-	// very cheap "browser" client session
-	jar, err := cookiejar.New(nil)
-	r.NoError(err)
+	signInFormURL := ts.URLTo(router.AuthFallbackLogin)
 
-	signInFormURL, err := ts.Router.Get(router.AuthFallbackLogin).URL()
-	r.Nil(err)
-	signInFormURL.Host = "localhost"
-	signInFormURL.Scheme = "https"
-
-	doc, resp := ts.Client.GetHTML(signInFormURL.String())
+	doc, resp := ts.Client.GetHTML(signInFormURL)
 	a.Equal(http.StatusOK, resp.Code)
 
 	csrfCookie := resp.Result().Cookies()
-	a.Len(csrfCookie, 1, "should have one cookie for CSRF protection validation")
+	a.True(len(csrfCookie) > 0, "should have one cookie for CSRF protection validation")
 
-	jar.SetCookies(signInFormURL, csrfCookie)
+	passwordForm := doc.Find("#password-fallback")
+	webassert.CSRFTokenPresent(t, passwordForm)
+
+	csrfTokenElem := passwordForm.Find("input[type=hidden]")
+	a.Equal(1, csrfTokenElem.Length())
+
+	csrfName, has := csrfTokenElem.Attr("name")
+	a.True(has, "should have a name attribute")
+
+	csrfValue, has := csrfTokenElem.Attr("value")
+	a.True(has, "should have value attribute")
+
+	loginVals := url.Values{
+		"user": []string{"test"},
+		"pass": []string{"wong"},
+
+		csrfName: []string{csrfValue},
+	}
+	ts.AuthFallbackDB.CheckReturns(nil, weberrors.ErrRedirect{
+		Path:   "/fallback/login",
+		Reason: auth.ErrBadLogin,
+	})
+
+	signInURL := ts.URLTo(router.AuthFallbackFinalize)
+
+	// important for CSRF
+	var refererHeader = make(http.Header)
+	refererHeader.Set("Referer", "https://localhost")
+	ts.Client.SetHeaders(refererHeader)
+
+	resp = ts.Client.PostForm(signInURL, loginVals)
+	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
+	a.Equal(1, ts.AuthFallbackDB.CheckCallCount())
+
+	// check flash error for bad login
+	res := resp.Result()
+	a.Equal(signInFormURL.Path, res.Header.Get("Location"), "redirecting to overview")
+	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
+
+	html, resp := ts.Client.GetHTML(signInFormURL)
+	a.Equal(http.StatusOK, resp.Code)
+
+	flashes := html.Find("#flashes-list").Children()
+	a.Equal(1, flashes.Length())
+	a.Equal("ErrorAuthBadLogin", flashes.Text())
+}
+
+func TestFallbackAuthWorks(t *testing.T) {
+	ts := setup(t)
+	a := assert.New(t)
+
+	signInFormURL := ts.URLTo(router.AuthFallbackLogin)
+
+	doc, resp := ts.Client.GetHTML(signInFormURL)
+	a.Equal(http.StatusOK, resp.Code)
+
+	csrfCookie := resp.Result().Cookies()
+	a.True(len(csrfCookie) > 0, "should have one cookie for CSRF protection validation")
 
 	passwordForm := doc.Find("#password-fallback")
 	webassert.CSRFTokenPresent(t, passwordForm)
@@ -102,53 +154,22 @@ func TestFallbackAuth(t *testing.T) {
 	}
 	ts.AuthFallbackDB.CheckReturns(int64(23), nil)
 
-	signInURL, err := ts.Router.Get(router.AuthFallbackFinalize).URL()
-	r.Nil(err)
+	signInURL := ts.URLTo(router.AuthFallbackFinalize)
 
-	signInURL.Host = "localhost"
-	signInURL.Scheme = "https"
+	// important for CSRF
+	var refererHeader = make(http.Header)
+	refererHeader.Set("Referer", "https://localhost")
+	ts.Client.SetHeaders(refererHeader)
 
-	var csrfCookieHeader = http.Header(map[string][]string{})
-	csrfCookieHeader.Set("Referer", "https://localhost")
-	cs := jar.Cookies(signInURL)
-	r.Len(cs, 1, "expecting one cookie for csrf")
-	theCookie := cs[0].String()
-	a.NotEqual("", theCookie, "should have a new cookie")
-	csrfCookieHeader.Set("Cookie", theCookie)
-	ts.Client.SetHeaders(csrfCookieHeader)
-
-	resp = ts.Client.PostForm(signInURL.String(), loginVals)
+	resp = ts.Client.PostForm(signInURL, loginVals)
 	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
 
 	a.Equal(1, ts.AuthFallbackDB.CheckCallCount())
 
-	sessionCookie := resp.Result().Cookies()
-	jar.SetCookies(signInURL, sessionCookie)
-
 	// now request the protected dashboard page
-	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
-	r.Nil(err)
-	dashboardURL.Host = "localhost"
-	dashboardURL.Scheme = "https"
+	dashboardURL := ts.URLTo(router.AdminDashboard)
 
-	var sessionHeader = http.Header(map[string][]string{})
-	cs = jar.Cookies(dashboardURL)
-	// TODO: why doesnt this return the csrf cookie?!
-	// r.Len(cs, 2, "expecting one cookie!")
-	for _, c := range cs {
-		theCookie := c.String()
-		a.NotEqual("", theCookie, "should have a new cookie")
-		sessionHeader.Add("Cookie", theCookie)
-	}
-
-	durl := dashboardURL.String()
-	t.Log(durl)
-
-	// update headers
-	ts.Client.ClearHeaders()
-	ts.Client.SetHeaders(sessionHeader)
-
-	html, resp := ts.Client.GetHTML(durl)
+	html, resp := ts.Client.GetHTML(dashboardURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
 	}
@@ -160,7 +181,7 @@ func TestFallbackAuth(t *testing.T) {
 	testRef := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{0}, 16)}
 	ts.RoomState.AddEndpoint(testRef, nil)
 
-	html, resp = ts.Client.GetHTML(durl)
+	html, resp = ts.Client.GetHTML(dashboardURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code") {
 		t.Log(html.Find("body").Text())
 	}
@@ -171,7 +192,7 @@ func TestFallbackAuth(t *testing.T) {
 	testRef2 := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{1}, 16)}
 	ts.RoomState.AddEndpoint(testRef2, nil)
 
-	html, resp = ts.Client.GetHTML(durl)
+	html, resp = ts.Client.GetHTML(dashboardURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -192,17 +213,13 @@ func TestAuthWithSSBClientInitNotConnected(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 
-	urlTo := web.NewURLTo(ts.Router)
-
-	signInStartURL := urlTo(router.AuthWithSSBLogin,
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
-
-	t.Log(signInStartURL.String())
-	doc, resp := ts.Client.GetHTML(signInStartURL.String())
-	a.Equal(http.StatusInternalServerError, resp.Code) // TODO: StatusForbidden
+	doc, resp := ts.Client.GetHTML(signInStartURL)
+	a.Equal(http.StatusForbidden, resp.Code)
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		// {"#welcome", "AuthWithSSBWelcome"},
@@ -223,17 +240,15 @@ func TestAuthWithSSBClientInitNotAllowed(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 
-	urlTo := web.NewURLTo(ts.Router)
-
-	signInStartURL := urlTo(router.AuthWithSSBLogin,
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
 
-	t.Log(signInStartURL.String())
-	doc, resp := ts.Client.GetHTML(signInStartURL.String())
+	doc, resp := ts.Client.GetHTML(signInStartURL)
 	a.Equal(http.StatusForbidden, resp.Code)
+	t.Log(resp.Body.String())
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		// {"#welcome", "AuthWithSSBWelcome"},
@@ -254,9 +269,7 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 
 	cc := signinwithssb.GenerateChallenge()
 
-	urlTo := web.NewURLTo(ts.Router)
-
-	loginURL := urlTo(router.AuthLogin,
+	loginURL := ts.URLTo(router.AuthLogin,
 		"ssb-http-auth", 1,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
@@ -264,7 +277,7 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 	r.NotNil(loginURL)
 
 	t.Log(loginURL.String())
-	doc, resp := ts.Client.GetHTML(loginURL.String())
+	doc, resp := ts.Client.GetHTML(loginURL)
 	t.Log()
 	a.Equal(http.StatusForbidden, resp.Code)
 
@@ -277,10 +290,6 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
-
-	// very cheap "browser" client session
-	jar, err := cookiejar.New(nil)
-	r.NoError(err)
 
 	// the request to be signed later
 	var payload signinwithssb.ClientPayload
@@ -339,8 +348,8 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	payload.ClientChallenge = cc
 
 	// prepare the url
-	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthWithSSBLogin,
+
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 		"cc", cc,
 	)
@@ -350,11 +359,10 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	r.NotNil(signInStartURL)
 
 	t.Log(signInStartURL.String())
-	doc, resp := ts.Client.GetHTML(signInStartURL.String())
+	doc, resp := ts.Client.GetHTML(signInStartURL)
 	a.Equal(http.StatusTemporaryRedirect, resp.Code)
 
-	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
-	r.Nil(err)
+	dashboardURL := ts.URLTo(router.AdminDashboard)
 	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
@@ -373,31 +381,8 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	// check that we have a new cookie
 	sessionCookie := resp.Result().Cookies()
 	r.True(len(sessionCookie) > 0, "expecting one cookie!")
-	jar.SetCookies(signInStartURL, sessionCookie)
 
-	// now request the protected dashboard page
-	dashboardURL.Host = "localhost"
-	dashboardURL.Scheme = "https"
-
-	// load the cookie for the dashboard
-	cs := jar.Cookies(dashboardURL)
-	r.True(len(cs) > 0, "expecting one cookie!")
-
-	var sessionHeader = http.Header(map[string][]string{})
-	for _, c := range cs {
-		theCookie := c.String()
-		a.NotEqual("", theCookie, "should have a new cookie")
-		sessionHeader.Add("Cookie", theCookie)
-	}
-
-	durl := dashboardURL.String()
-	t.Log(durl)
-
-	// update headers
-	ts.Client.ClearHeaders()
-	ts.Client.SetHeaders(sessionHeader)
-
-	html, resp := ts.Client.GetHTML(durl)
+	html, resp := ts.Client.GetHTML(dashboardURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
 	}
@@ -421,13 +406,13 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	ts.MembersDB.GetByFeedReturns(testMember, nil)
 
 	// prepare the url
-	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthWithSSBLogin,
+
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 	)
 	r.NotNil(signInStartURL)
 
-	html, resp := ts.Client.GetHTML(signInStartURL.String())
+	html, resp := ts.Client.GetHTML(signInStartURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
 	}
@@ -476,8 +461,8 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	}()
 
 	// start reading sse
-	sseURL := urlTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
-	resp = ts.Client.GetBody(sseURL.String())
+	sseURL := ts.URLTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
+	resp = ts.Client.GetBody(sseURL)
 	a.Equal(http.StatusOK, resp.Result().StatusCode)
 
 	// check contents of sse channel
@@ -492,38 +477,14 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 
 	// use the token and go to /withssb/finalize and get a cookie
 	// (this happens in the browser engine via login-events.js)
-	finalizeURL := urlTo(router.AuthWithSSBFinalize, "token", testToken)
-	finalizeURL.Host = "localhost"
-	finalizeURL.Scheme = "https"
+	finalizeURL := ts.URLTo(router.AuthWithSSBFinalize, "token", testToken)
 
-	resp = ts.Client.GetBody(finalizeURL.String())
-
-	csrfCookie := resp.Result().Cookies()
-	a.Len(csrfCookie, 2, "csrf and session cookie")
-
-	// very cheap "browser" client session
-	jar, err := cookiejar.New(nil)
-	r.NoError(err)
-	jar.SetCookies(finalizeURL, csrfCookie)
+	resp = ts.Client.GetBody(finalizeURL)
 
 	// now request the protected dashboard page
-	dashboardURL, err := ts.Router.Get(router.AdminDashboard).URL()
-	r.Nil(err)
-	dashboardURL.Host = "localhost"
-	dashboardURL.Scheme = "https"
+	dashboardURL := ts.URLTo(router.AdminDashboard)
 
-	// load the cookie for the dashboard
-	cs := jar.Cookies(dashboardURL)
-	r.True(len(cs) > 0, "expecting one cookie!")
-	var sessionHeader = http.Header(map[string][]string{})
-	for _, c := range cs {
-		theCookie := c.String()
-		a.NotEqual("", theCookie, "should have a new cookie")
-		sessionHeader.Add("Cookie", theCookie)
-	}
-	ts.Client.SetHeaders(sessionHeader)
-
-	html, resp = ts.Client.GetHTML(dashboardURL.String())
+	html, resp = ts.Client.GetHTML(dashboardURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
 	}
@@ -547,13 +508,12 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 	ts.MembersDB.GetByFeedReturns(testMember, nil)
 
 	// prepare the url
-	urlTo := web.NewURLTo(ts.Router)
-	signInStartURL := urlTo(router.AuthWithSSBLogin,
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
 		"cid", client.Feed.Ref(),
 	)
 	r.NotNil(signInStartURL)
 
-	html, resp := ts.Client.GetHTML(signInStartURL.String())
+	html, resp := ts.Client.GetHTML(signInStartURL)
 	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
 		t.Log(html.Find("body").Text())
 	}
@@ -571,8 +531,8 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 	}()
 
 	// start reading sse
-	sseURL := urlTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
-	resp = ts.Client.GetBody(sseURL.String())
+	sseURL := ts.URLTo(router.AuthWithSSBServerEvents, "sc", serverChallenge)
+	resp = ts.Client.GetBody(sseURL)
 	a.Equal(http.StatusOK, resp.Result().StatusCode)
 
 	// check contents of sse channel
@@ -585,7 +545,7 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 	a.True(strings.Contains(sseBody, "event: failed\n"), "success event")
 
 	// use an invalid token
-	finalizeURL := urlTo(router.AuthWithSSBFinalize, "token", "wrong")
-	resp = ts.Client.GetBody(finalizeURL.String())
+	finalizeURL := ts.URLTo(router.AuthWithSSBFinalize, "token", "wrong")
+	resp = ts.Client.GetBody(finalizeURL)
 	a.Equal(http.StatusForbidden, resp.Result().StatusCode)
 }

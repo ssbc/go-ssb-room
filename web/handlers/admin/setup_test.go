@@ -4,30 +4,41 @@ package admin
 
 import (
 	"context"
+	"crypto/rand"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/randutil"
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	weberrs "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n/i18ntesting"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 type testSession struct {
+	Domain string
 	Mux    *http.ServeMux
+
 	Client *tester.Tester
-	Router *mux.Router
+
+	URLTo web.URLMaker
 
 	AliasesDB    *mockdb.FakeAliasesService
 	ConfigDB     *mockdb.FakeRoomConfig
@@ -38,8 +49,6 @@ type testSession struct {
 	PinnedDB     *mockdb.FakePinnedNoticesService
 
 	User roomdb.Member
-
-	Domain string
 
 	RoomState *roomstate.Manager
 }
@@ -62,9 +71,21 @@ func newSession(t *testing.T) *testSession {
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
 
-	ts.Router = router.CompleteApp()
-
 	ts.Domain = randutil.String(10)
+
+	// instantiate the urlTo helper (constructs urls for us!)
+	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
+	router := router.CompleteApp()
+	urlTo := web.NewURLTo(router)
+	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
+		testURL := urlTo(name, vals...)
+		if testURL == nil {
+			t.Fatalf("no URL for %s", name)
+		}
+		testURL.Host = ts.Domain
+		testURL.Scheme = "https" // fake
+		return testURL
+	}
 
 	// fake user
 	ts.User = roomdb.Member{
@@ -72,39 +93,56 @@ func newSession(t *testing.T) *testSession {
 		Role: roomdb.RoleModerator,
 	}
 
+	testPath := filepath.Join("testrun", t.Name())
+	os.RemoveAll(testPath)
+
+	i18ntesting.WriteReplacement(t)
+
+	testRepo := repo.New(testPath)
+	locHelper, err := i18n.New(testRepo)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	authKey := make([]byte, 64)
+	rand.Read(authKey)
+	encKey := make([]byte, 32)
+	rand.Read(encKey)
+
+	sessionsPath := filepath.Join(testPath, "sessions")
+	os.MkdirAll(sessionsPath, 0700)
+	fsStore := sessions.NewFilesystemStore(sessionsPath, authKey, encKey)
+
+	flashHelper := weberrs.NewFlashHelper(fsStore, locHelper)
+
 	// setup rendering
 
 	// TODO: make testing utils and move these there
-	testFuncs := web.TemplateFuncs(ts.Router)
-	testFuncs["i18n"] = func(msgID string) string { return msgID }
-	testFuncs["i18npl"] = func(msgID string, count int, _ ...interface{}) string {
-		if count == 1 {
-			return msgID + "Singular"
-		}
-		return msgID + "Plural"
-	}
+	testFuncs := web.TemplateFuncs(router)
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
 	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
-	r, err := render.New(web.Templates,
+	renderOpts := []render.Option{
 		render.SetLogger(log),
-		render.BaseTemplates("base.tmpl", "menu.tmpl"),
+		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "error.tmpl")...),
 		render.ErrorTemplate("error.tmpl"),
 		render.FuncMap(testFuncs),
-	)
+	}
+	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
+
+	r, err := render.New(web.Templates, renderOpts...)
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "setup: render init failed"))
 	}
-
-	ts.Mux = http.NewServeMux()
 
 	handler := Handler(
 		ts.Domain,
 		r,
 		ts.RoomState,
+		flashHelper,
 		Databases{
 			Aliases:       ts.AliasesDB,
 			Config:        ts.ConfigDB,
@@ -118,6 +156,7 @@ func newSession(t *testing.T) *testSession {
 
 	handler = members.MiddlewareForTests(ts.User)(handler)
 
+	ts.Mux = http.NewServeMux()
 	ts.Mux.Handle("/", handler)
 
 	ts.Client = tester.New(ts.Mux, t)

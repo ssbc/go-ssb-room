@@ -3,7 +3,6 @@
 package admin
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 )
 
 // aliasesHandler implements the managment endpoints for aliases (list and revoke),
@@ -20,10 +20,10 @@ import (
 type aliasesHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	db roomdb.AliasesService
 }
-
-const redirectToAliases = "/admin/aliases"
 
 func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	if req.Method != "GET" {
@@ -38,11 +38,10 @@ func (h aliasesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToAliases, http.StatusFound)
-			return nil, ErrRedirected
+		return nil, weberrors.ErrRedirect{
+			Path:   redirectToMembers,
+			Reason: err,
 		}
-		return nil, err
 	}
 
 	return map[string]interface{}{
@@ -60,21 +59,46 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 
 	err := req.ParseForm()
 	if err != nil {
-		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		http.Redirect(rw, req, redirectToAliases, http.StatusFound)
+		err = weberrors.ErrRedirect{
+			Path:   redirectToMembers,
+			Reason: weberrors.ErrBadRequest{Where: "Form data", Details: err},
+		}
+		h.r.Error(rw, req, http.StatusBadRequest, err)
 		return
 	}
 
-	status := http.StatusFound
-	err = h.db.Revoke(req.Context(), req.FormValue("name"))
-	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
+	aliasName := req.FormValue("name")
 
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
-		}
-		status = http.StatusNotFound
+	ctx := req.Context()
+
+	aliasEntry, err := h.db.Resolve(ctx, aliasName)
+	if err != nil {
+		h.r.Error(rw, req, http.StatusBadRequest, err)
+		return
 	}
 
-	http.Redirect(rw, req, redirectToAliases, status)
+	// who is doing this request
+	currentMember := members.FromContext(ctx)
+	if currentMember == nil {
+		err := weberrors.ErrForbidden{Details: fmt.Errorf("not an member")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
+
+	// ensure own alias or admin
+	if !aliasEntry.Feed.Equal(&currentMember.PubKey) && currentMember.Role != roomdb.RoleAdmin {
+		err := weberrors.ErrForbidden{Details: fmt.Errorf("not your alias or not an admin")}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
+
+	status := http.StatusTemporaryRedirect
+	err = h.db.Revoke(ctx, aliasName)
+	if err != nil {
+		h.flashes.AddError(rw, req, err)
+	} else {
+		h.flashes.AddMessage(rw, req, "AdminMemberDetailsAliasRevoked")
+	}
+
+	http.Redirect(rw, req, redirectToMembers, status)
 }

@@ -8,9 +8,14 @@ import (
 	"fmt"
 )
 
-type ErrNotFound struct {
-	What string
-}
+var (
+	// ErrRedirect decide to not render a page during the controller
+	ErrNotAuthorized = errors.New("rooms/web: not authorized")
+
+	ErrDenied = errors.New("rooms: this key has been banned")
+)
+
+type ErrNotFound struct{ What string }
 
 func (nf ErrNotFound) Error() string {
 	return fmt.Sprintf("rooms/web: item not found: %s", nf.What)
@@ -25,14 +30,32 @@ func (br ErrBadRequest) Error() string {
 	return fmt.Sprintf("rooms/web: bad request error: %s", br.Details)
 }
 
-type ErrForbidden struct {
-	Details error
-}
+type ErrForbidden struct{ Details error }
 
 func (f ErrForbidden) Error() string {
 	return fmt.Sprintf("rooms/web: access denied: %s", f.Details)
 }
 
-var ErrNotAuthorized = errors.New("rooms/web: not authorized")
+// ErrRedirect is used when the controller decides to not render a page
+type ErrRedirect struct {
+	Path string
 
-var ErrDenied = errors.New("rooms: this key has been banned")
+	// reason will be added as a flash error
+	Reason error
+}
+
+func (err ErrRedirect) Error() string {
+	return fmt.Sprintf("rooms/web: redirecting to: %s", err.Path)
+}
+
+type PageNotFound struct{ Path string }
+
+func (e PageNotFound) Error() string {
+	return fmt.Sprintf("rooms/web: page not found: %s", e.Path)
+}
+
+type DatabaseError struct{ Reason error }
+
+func (e DatabaseError) Error() string {
+	return fmt.Sprintf("rooms/web: database failed to complete query: %s", e.Reason.Error())
+}

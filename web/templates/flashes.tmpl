@@ -1,0 +1,11 @@
+{{ define "flashes" }}
+{{if .Flashes}}
+<ul id="flashes-list">
+{{range .Flashes}}
+    <li
+    class="{{if eq .Kind 1}}text-red-600{{else}}text-green-600{{end}}"
+    >{{.Message}}</li>
+{{end}}
+</ul>
+{{end}}
+{{ end }}

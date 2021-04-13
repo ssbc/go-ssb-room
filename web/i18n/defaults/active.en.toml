@@ -1,3 +1,6 @@
+# default localiztion file for english
+
+# generic terms
 GenericConfirm = "Yes"
 GenericGoBack = "Back"
 GenericSave = "Save"
@@ -11,40 +14,89 @@ PageNotFound = "The requested page was not found."
 
 PubKeyRefPlaceholder = "@                                            .ed25519"
 
+# roles
 RoleMember = "Member"
 RoleModerator = "Moderator"
 RoleAdmin = "Admin"
 
+# navigation labels (should be single words or as short as possible)
+NavAdminLanding = "Home"
+NavAdminDashboard = "Dashboard"
+NavAdminInvites = "Invites"
+NavAdminNotices = "Notices"
+
+# Error messages
+ErrorAuthBadLogin = "The supplied authentication credentials (username or password) are incorrect."
+ErrorNotFound = "The database couldn't find the item in question."
+ErrorAlreadyAdded = "The public key <strong>{{.Key}}</strong> already is on the list"
+ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."
+ErrorNotAuthorized = "You are not authorized to access this page."
+ErrorForbidden = "The request could not be executed because of lacking privileges ({{.Details}})"
+ErrorBadRequest = "There was a problem with your Request: {{.Where}} ({{.Details}}"
+
+# TODO: might be obsolete with notices
 LandingTitle = "ohai my room"
 LandingWelcome = "Landing welcome here"
 
-AuthSignIn = "Sign in"
-AuthSignOut = "Sign out"
+# authentication
+################
 
 AuthTitle = "Member Authentication"
 AuthWelcome = "If you are a member of this room, you can access the internal dashboard. Click on your preferred sign-in method below:"
 
+AuthSignIn = "Sign in"
+AuthSignOut = "Sign out"
+
+# auth with ssb
 AuthWithSSBTitle = "Sign in with SSB"
 AuthWithSSBInstruct = "Easy and secure method, if your SSB app supports it."
 AuthWithSSBWelcome = "To sign-in with your SSB identity stored on this device, press the button below which will open a compatible SSB app, if it's installed."
 AuthWithSSBInstructQR = "If your SSB app is on another device, you can scan the following QR code to sign-in with that device's SSB identity."
 AuthWithSSBError = "Sign-in failed. Please make sure you use an SSB app that supports this method of login, and click the button above within a minute after this page was opened."
 
+# auth with password
 AuthFallbackTitle = "Password sign-in"
 AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
 AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
+# general dashboard stuff
+#########################
+
 AdminDashboardTitle = "Dashboard"
 AdminDashboardWelcome = "Welcome to your dashboard"
+
+# privacy modes
+###############
+
+ModeOpen = "Open"
+ModeCommunity = "Community"
+ModeRestricted = "Restricted"
+
+SetPrivacyModeTitle = "Set Privacy Mode"
+PrivacyModesTitle = "Privacy Modes"
+RoomsSpecification = "rooms 2 specification"
+ExplanationPrivacyModes = "The privacy mode of this room determines who can create invites and who can connect to the room. For more information, see the"
+ExplanationOpen = "Open invite codes, anyone may connect"
+ExplanationCommunity = "Members can create invites, anyone may connect"
+ExplanationRestricted = "Only admins/mods can create invites, only members may connect"
+
+Settings = "Settings"
+
+# banned dashboard
+##################
 
 AdminDeniedKeysTitle = "Banned"
 AdminDeniedKeysWelcome = "This page can be used to ban SSB IDs so that they can't access the room any more."
 AdminDeniedKeysAdd = "Add"
+AdminDeniedKeysAdded = "Key was added to the list."
 AdminDeniedKeysRemove = "Remove"
 AdminDeniedKeysComment = "Comment"
 AdminDeniedKeysCommentDescription = "The person who added this ban, added the following comment"
 AdminDeniedKeysRemoveConfirmWelcome = "Are you sure you want to remove this ban? They will will be able to access the room again."
 AdminDeniedKeysRemoveConfirmTitle = "Confirm member removal"
+
+# members dashboard
+###################
 
 AdminMembersTitle = "Members"
 AdminMembersWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
@@ -58,8 +110,20 @@ AdminMemberDetailsSSBID = "SSB Identifier"
 AdminMemberDetailsRole = "Permission level"
 AdminMemberDetailsAliases = "Aliases"
 AdminMemberDetailsAliasRevoke = "Revoke"
+AdminMemberDetailsAliasRevoked = "Alias was revoked"
 AdminMemberDetailsExclusion = "Exclusion from this room"
 AdminMemberDetailsRemove = "Remove member"
+
+AdminMemberAdded = "Member added successfully."
+AdminMemberUpdated = "Member updated."
+AdminMemberRemoved = "Member removed."
+
+AdminAliasesRevoke = "Revoke"
+AdminAliasesRevokeConfirmTitle = "Revoke Alias"
+AdminAliasesRevokeConfirmWelcome = "Are you sure you want to revoke this alias?"
+
+# invite dashboard
+##################
 
 AdminInvitesTitle = "Invites"
 AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. On this page you can also see previously created invites that are still not unclaimed by new members."
@@ -80,10 +144,8 @@ AdminInviteSuggestedAliasIsShort = "Alias:"
 AdminInviteCreatedTitle = "Invite created successfully!"
 AdminInviteCreatedInstruct = "Now, copy the link below and paste it to a friend who you want to invite to this room."
 
-NavAdminLanding = "Home"
-NavAdminDashboard = "Dashboard"
-NavAdminInvites = "Invites"
-NavAdminNotices = "Notices"
+# public invites
+################
 
 InviteFacade = "Join Room"
 InviteFacadeTitle = "Join Room"
@@ -101,29 +163,26 @@ InviteInsertWelcome = "You can claim your invite by inserting your SSB ID below.
 InviteConsumedTitle = "Invite accepted!"
 InviteConsumedWelcome = "You are now a member of this room. If you need a multiserver address to connect to the room, you can copy-paste the one below:"
 
+# notices (mini-CMS)
+####################
+
 NoticeEditTitle = "Edit Notice"
 NoticeList = "Notices"
 NoticeListWelcome = "Here you can manage the contents of the landing page and other important documents such as code of conduct and privacy policy."
 NoticeAddTranslation = "Add"
+NoticeUpdated = "Notice updated"
 
 NoticeCodeOfConduct = "Code of Conduct"
 NoticeNews = "News"
 NoticeDescription = "Description"
 NoticePrivacyPolicy = "Privacy Policy"
 
-ModeOpen = "Open"
-ModeCommunity = "Community"
-ModeRestricted = "Restricted"
-
-SetPrivacyModeTitle = "Set Privacy Mode"
-PrivacyModesTitle = "Privacy Modes"
-RoomsSpecification = "rooms 2 specification"
-ExplanationPrivacyModes = "The privacy mode of this room determines who can create invites and who can connect to the room. For more information, see the"
-ExplanationOpen = "Open invite codes, anyone may connect"
-ExplanationCommunity = "Members can create invites, anyone may connect"
-ExplanationRestricted = "Only admins/mods can create invites, only members may connect"
-
-Settings = "Settings"
+# Plurals
+#########
+# These need to use this form and get {{.Count}}
+#   [Label]
+#   one = "singular"
+#   other = "{{.Count}} things"
 
 [MemberCount]
 description = "Number of members"

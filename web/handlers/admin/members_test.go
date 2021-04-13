@@ -4,16 +4,11 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
-	"strings"
 	"testing"
 
-	"github.com/PuerkitoBio/goquery"
-
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
@@ -23,10 +18,9 @@ func TestMembersEmpty(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	url, err := ts.Router.Get(router.AdminMembersOverview).URL()
-	a.Nil(err)
+	url := ts.URLTo(router.AdminMembersOverview)
 
-	html, resp := ts.Client.GetHTML(url.String())
+	html, resp := ts.Client.GetHTML(url)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -40,10 +34,9 @@ func TestMembersAdd(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	listURL, err := ts.Router.Get(router.AdminMembersOverview).URL()
-	a.NoError(err)
+	listURL := ts.URLTo(router.AdminMembersOverview)
 
-	html, resp := ts.Client.GetHTML(listURL.String())
+	html, resp := ts.Client.GetHTML(listURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	formSelection := html.Find("form#add-entry")
@@ -56,10 +49,8 @@ func TestMembersAdd(t *testing.T) {
 	action, ok := formSelection.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminMembersAdd).URL()
-	a.NoError(err)
-
-	a.Equal(addURL.String(), action)
+	addURL := ts.URLTo(router.AdminMembersAdd)
+	a.Equal(addURL.Path, action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
@@ -70,8 +61,8 @@ func TestMembersAdd(t *testing.T) {
 		// just any key that looks valid
 		"pub_key": []string{newKey},
 	}
-	rec := ts.Client.PostForm(addURL.String(), addVals)
-	a.Equal(http.StatusFound, rec.Code)
+	rec := ts.Client.PostForm(addURL, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 
 	a.Equal(1, ts.MembersDB.AddCallCount())
 	_, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
@@ -83,29 +74,26 @@ func TestMembersAdd(t *testing.T) {
 func TestMembersDontAddInvalid(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	r := require.New(t)
 
-	addURL, err := ts.Router.Get(router.AdminMembersAdd).URL()
-	a.NoError(err)
+	addURL := ts.URLTo(router.AdminMembersAdd)
 
 	newKey := "@some-garbage"
 	addVals := url.Values{
 		"nick":    []string{"some-test-nick"},
 		"pub_key": []string{newKey},
 	}
-	rec := ts.Client.PostForm(addURL.String(), addVals)
-	a.Equal(http.StatusBadRequest, rec.Code)
+	rec := ts.Client.PostForm(addURL, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 
 	a.Equal(0, ts.MembersDB.AddCallCount())
 
-	doc, err := goquery.NewDocumentFromReader(rec.Body)
-	r.NoError(err)
+	listURL := ts.URLTo(router.AdminMembersOverview)
+	res := rec.Result()
+	a.Equal(listURL.Path, res.Header.Get("Location"), "redirecting to overview")
+	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
 
-	expErr := `bad public key: feedRef: couldn't parse "@some-garbage"`
-	gotMsg := doc.Find("#errBody").Text()
-	if !a.True(strings.HasPrefix(gotMsg, expErr), "did not find errBody") {
-		t.Log(gotMsg)
-	}
+	webassert.HasFlashMessages(t, ts.Client, listURL, "ErrorBadRequest")
+
 }
 
 func TestMembers(t *testing.T) {
@@ -119,7 +107,9 @@ func TestMembers(t *testing.T) {
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
-	html, resp := ts.Client.GetHTML("/members")
+	membersOveriwURL := ts.URLTo(router.AdminMembersOverview)
+
+	html, resp := ts.Client.GetHTML(membersOveriwURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -135,7 +125,7 @@ func TestMembers(t *testing.T) {
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML("/members")
+	html, resp = ts.Client.GetHTML(membersOveriwURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -168,7 +158,9 @@ func TestMemberDetails(t *testing.T) {
 	}
 	ts.MembersDB.GetByIDReturns(member, nil)
 
-	html, resp := ts.Client.GetHTML("/member?id=1")
+	memberURL := ts.URLTo(router.AdminMemberDetails, "id", "1")
+
+	html, resp := ts.Client.GetHTML(memberURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -218,10 +210,9 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 	testEntry := roomdb.Member{ID: 666, PubKey: *testKey}
 	ts.MembersDB.GetByIDReturns(testEntry, nil)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRemoveConfirm := urlTo(router.AdminMembersRemoveConfirm, "id", 3)
+	urlRemoveConfirm := ts.URLTo(router.AdminMembersRemoveConfirm, "id", 3)
 
-	html, resp := ts.Client.GetHTML(urlRemoveConfirm.String())
+	html, resp := ts.Client.GetHTML(urlRemoveConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
@@ -235,10 +226,8 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 	action, ok := form.Attr("action")
 	a.True(ok, "form has action set")
 
-	addURL, err := ts.Router.Get(router.AdminMembersRemove).URL()
-	a.NoError(err)
-
-	a.Equal(addURL.String(), action)
+	addURL := ts.URLTo(router.AdminMembersRemove)
+	a.Equal(addURL.Path, action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "id", Type: "hidden", Value: "666"},
@@ -249,23 +238,36 @@ func TestMembersRemove(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	urlTo := web.NewURLTo(ts.Router)
-	urlRemove := urlTo(router.AdminMembersRemove)
+	urlRemove := ts.URLTo(router.AdminMembersRemove)
 
 	ts.MembersDB.RemoveIDReturns(nil)
 
 	addVals := url.Values{"id": []string{"666"}}
-	rec := ts.Client.PostForm(urlRemove.String(), addVals)
-	a.Equal(http.StatusFound, rec.Code)
+	rec := ts.Client.PostForm(urlRemove, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 
 	a.Equal(1, ts.MembersDB.RemoveIDCallCount())
 	_, theID := ts.MembersDB.RemoveIDArgsForCall(0)
 	a.EqualValues(666, theID)
 
+	listURL := ts.URLTo(router.AdminMembersOverview)
+	// check flash message
+	res := rec.Result()
+	a.Equal(listURL.Path, res.Header.Get("Location"), "redirecting to overview")
+	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
+
+	webassert.HasFlashMessages(t, ts.Client, listURL, "AdminMemberRemoved")
+
 	// now for unknown ID
 	ts.MembersDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
-	rec = ts.Client.PostForm(urlRemove.String(), addVals)
-	a.Equal(http.StatusNotFound, rec.Code)
-	//TODO: update redirect code with flash errors
+	rec = ts.Client.PostForm(urlRemove, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+
+	// check flash message
+	res = rec.Result()
+	a.Equal(listURL.Path, res.Header.Get("Location"), "redirecting to overview")
+	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
+
+	webassert.HasFlashMessages(t, ts.Client, listURL, "ErrorNotFound")
 }

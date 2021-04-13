@@ -72,6 +72,9 @@ func (pn PinnedNotices) Get(ctx context.Context, name roomdb.PinnedNoticeName, l
 		qm.Load("Notices", qm.Where("language = ?", lang)),
 	).One(ctx, pn.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, roomdb.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -96,6 +99,9 @@ func (pn PinnedNotices) Set(ctx context.Context, name roomdb.PinnedNoticeName, n
 
 	n, err := models.FindNotice(ctx, pn.db, noticeID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return roomdb.ErrNotFound
+		}
 		return err
 	}
 

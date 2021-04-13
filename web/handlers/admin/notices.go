@@ -19,6 +19,8 @@ import (
 type noticeHandler struct {
 	r *render.Renderer
 
+	flashes *weberrors.FlashHelper
+
 	noticeDB roomdb.NoticesService
 	pinnedDB roomdb.PinnedNoticesService
 }
@@ -49,6 +51,7 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
 		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
+		return
 	}
 
 	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
@@ -121,14 +124,20 @@ func (h noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interfac
 	contentBytes := []byte(fixedContent)
 	preview := blackfriday.Run(contentBytes)
 
-	return map[string]interface{}{
+	pageData := map[string]interface{}{
 		"SubmitAction":   router.AdminNoticeSave,
 		"Notice":         n,
 		"ContentPreview": template.HTML(preview),
 		// "Debug":          string(preview),
 		// "DebugHex":       hex.Dump(contentBytes),
 		csrf.TemplateTag: csrf.TemplateField(req),
-	}, nil
+	}
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return pageData, nil
 }
 
 func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
@@ -141,21 +150,28 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 
 	redirect := req.FormValue("redirect")
 	if redirect == "" {
-		redirect = "/"
+		noticesURL, err := router.CompleteApp().Get(router.CompleteNoticeList).URL()
+		if err != nil {
+			h.r.Error(rw, req, http.StatusInternalServerError, err)
+			return
+		}
+		redirect = noticesURL.Path
 	}
 
 	var n roomdb.Notice
 	n.ID, err = strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "id", Details: err}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
 	n.Title = req.FormValue("title")
 	if n.Title == "" {
 		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
@@ -163,24 +179,29 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	n.Language = req.FormValue("language")
 	if n.Language == "" {
 		err = weberrors.ErrBadRequest{Where: "language", Details: fmt.Errorf("language can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
 	n.Content = req.FormValue("content")
 	if n.Content == "" {
 		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
+
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
 	err = h.noticeDB.Save(req.Context(), &n)
 	if err != nil {
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
+	h.flashes.AddMessage(rw, req, "NoticeUpdated")
 	http.Redirect(rw, req, redirect, http.StatusSeeOther)
 }

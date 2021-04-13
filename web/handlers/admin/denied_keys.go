@@ -8,16 +8,18 @@ import (
 	"net/http"
 	"strconv"
 
-	"go.mindeco.de/http/render"
-	refs "go.mindeco.de/ssb-refs"
-
 	"github.com/gorilla/csrf"
+	"go.mindeco.de/http/render"
+
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 type deniedKeysHandler struct {
 	r *render.Renderer
+
+	flashes *weberrors.FlashHelper
 
 	db roomdb.DeniedKeysService
 }
@@ -26,21 +28,22 @@ const redirectToDeniedKeys = "/admin/denied"
 
 func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return
 	}
 
 	newEntry := req.Form.Get("pub_key")
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
+		h.flashes.AddError(w, req, err)
+		http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -49,20 +52,12 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 
 	err = h.db.Add(req.Context(), *newEntryParsed, comment)
 	if err != nil {
-		code := http.StatusInternalServerError
-		var aa roomdb.ErrAlreadyAdded
-		if errors.As(err, &aa) {
-			code = http.StatusBadRequest
-			// TODO: localized error pages
-			// h.r.Error(w, req, http.StatusBadRequest, weberrors.Localize())
-			// return
-		}
-
-		h.r.Error(w, req, code, err)
-		return
+		h.flashes.AddError(w, req, err)
+	} else {
+		h.flashes.AddMessage(w, req, "AdminDeniedKeysAdded")
 	}
 
-	http.Redirect(w, req, redirectToDeniedKeys, http.StatusFound)
+	http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 }
 
 func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -81,12 +76,13 @@ func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (
 	}
 
 	pageData[csrf.TemplateTag] = csrf.TemplateField(req)
+	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
+	if err != nil {
+		return nil, err
+	}
 
 	return pageData, nil
 }
-
-// TODO: move to render package so that we can decide to not render a page during the controller
-var ErrRedirected = errors.New("render: not rendered but redirected")
 
 func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
@@ -97,11 +93,10 @@ func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Reque
 
 	entry, err := h.db.GetByID(req.Context(), id)
 	if err != nil {
-		if errors.Is(err, roomdb.ErrNotFound) {
-			http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
-			return nil, ErrRedirected
+		return nil, weberrors.ErrRedirect{
+			Path:   redirectToDeniedKeys,
+			Reason: err,
 		}
-		return nil, err
 	}
 
 	return map[string]interface{}{
@@ -115,7 +110,7 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -123,7 +118,7 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusFound)
+		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 

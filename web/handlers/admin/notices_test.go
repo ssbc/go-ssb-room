@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/stretchr/testify/assert"
@@ -17,8 +16,6 @@ import (
 func TestNoticeSaveActuallyCalled(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// instantiate the urlTo helper (constructs urls for us!)
-	urlTo := web.NewURLTo(ts.Router)
 
 	id := []string{"1"}
 	title := []string{"SSB Breaking News: This Test Is Great"}
@@ -26,9 +23,9 @@ func TestNoticeSaveActuallyCalled(t *testing.T) {
 	language := []string{"en-GB"}
 
 	// POST a correct request to the save handler, and verify that the save was handled using the mock database)
-	u := urlTo(router.AdminNoticeSave)
+	u := ts.URLTo(router.AdminNoticeSave)
 	formValues := url.Values{"id": id, "title": title, "content": content, "language": language}
-	resp := ts.Client.PostForm(u.String(), formValues)
+	resp := ts.Client.PostForm(u, formValues)
 	a.Equal(http.StatusSeeOther, resp.Code, "POST should work")
 	a.Equal(1, ts.NoticeDB.SaveCallCount(), "noticedb should have saved after POST completed")
 }
@@ -37,8 +34,6 @@ func TestNoticeSaveActuallyCalled(t *testing.T) {
 func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// instantiate the urlTo helper (constructs urls for us!)
-	urlTo := web.NewURLTo(ts.Router)
 
 	// notice values we are selectively omitting in the tests below
 	id := []string{"1"}
@@ -47,25 +42,40 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	language := []string{"pt"}
 
 	/* save without id */
-	u := urlTo(router.AdminNoticeSave)
+	u := ts.URLTo(router.AdminNoticeSave)
 	emptyParams := url.Values{}
-	resp := ts.Client.PostForm(u.String(), emptyParams)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without id should not work")
+	resp := ts.Client.PostForm(u, emptyParams)
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without id should not work")
+
+	loc := resp.Header().Get("Location")
+
+	noticesList := ts.URLTo(router.CompleteNoticeList)
+	a.Equal(noticesList.Path, loc)
+
+	// we should get noticesList here but
+	// due to issue #35 we cant get /notices/list in package admin tests
+	// but it doesn't really matter since the flash messages are rendered on whatever page the client goes to next
+	sigh := ts.URLTo(router.AdminDashboard)
+
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without title */
 	formValues := url.Values{"id": id, "content": content, "language": language}
-	resp = ts.Client.PostForm(u.String(), formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without title should not work")
+	resp = ts.Client.PostForm(u, formValues)
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without title should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without content */
 	formValues = url.Values{"id": id, "title": title, "language": language}
-	resp = ts.Client.PostForm(u.String(), formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without content should not work")
+	resp = ts.Client.PostForm(u, formValues)
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without content should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	/* save without language */
 	formValues = url.Values{"id": id, "title": title, "content": content}
-	resp = ts.Client.PostForm(u.String(), formValues)
-	a.Equal(http.StatusInternalServerError, resp.Code, "saving without language should not work")
+	resp = ts.Client.PostForm(u, formValues)
+	a.Equal(http.StatusSeeOther, resp.Code, "saving without language should not work")
+	webassert.HasFlashMessages(t, ts.Client, sigh, "ErrorBadRequest")
 
 	a.Equal(0, ts.NoticeDB.SaveCallCount(), "noticedb should never save incomplete requests")
 }
@@ -74,12 +84,11 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// instantiate the urlTo helper (constructs urls for us!)
-	urlTo := web.NewURLTo(ts.Router)
+	// instantiate the ts.URLTo helper (constructs urls for us!)
 
 	// verify that a GET request is no bueno
-	u := urlTo(router.AdminNoticeAddTranslation, "name", roomdb.NoticeNews.String())
-	_, resp := ts.Client.GetHTML(u.String())
+	u := ts.URLTo(router.AdminNoticeAddTranslation, "name", roomdb.NoticeNews.String())
+	_, resp := ts.Client.GetHTML(u)
 	a.Equal(http.StatusMethodNotAllowed, resp.Code, "GET should not be allowed for this route")
 
 	// next up, we verify that a correct POST request actually works:
@@ -89,7 +98,7 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 	language := []string{"pt"}
 
 	formValues := url.Values{"name": []string{roomdb.NoticeNews.String()}, "id": id, "title": title, "content": content, "language": language}
-	resp = ts.Client.PostForm(u.String(), formValues)
+	resp = ts.Client.PostForm(u, formValues)
 	a.Equal(http.StatusTemporaryRedirect, resp.Code)
 }
 
@@ -97,8 +106,7 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// instantiate the urlTo helper (constructs urls for us!)
-	urlTo := web.NewURLTo(ts.Router)
+	// instantiate the ts.URLTo helper (constructs urls for us!)
 
 	// to test translations we first need to add a notice to the notice mockdb
 	notice := roomdb.Notice{
@@ -110,8 +118,8 @@ func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 	// make sure we return a notice when accessing pinned notices (which are the only notices with translations at writing (2021-03-11)
 	ts.PinnedDB.GetReturns(&notice, nil)
 
-	u := urlTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews.String())
-	html, resp := ts.Client.GetHTML(u.String())
+	u := ts.URLTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews.String())
+	html, resp := ts.Client.GetHTML(u)
 	form := html.Find("form")
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
 	// FormElement defaults to input if tag omitted
@@ -125,8 +133,7 @@ func TestNoticeDraftLanguageIncludesAllFields(t *testing.T) {
 func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
-	// instantiate the urlTo helper (constructs urls for us!)
-	urlTo := web.NewURLTo(ts.Router)
+	// instantiate the ts.URLTo helper (constructs urls for us!)
 
 	// Create mock notice data to operate on
 	notice := roomdb.Notice{
@@ -137,8 +144,8 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 	}
 	ts.NoticeDB.GetByIDReturns(notice, nil)
 
-	u := urlTo(router.AdminNoticeEdit, "id", 1)
-	html, resp := ts.Client.GetHTML(u.String())
+	u := ts.URLTo(router.AdminNoticeEdit, "id", 1)
+	html, resp := ts.Client.GetHTML(u)
 	form := html.Find("form")
 
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")

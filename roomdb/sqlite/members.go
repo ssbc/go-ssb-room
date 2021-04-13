@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/friendsofgo/errors"
+	"github.com/mattn/go-sqlite3"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -28,7 +29,7 @@ func (Members) getAliases(mEntry *models.Member) []roomdb.Alias {
 	var aliases = make([]roomdb.Alias, len(mEntry.R.Aliases))
 	for j, aEntry := range mEntry.R.Aliases {
 		aliases[j].ID = aEntry.ID
-		aliases[j].Feed = aEntry.R.Member.PubKey.FeedRef
+		aliases[j].Feed = mEntry.PubKey.FeedRef
 		aliases[j].Name = aEntry.Name
 		aliases[j].Signature = aEntry.Signature
 	}
@@ -64,6 +65,10 @@ func (Members) add(ctx context.Context, tx *sql.Tx, pubKey refs.FeedRef, role ro
 
 	err := newMember.Insert(ctx, tx, boil.Infer())
 	if err != nil {
+		var sqlErr sqlite3.Error
+		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return -1, roomdb.ErrAlreadyAdded{Ref: pubKey}
+		}
 		return -1, fmt.Errorf("members: failed to insert new user: %w", err)
 	}
 
@@ -73,8 +78,19 @@ func (Members) add(ctx context.Context, tx *sql.Tx, pubKey refs.FeedRef, role ro
 func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) {
 	entry, err := models.FindMember(ctx, m.db, mid)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return roomdb.Member{}, roomdb.ErrNotFound
+		}
 		return roomdb.Member{}, err
 	}
+
+	// resolve alias relation
+	entry.R = entry.R.NewStruct()
+	entry.R.Aliases, err = entry.Aliases().All(ctx, m.db)
+	if err != nil {
+		return roomdb.Member{}, err
+	}
+
 	return roomdb.Member{
 		ID:      entry.ID,
 		Role:    roomdb.Role(entry.Role),
@@ -87,12 +103,24 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, error) {
 	entry, err := models.Members(qm.Where("pub_key = ?", h.Ref())).One(ctx, m.db)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return roomdb.Member{}, roomdb.ErrNotFound
+		}
 		return roomdb.Member{}, err
 	}
+
+	// resolve alias relation
+	entry.R = entry.R.NewStruct()
+	entry.R.Aliases, err = entry.Aliases().All(ctx, m.db)
+	if err != nil {
+		return roomdb.Member{}, err
+	}
+
 	return roomdb.Member{
-		ID:     entry.ID,
-		Role:   roomdb.Role(entry.Role),
-		PubKey: entry.PubKey.FeedRef,
+		ID:      entry.ID,
+		Role:    roomdb.Role(entry.Role),
+		PubKey:  entry.PubKey.FeedRef,
+		Aliases: m.getAliases(entry),
 	}, nil
 }
 
