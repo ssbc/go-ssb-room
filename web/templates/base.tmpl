@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
   <link rel="manifest" href="/assets/favicon/site.webmanifest">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 overflow-y-scroll">
   <div class="sm:mx-auto sm:container">
     <div class="flex flex-row justify-end space-x-4 my-4">
       {{$user := is_logged_in}}
@@ -70,23 +70,44 @@
     {{block "footer" .}}
     {{$cocUrl := urlToNotice "NoticeCodeOfConduct"}}
     {{$ppUrl := urlToNotice "NoticePrivacyPolicy"}}
-    <footer class="mb-4 flex flex-row items-center justify-center divide-x divide-gray-300">
-      <a
-        href="{{urlTo "complete:index"}}"
-        class="px-4 text-gray-500 hover:underline"
-        >{{i18n "NavAdminLanding"}}</a>
-      {{if $cocUrl}}
-      <a
-        href="{{$cocUrl}}"
-        class="px-4 text-gray-500 hover:underline"
-        >{{i18n "NoticeCodeOfConduct"}}</a>
-      {{end}}
-      {{if $ppUrl}}
-      <a
-        href="{{$ppUrl}}"
-        class="px-4 text-gray-500 hover:underline"
-        >{{i18n "NoticePrivacyPolicy"}}</a>
-      {{end}}
+    <footer class="grid auto-rows-min mb-12">
+    <div class="mb-4 flex flex-row items-center justify-center divide-x divide-gray-300">
+        <a
+          href="{{urlTo "complete:index"}}"
+          class="px-4 text-gray-500 hover:underline"
+          >{{i18n "NavAdminLanding"}}</a>
+        {{if $cocUrl}}
+        <a
+          href="{{$cocUrl}}"
+          class="px-4 text-gray-500 hover:underline"
+          >{{i18n "NoticeCodeOfConduct"}}</a>
+        {{end}}
+        {{if $ppUrl}}
+        <a
+          href="{{$ppUrl}}"
+          class="px-4 text-gray-500 hover:underline"
+          >{{i18n "NoticePrivacyPolicy"}}</a>
+        {{end}}
+      </div>
+      <div class="flex justify-center">
+        <details class="w-72">
+          <summary
+          class="mb-2 mx-auto px-3 py-1 text-gray-500 w-32 rounded shadow bg-gray-50 ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
+          Language
+          </summary>
+          <div
+           class="grid grid-cols-2 justify-items-center gap-x-1">
+            <a href="" class="text-gray-500 bold hover:underline">English</a>
+            <a href="" class="text-gray-500 hover:underline">Hmong</a>
+            <a href="" class="text-gray-500 hover:underline">Унáҥам Тунý</a>
+            <a href="" class="text-gray-500 hover:underline">Suomi</a>
+            <a href="" class="text-gray-500 hover:underline">Русский</a>
+            <a href="" class="text-gray-500 hover:underline">xapaitíiso</a>
+            <a href="" class="text-gray-500 hover:underline">Português</a>
+            <a href="" class="text-gray-500 hover:underline">Svenska</a>
+          </div>
+        </details>
+      </div>
     </footer>
     {{end}}
   </div>
