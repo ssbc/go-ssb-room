@@ -4,13 +4,18 @@ package go_test
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"os"
 	"path/filepath"
 	"sync"
 	"testing"
+	"time"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 
@@ -89,8 +94,62 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 			t.Log("db close failed: ", err)
 		}
 	})
+
+	err = db.Config.SetPrivacyMode(context.TODO(), roomdb.ModeRestricted)
+	r.NoError(err)
+
 	sb := signinwithssb.NewSignalBridge()
 	theBot, err := roomsrv.New(db.Members, db.DeniedKeys, db.Aliases, db.AuthWithSSB, sb, db.Config, name, botOptions...)
 	r.NoError(err)
 	return db.Members, theBot
+}
+
+type testBot struct {
+	Server  *roomsrv.Server
+	Members roomdb.MembersService
+}
+
+func createServerAndBots(t *testing.T, ctx context.Context, count uint) []testBot {
+	testInit(t)
+	r := require.New(t)
+
+	botgroup, ctx := errgroup.WithContext(ctx)
+
+	bs := newBotServer(ctx, mainLog)
+
+	appKey := make([]byte, 32)
+	rand.Read(appKey)
+
+	netOpts := []roomsrv.Option{
+		roomsrv.WithAppKey(appKey),
+		roomsrv.WithContext(ctx),
+	}
+	theBots := []testBot{}
+
+	srvsMembers, serv := makeNamedTestBot(t, "srv", netOpts)
+	botgroup.Go(bs.Serve(serv))
+	theBots = append(theBots, testBot{
+		Server:  serv,
+		Members: srvsMembers,
+	})
+
+	for i := uint(1); i < count+1; i++ {
+		botMembers, botSrv := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
+		botgroup.Go(bs.Serve(botSrv))
+		theBots = append(theBots, testBot{
+			Server:  botSrv,
+			Members: botMembers,
+		})
+	}
+
+	t.Cleanup(func() {
+		time.Sleep(1 * time.Second)
+		for _, bot := range theBots {
+			bot.Server.Shutdown()
+			r.NoError(bot.Server.Close())
+		}
+		r.NoError(botgroup.Wait())
+	})
+
+	return theBots
 }

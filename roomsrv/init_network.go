@@ -28,7 +28,7 @@ func (s *Server) initNetwork() error {
 			return &s.master, nil
 		}
 
-		pm, err := s.Config.GetPrivacyMode(nil)
+		pm, err := s.Config.GetPrivacyMode(s.rootCtx)
 		if err != nil {
 			return nil, fmt.Errorf("running with unknown privacy mode")
 		}
