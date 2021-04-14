@@ -22,11 +22,11 @@ import (
 )
 
 type Helper struct {
-	bundle *i18n.Bundle
+	bundle    *i18n.Bundle
+	languages map[string]string
 }
 
 func New(r repo.Interface) (*Helper, error) {
-
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
@@ -114,22 +114,36 @@ func New(r repo.Interface) (*Helper, error) {
 		return nil, fmt.Errorf("i18n: failed to iterate localizations: %w", err)
 	}
 
-	return &Helper{bundle: bundle}, nil
+	// create a mapping of language tags to the translated language names
+	langmap := listLanguages(bundle)
+	return &Helper{bundle: bundle, languages: langmap}, nil
 }
 
-func (h Helper) GetRenderFuncs() []render.Option {
-	var opts = []render.Option{
-		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
-			loc := h.FromRequest(r)
-			return loc.LocalizePlurals
-		}),
+func listLanguages(bundle *i18n.Bundle) map[string]string {
+	langmap := make(map[string]string)
 
-		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
-			loc := h.FromRequest(r)
-			return loc.LocalizeSimple
-		}),
+	for _, langTag := range bundle.LanguageTags() {
+		var l Localizer
+		l.loc = i18n.NewLocalizer(bundle, langTag.String())
+
+		msg, err := l.loc.Localize(&i18n.LocalizeConfig{
+			MessageID: "MetaLanguage",
+		})
+		if err != nil {
+			msg = langTag.String()
+		}
+
+		langmap[langTag.String()] = msg
 	}
-	return opts
+
+	return langmap
+}
+
+// ListLanguages returns a mapping between the room's translated languages.
+// The keys are language tags (as strings) and the values are the name of the language tag, as translated in the original language.
+// For example: en -> English, sv -> Svenska, de -> Deutsch
+func (h Helper) ListLanguages() map[string]string {
+	return h.languages
 }
 
 type Localizer struct {
@@ -151,6 +165,21 @@ func (h Helper) FromRequest(r *http.Request) *Localizer {
 	lang := r.FormValue("lang")
 	accept := r.Header.Get("Accept-Language")
 	return h.newLocalizer(lang, accept)
+}
+
+func (h Helper) GetRenderFuncs() []render.Option {
+	var opts = []render.Option{
+		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizePlurals
+		}),
+
+		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizeSimple
+		}),
+	}
+	return opts
 }
 
 func (l Localizer) LocalizeSimple(messageID string) string {

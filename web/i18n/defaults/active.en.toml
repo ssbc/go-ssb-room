@@ -1,4 +1,5 @@
 # default localiztion file for english
+MetaLanguage = "English"
 
 # generic terms
 GenericConfirm = "Yes"

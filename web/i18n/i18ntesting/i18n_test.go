@@ -3,6 +3,7 @@ package i18ntesting
 import (
 	"bytes"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,7 +67,17 @@ func justTheKeys(t *testing.T) []byte {
 	return buf.Bytes()
 }
 
-func WriteReplacement(t *testing.T) {
+func TestListAllLanguages(t *testing.T) {
+	r := repo.New(filepath.Join("testrun", t.Name()))
+	a := assert.New(t)
+	helper, err := i18n.New(r)
+	a.NoError(err)
+	t.Log(helper)
+	langmap := helper.ListLanguages()
+	a.Equal(langmap["en"], "English")
+}
+
+func TestWriteReplacement(t *testing.T) {
 	r := repo.New(filepath.Join("testrun", t.Name()))
 
 	testOverride := filepath.Join(r.GetPath("i18n"), "active.en.toml")
