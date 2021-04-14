@@ -14,6 +14,7 @@
 
         <p id="failed" class="hidden mt-8 text-red-700 text-center">{{i18n "AuthWithSSBError"}}</p>
 
+        {{if not .IsSolvingRemotely}}
         <hr class="mt-8 w-64 h-px bg-gray-200"></hr>
 
         <span class="text-center mt-8">{{i18n "AuthWithSSBInstructQR"}}</span>
@@ -26,8 +27,13 @@
           height="160"
           class="mt-8"
         />
+        {{else}}
+          <div class="mb-8"></div>
+        {{end}}
       </div>
 
+      {{if not .IsSolvingRemotely}}
       <div id="challenge" class="hidden" data-sc="{{.ServerChallenge}}"></div>
       <script src="/assets/login-events.js"></script>
+      {{end}}
 {{end}}

@@ -28,6 +28,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	refs "go.mindeco.de/ssb-refs"
@@ -66,6 +67,7 @@ type WithSSBHandler struct {
 	// muxrpcHostAndPort string
 
 	netInfo network.ServerEndpointDetails
+	router  *mux.Router
 
 	membersdb roomdb.MembersService
 	aliasesdb roomdb.AliasesService
@@ -93,6 +95,7 @@ func NewWithSSBHandler(
 	var ssb WithSSBHandler
 	ssb.render = r
 	ssb.netInfo = netInfo
+	ssb.router = m
 	ssb.aliasesdb = aliasDB
 	ssb.membersdb = membersDB
 	ssb.endpoints = endpoints
@@ -249,7 +252,8 @@ func (h WithSSBHandler) DecideMethod(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// assume server-init sse dance
-	data, err := h.serverInitiated()
+	sc := queryVals.Get("sc") // is non-empty when a remote device sends the solution
+	data, err := h.serverInitiated(sc)
 	if err != nil {
 		h.render.Error(w, req, http.StatusInternalServerError, err)
 		return
@@ -336,13 +340,18 @@ func (h WithSSBHandler) clientInitiated(w http.ResponseWriter, req *http.Request
 // server-sent-events stuff
 
 type templateData struct {
-	SSBURI          template.URL
-	QRCodeURI       template.URL
-	ServerChallenge string
+	SSBURI            template.URL
+	QRCodeURI         template.URL
+	IsSolvingRemotely bool
+	ServerChallenge   string
 }
 
-func (h WithSSBHandler) serverInitiated() (templateData, error) {
-	sc := h.bridge.RegisterSession()
+func (h WithSSBHandler) serverInitiated(sc string) (templateData, error) {
+	isSolvingRemotely := true
+	if sc == "" {
+		isSolvingRemotely = false
+		sc = h.bridge.RegisterSession()
+	}
 
 	// prepare the ssb-uri
 	// https://ssb-ngi-pointer.github.io/ssb-http-auth-spec/#list-of-new-ssb-uris
@@ -357,26 +366,40 @@ func (h WithSSBHandler) serverInitiated() (templateData, error) {
 	startAuthURI.Opaque = "experimental"
 	startAuthURI.RawQuery = queryParams.Encode()
 
-	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
-	qrCode, err := qrcode.New(startAuthURI.String(), qrcode.Medium)
-	if err != nil {
-		return templateData{}, err
-	}
+	var qrURI string
+	if !isSolvingRemotely {
+		urlTo := web.NewURLTo(router.Auth(h.router))
+		remoteLoginURL := urlTo(router.AuthWithSSBLogin, "sc", sc)
+		remoteLoginURL.Host = h.netInfo.Domain
+		remoteLoginURL.Scheme = "https"
+		if h.netInfo.Development {
+			remoteLoginURL.Scheme = "http"
+			remoteLoginURL.Host += fmt.Sprintf(":%d", h.netInfo.PortHTTPS)
+		}
 
-	qrCode.BackgroundColor = color.Transparent // transparent to fit into the page
-	qrCode.ForegroundColor = color.Black
+		// generate a QR code with the login URL inside so that you can open it
+		// easily in a supporting mobile app
+		qrCode, err := qrcode.New(remoteLoginURL.String(), qrcode.Medium)
+		if err != nil {
+			return templateData{}, err
+		}
 
-	qrCodeData, err := qrCode.PNG(-5)
-	if err != nil {
-		return templateData{}, err
+		qrCode.BackgroundColor = color.Transparent // transparent to fit into the page
+		qrCode.ForegroundColor = color.Black
+
+		qrCodeData, err := qrCode.PNG(-5)
+		if err != nil {
+			return templateData{}, err
+		}
+		qrURI = "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 	}
-	qrURI := "data:image/png;base64," + base64.StdEncoding.EncodeToString(qrCodeData)
 
 	// template.URL signals the template engine that those aren't fishy and from a trusted source
 
 	data := templateData{
-		SSBURI:    template.URL(startAuthURI.String()),
-		QRCodeURI: template.URL(qrURI),
+		SSBURI:            template.URL(startAuthURI.String()),
+		QRCodeURI:         template.URL(qrURI),
+		IsSolvingRemotely: isSolvingRemotely,
 
 		ServerChallenge: sc,
 	}
