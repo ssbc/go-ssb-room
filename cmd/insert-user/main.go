@@ -14,15 +14,13 @@ import (
 	"strings"
 	"syscall"
 
-	refs "go.mindeco.de/ssb-refs"
-
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-
 	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/ssh/terminal"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 func main() {
@@ -67,10 +65,10 @@ func main() {
 	})
 	flag.Parse()
 
-	/* we require at least 5 arguments: <executable> + -name <val> + -key <val> */
+	/* we require at least 5 arguments: <executable> + -login <val> + -key <val> */
 	/*                                  1              2     3       4    5     */
 	if len(os.Args) < 5 {
-		cliMissingArguments("please provide the default arguments -name and -key")
+		cliMissingArguments("please provide the default arguments -login and -key")
 	}
 
 	if login == "" {
@@ -112,7 +110,7 @@ func main() {
 
 func cliMissingArguments(message string) {
 	executable := strings.TrimPrefix(os.Args[0], "./")
-	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s -name <user-name> -key <@<base64-encoded public key>.ed25519> <optional flags>\n", executable, message, executable)
+	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s -login <login-name> -key <@<base64-encoded public key>.ed25519> <optional flags>\n", executable, message, executable)
 	flag.Usage()
 	os.Exit(1)
 }
