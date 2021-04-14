@@ -153,6 +153,7 @@ InviteFacadeWelcome = "You have permission to become a member of this room becau
 InviteFacadeInstruct = "To claim the invite, press the button below which will open a compatible SSB app, if it's installed."
 InviteFacadeJoin = "Join this room"
 InviteFacadeWaiting = "Opening SSB app"
+InviteFacadeInstructQR = "If your SSB app is on another device, you can scan the following QR code to claim your invite on that device:"
 
 InviteFacadeFallbackWelcome = "Are you new to SSB? It seems you don't have an SSB app capable of understanding that link. You can install one of these apps:"
 InviteFacadeFallbackManyverse = "Install Manyverse"

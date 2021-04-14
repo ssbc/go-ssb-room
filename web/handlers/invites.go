@@ -81,7 +81,14 @@ func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) 
 	fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", token)
 
 	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
-	qrCode, err := qrcode.New(string(joinRoomURI), qrcode.Medium)
+	thisURL := req.URL
+	thisURL.Host = h.networkInfo.Domain
+	thisURL.Scheme = "https"
+	if h.networkInfo.Development {
+		thisURL.Scheme = "http"
+		thisURL.Host += fmt.Sprintf(":%d", h.networkInfo.PortHTTPS)
+	}
+	qrCode, err := qrcode.New(thisURL.String(), qrcode.Medium)
 	if err != nil {
 		return nil, err
 	}
