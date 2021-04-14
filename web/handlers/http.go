@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+  "strings"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
@@ -122,6 +123,37 @@ func New(
 			}
 		}),
 
+		render.InjectTemplateFunc("listLanguages", func(r *http.Request) interface{} {
+      urlTo := web.NewURLTo(m)
+      route := urlTo(router.CompleteSetLanguage).String()
+      csrfElement := csrf.TemplateField(r)
+
+      createFormElement := func (tag, translation string) string {
+        return fmt.Sprintf(`
+            <form
+              action="%s"
+              method="POST"
+              >
+              %s
+              <input type="hidden" name="lang" value="%s">
+              <input
+                type="submit"
+                value="%s"
+                class="text-gray-500 hover:underline"
+                />
+            </form>
+            `, route, csrfElement, tag, translation)
+      }
+      return func () template.HTML {
+        languages := locHelper.ListLanguages()
+        languageOptions := make([]string, len(languages))
+        for tag, translation := range languages {
+          languageOptions = append(languageOptions, createFormElement(tag, translation))
+        }
+        return (template.HTML)(strings.Join(languageOptions, "\n"))
+      }
+    }),
+
 		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
 			return func(name string) *url.URL {
 				noticeName := roomdb.PinnedNoticeName(name)
@@ -236,6 +268,11 @@ func New(
 		},
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
+
+  // handle setting language
+  m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+    fmt.Println("set das language jaaa")
+  })
 
 	// landing page
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
