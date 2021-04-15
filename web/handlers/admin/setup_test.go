@@ -130,6 +130,8 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
 	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
+	testFuncs["language_count"] = func() int { return 1 }
+	testFuncs["list_languages"] = func() string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
 	renderOpts := []render.Option{

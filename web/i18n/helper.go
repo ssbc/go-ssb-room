@@ -185,7 +185,6 @@ func (h Helper) FromRequest(r *http.Request) *Localizer {
 
 	session, err := h.cookieStore.Get(r, LanguageCookieName)
 	if err != nil {
-		fmt.Printf("cookie error? %w\n", err)
 		return h.newLocalizer(lang, accept)
 	}
 
