@@ -275,7 +275,6 @@ func New(
 	m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		lang := req.FormValue("lang")
 		previousRoute := req.FormValue("page")
-		fmt.Println(lang, previousRoute)
 
 		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
 		if err != nil {
@@ -283,16 +282,13 @@ func New(
 			return
 		}
 
-		prevCookie := session.Values["lang"]
-		fmt.Println("previous cookie", prevCookie)
-
 		session.Values["lang"] = lang
 		err = session.Save(req, w)
 		if err != nil {
 			fmt.Printf("we failed to save the language session cookie %w\n", err)
 		}
 
-		http.Redirect(w, req, previousRoute, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, previousRoute, http.StatusSeeOther)
 	})
 
 	// landing page
