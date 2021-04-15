@@ -123,10 +123,15 @@ func New(
 			}
 		}),
 
-		render.InjectTemplateFunc("listLanguages", func(r *http.Request) interface{} {
+		render.InjectTemplateFunc("language_count", func(r *http.Request) interface{} {
+			return func() int {
+				return len(locHelper.ListLanguages())
+			}
+		}),
+
+		render.InjectTemplateFunc("list_languages", func(r *http.Request) interface{} {
 			urlTo := web.NewURLTo(m)
 			route := urlTo(router.CompleteSetLanguage).String()
-			// seem to get an error when changing languages on pages that already embed a csrf token
 			csrfElement := csrf.TemplateField(r)
 
 			createFormElement := func(tag, translation string) string {

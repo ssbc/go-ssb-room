@@ -90,15 +90,18 @@
         {{end}}
       </div>
       <div class="flex justify-center">
-        <details class="w-72">
-          <summary
-          class="mb-2 mx-auto px-3 py-1 text-gray-500 w-32 rounded shadow bg-gray-50 ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
-          Language
-          </summary>
-          <div class="grid grid-cols-2 justify-items-center gap-x-1">
-           {{ listLanguages }}
-          </div>
-        </details>
+          {{ $languages := language_count }}
+          {{ if gt $languages 1 }}
+            <details class="w-72">
+              <summary
+              class="mb-2 mx-auto px-3 py-1 text-gray-500 w-32 rounded shadow bg-gray-50 ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
+              Language
+              </summary>
+              <div class="grid grid-cols-2 justify-items-center gap-x-1">
+               {{ list_languages }}
+              </div>
+            </details>
+          {{ end }}
       </div>
     </footer>
     {{end}}
