@@ -178,7 +178,7 @@ func TestFallbackAuthWorks(t *testing.T) {
 		{"title", "AdminDashboardTitle"},
 	})
 
-	testRef := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{0}, 16)}
+	testRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)}
 	ts.RoomState.AddEndpoint(testRef, nil)
 
 	html, resp = ts.Client.GetHTML(dashboardURL)
@@ -189,7 +189,7 @@ func TestFallbackAuthWorks(t *testing.T) {
 		{"title", "AdminDashboardTitle"},
 	})
 
-	testRef2 := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{1}, 16)}
+	testRef2 := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{1}, 32)}
 	ts.RoomState.AddEndpoint(testRef2, nil)
 
 	html, resp = ts.Client.GetHTML(dashboardURL)

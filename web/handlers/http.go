@@ -233,7 +233,7 @@ func New(
 
 	// all the admin routes
 	adminHandler := admin.Handler(
-		netInfo.Domain,
+		netInfo,
 		r,
 		roomState,
 		flashHelper,

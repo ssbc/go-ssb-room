@@ -15,7 +15,7 @@ func TestDashoard(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	testRef := refs.FeedRef{Algo: "test", ID: bytes.Repeat([]byte{0}, 16)}
+	testRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)}
 	ts.RoomState.AddEndpoint(testRef, nil) // 1 online
 	ts.MembersDB.CountReturns(4, nil)      // 4 members
 	ts.InvitesDB.CountReturns(3, nil)      // 3 invites
