@@ -3,6 +3,7 @@
 package admin
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"net/http"
@@ -18,7 +19,9 @@ import (
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
+	refs "go.mindeco.de/ssb-refs"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/randutil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -33,8 +36,8 @@ import (
 )
 
 type testSession struct {
-	Domain string
-	Mux    *http.ServeMux
+	netInfo network.ServerEndpointDetails
+	Mux     *http.ServeMux
 
 	Client *tester.Tester
 
@@ -71,7 +74,10 @@ func newSession(t *testing.T) *testSession {
 	ctx := context.TODO()
 	ts.RoomState = roomstate.NewManager(ctx, log)
 
-	ts.Domain = randutil.String(10)
+	ts.netInfo = network.ServerEndpointDetails{
+		Domain: randutil.String(10),
+		RoomID: refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)},
+	}
 
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
@@ -82,7 +88,7 @@ func newSession(t *testing.T) *testSession {
 		if testURL == nil {
 			t.Fatalf("no URL for %s", name)
 		}
-		testURL.Host = ts.Domain
+		testURL.Host = ts.netInfo.Domain
 		testURL.Scheme = "https" // fake
 		return testURL
 	}
@@ -139,7 +145,7 @@ func newSession(t *testing.T) *testSession {
 	}
 
 	handler := Handler(
-		ts.Domain,
+		ts.netInfo,
 		r,
 		ts.RoomState,
 		flashHelper,

@@ -16,6 +16,7 @@ import (
 	"github.com/vcraescu/go-paginator/v2/view"
 	"go.mindeco.de/http/render"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
@@ -58,7 +59,7 @@ type Databases struct {
 // Handler supplies the elevated access pages to known users.
 // It is not registering on the mux router like other pages to clean up the authorize flow.
 func Handler(
-	domainName string,
+	netInfo network.ServerEndpointDetails,
 	r *render.Renderer,
 	roomState *roomstate.Manager,
 	fh *weberrors.FlashHelper,
@@ -69,6 +70,7 @@ func Handler(
 	var dashboardHandler = dashboardHandler{
 		r:       r,
 		flashes: fh,
+		netInfo: netInfo,
 
 		dbs:       dbs,
 		roomState: roomState,
@@ -126,7 +128,7 @@ func Handler(
 		db:     dbs.Invites,
 		config: dbs.Config,
 
-		domainName: domainName,
+		domainName: netInfo.Domain,
 	}
 
 	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))

@@ -63,7 +63,7 @@ AuthFallbackInstruct = "This method is an acceptable fallback, if you have a use
 #########################
 
 AdminDashboardTitle = "Dashboard"
-AdminDashboardWelcome = "Welcome to your dashboard"
+AdminDashboardRoomID = "This room's ID is"
 
 # privacy modes
 ###############
