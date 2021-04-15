@@ -157,9 +157,9 @@ func listLanguages(bundle *i18n.Bundle) map[string]string {
 	return langmap
 }
 
-// ListLanguages returns a mapping between the room's translated languages.
-// The keys are language tags (as strings) and the values are the name of the language tag, as translated in the original language.
-// For example: en -> English, sv -> Svenska, de -> Deutsch
+// ListLanguages returns a map of the room's translated languages.
+// The map's keys are language tags (as strings) and the corresponding value is the translated language name.
+// Example: en -> English, sv -> Svenska, de -> Deutsch
 func (h Helper) ListLanguages() map[string]string {
 	return h.languages
 }
