@@ -124,35 +124,37 @@ func New(
 		}),
 
 		render.InjectTemplateFunc("listLanguages", func(r *http.Request) interface{} {
-      urlTo := web.NewURLTo(m)
-      route := urlTo(router.CompleteSetLanguage).String()
-      csrfElement := csrf.TemplateField(r)
+			urlTo := web.NewURLTo(m)
+			route := urlTo(router.CompleteSetLanguage).String()
+			// seem to get an error when changing languages on pages that already embed a csrf token
+			csrfElement := csrf.TemplateField(r)
 
-      createFormElement := func (tag, translation string) string {
-        return fmt.Sprintf(`
+			createFormElement := func(tag, translation string) string {
+				return fmt.Sprintf(`
             <form
               action="%s"
               method="POST"
               >
               %s
               <input type="hidden" name="lang" value="%s">
+              <input type="hidden" name="page" value="%s">
               <input
                 type="submit"
                 value="%s"
-                class="text-gray-500 hover:underline"
+                class="text-gray-500 hover:underline cursor-pointer"
                 />
             </form>
-            `, route, csrfElement, tag, translation)
-      }
-      return func () template.HTML {
-        languages := locHelper.ListLanguages()
-        languageOptions := make([]string, len(languages))
-        for tag, translation := range languages {
-          languageOptions = append(languageOptions, createFormElement(tag, translation))
-        }
-        return (template.HTML)(strings.Join(languageOptions, "\n"))
-      }
-    }),
+            `, route, csrfElement, tag, r.RequestURI, translation)
+			}
+			return func() template.HTML {
+				languages := locHelper.ListLanguages()
+				languageOptions := make([]string, len(languages))
+				for tag, translation := range languages {
+					languageOptions = append(languageOptions, createFormElement(tag, translation))
+				}
+				return (template.HTML)(strings.Join(languageOptions, "\n"))
+			}
+		}),
 
 		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
 			return func(name string) *url.URL {
@@ -269,10 +271,29 @@ func New(
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
 
-  // handle setting language
-  m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-    fmt.Println("set das language jaaa")
-  })
+	// handle setting language
+	m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		lang := req.FormValue("lang")
+		previousRoute := req.FormValue("page")
+		fmt.Println(lang, previousRoute)
+
+		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
+		if err != nil {
+			fmt.Printf("cookie error? %w\n", err)
+			return
+		}
+
+		prevCookie := session.Values["lang"]
+		fmt.Println("previous cookie", prevCookie)
+
+		session.Values["lang"] = lang
+		err = session.Save(req, w)
+		if err != nil {
+			fmt.Printf("we failed to save the language session cookie %w\n", err)
+		}
+
+		http.Redirect(w, req, previousRoute, http.StatusTemporaryRedirect)
+	})
 
 	// landing page
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {

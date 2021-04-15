@@ -14,21 +14,39 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gorilla/sessions"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"go.mindeco.de/http/render"
 	"golang.org/x/text/language"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
+const LanguageCookieName = "gossbroom-language"
+
 type Helper struct {
-	bundle    *i18n.Bundle
-	languages map[string]string
+	bundle      *i18n.Bundle
+	languages   map[string]string
+	cookieStore *sessions.CookieStore
 }
 
 func New(r repo.Interface) (*Helper, error) {
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+
+	cookieCodec, err := web.LoadOrCreateCookieSecrets(r)
+	if err != nil {
+		return nil, err
+	}
+
+	cookieStore := &sessions.CookieStore{
+		Codecs: cookieCodec,
+		Options: &sessions.Options{
+			Path:   "/",
+			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
+		},
+	}
 
 	// parse toml files and add them to the bundle
 	walkFn := func(path string, info os.FileInfo, rs io.Reader, err error) error {
@@ -57,7 +75,7 @@ func New(r repo.Interface) (*Helper, error) {
 	}
 
 	// walk the embedded defaults
-	err := fs.WalkDir(Defaults, ".", func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(Defaults, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -116,7 +134,7 @@ func New(r repo.Interface) (*Helper, error) {
 
 	// create a mapping of language tags to the translated language names
 	langmap := listLanguages(bundle)
-	return &Helper{bundle: bundle, languages: langmap}, nil
+	return &Helper{bundle: bundle, languages: langmap, cookieStore: cookieStore}, nil
 }
 
 func listLanguages(bundle *i18n.Bundle) map[string]string {
@@ -127,7 +145,7 @@ func listLanguages(bundle *i18n.Bundle) map[string]string {
 		l.loc = i18n.NewLocalizer(bundle, langTag.String())
 
 		msg, err := l.loc.Localize(&i18n.LocalizeConfig{
-			MessageID: "MetaLanguage",
+			MessageID: "LanguageName",
 		})
 		if err != nil {
 			msg = langTag.String()
@@ -160,10 +178,22 @@ func (h Helper) newLocalizer(lang string, accept ...string) *Localizer {
 
 // FromRequest returns a new Localizer for the passed helper,
 // using form value 'lang' and Accept-Language http header from the passed request.
-// TODO: user settings/cookie values?
+// If a language cookie is detected, then it takes precedence over the form value & Accept-Lanuage header.
 func (h Helper) FromRequest(r *http.Request) *Localizer {
 	lang := r.FormValue("lang")
 	accept := r.Header.Get("Accept-Language")
+
+	session, err := h.cookieStore.Get(r, LanguageCookieName)
+	if err != nil {
+		fmt.Printf("cookie error? %w\n", err)
+		return h.newLocalizer(lang, accept)
+	}
+
+	prevCookie := session.Values["lang"]
+	if prevCookie != nil {
+		return h.newLocalizer(prevCookie.(string), lang, accept)
+	}
+
 	return h.newLocalizer(lang, accept)
 }
 

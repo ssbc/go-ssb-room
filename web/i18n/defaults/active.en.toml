@@ -1,5 +1,7 @@
 # default localiztion file for english
-MetaLanguage = "English"
+
+# the name of this language, in its language. Used for language picking
+LanguageName = "English"
 
 # generic terms
 GenericConfirm = "Yes"

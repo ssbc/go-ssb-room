@@ -14,7 +14,7 @@ const (
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
 
-  CompleteSetLanguage = "complete:set-language"
+	CompleteSetLanguage = "complete:set-language"
 
 	CompleteAliasResolve = "complete:alias:resolve"
 
