@@ -64,6 +64,7 @@ func newSession(t *testing.T) *testSession {
 	ts.ConfigDB = new(mockdb.FakeRoomConfig)
 	// default mode for all tests
 	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
+	ts.ConfigDB.GetDefaultLanguageReturns("en", nil)
 	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
@@ -107,7 +108,7 @@ func newSession(t *testing.T) *testSession {
 	i18ntesting.WriteReplacement(t)
 
 	testRepo := repo.New(testPath)
-	locHelper, err := i18n.New(testRepo)
+	locHelper, err := i18n.New(testRepo, ts.ConfigDB)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +132,7 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["language_count"] = func() int { return 1 }
-	testFuncs["list_languages"] = func() string { return "" }
+	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
 	renderOpts := []render.Option{
@@ -153,6 +154,7 @@ func newSession(t *testing.T) *testSession {
 		r,
 		ts.RoomState,
 		flashHelper,
+		locHelper,
 		Databases{
 			Aliases:       ts.AliasesDB,
 			Config:        ts.ConfigDB,

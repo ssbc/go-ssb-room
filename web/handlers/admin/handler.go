@@ -22,6 +22,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 )
 
 // HTMLTemplates define the list of files the template system should load.
@@ -65,6 +66,7 @@ func Handler(
 	r *render.Renderer,
 	roomState *roomstate.Manager,
 	fh *weberrors.FlashHelper,
+	locHelper *i18n.Helper,
 	dbs Databases,
 ) http.Handler {
 	mux := &http.ServeMux{}
@@ -84,11 +86,12 @@ func Handler(
 	var sh = settingsHandler{
 		r:     r,
 		urlTo: urlTo,
-
 		db: dbs.Config,
+		loc: locHelper,
 	}
 	mux.HandleFunc("/settings", r.HTML("admin/settings.tmpl", sh.overview))
 	mux.HandleFunc("/settings/set-privacy", sh.setPrivacy)
+	mux.HandleFunc("/settings/set-language", sh.setLanguage)
 
 	mux.HandleFunc("/menu", r.HTML("admin/menu.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 		return map[string]interface{}{}, nil

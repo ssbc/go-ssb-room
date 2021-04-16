@@ -83,6 +83,10 @@ ExplanationOpen = "Open invite codes, anyone may connect"
 ExplanationCommunity = "Members can create invites, anyone may connect"
 ExplanationRestricted = "Only admins/mods can create invites, only members may connect"
 
+DefaultLanguageTitle = "Default Language"
+ExplanationDefaultLanguage = "The default language option controls the room web interface language displayed for first time visitors. The available languages options are defined by the installed translation files."
+SetDefaultLanguageTitle = "Set Default Language"
+
 Settings = "Settings"
 
 # banned dashboard

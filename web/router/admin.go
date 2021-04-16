@@ -9,8 +9,9 @@ const (
 	AdminDashboard = "admin:dashboard"
 	AdminMenu      = "admin:menu"
 
-	AdminSettings           = "admin:settings:overview"
-	AdminSettingsSetPrivacy = "admin:settings:set-privacy"
+	AdminSettings            = "admin:settings:overview"
+	AdminSettingsSetPrivacy  = "admin:settings:set-privacy"
+	AdminSettingsSetLanguage = "admin:settings:set-language"
 
 	AdminAliasesRevokeConfirm = "admin:aliases:revoke:confirm"
 	AdminAliasesRevoke        = "admin:aliases:revoke"
@@ -49,6 +50,7 @@ func Admin(m *mux.Router) *mux.Router {
 
 	m.Path("/settings").Methods("GET").Name(AdminSettings)
 	m.Path("/settings/set-privacy").Methods("POST").Name(AdminSettingsSetPrivacy)
+	m.Path("/settings/set-language").Methods("POST").Name(AdminSettingsSetLanguage)
 
 	m.Path("/menu").Methods("GET").Name(AdminMenu)
 

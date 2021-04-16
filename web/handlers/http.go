@@ -74,7 +74,7 @@ func New(
 	m := router.CompleteApp()
 	urlTo := web.NewURLTo(m, netInfo)
 
-	locHelper, err := i18n.New(repo)
+	locHelper, err := i18n.New(repo, dbs.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -130,11 +130,9 @@ func New(
 		}),
 
 		render.InjectTemplateFunc("list_languages", func(r *http.Request) interface{} {
-			urlTo := web.NewURLTo(m)
-			route := urlTo(router.CompleteSetLanguage).String()
 			csrfElement := csrf.TemplateField(r)
 
-			createFormElement := func(tag, translation string) string {
+			createFormElement := func(postRoute, tag, translation, classList string) string {
 				return fmt.Sprintf(`
             <form
               action="%s"
@@ -146,16 +144,16 @@ func New(
               <input
                 type="submit"
                 value="%s"
-                class="text-gray-500 hover:underline cursor-pointer"
+                class="%s"
                 />
             </form>
-            `, route, csrfElement, tag, r.RequestURI, translation)
+            `, postRoute, csrfElement, tag, r.RequestURI, translation, classList)
 			}
-			return func() template.HTML {
+			return func(postRoute *url.URL, classList string) template.HTML {
 				languages := locHelper.ListLanguages()
 				languageOptions := make([]string, len(languages))
 				for tag, translation := range languages {
-					languageOptions = append(languageOptions, createFormElement(tag, translation))
+					languageOptions = append(languageOptions, createFormElement(postRoute.String(), tag, translation, classList))
 				}
 				return (template.HTML)(strings.Join(languageOptions, "\n"))
 			}
@@ -264,6 +262,7 @@ func New(
 		r,
 		roomState,
 		flashHelper,
+		locHelper,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
 			Config:        dbs.Config,
@@ -283,14 +282,14 @@ func New(
 
 		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
 		if err != nil {
-			fmt.Printf("cookie error? %w\n", err)
+			fmt.Errorf("cookie error? %w\n", err)
 			return
 		}
 
 		session.Values["lang"] = lang
 		err = session.Save(req, w)
 		if err != nil {
-			fmt.Printf("we failed to save the language session cookie %w\n", err)
+			fmt.Errorf("we failed to save the language session cookie %w\n", err)
 		}
 
 		http.Redirect(w, req, previousRoute, http.StatusSeeOther)

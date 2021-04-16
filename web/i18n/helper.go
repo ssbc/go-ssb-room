@@ -16,6 +16,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/sessions"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"go.mindeco.de/http/render"
 	"golang.org/x/text/language"
@@ -29,9 +30,10 @@ type Helper struct {
 	bundle      *i18n.Bundle
 	languages   map[string]string
 	cookieStore *sessions.CookieStore
+	config      roomdb.RoomConfig
 }
 
-func New(r repo.Interface) (*Helper, error) {
+func New(r repo.Interface, config roomdb.RoomConfig) (*Helper, error) {
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
 
@@ -134,7 +136,7 @@ func New(r repo.Interface) (*Helper, error) {
 
 	// create a mapping of language tags to the translated language names
 	langmap := listLanguages(bundle)
-	return &Helper{bundle: bundle, languages: langmap, cookieStore: cookieStore}, nil
+	return &Helper{bundle: bundle, languages: langmap, cookieStore: cookieStore, config: config}, nil
 }
 
 func listLanguages(bundle *i18n.Bundle) map[string]string {
@@ -162,6 +164,13 @@ func listLanguages(bundle *i18n.Bundle) map[string]string {
 // Example: en -> English, sv -> Svenska, de -> Deutsch
 func (h Helper) ListLanguages() map[string]string {
 	return h.languages
+}
+
+func (h Helper) ChooseTranslation(tag string) string {
+	if translation, ok := h.languages[tag]; ok {
+		return translation
+	}
+	return tag
 }
 
 type Localizer struct {
@@ -193,7 +202,15 @@ func (h Helper) FromRequest(r *http.Request) *Localizer {
 		return h.newLocalizer(prevCookie.(string), lang, accept)
 	}
 
-	return h.newLocalizer(lang, accept)
+	defaultLang, err := h.config.GetDefaultLanguage(r.Context())
+
+	// if we don't have a default language set, then fallback to whatever we have left :^)
+	if err != nil {
+		return h.newLocalizer(lang, accept)
+	}
+
+	// if we don't have a user cookie set, then use the room's default language setting
+	return h.newLocalizer(defaultLang, accept)
 }
 
 func (h Helper) GetRenderFuncs() []render.Option {

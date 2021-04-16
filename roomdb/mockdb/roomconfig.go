@@ -9,6 +9,19 @@ import (
 )
 
 type FakeRoomConfig struct {
+	GetDefaultLanguageStub        func(context.Context) (string, error)
+	getDefaultLanguageMutex       sync.RWMutex
+	getDefaultLanguageArgsForCall []struct {
+		arg1 context.Context
+	}
+	getDefaultLanguageReturns struct {
+		result1 string
+		result2 error
+	}
+	getDefaultLanguageReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	GetPrivacyModeStub        func(context.Context) (roomdb.PrivacyMode, error)
 	getPrivacyModeMutex       sync.RWMutex
 	getPrivacyModeArgsForCall []struct {
@@ -21,6 +34,18 @@ type FakeRoomConfig struct {
 	getPrivacyModeReturnsOnCall map[int]struct {
 		result1 roomdb.PrivacyMode
 		result2 error
+	}
+	SetDefaultLanguageStub        func(context.Context, string) error
+	setDefaultLanguageMutex       sync.RWMutex
+	setDefaultLanguageArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	setDefaultLanguageReturns struct {
+		result1 error
+	}
+	setDefaultLanguageReturnsOnCall map[int]struct {
+		result1 error
 	}
 	SetPrivacyModeStub        func(context.Context, roomdb.PrivacyMode) error
 	setPrivacyModeMutex       sync.RWMutex
@@ -36,6 +61,70 @@ type FakeRoomConfig struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguage(arg1 context.Context) (string, error) {
+	fake.getDefaultLanguageMutex.Lock()
+	ret, specificReturn := fake.getDefaultLanguageReturnsOnCall[len(fake.getDefaultLanguageArgsForCall)]
+	fake.getDefaultLanguageArgsForCall = append(fake.getDefaultLanguageArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetDefaultLanguageStub
+	fakeReturns := fake.getDefaultLanguageReturns
+	fake.recordInvocation("GetDefaultLanguage", []interface{}{arg1})
+	fake.getDefaultLanguageMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguageCallCount() int {
+	fake.getDefaultLanguageMutex.RLock()
+	defer fake.getDefaultLanguageMutex.RUnlock()
+	return len(fake.getDefaultLanguageArgsForCall)
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguageCalls(stub func(context.Context) (string, error)) {
+	fake.getDefaultLanguageMutex.Lock()
+	defer fake.getDefaultLanguageMutex.Unlock()
+	fake.GetDefaultLanguageStub = stub
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguageArgsForCall(i int) context.Context {
+	fake.getDefaultLanguageMutex.RLock()
+	defer fake.getDefaultLanguageMutex.RUnlock()
+	argsForCall := fake.getDefaultLanguageArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguageReturns(result1 string, result2 error) {
+	fake.getDefaultLanguageMutex.Lock()
+	defer fake.getDefaultLanguageMutex.Unlock()
+	fake.GetDefaultLanguageStub = nil
+	fake.getDefaultLanguageReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRoomConfig) GetDefaultLanguageReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getDefaultLanguageMutex.Lock()
+	defer fake.getDefaultLanguageMutex.Unlock()
+	fake.GetDefaultLanguageStub = nil
+	if fake.getDefaultLanguageReturnsOnCall == nil {
+		fake.getDefaultLanguageReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getDefaultLanguageReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeRoomConfig) GetPrivacyMode(arg1 context.Context) (roomdb.PrivacyMode, error) {
@@ -100,6 +189,68 @@ func (fake *FakeRoomConfig) GetPrivacyModeReturnsOnCall(i int, result1 roomdb.Pr
 		result1 roomdb.PrivacyMode
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguage(arg1 context.Context, arg2 string) error {
+	fake.setDefaultLanguageMutex.Lock()
+	ret, specificReturn := fake.setDefaultLanguageReturnsOnCall[len(fake.setDefaultLanguageArgsForCall)]
+	fake.setDefaultLanguageArgsForCall = append(fake.setDefaultLanguageArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.SetDefaultLanguageStub
+	fakeReturns := fake.setDefaultLanguageReturns
+	fake.recordInvocation("SetDefaultLanguage", []interface{}{arg1, arg2})
+	fake.setDefaultLanguageMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguageCallCount() int {
+	fake.setDefaultLanguageMutex.RLock()
+	defer fake.setDefaultLanguageMutex.RUnlock()
+	return len(fake.setDefaultLanguageArgsForCall)
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguageCalls(stub func(context.Context, string) error) {
+	fake.setDefaultLanguageMutex.Lock()
+	defer fake.setDefaultLanguageMutex.Unlock()
+	fake.SetDefaultLanguageStub = stub
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguageArgsForCall(i int) (context.Context, string) {
+	fake.setDefaultLanguageMutex.RLock()
+	defer fake.setDefaultLanguageMutex.RUnlock()
+	argsForCall := fake.setDefaultLanguageArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguageReturns(result1 error) {
+	fake.setDefaultLanguageMutex.Lock()
+	defer fake.setDefaultLanguageMutex.Unlock()
+	fake.SetDefaultLanguageStub = nil
+	fake.setDefaultLanguageReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRoomConfig) SetDefaultLanguageReturnsOnCall(i int, result1 error) {
+	fake.setDefaultLanguageMutex.Lock()
+	defer fake.setDefaultLanguageMutex.Unlock()
+	fake.SetDefaultLanguageStub = nil
+	if fake.setDefaultLanguageReturnsOnCall == nil {
+		fake.setDefaultLanguageReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setDefaultLanguageReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeRoomConfig) SetPrivacyMode(arg1 context.Context, arg2 roomdb.PrivacyMode) error {
@@ -167,8 +318,12 @@ func (fake *FakeRoomConfig) SetPrivacyModeReturnsOnCall(i int, result1 error) {
 func (fake *FakeRoomConfig) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getDefaultLanguageMutex.RLock()
+	defer fake.getDefaultLanguageMutex.RUnlock()
 	fake.getPrivacyModeMutex.RLock()
 	defer fake.getPrivacyModeMutex.RUnlock()
+	fake.setDefaultLanguageMutex.RLock()
+	defer fake.setDefaultLanguageMutex.RUnlock()
 	fake.setPrivacyModeMutex.RLock()
 	defer fake.setPrivacyModeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

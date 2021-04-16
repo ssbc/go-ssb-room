@@ -23,19 +23,22 @@ import (
 
 // Config is an object representing the database table.
 type Config struct {
-	ID          int64              `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PrivacyMode roomdb.PrivacyMode `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
+	ID              int64              `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PrivacyMode     roomdb.PrivacyMode `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
+	DefaultLanguage string             `boil:"defaultLanguage" json:"defaultLanguage" toml:"defaultLanguage" yaml:"defaultLanguage"`
 
 	R *configR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L configL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ConfigColumns = struct {
-	ID          string
-	PrivacyMode string
+	ID              string
+	PrivacyMode     string
+	DefaultLanguage string
 }{
-	ID:          "id",
-	PrivacyMode: "privacyMode",
+	ID:              "id",
+	PrivacyMode:     "privacyMode",
+	DefaultLanguage: "defaultLanguage",
 }
 
 // Generated where
@@ -62,11 +65,13 @@ func (w whereHelperroomdb_PrivacyMode) GTE(x roomdb.PrivacyMode) qm.QueryMod {
 }
 
 var ConfigWhere = struct {
-	ID          whereHelperint64
-	PrivacyMode whereHelperroomdb_PrivacyMode
+	ID              whereHelperint64
+	PrivacyMode     whereHelperroomdb_PrivacyMode
+	DefaultLanguage whereHelperstring
 }{
-	ID:          whereHelperint64{field: "\"config\".\"id\""},
-	PrivacyMode: whereHelperroomdb_PrivacyMode{field: "\"config\".\"privacyMode\""},
+	ID:              whereHelperint64{field: "\"config\".\"id\""},
+	PrivacyMode:     whereHelperroomdb_PrivacyMode{field: "\"config\".\"privacyMode\""},
+	DefaultLanguage: whereHelperstring{field: "\"config\".\"defaultLanguage\""},
 }
 
 // ConfigRels is where relationship names are stored.
@@ -86,8 +91,8 @@ func (*configR) NewStruct() *configR {
 type configL struct{}
 
 var (
-	configAllColumns            = []string{"id", "privacyMode"}
-	configColumnsWithoutDefault = []string{"privacyMode"}
+	configAllColumns            = []string{"id", "privacyMode", "defaultLanguage"}
+	configColumnsWithoutDefault = []string{"privacyMode", "defaultLanguage"}
 	configColumnsWithDefault    = []string{"id"}
 	configPrimaryKeyColumns     = []string{"id"}
 )
