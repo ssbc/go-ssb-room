@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,6 +48,24 @@ func TestAliasResolve(t *testing.T) {
 
 	a.Equal(testAlias.Name, html.Find("title").Text())
 
+	// ssb-uri in href
+	aliasHref, ok := html.Find("#alias-uri").Attr("href")
+	a.True(ok)
+	aliasURI, err := url.Parse(aliasHref)
+	r.NoError(err)
+
+	a.Equal("ssb", aliasURI.Scheme)
+	a.Equal("experimental", aliasURI.Opaque)
+
+	params := aliasURI.Query()
+	a.Equal("consume-alias", params.Get("action"))
+	a.Equal(testAlias.Name, params.Get("alias"))
+	a.Equal(testAlias.Feed.Ref(), params.Get("userId"))
+	sigData, err := base64.StdEncoding.DecodeString(params.Get("signature"))
+	r.NoError(err)
+	a.Equal(testAlias.Signature, sigData)
+	a.Equal(ts.NetworkInfo.RoomID.Ref(), params.Get("roomId"))
+
 	// now as JSON
 	jsonURL, err := routes.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
 	r.NoError(err)
@@ -62,9 +81,9 @@ func TestAliasResolve(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&ar)
 	r.NoError(err)
 	a.Equal(testAlias.Name, ar.Alias)
-	sigData, err := base64.StdEncoding.DecodeString(ar.Signature)
+	sigData2, err := base64.StdEncoding.DecodeString(ar.Signature)
 	r.NoError(err)
-	a.Equal(testAlias.Signature, sigData)
+	a.Equal(testAlias.Signature, sigData2)
 	a.Equal(testAlias.Feed.Ref(), ar.UserID, "wrong user feed on response")
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), ar.RoomID, "wrong room feed on response")
 }

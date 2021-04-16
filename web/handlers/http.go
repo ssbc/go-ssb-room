@@ -35,7 +35,7 @@ import (
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
-	"aliases-resolved.html",
+	"alias.tmpl",
 
 	"invite/consumed.tmpl",
 	"invite/facade.tmpl",
