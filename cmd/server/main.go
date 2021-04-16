@@ -299,7 +299,15 @@ func runroomsrv() error {
 	secureMiddleware := secure.New(secure.Options{
 		IsDevelopment: development,
 
-		AllowedHosts: []string{httpsDomain},
+		AllowedHosts: []string{
+			// the normal domain
+			httpsDomain,
+			// the domain but as a wildcard match with *. infront
+			`*\.` + strings.Replace(httpsDomain, ".", `\.`, -1),
+		},
+
+		// for the wildcard matching
+		AllowedHostsAreRegex: true,
 
 		// TLS stuff
 		SSLRedirect: true,
