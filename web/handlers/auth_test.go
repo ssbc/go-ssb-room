@@ -424,7 +424,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 
 	jsFile, has := html.Find("script").Attr("src")
 	a.True(has, "should have client code")
-	a.Equal("/assets/login-events.js", jsFile)
+	a.Equal("/assets/auth-withssb-uri.js", jsFile)
 
 	serverChallenge, has := html.Find("#challenge").Attr("data-sc")
 	a.True(has, "should have server challenge")
