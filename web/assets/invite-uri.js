@@ -9,11 +9,12 @@ window.addEventListener('focus', () => {
 const waitingElem = document.getElementById('waiting');
 const anchorElem = document.getElementById('join-room-uri');
 anchorElem.onclick = function handleURI(ev) {
-  const ssbUri = ev.target.dataset.href;
-  const fallbackUrl = ev.target.dataset.hrefFallback;
+  ev.preventDefault();
+  const ssbUri = anchorElem.href;
+  const fallbackUrl = anchorElem.dataset.hrefFallback;
   waitingElem.classList.remove('hidden');
   setTimeout(function () {
-    if (hasFocus) window.location = fallbackUrl;
+    if (hasFocus) window.location.replace(fallbackUrl);
   }, 5000);
-  window.location = ssbUri;
+  window.location.replace(ssbUri);
 };
