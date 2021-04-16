@@ -44,9 +44,9 @@
           {{range $member.Aliases}}
             <span class="mr-1 text-purple-800 bg-purple-100 rounded-lg px-2">{{.Name}}</span>
           {{end}}
-          {{if eq .Role 2}}
+          {{if eq .Role.String "RoleModerator"}}
             <span class="text-green-800 bg-green-100 border-green-800 rounded-lg px-2">{{i18n "RoleModerator"}}</span>
-          {{else if eq .Role 3}}
+          {{else if eq .Role.String "RoleAdmin"}}
             <span class="text-yellow-800 bg-yellow-100 border-yellow-800 rounded-lg px-2">{{i18n "RoleAdmin"}}</span>
           {{end}}
           </div>
