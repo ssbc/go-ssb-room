@@ -107,9 +107,9 @@ func TestMembers(t *testing.T) {
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
-	membersOveriwURL := ts.URLTo(router.AdminMembersOverview)
+	membersOverviewURL := ts.URLTo(router.AdminMembersOverview)
 
-	html, resp := ts.Client.GetHTML(membersOveriwURL)
+	html, resp := ts.Client.GetHTML(membersOverviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -118,14 +118,20 @@ func TestMembers(t *testing.T) {
 		{"#membersCount", "MemberCountPlural"},
 	})
 
-	a.EqualValues(html.Find("#theList li").Length(), 3)
+	elems := html.Find("#theList li")
+	a.EqualValues(elems.Length(), 3)
+
+	// check for the roles labels
+	a.EqualValues(elems.Find("span[data-role]").Length(), 2)
+	a.EqualValues(elems.Find("span[data-role='admin']").Length(), 1)
+	a.EqualValues(elems.Find("span[data-role='moderator']").Length(), 1)
 
 	lst = []roomdb.Member{
 		{ID: 666, Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
-	html, resp = ts.Client.GetHTML(membersOveriwURL)
+	html, resp = ts.Client.GetHTML(membersOverviewURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
@@ -134,12 +140,17 @@ func TestMembers(t *testing.T) {
 		{"#membersCount", "MemberCountSingular"},
 	})
 
-	elems := html.Find("#theList li")
+	elems = html.Find("#theList li")
 	a.EqualValues(elems.Length(), 1)
 
+	// check for the admin role label
+	roleElem, yes1 := elems.Find("span[data-role]").Eq(0).Attr("data-role")
+	a.True(yes1, "elem with data-role exists")
+	a.Equal("admin", roleElem)
+
 	// check for link to member details
-	link, yes := elems.ContentsFiltered("a").Attr("href")
-	a.True(yes, "a-tag has href attribute")
+	link, yes2 := elems.ContentsFiltered("a").Attr("href")
+	a.True(yes2, "a-tag has href attribute")
 	a.Equal("/admin/member?id=666", link)
 }
 
