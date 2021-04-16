@@ -91,18 +91,57 @@ func ContextInjecter(mdb roomdb.MembersService, withPassword *auth.Handler, with
 	}
 }
 
-// TemplateHelper returns a function to be used with the http/render package.
-// It has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
-func TemplateHelper() func(*http.Request) interface{} {
-	return func(r *http.Request) interface{} {
-		no := func() *roomdb.Member { return nil }
+// TemplateHelpers returns functions to be used with the go.mindeco.de/http/render package.
+// Each has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
+//
+//  {{ is_logged_in }} returns true or false depending if the user is logged in
+//
+//  {{ member_has_role "string" }} returns a boolean which confrms wether the member has a certain role (RoleMemeber, RoleAdmin, etc)
+//
+//  {{ member_is_admin }} is a shortcut for {{ member_has_role "RoleAdmin" }}
+func TemplateHelpers() []render.Option {
 
-		member := FromContext(r.Context())
-		if member == nil {
-			return no
-		}
+	return []render.Option{
+		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
+			no := func() *roomdb.Member { return nil }
 
-		yes := func() *roomdb.Member { return member }
-		return yes
+			member := FromContext(r.Context())
+			if member == nil {
+				return no
+			}
+
+			yes := func() *roomdb.Member { return member }
+			return yes
+		}),
+
+		render.InjectTemplateFunc("member_has_role", func(r *http.Request) interface{} {
+			no := func(_ string) bool { return false }
+
+			member := FromContext(r.Context())
+			if member == nil {
+				return no
+			}
+
+			return func(has string) bool {
+				var r roomdb.Role
+				if err := r.UnmarshalText([]byte(has)); err != nil {
+					return false
+				}
+				return member.Role == r
+			}
+		}),
+
+		render.InjectTemplateFunc("member_is_admin", func(r *http.Request) interface{} {
+			no := func() bool { return false }
+
+			member := FromContext(r.Context())
+			if member == nil {
+				return no
+			}
+
+			return func() bool {
+				return member.Role == roomdb.RoleAdmin
+			}
+		}),
 	}
 }
