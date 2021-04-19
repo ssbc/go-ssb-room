@@ -118,6 +118,7 @@ func Handler(
 		r:       r,
 		flashes: fh,
 		urlTo:   urlTo,
+		netInfo: netInfo,
 
 		db: dbs.Members,
 	}

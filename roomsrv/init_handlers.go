@@ -31,13 +31,13 @@ func (s *Server) initHandlers() {
 		kitlog.With(s.logger, "unit", "aliases"),
 		s.Whoami(),
 		s.Aliases,
-		s.domain,
+		s.netInfo,
 	)
 
 	siwssbHandler := signinwithssb.New(
 		kitlog.With(s.logger, "unit", "auth-with-ssb"),
 		s.Whoami(),
-		s.domain,
+		s.netInfo.Domain,
 		s.Members,
 		s.authWithSSB,
 		s.authWithSSBBridge,

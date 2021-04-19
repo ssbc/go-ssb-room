@@ -83,9 +83,10 @@ func setup(t *testing.T) *testSession {
 	ts.MockedEndpoints = new(mocked.FakeEndpoints)
 
 	ts.NetworkInfo = network.ServerEndpointDetails{
-		Domain:     "localhost",
-		PortMUXRPC: 8008,
-		PortHTTPS:  443,
+		Domain:    "localhost",
+		PortHTTPS: 443,
+
+		ListenAddressMUXRPC: ":8008",
 
 		RoomID: refs.FeedRef{
 			ID:   bytes.Repeat([]byte("test"), 8),

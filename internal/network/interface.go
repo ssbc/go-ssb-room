@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"go.cryptoscope.co/muxrpc/v2"
@@ -21,21 +22,52 @@ import (
 // ServerEndpointDetails encapsulates the endpoint information.
 // Like domain name of the room, it's ssb/secret-handshake public key and the HTTP and MUXRPC TCP ports.
 type ServerEndpointDetails struct {
-	PortMUXRPC uint
-	PortHTTPS  uint // 0 assumes default (443)
-
 	RoomID refs.FeedRef
 
-	Domain string
+	ListenAddressMUXRPC string // defaults to ":8008"
 
+	// Domain sets the DNS name for all the HTTP(S) URLs.
+	Domain    string
+	PortHTTPS uint // 0 assumes default (443)
+
+	// UseSubdomainForAliases controls wether urls for alias resolving
+	// are generated as https://$alias.$domain instead of https://$domain/alias/$alias
+	UseSubdomainForAliases bool
+
+	// Development instructs url building to happen with http and include the http port
 	Development bool
+}
+
+func (sed ServerEndpointDetails) URLForAlias(a string) string {
+	var u url.URL
+
+	if sed.Development {
+		u.Path = "/alias/" + a
+		u.Scheme = "http"
+		u.Host = fmt.Sprintf("localhost:%d", sed.PortHTTPS)
+		return u.String()
+	}
+
+	u.Scheme = "https"
+
+	if sed.UseSubdomainForAliases {
+		u.Host = a + "." + sed.Domain
+	} else {
+		u.Path = "/alias/" + a
+	}
+
+	return u.String()
 }
 
 // MultiserverAddress returns net:domain:muxport~shs:roomPubKeyInBase64
 // ie: the room servers https://github.com/ssbc/multiserver-address
 func (sed ServerEndpointDetails) MultiserverAddress() string {
+	addr, err := net.ResolveTCPAddr("tcp", sed.ListenAddressMUXRPC)
+	if err != nil {
+		panic(err)
+	}
 	var roomPubKey = base64.StdEncoding.EncodeToString(sed.RoomID.PubKey())
-	return fmt.Sprintf("net:%s:%d~shs:%s", sed.Domain, sed.PortMUXRPC, roomPubKey)
+	return fmt.Sprintf("net:%s:%d~shs:%s", sed.Domain, addr.Port, roomPubKey)
 }
 
 // EndpointStat gives some information about a connected peer

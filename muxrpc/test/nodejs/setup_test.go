@@ -96,10 +96,15 @@ func (ts *testSession) startGoServer(
 ) *roomsrv.Server {
 	r := require.New(ts.t)
 
+	netInfo := network.ServerEndpointDetails{
+		Domain: "go.test.room.server",
+
+		ListenAddressMUXRPC: "localhost:0",
+	}
+
 	// prepend defaults
 	opts = append([]roomsrv.Option{
 		roomsrv.WithLogger(ts.info),
-		roomsrv.WithListenAddr("localhost:0"),
 		roomsrv.WithRepoPath(ts.repo),
 		roomsrv.WithContext(ts.ctx),
 	}, opts...)
@@ -126,7 +131,7 @@ func (ts *testSession) startGoServer(
 	fakeConfig := new(mockdb.FakeRoomConfig)
 	deniedKeysDB := new(mockdb.FakeDeniedKeysService)
 
-	srv, err := roomsrv.New(membersDB, deniedKeysDB, aliasDB, authSessionsDB, sb, fakeConfig, "go.test.room.server", opts...)
+	srv, err := roomsrv.New(membersDB, deniedKeysDB, aliasDB, authSessionsDB, sb, fakeConfig, netInfo, opts...)
 	r.NoError(err, "failed to init tees a server")
 	ts.t.Logf("go server: %s", srv.Whoami().Ref())
 	ts.t.Cleanup(func() {

@@ -54,7 +54,7 @@
   {{range .Member.Aliases}}
     <div class="flex flex-row items-center justify-start">
       <a
-        href="/alias/{{.Name}}"
+        href="{{index $.AliasURLs .Name }}"
         class="underline text-purple-800 bg-purple-100 rounded-lg px-2 py-1"
         >{{.Name}}</a>
     </div>

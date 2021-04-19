@@ -77,6 +77,8 @@ func newSession(t *testing.T) *testSession {
 	ts.netInfo = network.ServerEndpointDetails{
 		Domain: randutil.String(10),
 		RoomID: refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)},
+
+		UseSubdomainForAliases: true,
 	}
 
 	// instantiate the urlTo helper (constructs urls for us!)

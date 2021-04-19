@@ -15,7 +15,7 @@ func TestMultiserverAddress(t *testing.T) {
 
 	var sed ServerEndpointDetails
 	sed.Domain = "the.ho.st"
-	sed.PortMUXRPC = 8008
+	sed.ListenAddressMUXRPC = ":8008"
 
 	sed.RoomID = refs.FeedRef{
 		ID:   bytes.Repeat([]byte("ohai"), 8),

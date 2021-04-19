@@ -2,6 +2,7 @@ package admin
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -192,8 +193,9 @@ func TestMemberDetails(t *testing.T) {
 	// check for link to resolve 1st Alias
 	aliasRobertLink, yes := aliasList.Eq(0).Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	// TODO: fix wildcard domain
-	a.Equal("/alias/robert", aliasRobertLink)
+
+	wantURL := fmt.Sprintf("https://robert.%s", ts.netInfo.Domain)
+	a.Equal(wantURL, aliasRobertLink)
 
 	// check for link to revoke 1st Alias
 	revokeRobertLink, yes := aliasList.Eq(1).Attr("href")
@@ -204,8 +206,8 @@ func TestMemberDetails(t *testing.T) {
 	// check for link to resolve 1st Alias
 	aliasBobLink, yes := aliasList.Eq(2).Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	// TODO: fix wildcard domain
-	a.Equal("/alias/bob", aliasBobLink)
+	wantURL = fmt.Sprintf("https://bob.%s", ts.netInfo.Domain)
+	a.Equal(wantURL, aliasBobLink)
 
 	// check for link to revoke 1st Alias
 	revokeBobLink, yes := aliasList.Eq(3).Attr("href")

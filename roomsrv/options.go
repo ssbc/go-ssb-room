@@ -5,7 +5,6 @@ package roomsrv
 import (
 	"context"
 	"fmt"
-	"net"
 	"strings"
 
 	kitlog "github.com/go-kit/kit/log"
@@ -104,18 +103,6 @@ func WithDialer(dial netwrap.Dialer) Option {
 func WithNetworkConnTracker(ct network.ConnTracker) Option {
 	return func(s *Server) error {
 		s.networkConnTracker = ct
-		return nil
-	}
-}
-
-// WithListenAddr changes the muxrpc listener address. By default it listens to ':8008'.
-func WithListenAddr(addr string) Option {
-	return func(s *Server) error {
-		var err error
-		s.listenAddr, err = net.ResolveTCPAddr("tcp", addr)
-		if err != nil {
-			return fmt.Errorf("failed to parse tcp listen addr: %w", err)
-		}
 		return nil
 	}
 }

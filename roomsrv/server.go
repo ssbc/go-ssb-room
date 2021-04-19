@@ -46,7 +46,7 @@ type Server struct {
 	wsAddr     string
 	dialer     netwrap.Dialer
 
-	domain string // the DNS domain name of the room
+	netInfo network.ServerEndpointDetails
 
 	loadUnixSock bool
 
@@ -85,7 +85,7 @@ func New(
 	awsdb roomdb.AuthWithSSBService,
 	bridge *signinwithssb.SignalBridge,
 	config roomdb.RoomConfig,
-	domainName string,
+	netInfo network.ServerEndpointDetails,
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
@@ -99,7 +99,7 @@ func New(
 	s.authWithSSB = awsdb
 	s.authWithSSBBridge = bridge
 
-	s.domain = domainName
+	s.netInfo = netInfo
 
 	for i, opt := range opts {
 		err := opt(&s)
@@ -129,8 +129,10 @@ func New(
 		s.dialer = netwrap.Dial
 	}
 
-	if s.listenAddr == nil {
-		s.listenAddr = &net.TCPAddr{Port: network.DefaultPort}
+	var err error
+	s.listenAddr, err = net.ResolveTCPAddr("tcp", s.netInfo.ListenAddressMUXRPC)
+	if err != nil {
+		return nil, err
 	}
 
 	if s.logger == nil {
@@ -152,7 +154,7 @@ func New(
 		var err error
 		s.keyPair, err = repo.DefaultKeyPair(s.repo)
 		if err != nil {
-			return nil, fmt.Errorf("sbot: failed to get keypair: %w", err)
+			return nil, fmt.Errorf("roomsrv: failed to get keypair: %w", err)
 		}
 	}
 

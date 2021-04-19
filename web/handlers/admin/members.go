@@ -5,24 +5,27 @@ package admin
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 
-	"go.mindeco.de/http/render"
-	refs "go.mindeco.de/ssb-refs"
-
 	"github.com/gorilla/csrf"
+	"go.mindeco.de/http/render"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 type membersHandler struct {
 	r       *render.Renderer
 	flashes *weberrors.FlashHelper
 	urlTo   web.URLMaker
+	netInfo network.ServerEndpointDetails
 
 	db roomdb.MembersService
 }
@@ -149,9 +152,15 @@ func (h membersHandler) details(rw http.ResponseWriter, req *http.Request) (inte
 
 	roles := []roomdb.Role{roomdb.RoleMember, roomdb.RoleModerator, roomdb.RoleAdmin}
 
+	aliasURLs := make(map[string]template.URL)
+	for _, a := range member.Aliases {
+		aliasURLs[a.Name] = template.URL(h.netInfo.URLForAlias(a.Name))
+	}
+
 	return map[string]interface{}{
 		"Member":         member,
 		"AllRoles":       roles,
+		"AliasURLs":      aliasURLs,
 		csrf.TemplateTag: csrf.TemplateField(req),
 	}, nil
 }
