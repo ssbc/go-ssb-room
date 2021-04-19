@@ -131,7 +131,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	})
 
 	// get the corresponding token from the page
-	csrfTokenElem := doc.Find("input[name='gorilla.csrf.Token']")
+	csrfTokenElem := doc.Find(`form[action="/invite/consume"] input[name="gorilla.csrf.Token"]`)
 	a.Equal(1, csrfTokenElem.Length())
 	csrfName, has := csrfTokenElem.Attr("name")
 	a.True(has, "should have a name attribute")
