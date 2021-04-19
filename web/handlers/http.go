@@ -152,8 +152,8 @@ func New(
 			return func(postRoute *url.URL, classList string) template.HTML {
 				languages := locHelper.ListLanguages()
 				languageOptions := make([]string, len(languages))
-				for tag, translation := range languages {
-					languageOptions = append(languageOptions, createFormElement(postRoute.String(), tag, translation, classList))
+				for _, entry := range languages {
+					languageOptions = append(languageOptions, createFormElement(postRoute.String(), entry.Tag, entry.Translation, classList))
 				}
 				return (template.HTML)(strings.Join(languageOptions, "\n"))
 			}

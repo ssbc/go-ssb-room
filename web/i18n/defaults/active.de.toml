@@ -1,0 +1,206 @@
+LanguageName = "Deutsch"
+
+# generic terms
+GenericConfirm = "Ja"
+GenericGoBack = "Zurück"
+GenericSave = "Speichern"
+GenericCreate = "Erstellen"
+GenericSubmit = "Einreichen"
+GenericPreview = "Vorschau"
+GenericLanguage = "Sprache"
+GenericOpenLink = "Verbindung öffnen"
+
+PageNotFound = "Die angeforderte Seite wurde nicht gefunden."
+
+PubKeyRefPlaceholder = "@                                            .ed25519"
+
+# roles
+RoleMember = "Mitglied"
+RoleModerator = "Moderator"
+RoleAdmin = "Administrator"
+
+# navigation labels (should be single words or as short as possible)
+NavAdminLanding = "Zuhause"
+NavAdminDashboard = "Armaturenbrett"
+NavAdminInvites = "Einladungen"
+NavAdminNotices = "Hinweise"
+
+# Error messages
+ErrorAuthBadLogin = "Die angegebenen Authentifizierungsdaten (Benutzername oder Passwort) sind falsch."
+ErrorNotFound = "Die Datenbank konnte den betreffenden Artikel nicht finden."
+ErrorAlreadyAdded = "Der öffentliche Schlüssel <strong> {{.Key}} </ strong> ist bereits in der Liste enthalten."
+ErrorPageNotFound = "Die angeforderte Seite <strong> ({{.Path}}) </ strong> ist nicht vorhanden."
+ErrorNotAuthorized = "Sie sind nicht autorisiert auf diese Seite zuzugreifen."
+ErrorForbidden = "Die Anforderung konnte wegen fehlender Berechtigungen ({{.Details}}) nicht ausgeführt werden."
+ErrorBadRequest = "Bei Ihrer Anfrage ist ein Problem aufgetreten: {{.Where}} ({{.Details}}"
+
+# authentication
+################
+
+AuthTitle = "Mitgliederauthentifizierung"
+AuthWelcome = "Wenn Sie Mitglied dieses Raums sind, können Sie auf das interne Dashboard zugreifen. Klicken Sie unten auf Ihre bevorzugte Anmeldemethode:"
+
+AuthSignIn = "Einloggen"
+AuthSignOut = "Ausloggen"
+
+# auth with ssb
+AuthWithSSBTitle = "Mit SSB anmelden"
+AuthWithSSBInstruct = "Einfache und sichere Methode, wenn Ihre SSB-App dies unterstützt."
+AuthWithSSBWelcome = "Um sich mit Ihrer auf diesem Gerät gespeicherten SSB-Identität anzumelden, drücken Sie die Taste unten, um eine kompatible SSB-App zu öffnen, falls diese installiert ist."
+AuthWithSSBInstructQR = "Wenn sich Ihre SSB-App auf einem anderen Gerät befindet, können Sie den folgenden QR-Code scannen, um sich mit der SSB-Identität dieses Geräts anzumelden."
+AuthWithSSBError = "Anmeldung fehlgeschlagen. Stellen Sie sicher, dass Sie eine SSB-App verwenden, die diese Anmeldemethode unterstützt, und klicken Sie innerhalb einer Minute nach dem Öffnen dieser Seite auf die Schaltfläche oben."
+
+# auth with password
+AuthFallbackTitle = "Passwort anmelden"
+AuthFallbackWelcome = "Eine Anmeldung mit Benutzername und Passwort ist nur möglich, wenn der Administrator Ihnen eines gegeben hat, da wir die Benutzerregistrierung nicht unterstützen."
+AuthFallbackInstruct = "Diese Methode ist ein akzeptabler Fallback, wenn Sie einen Benutzernamen und ein Passwort haben."
+
+# general dashboard stuff
+#########################
+
+AdminDashboardTitle = "Armaturenbrett"
+AdminDashboardRoomID = "Der Ausweis dieses Zimmers lautet"
+
+# privacy modes
+###############
+
+ModeOpen = "Öffnen"
+ModeCommunity = "Gemeinschaft"
+ModeRestricted = "Eingeschränkt"
+
+SetPrivacyModeTitle = "Datenschutzmodus einstellen"
+PrivacyModesTitle = "Datenschutzmodi"
+RoomsSpecification = "Zimmer 2 Spezifikation"
+ExplanationPrivacyModes = "Der Datenschutzmodus dieses Raums bestimmt, wer Einladungen erstellen und wer eine Verbindung zum Raum herstellen kann. Weitere Informationen finden Sie unter"
+ExplanationOpen = "Öffnen Sie Einladungscodes, jeder kann eine Verbindung herstellen"
+ExplanationCommunity = "Mitglieder können Einladungen erstellen, jeder kann eine Verbindung herstellen"
+ExplanationRestricted = "Nur Administratoren / Mods können Einladungen erstellen, nur Mitglieder dürfen eine Verbindung herstellen."
+
+Settings = "Einstellungen"
+
+DefaultLanguageTitle = "Voreinstellung"
+ExplanationDefaultLanguage = "Die Standard-Sprachoption steuert die Sprache der Raum-Weboberfläche, die für Erstbesucher angezeigt wird. Die verfügbaren Sprachoptionen werden durch die installierten Übersetzungsdateien definiert."
+SetDefaultLanguageTitle = "Voreinstellung ändern"
+
+# banned dashboard
+##################
+
+AdminDeniedKeysTitle = "Verboten"
+AdminDeniedKeysWelcome = "Auf dieser Seite können SSB-IDs gesperrt werden, damit sie nicht mehr auf den Raum zugreifen können."
+AdminDeniedKeysAdd = "Hinzufügen"
+AdminDeniedKeysAdded = "Schlüssel wurde zur Liste hinzugefügt."
+AdminDeniedKeysRemove = "Entfernen"
+AdminDeniedKeysComment = "Kommentar"
+AdminDeniedKeysCommentDescription = "Die Person, die dieses Verbot hinzugefügt hat, hat den folgenden Kommentar hinzugefügt"
+AdminDeniedKeysRemoveConfirmWelcome = "Sind Sie sicher, dass Sie dieses Verbot aufheben möchten? Sie werden wieder Zugang zum Raum haben."
+AdminDeniedKeysRemoveConfirmTitle = "Mitgliederentfernung bestätigen"
+
+# members dashboard
+###################
+
+AdminMembersTitle = "Mitglieder"
+AdminMembersWelcome = "Hier sehen Sie alle Mitglieder des Raums und Möglichkeiten, neue hinzuzufügen (anhand ihrer SSB-ID) oder vorhandene zu entfernen."
+AdminMembersAdd = "Hinzufügen"
+
+AdminMembersRemoveConfirmTitle = "Mitgliederentfernung bestätigen"
+AdminMembersRemoveConfirmWelcome = "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten? Sie verlieren ihren Alias, wenn sie einen haben."
+
+AdminMemberDetailsTitle = "Mitgliederdetails"
+AdminMemberDetailsSSBID = "SSB-Kennung"
+AdminMemberDetailsRole = "Berechtigungsstufe"
+AdminMemberDetailsAliases = "Aliase"
+AdminMemberDetailsAliasRevoke = "Widerrufen"
+AdminMemberDetailsAliasRevoked = "Alias ​​wurde widerrufen"
+AdminMemberDetailsExclusion = "Ausschluss aus diesem Raum"
+AdminMemberDetailsRemove = "Mitglied entfernen"
+
+AdminMemberAdded = "Mitglied erfolgreich hinzugefügt."
+AdminMemberUpdated = "Mitglied aktualisiert."
+AdminMemberRemoved = "Mitglied entfernt."
+
+AdminAliasesRevoke = "Widerrufen"
+AdminAliasesRevokeConfirmTitle = "Alias ​​widerrufen"
+AdminAliasesRevokeConfirmWelcome = "Sind Sie sicher, dass Sie diesen Alias ​​widerrufen möchten?"
+
+# invite dashboard
+##################
+
+AdminInvitesTitle = "Einladungen"
+AdminInvitesWelcome = "Erstellen Sie Einladungs-Token für Personen, die noch keine Mitglieder dieses Raums sind. Auf dieser Seite sehen Sie auch zuvor erstellte Einladungen, die von neuen Mitgliedern noch nicht beansprucht werden."
+AdminInvitesCreate = "Neue Einladung erstellen"
+AdminInvitesCreatedAtColumn = "Hergestellt in"
+AdminInvitesCreatorColumn = "Erstellt von"
+AdminInvitesActionColumn = "Aktion"
+AdminInviteRevoke = "Widerrufen"
+
+AdminInviteRevokeConfirmTitle = "Widerruf der Einladung bestätigen"
+AdminInviteRevokeConfirmWelcome = "Sind Sie sicher, dass Sie diese Einladung entfernen möchten? Wenn Sie sie bereits gesendet haben, können sie sie nicht verwenden."
+
+# TODO: add placeholder support to the template helpers (https://github.com/ssb-ngi-pointer/go-ssb-room/issues/60)
+AdminInviteCreatedBy = "Erstellt von:"
+AdminInviteSuggestedAliasIs = "Der vorgeschlagene Alias ​​lautet:"
+AdminInviteSuggestedAliasIsShort = "Alias:"
+
+AdminInviteCreatedTitle = "Einladung erfolgreich erstellt!"
+AdminInviteCreatedInstruct = "Kopieren Sie nun den folgenden Link und fügen Sie ihn in einen Freund ein, den Sie in diesen Raum einladen möchten."
+
+# public invites
+################
+
+InviteFacade = "Raum betreten"
+InviteFacadeTitle = "Raum betreten"
+InviteFacadeWelcome = "Sie haben die Erlaubnis, Mitglied dieses Raums zu werden, weil jemand diese Einladung mit Ihnen geteilt hat."
+InviteFacadeInstruct = "Um die Einladung zu erhalten, klicken Sie auf die Schaltfläche unten, um eine kompatible SSB-App zu öffnen, falls diese installiert ist."
+InviteFacadeJoin = "Tritt diesem Raum bei"
+InviteFacadeWaiting = "SSB App öffnen"
+InviteFacadeInstructQR = "Wenn sich Ihre SSB-App auf einem anderen Gerät befindet, können Sie den folgenden QR-Code scannen, um Ihre Einladung auf diesem Gerät zu erhalten:"
+
+InviteFacadeFallbackWelcome = "Sind Sie neu bei SSB? Es scheint, dass Sie keine SSB-App haben, die diesen Link verstehen kann. Sie können eine dieser Apps installieren:"
+InviteFacadeFallbackManyverse = "Installiere Manyverse"
+InviteFacadeFallbackInsertID = "SSB-ID einfügen"
+
+InviteInsertWelcome = "Sie können Ihre Einladung anfordern, indem Sie unten Ihre SSB-ID eingeben. Danach können Sie in Ihrer SSB-App eine Verbindung zum Raum herstellen."
+
+InviteConsumedTitle = "Einladung angenommen!"
+InviteConsumedWelcome = "Sie sind jetzt Mitglied dieses Raums. Wenn Sie eine Multiserver-Adresse benötigen, um eine Verbindung zum Raum herzustellen, können Sie die folgende kopieren und einfügen:"
+
+# notices (mini-CMS)
+####################
+
+NoticeEditTitle = "Hinweis bearbeiten"
+NoticeList = "Hinweise"
+NoticeListWelcome = "Hier können Sie den Inhalt der Zielseite und anderer wichtiger Dokumente wie Verhaltenskodex und Datenschutzbestimmungen verwalten."
+NoticeAddTranslation = "Hinzufügen"
+NoticeUpdated = "Hinweis aktualisiert"
+
+NoticeCodeOfConduct = "Verhaltenskodex"
+NoticeNews = "Nachrichten"
+NoticeDescription = "Beschreibung"
+NoticePrivacyPolicy = "Datenschutz-Bestimmungen"
+
+# Plurals
+#########
+# These need to use this form and get {{.Count}}
+#   [Label]
+#   one = singular
+#   other = {{.Count}} things
+
+[MemberCount]
+description = "Anzahl der Mitglieder"
+one = "1 Mitglied"
+other =   "{{.Count}} Mitglieder"
+
+[ListCount]
+description = "generische Liste"
+one = "Es gibt einen Punkt auf der Liste"
+other =   "Die Liste enthält {{.Count}} Elemente"
+
+[AdminRoomCount]
+description = "Die Anzahl der Personen in einem Raum"
+one = "Es ist eine Person im Raum"
+other =  "Es sind {{.Count}} Personen im Raum"
+
+[AdminInvitesCount]
+description = "die Anzahl der Einladungen, die noch nicht beansprucht wurden"
+one = "1 Einladung noch nicht beansprucht"
+other = "{{.Count}} lädt noch nicht beanspruchte ein"

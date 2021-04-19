@@ -10,7 +10,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 )
 
-func TestListAllLanguages(t *testing.T) {
+func TestListLanguages(t *testing.T) {
 	configDB := new(mockdb.FakeRoomConfig)
 	configDB.GetDefaultLanguageReturns("en", nil)
 	r := repo.New(filepath.Join("testrun", t.Name()))
@@ -18,6 +18,6 @@ func TestListAllLanguages(t *testing.T) {
 	helper, err := i18n.New(r, configDB)
 	a.NoError(err)
 	t.Log(helper)
-	langmap := helper.ListLanguages()
-	a.Equal(langmap["en"], "English")
+	translation := helper.ChooseTranslation("en")
+	a.Equal(translation, "English")
 }

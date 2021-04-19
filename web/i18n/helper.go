@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -26,9 +27,14 @@ import (
 
 const LanguageCookieName = "gossbroom-language"
 
+type TagTranslation struct {
+	Tag         string
+	Translation string
+}
+
 type Helper struct {
 	bundle      *i18n.Bundle
-	languages   map[string]string
+	languages   []TagTranslation
 	cookieStore *sessions.CookieStore
 	config      roomdb.RoomConfig
 }
@@ -139,38 +145,52 @@ func New(r repo.Interface, config roomdb.RoomConfig) (*Helper, error) {
 	return &Helper{bundle: bundle, languages: langmap, cookieStore: cookieStore, config: config}, nil
 }
 
-func listLanguages(bundle *i18n.Bundle) map[string]string {
-	langmap := make(map[string]string)
+func listLanguages(bundle *i18n.Bundle) []TagTranslation {
+	languageTags := bundle.LanguageTags()
+	tags := make([]string, 0, len(languageTags))
+	langslice := make([]TagTranslation, 0, len(languageTags))
 
-	for _, langTag := range bundle.LanguageTags() {
+	// convert from i18n language tags to a slice of strings
+	for _, langTag := range languageTags {
+		tags = append(tags, langTag.String())
+	}
+	// sort the slice of language tag strings
+	sort.Strings(tags)
+
+	// now that we have a known order, construct a TagTranslation slice mapping language tags to their translations
+	for _, langTag := range tags {
 		var l Localizer
-		l.loc = i18n.NewLocalizer(bundle, langTag.String())
+		l.loc = i18n.NewLocalizer(bundle, langTag)
 
 		msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 			MessageID: "LanguageName",
 		})
 		if err != nil {
-			msg = langTag.String()
+			msg = langTag
 		}
 
-		langmap[langTag.String()] = msg
+		langslice = append(langslice, TagTranslation{Tag: langTag, Translation: msg})
 	}
 
-	return langmap
+	return langslice
 }
 
-// ListLanguages returns a map of the room's translated languages.
-// The map's keys are language tags (as strings) and the corresponding value is the translated language name.
-// Example: en -> English, sv -> Svenska, de -> Deutsch
-func (h Helper) ListLanguages() map[string]string {
+// ListLanguages returns a slice of the room's translated languages.
+// The entries of the slice are of the type TagTranslation, consisting of the fields Tag and Translation.
+// Each Tag fields is a language tag (as strings), and the field Translation is the corresponding translated language
+// name of that language tag.
+// Example: {Tag: en, Translation: English}, {Tag: sv, Translation: Svenska} {Tag: de, Translation: Deutsch}
+func (h Helper) ListLanguages() []TagTranslation {
 	return h.languages
 }
 
-func (h Helper) ChooseTranslation(tag string) string {
-	if translation, ok := h.languages[tag]; ok {
-		return translation
+func (h Helper) ChooseTranslation(requestedTag string) string {
+	for _, entry := range h.languages {
+		if entry.Tag == requestedTag {
+			return entry.Translation
+		}
 	}
-	return tag
+	return requestedTag
 }
 
 type Localizer struct {
