@@ -76,11 +76,6 @@ func TestInviteShowAcceptForm(t *testing.T) {
 			{"title", "InviteFacadeTitle"},
 		})
 
-		// Empty href
-		joinHref, ok := doc.Find("#join-room-uri").Attr("href")
-		a.Equal("#", joinHref)
-		a.True(ok)
-
 		// Fallback URL in data-href-fallback
 		fallbackURL := ts.URLTo(router.CompleteInviteFacadeFallback, "token", testToken)
 		want := fallbackURL.Path + "?" + fallbackURL.RawQuery
@@ -88,8 +83,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(want, joinDataHrefFallback)
 		a.True(ok)
 
-		// ssb-uri in data-href
-		joinDataHref, ok := doc.Find("#join-room-uri").Attr("data-href")
+		// ssb-uri in href
+		joinDataHref, ok := doc.Find("#join-room-uri").Attr("href")
 		a.True(ok)
 		joinURI, err := url.Parse(joinDataHref)
 		r.NoError(err)

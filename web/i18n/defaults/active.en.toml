@@ -152,17 +152,21 @@ InviteFacadeTitle = "Join Room"
 InviteFacadeWelcome = "You have permission to become a member of this room because someone has shared this invite with you."
 InviteFacadeInstruct = "To claim the invite, press the button below which will open a compatible SSB app, if it's installed."
 InviteFacadeJoin = "Join this room"
-InviteFacadeWaiting = "Opening SSB app"
 InviteFacadeInstructQR = "If your SSB app is on another device, you can scan the following QR code to claim your invite on that device:"
 
-InviteFacadeFallbackWelcome = "Are you new to SSB? It seems you don't have an SSB app capable of understanding that link. You can install one of these apps:"
-InviteFacadeFallbackManyverse = "Install Manyverse"
 InviteFacadeFallbackInsertID = "Insert SSB ID"
 
 InviteInsertWelcome = "You can claim your invite by inserting your SSB ID below. After that, you'll be able to connect to the room in your SSB app."
 
 InviteConsumedTitle = "Invite accepted!"
 InviteConsumedWelcome = "You are now a member of this room. If you need a multiserver address to connect to the room, you can copy-paste the one below:"
+
+# ssb uri links
+###############
+
+SSBURIOpening = "Opening SSB app"
+SSBURIFailureWelcome = "Are you new to SSB? It seems you don't have an SSB app capable of understanding that link. You can install one of these apps:"
+SSBURIFailureInstallManyverse = "Install Manyverse"
 
 # notices (mini-CMS)
 ####################
