@@ -101,6 +101,8 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 		Domain: name,
 
 		ListenAddressMUXRPC: ":0",
+
+		UseSubdomainForAliases: true,
 	}
 
 	sb := signinwithssb.NewSignalBridge()
