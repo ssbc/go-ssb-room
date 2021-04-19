@@ -204,6 +204,7 @@ func New(
 	}
 
 	CSRF := csrf.Protect(csrfKey,
+		csrf.Path("/"),
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			err := csrf.FailureReason(req)
 			// TODO: localize error?
