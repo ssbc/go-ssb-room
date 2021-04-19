@@ -19,17 +19,18 @@ import (
 	"github.com/gorilla/securecookie"
 	"go.mindeco.de/logging"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	refs "go.mindeco.de/ssb-refs"
 )
 
 // TemplateFuncs returns a map of template functions
-func TemplateFuncs(m *mux.Router) template.FuncMap {
+func TemplateFuncs(m *mux.Router, netInfo network.ServerEndpointDetails) template.FuncMap {
 	return template.FuncMap{
 		"human_time": func(when time.Time) string {
 			return humanize.Time(when)
 		},
-		"urlTo": NewURLTo(m),
+		"urlTo": NewURLTo(m, netInfo),
 		"inc":   func(i int) int { return i + 1 },
 	}
 }
@@ -41,7 +42,7 @@ type URLMaker func(string, ...interface{}) *url.URL
 // If it's called with more then one, it has a to be a pair of two values. (1, 3, 5, 7, etc.)
 // The first value of such a pair is the placeholder name in the router (i.e. in '/our/routes/{id:[0-9]+}/test' it would be id )
 // and the 2nd value is the actual value that should be put in place of the placeholder.
-func NewURLTo(appRouter *mux.Router) URLMaker {
+func NewURLTo(appRouter *mux.Router, netInfo network.ServerEndpointDetails) URLMaker {
 	l := logging.Logger("helper.URLTo") // TOOD: inject in a scoped way
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)
@@ -92,6 +93,12 @@ func NewURLTo(appRouter *mux.Router) URLMaker {
 		}
 
 		u.RawQuery = urlVals.Encode()
+		u.Host = netInfo.Domain
+		u.Scheme = "https"
+		if netInfo.Development {
+			u.Scheme = "http"
+			u.Host += fmt.Sprintf(":%d", netInfo.PortHTTPS)
+		}
 
 		return u
 	}

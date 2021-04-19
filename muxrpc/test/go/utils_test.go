@@ -79,7 +79,6 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 	botOptions := append(opts,
 		roomsrv.WithLogger(log.With(mainLog, "bot", name)),
 		roomsrv.WithRepoPath(testPath),
-		roomsrv.WithListenAddr(":0"),
 		roomsrv.WithNetworkConnTracker(network.NewLastWinsTracker()),
 		roomsrv.WithPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
 			return debug.WrapDump(filepath.Join(testPath, "muxdump"), conn)
@@ -98,8 +97,16 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 	err = db.Config.SetPrivacyMode(context.TODO(), roomdb.ModeRestricted)
 	r.NoError(err)
 
+	netInfo := network.ServerEndpointDetails{
+		Domain: name,
+
+		ListenAddressMUXRPC: ":0",
+
+		UseSubdomainForAliases: true,
+	}
+
 	sb := signinwithssb.NewSignalBridge()
-	theBot, err := roomsrv.New(db.Members, db.DeniedKeys, db.Aliases, db.AuthWithSSB, sb, db.Config, name, botOptions...)
+	theBot, err := roomsrv.New(db.Members, db.DeniedKeys, db.Aliases, db.AuthWithSSB, sb, db.Config, netInfo, botOptions...)
 	r.NoError(err)
 	return db.Members, theBot
 }

@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
@@ -72,6 +71,7 @@ func New(
 	dbs Databases,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
+	urlTo := web.NewURLTo(m, netInfo)
 
 	locHelper, err := i18n.New(repo)
 	if err != nil {
@@ -106,7 +106,7 @@ func New(
 		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(allTheTemplates...),
 		render.SetErrorHandler(eh.Handle),
-		render.FuncMap(web.TemplateFuncs(m)),
+		render.FuncMap(web.TemplateFuncs(m, netInfo)),
 
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
@@ -132,19 +132,7 @@ func New(
 				if err != nil {
 					return nil
 				}
-				route := m.GetRoute(router.CompleteNoticeShow)
-				if route == nil {
-					return nil
-				}
-				u, err := route.URLPath()
-				if err != nil {
-					return nil
-				}
-				noticeID := strconv.FormatInt(notice.ID, 10)
-				q := u.Query()
-				q.Add("id", noticeID)
-				u.RawQuery = q.Encode()
-				return u
+				return urlTo(router.CompleteNoticeShow, "id", notice.ID)
 			}
 		}),
 	}
@@ -290,14 +278,14 @@ func New(
 
 	//public invites
 	var ih = inviteHandler{
-		render: r,
+		render:      r,
+		urlTo:       urlTo,
+		networkInfo: netInfo,
 
 		config:        dbs.Config,
 		pinnedNotices: dbs.PinnedNotices,
 		invites:       dbs.Invites,
 		deniedKeys:    dbs.DeniedKeys,
-
-		networkInfo: netInfo,
 	}
 	m.Get(router.CompleteInviteFacade).Handler(r.HTML("invite/facade.tmpl", ih.presentFacade))
 	m.Get(router.CompleteInviteFacadeFallback).Handler(r.HTML("invite/facade-fallback.tmpl", ih.presentFacadeFallback))
@@ -314,7 +302,6 @@ func New(
 	// hook up main stdlib mux to the gorrilla/mux with named routes
 	mainMux.Handle("/", m)
 
-	urlTo := web.NewURLTo(m)
 	consumeURL := urlTo(router.CompleteInviteConsume)
 
 	// apply HTTP middleware

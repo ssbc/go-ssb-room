@@ -368,7 +368,7 @@ func (h WithSSBHandler) serverInitiated(sc string) (templateData, error) {
 
 	var qrURI string
 	if !isSolvingRemotely {
-		urlTo := web.NewURLTo(router.Auth(h.router))
+		urlTo := web.NewURLTo(router.Auth(h.router), h.netInfo)
 		remoteLoginURL := urlTo(router.AuthWithSSBLogin, "sc", sc)
 		remoteLoginURL.Host = h.netInfo.Domain
 		remoteLoginURL.Scheme = "https"

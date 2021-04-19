@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -84,9 +83,10 @@ func setup(t *testing.T) *testSession {
 	ts.MockedEndpoints = new(mocked.FakeEndpoints)
 
 	ts.NetworkInfo = network.ServerEndpointDetails{
-		Domain:     "localhost",
-		PortMUXRPC: 8008,
-		PortHTTPS:  443,
+		Domain:    "localhost",
+		PortHTTPS: 443,
+
+		ListenAddressMUXRPC: ":8008",
 
 		RoomID: refs.FeedRef{
 			ID:   bytes.Repeat([]byte("test"), 8),
@@ -100,16 +100,7 @@ func setup(t *testing.T) *testSession {
 
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
-	urlTo := web.NewURLTo(router.CompleteApp())
-	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
-		testURL := urlTo(name, vals...)
-		if testURL == nil {
-			t.Fatalf("no URL for %s", name)
-		}
-		testURL.Host = ts.NetworkInfo.Domain
-		testURL.Scheme = "https" // fake
-		return testURL
-	}
+	ts.URLTo = web.NewURLTo(router.CompleteApp(), ts.NetworkInfo)
 
 	ts.SignalBridge = signinwithssb.NewSignalBridge()
 

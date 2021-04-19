@@ -27,15 +27,17 @@ type Handler struct {
 
 	db roomdb.AliasesService
 
-	roomDomain string // the http(s) domain of the room to signal alias addresses
+	netInfo network.ServerEndpointDetails
+
+	// roomDomain string // the http(s) domain of the room to signal alias addresses
 }
 
 // New returns a fresh alias muxrpc handler
-func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService, roomDomain string) Handler {
+func New(log kitlog.Logger, self refs.FeedRef, aliasesDB roomdb.AliasesService, netInfo network.ServerEndpointDetails) Handler {
 
 	var h Handler
 	h.self = self
-	h.roomDomain = roomDomain
+	h.netInfo = netInfo
 	h.logger = log
 	h.db = aliasesDB
 
@@ -100,14 +102,7 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, fmt.Errorf("registerAlias: could not register alias: %w", err)
 	}
 
-	resolveURL, err := httpRouter.Get(router.CompleteAliasResolve).URL("alias", confirmation.Alias)
-	if err != nil {
-		return nil, err
-	}
-	resolveURL.Host = h.roomDomain
-	resolveURL.Scheme = "https"
-
-	return resolveURL.String(), nil
+	return h.netInfo.URLForAlias(confirmation.Alias), nil
 }
 
 // Revoke checks that the alias is from that user before revoking the alias from the database.

@@ -50,6 +50,8 @@ var (
 
 	httpsDomain string
 
+	aliasesAsSubdomains bool
+
 	listenAddrDebug string
 	logToFile       string
 	repoDir         string
@@ -114,6 +116,8 @@ func initFlags() {
 		return nil
 	})
 
+	flag.BoolVar(&aliasesAsSubdomains, "aliases-as-subdomains", true, "needs to be disabled if a wildcard certificate for the room is not available. (stub until we have the admin/settings page)")
+
 	flag.Parse()
 
 	if logToFile != "" {
@@ -153,7 +157,7 @@ func runroomsrv() error {
 		return fmt.Errorf("invalid muxrpc listener: %w", err)
 	}
 
-	portMUXRPC, err := net.LookupPort("tcp", muxrpcPortStr)
+	_, err = net.LookupPort("tcp", muxrpcPortStr)
 	if err != nil {
 		return fmt.Errorf("invalid tcp port for muxrpc listener: %w", err)
 	}
@@ -180,7 +184,6 @@ func runroomsrv() error {
 		roomsrv.WithLogger(log),
 		roomsrv.WithAppKey(ak),
 		roomsrv.WithRepoPath(repoDir),
-		roomsrv.WithListenAddr(listenAddrShsMux),
 		roomsrv.WithUNIXSocket(!flagDisableUNIXSock),
 	}
 
@@ -214,6 +217,23 @@ func runroomsrv() error {
 
 	r := repo.New(repoDir)
 
+	keyPair, err := repo.DefaultKeyPair(r)
+	checkAndLog(err)
+	opts = append(opts, roomsrv.WithKeyPair(keyPair))
+
+	networkInfo := network.ServerEndpointDetails{
+		Development: development,
+
+		Domain:    httpsDomain,
+		PortHTTPS: uint(portHTTP),
+
+		RoomID: keyPair.Feed,
+
+		ListenAddressMUXRPC: listenAddrShsMux,
+
+		UseSubdomainForAliases: aliasesAsSubdomains,
+	}
+
 	// open the sqlite version of the roomdb
 	db, err := sqlite.Open(r)
 	if err != nil {
@@ -234,7 +254,7 @@ func runroomsrv() error {
 		db.AuthWithSSB,
 		bridge,
 		db.Config,
-		httpsDomain,
+		networkInfo,
 		opts...)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ssb server: %w", err)
@@ -268,14 +288,7 @@ func runroomsrv() error {
 	webHandler, err := handlers.New(
 		kitlog.With(log, "package", "web"),
 		repo.New(repoDir),
-		network.ServerEndpointDetails{
-			Domain:     httpsDomain,
-			PortHTTPS:  uint(portHTTP),
-			PortMUXRPC: uint(portMUXRPC),
-			RoomID:     roomsrv.Whoami(),
-
-			Development: development,
-		},
+		networkInfo,
 		roomsrv.StateManager,
 		roomsrv.Network,
 		bridge,
@@ -299,7 +312,15 @@ func runroomsrv() error {
 	secureMiddleware := secure.New(secure.Options{
 		IsDevelopment: development,
 
-		AllowedHosts: []string{httpsDomain},
+		AllowedHosts: []string{
+			// the normal domain
+			httpsDomain,
+			// the domain but as a wildcard match with *. infront
+			`*\.` + strings.Replace(httpsDomain, ".", `\.`, -1),
+		},
+
+		// for the wildcard matching
+		AllowedHostsAreRegex: true,
 
 		// TLS stuff
 		SSLRedirect: true,

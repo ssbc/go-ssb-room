@@ -19,7 +19,9 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 // HTMLTemplates define the list of files the template system should load.
@@ -67,6 +69,8 @@ func Handler(
 ) http.Handler {
 	mux := &http.ServeMux{}
 
+	urlTo := web.NewURLTo(router.CompleteApp(), netInfo)
+
 	var dashboardHandler = dashboardHandler{
 		r:       r,
 		flashes: fh,
@@ -78,7 +82,9 @@ func Handler(
 	mux.HandleFunc("/dashboard", r.HTML("admin/dashboard.tmpl", dashboardHandler.overview))
 
 	var sh = settingsHandler{
-		r:  r,
+		r:     r,
+		urlTo: urlTo,
+
 		db: dbs.Config,
 	}
 	mux.HandleFunc("/settings", r.HTML("admin/settings.tmpl", sh.overview))
@@ -111,6 +117,8 @@ func Handler(
 	var mh = membersHandler{
 		r:       r,
 		flashes: fh,
+		urlTo:   urlTo,
+		netInfo: netInfo,
 
 		db: dbs.Members,
 	}
@@ -124,6 +132,7 @@ func Handler(
 	var ih = invitesHandler{
 		r:       r,
 		flashes: fh,
+		urlTo:   urlTo,
 
 		db:     dbs.Invites,
 		config: dbs.Config,

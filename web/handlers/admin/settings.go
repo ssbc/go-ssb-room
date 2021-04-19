@@ -18,7 +18,9 @@ import (
 )
 
 type settingsHandler struct {
-	r  *render.Renderer
+	r     *render.Renderer
+	urlTo web.URLMaker
+
 	db roomdb.RoomConfig
 }
 
@@ -76,7 +78,6 @@ func (h settingsHandler) setPrivacy(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// we successfully set the privacy mode! time to redirect to the updated settings overview
-	urlTo := web.NewURLTo(router.CompleteApp())
-	overview := urlTo(router.AdminSettings).String()
+	overview := h.urlTo(router.AdminSettings).String()
 	http.Redirect(w, req, overview, http.StatusFound)
 }
