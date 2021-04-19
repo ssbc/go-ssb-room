@@ -161,6 +161,12 @@ InviteInsertWelcome = "You can claim your invite by inserting your SSB ID below.
 InviteConsumedTitle = "Invite accepted!"
 InviteConsumedWelcome = "You are now a member of this room. If you need a multiserver address to connect to the room, you can copy-paste the one below:"
 
+# alias resolution
+##################
+
+AliasResolutionInstruct = "To connect with them, press the button below which will open a compatible SSB app, if it's installed."
+AliasResolutionConnect = "Connect with"
+
 # ssb uri links
 ###############
 

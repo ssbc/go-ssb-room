@@ -1,0 +1,28 @@
+{{ define "title" }}{{.Alias.Name}}{{ end }}
+{{ define "content" }}
+<div class="flex flex-col justify-center items-center self-center max-w-lg">
+  <p id="welcome" class="text-center mt-8 italic"><strong>{{.Alias.Name}}</strong> is a member of this SSB room server.</p>
+  <p class="text-center mt-3">{{i18n "AliasResolutionInstruct"}}</p>
+
+  <a
+    id="alias-uri"
+    href="{{.SSBURI}}"
+    class="mt-8 self-center px-4 h-8 shadow rounded flex flex-row justify-center items-center text-gray-100 bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+    >{{i18n "AliasResolutionConnect"}} {{.Alias.Name}}</a>
+
+  <p id="waiting" class="hidden mt-8 animate-pulse text-green-500">{{i18n "SSBURIOpening"}}</p>
+
+  <div id="failure" class="hidden mt-8">
+    <p class="text-center font-bold">{{i18n "SSBURIFailureWelcome"}}</p>
+    <div class="flex flex-col justify-center items-center mt-8">
+      <a
+        href="https://manyver.se"
+        class="shadow rounded flex flex-row justify-center items-center px-4 h-8 text-gray-100 bg-purple-500 hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-opacity-50"
+        >{{i18n "SSBURIFailureInstallManyverse"}}</a>
+    </div>
+  </div>
+
+  <div class="mb-10"></div>
+  <script src="/assets/alias-uri.js"></script>
+</div>
+{{end}}

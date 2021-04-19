@@ -161,7 +161,7 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 		RawQuery: queryParams.Encode(),
 	}
 
-	err := html.renderer.Render(html.rw, html.req, "aliases-resolved.html", http.StatusOK, struct {
+	err := html.renderer.Render(html.rw, html.req, "alias.tmpl", http.StatusOK, struct {
 		Alias roomdb.Alias
 
 		SSBURI template.URL
