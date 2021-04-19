@@ -20,9 +20,9 @@ import (
 )
 
 type membersHandler struct {
-	r *render.Renderer
-
+	r       *render.Renderer
 	flashes *weberrors.FlashHelper
+	urlTo   web.URLMaker
 
 	db roomdb.MembersService
 }
@@ -103,8 +103,7 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 
 	h.flashes.AddMessage(w, req, "AdminMemberUpdated")
 
-	urlTo := web.NewURLTo(router.CompleteApp())
-	memberDetailsURL := urlTo(router.AdminMemberDetails, "id", memberID).String()
+	memberDetailsURL := h.urlTo(router.AdminMemberDetails, "id", memberID).String()
 	http.Redirect(w, req, memberDetailsURL, http.StatusTemporaryRedirect)
 }
 

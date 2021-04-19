@@ -62,7 +62,8 @@ func TestInvitesOverview(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.Find("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/invites/revoke/confirm?id=666", link)
+	wantURL := ts.URLTo(router.AdminInvitesRevokeConfirm, "id", 666)
+	a.Equal(wantURL.String(), link)
 }
 
 func TestInvitesCreateForm(t *testing.T) {
@@ -90,7 +91,7 @@ func TestInvitesCreateForm(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminInvitesCreate)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 }
 
 func TestInvitesCreate(t *testing.T) {

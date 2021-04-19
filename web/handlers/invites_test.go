@@ -78,9 +78,8 @@ func TestInviteShowAcceptForm(t *testing.T) {
 
 		// Fallback URL in data-href-fallback
 		fallbackURL := ts.URLTo(router.CompleteInviteFacadeFallback, "token", testToken)
-		want := fallbackURL.Path + "?" + fallbackURL.RawQuery
 		joinDataHrefFallback, ok := doc.Find("#join-room-uri").Attr("data-href-fallback")
-		a.Equal(want, joinDataHrefFallback)
+		a.Equal(fallbackURL.String(), joinDataHrefFallback)
 		a.True(ok)
 
 		// ssb-uri in href
@@ -123,7 +122,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	consumeInviteURLString, has := form.Attr("action")
 	a.True(has, "form should have an action attribute")
 	expectedConsumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
-	a.Equal(expectedConsumeInviteURL.Path, consumeInviteURLString)
+	a.Equal(expectedConsumeInviteURL.String(), consumeInviteURLString)
 
 	webassert.CSRFTokenPresent(t, form)
 	webassert.ElementsInForm(t, form, []webassert.FormElement{

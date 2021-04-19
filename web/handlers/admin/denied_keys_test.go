@@ -52,7 +52,7 @@ func TestDeniedKeysAdd(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminDeniedKeysAdd)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
@@ -142,7 +142,8 @@ func TestDeniedKeys(t *testing.T) {
 	// check for link to remove confirm link
 	link, yes := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/denied/remove/confirm?id=666", link)
+	wantLink := ts.URLTo(router.AdminDeniedKeysRemoveConfirm, "id", 666)
+	a.Equal(wantLink.String(), link)
 }
 
 func TestDeniedKeysRemoveConfirmation(t *testing.T) {
@@ -171,7 +172,7 @@ func TestDeniedKeysRemoveConfirmation(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminDeniedKeysRemove)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "id", Type: "hidden", Value: "666"},

@@ -25,17 +25,17 @@ import (
 )
 
 type inviteHandler struct {
-	render *render.Renderer
+	render      *render.Renderer
+	urlTo       web.URLMaker
+	networkInfo network.ServerEndpointDetails
 
 	invites       roomdb.InvitesService
 	pinnedNotices roomdb.PinnedNoticesService
 	config        roomdb.RoomConfig
 	deniedKeys    roomdb.DeniedKeysService
-
-	networkInfo network.ServerEndpointDetails
 }
 
-func buildJoinRoomURI(h inviteHandler, token string) template.URL {
+func (h inviteHandler) buildJoinRoomURI(token string) template.URL {
 	var joinRoomURI url.URL
 	joinRoomURI.Scheme = "ssb"
 	joinRoomURI.Opaque = "experimental"
@@ -44,14 +44,7 @@ func buildJoinRoomURI(h inviteHandler, token string) template.URL {
 	queryVals.Set("action", "join-room")
 	queryVals.Set("invite", token)
 
-	urlTo := web.NewURLTo(router.CompleteApp())
-	submissionURL := urlTo(router.CompleteInviteConsume)
-	submissionURL.Host = h.networkInfo.Domain
-	submissionURL.Scheme = "https"
-	if h.networkInfo.Development {
-		submissionURL.Scheme = "http"
-		submissionURL.Host += fmt.Sprintf(":%d", h.networkInfo.PortHTTPS)
-	}
+	submissionURL := h.urlTo(router.CompleteInviteConsume)
 	queryVals.Set("postTo", submissionURL.String())
 
 	joinRoomURI.RawQuery = queryVals.Encode()
@@ -75,10 +68,9 @@ func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) 
 		return nil, fmt.Errorf("failed to find room's description: %w", err)
 	}
 
-	joinRoomURI := buildJoinRoomURI(h, token)
+	joinRoomURI := h.buildJoinRoomURI(token)
 
-	urlTo := web.NewURLTo(router.CompleteApp())
-	fallbackURL := urlTo(router.CompleteInviteFacadeFallback, "token", token)
+	fallbackURL := h.urlTo(router.CompleteInviteFacadeFallback, "token", token)
 
 	// generate a QR code with the token inside so that you can open it easily in a supporting mobile app
 	thisURL := req.URL
@@ -122,8 +114,7 @@ func (h inviteHandler) presentFacadeFallback(rw http.ResponseWriter, req *http.R
 		return nil, err
 	}
 
-	urlTo := web.NewURLTo(router.CompleteApp())
-	insertURL := urlTo(router.CompleteInviteInsertID, "token", token)
+	insertURL := h.urlTo(router.CompleteInviteInsertID, "token", token)
 
 	return map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(req),

@@ -39,7 +39,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminAliasesRevoke)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "name", Type: "hidden", Value: testEntry.Name},

@@ -106,7 +106,7 @@ func New(
 		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(allTheTemplates...),
 		render.SetErrorHandler(eh.Handle),
-		render.FuncMap(web.TemplateFuncs(m)),
+		render.FuncMap(web.TemplateFuncs(m, netInfo)),
 
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
@@ -290,14 +290,14 @@ func New(
 
 	//public invites
 	var ih = inviteHandler{
-		render: r,
+		render:      r,
+		urlTo:       web.NewURLTo(router.CompleteApp(), netInfo),
+		networkInfo: netInfo,
 
 		config:        dbs.Config,
 		pinnedNotices: dbs.PinnedNotices,
 		invites:       dbs.Invites,
 		deniedKeys:    dbs.DeniedKeys,
-
-		networkInfo: netInfo,
 	}
 	m.Get(router.CompleteInviteFacade).Handler(r.HTML("invite/facade.tmpl", ih.presentFacade))
 	m.Get(router.CompleteInviteFacadeFallback).Handler(r.HTML("invite/facade-fallback.tmpl", ih.presentFacadeFallback))
@@ -314,7 +314,7 @@ func New(
 	// hook up main stdlib mux to the gorrilla/mux with named routes
 	mainMux.Handle("/", m)
 
-	urlTo := web.NewURLTo(m)
+	urlTo := web.NewURLTo(m, netInfo)
 	consumeURL := urlTo(router.CompleteInviteConsume)
 
 	// apply HTTP middleware

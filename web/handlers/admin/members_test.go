@@ -50,7 +50,7 @@ func TestMembersAdd(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminMembersAdd)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
 		{Name: "pub_key", Type: "text"},
@@ -151,7 +151,8 @@ func TestMembers(t *testing.T) {
 	// check for link to member details
 	link, yes2 := elems.ContentsFiltered("a").Attr("href")
 	a.True(yes2, "a-tag has href attribute")
-	a.Equal("/admin/member?id=666", link)
+	wantURL := ts.URLTo(router.AdminMemberDetails, "id", 666)
+	a.Equal(wantURL.String(), link)
 }
 
 func TestMemberDetails(t *testing.T) {
@@ -186,30 +187,37 @@ func TestMemberDetails(t *testing.T) {
 	roleDropdown := html.Find("#change-role")
 	a.EqualValues(roleDropdown.Length(), 1)
 
+	aliasList := html.Find("#alias-list").Find("a")
+
 	// check for link to resolve 1st Alias
-	aliasRobertLink, yes := html.Find("#alias-list").Find("a").Eq(0).Attr("href")
+	aliasRobertLink, yes := aliasList.Eq(0).Attr("href")
 	a.True(yes, "a-tag has href attribute")
+	// TODO: fix wildcard domain
 	a.Equal("/alias/robert", aliasRobertLink)
 
 	// check for link to revoke 1st Alias
-	revokeRobertLink, yes := html.Find("#alias-list").Find("a").Eq(1).Attr("href")
+	revokeRobertLink, yes := aliasList.Eq(1).Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/aliases/revoke/confirm?id=11", revokeRobertLink)
+	wantLink := ts.URLTo(router.AdminAliasesRevokeConfirm, "id", 11)
+	a.Equal(wantLink.String(), revokeRobertLink)
 
 	// check for link to resolve 1st Alias
-	aliasBobLink, yes := html.Find("#alias-list").Find("a").Eq(2).Attr("href")
+	aliasBobLink, yes := aliasList.Eq(2).Attr("href")
 	a.True(yes, "a-tag has href attribute")
+	// TODO: fix wildcard domain
 	a.Equal("/alias/bob", aliasBobLink)
 
 	// check for link to revoke 1st Alias
-	revokeBobLink, yes := html.Find("#alias-list").Find("a").Eq(3).Attr("href")
+	revokeBobLink, yes := aliasList.Eq(3).Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/aliases/revoke/confirm?id=21", revokeBobLink)
+	wantLink = ts.URLTo(router.AdminAliasesRevokeConfirm, "id", 21)
+	a.Equal(wantLink.String(), revokeBobLink)
 
 	// check for link to Remove member link
 	removeLink, yes := html.Find("#remove-member").Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	a.Equal("/admin/members/remove/confirm?id=1", removeLink)
+	wantLink = ts.URLTo(router.AdminMembersRemoveConfirm, "id", 1)
+	a.Equal(wantLink.String(), removeLink)
 }
 
 func TestMembersRemoveConfirmation(t *testing.T) {
@@ -238,7 +246,7 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 	a.True(ok, "form has action set")
 
 	addURL := ts.URLTo(router.AdminMembersRemove)
-	a.Equal(addURL.Path, action)
+	a.Equal(addURL.String(), action)
 
 	webassert.ElementsInForm(t, form, []webassert.FormElement{
 		{Name: "id", Type: "hidden", Value: "666"},

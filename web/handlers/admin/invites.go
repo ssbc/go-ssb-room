@@ -19,6 +19,7 @@ import (
 type invitesHandler struct {
 	r       *render.Renderer
 	flashes *weberrors.FlashHelper
+	urlTo   web.URLMaker
 
 	db     roomdb.InvitesService
 	config roomdb.RoomConfig
@@ -88,8 +89,7 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 		return nil, err
 	}
 
-	urlTo := web.NewURLTo(router.CompleteApp())
-	facadeURL := urlTo(router.CompleteInviteFacade, "token", token)
+	facadeURL := h.urlTo(router.CompleteInviteFacade, "token", token)
 	facadeURL.Host = h.domainName
 	facadeURL.Scheme = "https"
 

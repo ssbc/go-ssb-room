@@ -82,7 +82,7 @@ func newSession(t *testing.T) *testSession {
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
 	router := router.CompleteApp()
-	urlTo := web.NewURLTo(router)
+	urlTo := web.NewURLTo(router, ts.netInfo)
 	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
 		testURL := urlTo(name, vals...)
 		if testURL == nil {
@@ -124,7 +124,7 @@ func newSession(t *testing.T) *testSession {
 	// setup rendering
 
 	// TODO: make testing utils and move these there
-	testFuncs := web.TemplateFuncs(router)
+	testFuncs := web.TemplateFuncs(router, ts.netInfo)
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
 	testFuncs["is_logged_in"] = func() *roomdb.Member { return &ts.User }
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
