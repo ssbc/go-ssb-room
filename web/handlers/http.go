@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
@@ -72,6 +71,7 @@ func New(
 	dbs Databases,
 ) (http.Handler, error) {
 	m := router.CompleteApp()
+	urlTo := web.NewURLTo(m, netInfo)
 
 	locHelper, err := i18n.New(repo)
 	if err != nil {
@@ -132,19 +132,7 @@ func New(
 				if err != nil {
 					return nil
 				}
-				route := m.GetRoute(router.CompleteNoticeShow)
-				if route == nil {
-					return nil
-				}
-				u, err := route.URLPath()
-				if err != nil {
-					return nil
-				}
-				noticeID := strconv.FormatInt(notice.ID, 10)
-				q := u.Query()
-				q.Add("id", noticeID)
-				u.RawQuery = q.Encode()
-				return u
+				return urlTo(router.CompleteNoticeShow, "id", notice.ID)
 			}
 		}),
 	}
@@ -291,7 +279,7 @@ func New(
 	//public invites
 	var ih = inviteHandler{
 		render:      r,
-		urlTo:       web.NewURLTo(router.CompleteApp(), netInfo),
+		urlTo:       urlTo,
 		networkInfo: netInfo,
 
 		config:        dbs.Config,
@@ -314,7 +302,6 @@ func New(
 	// hook up main stdlib mux to the gorrilla/mux with named routes
 	mainMux.Handle("/", m)
 
-	urlTo := web.NewURLTo(m, netInfo)
 	consumeURL := urlTo(router.CompleteInviteConsume)
 
 	// apply HTTP middleware
