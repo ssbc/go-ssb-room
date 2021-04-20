@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
@@ -26,8 +25,6 @@ import (
 func TestAliasRegister(t *testing.T) {
 	testInit(t)
 	ctx, cancel := context.WithCancel(context.Background())
-	botgroup, ctx := errgroup.WithContext(ctx)
-	bs := newBotServer(ctx, mainLog)
 
 	r := require.New(t)
 	a := assert.New(t)
@@ -41,55 +38,45 @@ func TestAliasRegister(t *testing.T) {
 		roomsrv.WithContext(ctx),
 	}
 
-	theBots := []*roomsrv.Server{}
+	theBots := []*testSession{}
 
-	srvMembers, serv := makeNamedTestBot(t, "srv", netOpts)
-	botgroup.Go(bs.Serve(serv))
-	theBots = append(theBots, serv)
+	session := makeNamedTestBot(t, "srv", ctx, netOpts)
+	theBots = append(theBots, session)
 
 	// we need bobs key to create the signature
 	bobsKey, err := keys.NewKeyPair(nil)
 	r.NoError(err)
 
-	bobsMembers, bob := makeNamedTestBot(t, "bob", append(netOpts,
+	bobSession := makeNamedTestBot(t, "bob", ctx, append(netOpts,
 		roomsrv.WithKeyPair(bobsKey),
 	))
-	botgroup.Go(bs.Serve(bob))
-	theBots = append(theBots, bob)
-
-	t.Cleanup(func() {
-		for _, bot := range theBots {
-			bot.Shutdown()
-			r.NoError(bot.Close())
-		}
-		r.NoError(botgroup.Wait())
-	})
+	theBots = append(theBots, bobSession)
 
 	// adds
-	_, err = srvMembers.Add(ctx, bob.Whoami(), roomdb.RoleMember)
+	_, err = session.srv.Members.Add(ctx, bobSession.srv.Whoami(), roomdb.RoleMember)
 	r.NoError(err)
 
 	// allow bots to dial the remote
 	// side-effect of re-using a room-server as the client
-	_, err = bobsMembers.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	_, err = bobSession.srv.Members.Add(ctx, session.srv.Whoami(), roomdb.RoleMember)
 	r.NoError(err)
 
 	// should work (we allowed A)
-	err = bob.Network.Connect(ctx, serv.Network.GetListenAddr())
+	err = bobSession.srv.Network.Connect(ctx, session.srv.Network.GetListenAddr())
 	r.NoError(err, "connect A to the Server")
 
 	t.Log("letting handshaking settle..")
 	time.Sleep(1 * time.Second)
 
-	clientForServer, ok := bob.Network.GetEndpointFor(serv.Whoami())
+	clientForServer, ok := bobSession.srv.Network.GetEndpointFor(session.srv.Whoami())
 	r.True(ok)
 
 	t.Log("got endpoint")
 
 	var testReg aliases.Registration
 	testReg.Alias = "bob"
-	testReg.RoomID = serv.Whoami()
-	testReg.UserID = bob.Whoami()
+	testReg.RoomID = session.srv.Whoami()
+	testReg.UserID = bobSession.srv.Whoami()
 
 	confirmation := testReg.Sign(bobsKey.Pair.Secret)
 	t.Logf("signature created: %x...", confirmation.Signature[:16])
@@ -109,7 +96,7 @@ func TestAliasRegister(t *testing.T) {
 	a.Equal("", resolveURL.Path)
 
 	// server should have the alias now
-	alias, err := serv.Aliases.Resolve(ctx, "bob")
+	alias, err := session.srv.Aliases.Resolve(ctx, "bob")
 	r.NoError(err)
 
 	a.Equal(confirmation.Alias, alias.Name)
@@ -118,5 +105,10 @@ func TestAliasRegister(t *testing.T) {
 
 	t.Log("alias stored")
 
+	for _, bot := range theBots {
+		bot.srv.Shutdown()
+		r.NoError(bot.srv.Close())
+		r.NoError(bot.serveGroup.Wait())
+	}
 	cancel()
 }

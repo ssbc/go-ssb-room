@@ -32,21 +32,21 @@ func TestConnEstablishmentDeniedKey(t *testing.T) {
 		indexB
 	)
 
-	serv := theBots[indexSrv].Server
-	botA := theBots[indexA].Server
-	botB := theBots[indexB].Server
+	serv := theBots[indexSrv].srv
+	botA := theBots[indexA].srv
+	botB := theBots[indexB].srv
 
 	// allow A, deny B
-	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].srv.Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
 	// since we want to verify denied keys in particular, let us both:
 	// a) add B as a member
-	theBots[indexSrv].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].srv.Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 	// b) ban B by adding them to the DeniedKeys database
-	theBots[indexSrv].Server.DeniedKeys.Add(ctx, botB.Whoami(), "rude")
+	theBots[indexSrv].srv.DeniedKeys.Add(ctx, botB.Whoami(), "rude")
 
 	// hack: allow bots to dial the server
-	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
-	theBots[indexB].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexA].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexB].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// dial up B->A and C->A
 	// should work (we allowed A)

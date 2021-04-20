@@ -71,7 +71,16 @@ func (bs botServer) Serve(s *roomsrv.Server) func() error {
 	}
 }
 
-func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.MembersService, *roomsrv.Server) {
+type testSession struct {
+	t testing.TB
+
+	srv *roomsrv.Server
+
+	ctx        context.Context
+	serveGroup *errgroup.Group
+}
+
+func makeNamedTestBot(t testing.TB, name string, ctx context.Context, opts []roomsrv.Option) *testSession {
 	r := require.New(t)
 	testPath := filepath.Join("testrun", t.Name(), "bot-"+name)
 	os.RemoveAll(testPath)
@@ -108,21 +117,25 @@ func makeNamedTestBot(t testing.TB, name string, opts []roomsrv.Option) (roomdb.
 	sb := signinwithssb.NewSignalBridge()
 	theBot, err := roomsrv.New(db.Members, db.DeniedKeys, db.Aliases, db.AuthWithSSB, sb, db.Config, netInfo, botOptions...)
 	r.NoError(err)
-	return db.Members, theBot
+
+	ts := testSession{
+		t:   t,
+		srv: theBot,
+	}
+
+	ts.serveGroup, ts.ctx = errgroup.WithContext(ctx)
+
+	ts.serveGroup.Go(func() error {
+		return theBot.Network.Serve(ts.ctx)
+	})
+
+	return &ts
 }
 
-type testBot struct {
-	Server  *roomsrv.Server
-	Members roomdb.MembersService
-}
-
-func createServerAndBots(t *testing.T, ctx context.Context, count uint) []testBot {
+// TODO: refactor for single test session and use makeTestClient()
+func createServerAndBots(t *testing.T, ctx context.Context, count uint) []*testSession {
 	testInit(t)
 	r := require.New(t)
-
-	botgroup, ctx := errgroup.WithContext(ctx)
-
-	bs := newBotServer(ctx, mainLog)
 
 	appKey := make([]byte, 32)
 	rand.Read(appKey)
@@ -131,31 +144,25 @@ func createServerAndBots(t *testing.T, ctx context.Context, count uint) []testBo
 		roomsrv.WithAppKey(appKey),
 		roomsrv.WithContext(ctx),
 	}
-	theBots := []testBot{}
 
-	srvsMembers, serv := makeNamedTestBot(t, "srv", netOpts)
-	botgroup.Go(bs.Serve(serv))
-	theBots = append(theBots, testBot{
-		Server:  serv,
-		Members: srvsMembers,
-	})
+	theBots := []*testSession{}
+
+	session := makeNamedTestBot(t, "srv", ctx, netOpts)
+
+	theBots = append(theBots, session)
 
 	for i := uint(1); i < count+1; i++ {
-		botMembers, botSrv := makeNamedTestBot(t, fmt.Sprintf("%d", i), netOpts)
-		botgroup.Go(bs.Serve(botSrv))
-		theBots = append(theBots, testBot{
-			Server:  botSrv,
-			Members: botMembers,
-		})
+		// TODO: replace with makeClient?!
+		clientSession := makeNamedTestBot(t, fmt.Sprintf("%d", i), ctx, netOpts)
+		theBots = append(theBots, clientSession)
 	}
 
 	t.Cleanup(func() {
 		time.Sleep(1 * time.Second)
 		for _, bot := range theBots {
-			bot.Server.Shutdown()
-			r.NoError(bot.Server.Close())
+			bot.srv.Shutdown()
+			r.NoError(bot.srv.Close())
 		}
-		r.NoError(botgroup.Wait())
 	})
 
 	return theBots
