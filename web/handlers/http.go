@@ -3,6 +3,7 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -73,7 +74,7 @@ func New(
 	m := router.CompleteApp()
 	urlTo := web.NewURLTo(m, netInfo)
 
-	locHelper, err := i18n.New(repo)
+	locHelper, err := i18n.New(repo, dbs.Config)
 	if err != nil {
 		return nil, err
 	}
@@ -122,6 +123,36 @@ func New(
 			}
 		}),
 
+		render.InjectTemplateFunc("language_count", func(r *http.Request) interface{} {
+			return func() int {
+				return len(locHelper.ListLanguages())
+			}
+		}),
+
+		render.InjectTemplateFunc("list_languages", func(r *http.Request) interface{} {
+			return func(postRoute *url.URL, classList string) (template.HTML, error) {
+				languages := locHelper.ListLanguages()
+				var buf bytes.Buffer
+
+				for _, entry := range languages {
+					data := changeLanguageTemplateData{
+						PostRoute:    postRoute.String(),
+						CSRFElement:  csrf.TemplateField(r),
+						LangTag:      entry.Tag,
+						RedirectPage: r.RequestURI,
+						Translation:  entry.Translation,
+						ClassList:    classList,
+					}
+					err = changeLanguageTemplate.Execute(&buf, data)
+					if err != nil {
+						return "", fmt.Errorf("Error while executing change language template: %w", err)
+					}
+				}
+
+				return (template.HTML)(buf.String()), nil
+			}
+		}),
+
 		render.InjectTemplateFunc("urlToNotice", func(r *http.Request) interface{} {
 			return func(name string) *url.URL {
 				noticeName := roomdb.PinnedNoticeName(name)
@@ -167,6 +198,7 @@ func New(
 	}
 
 	CSRF := csrf.Protect(csrfKey,
+		csrf.Path("/"),
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			err := csrf.FailureReason(req)
 			// TODO: localize error?
@@ -225,6 +257,7 @@ func New(
 		r,
 		roomState,
 		flashHelper,
+		locHelper,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
 			Config:        dbs.Config,
@@ -236,6 +269,28 @@ func New(
 		},
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
+
+	// handle setting language
+	m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		lang := req.FormValue("lang")
+		previousRoute := req.FormValue("page")
+
+		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
+		if err != nil {
+			eh.Handle(w, req, http.StatusInternalServerError, err)
+			return
+		}
+
+		session.Values["lang"] = lang
+		err = session.Save(req, w)
+		if err != nil {
+			err = fmt.Errorf("we failed to save the language session cookie %w\n", err)
+			eh.Handle(w, req, http.StatusInternalServerError, err)
+			return
+		}
+
+		http.Redirect(w, req, previousRoute, http.StatusSeeOther)
+	})
 
 	// landing page
 	m.Get(router.CompleteIndex).Handler(r.HTML("landing/index.tmpl", func(w http.ResponseWriter, req *http.Request) (interface{}, error) {

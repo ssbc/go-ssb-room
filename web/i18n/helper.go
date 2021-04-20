@@ -11,24 +11,50 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/gorilla/sessions"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	"go.mindeco.de/http/render"
 	"golang.org/x/text/language"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 )
 
-type Helper struct {
-	bundle *i18n.Bundle
+const LanguageCookieName = "gossbroom-language"
+
+type TagTranslation struct {
+	Tag         string
+	Translation string
 }
 
-func New(r repo.Interface) (*Helper, error) {
+type Helper struct {
+	bundle      *i18n.Bundle
+	languages   []TagTranslation
+	cookieStore *sessions.CookieStore
+	config      roomdb.RoomConfig
+}
 
+func New(r repo.Interface, config roomdb.RoomConfig) (*Helper, error) {
 	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+
+	cookieCodec, err := web.LoadOrCreateCookieSecrets(r)
+	if err != nil {
+		return nil, err
+	}
+
+	cookieStore := &sessions.CookieStore{
+		Codecs: cookieCodec,
+		Options: &sessions.Options{
+			Path:   "/",
+			MaxAge: 2 * 60 * 60, // two hours in seconds  // TODO: configure
+		},
+	}
 
 	// parse toml files and add them to the bundle
 	walkFn := func(path string, info os.FileInfo, rs io.Reader, err error) error {
@@ -57,7 +83,7 @@ func New(r repo.Interface) (*Helper, error) {
 	}
 
 	// walk the embedded defaults
-	err := fs.WalkDir(Defaults, ".", func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(Defaults, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -114,22 +140,57 @@ func New(r repo.Interface) (*Helper, error) {
 		return nil, fmt.Errorf("i18n: failed to iterate localizations: %w", err)
 	}
 
-	return &Helper{bundle: bundle}, nil
+	// create a mapping of language tags to the translated language names
+	langmap := listLanguages(bundle)
+	return &Helper{bundle: bundle, languages: langmap, cookieStore: cookieStore, config: config}, nil
 }
 
-func (h Helper) GetRenderFuncs() []render.Option {
-	var opts = []render.Option{
-		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
-			loc := h.FromRequest(r)
-			return loc.LocalizePlurals
-		}),
+func listLanguages(bundle *i18n.Bundle) []TagTranslation {
+	languageTags := bundle.LanguageTags()
+	tags := make([]string, 0, len(languageTags))
+	langslice := make([]TagTranslation, 0, len(languageTags))
 
-		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
-			loc := h.FromRequest(r)
-			return loc.LocalizeSimple
-		}),
+	// convert from i18n language tags to a slice of strings
+	for _, langTag := range languageTags {
+		tags = append(tags, langTag.String())
 	}
-	return opts
+	// sort the slice of language tag strings
+	sort.Strings(tags)
+
+	// now that we have a known order, construct a TagTranslation slice mapping language tags to their translations
+	for _, langTag := range tags {
+		var l Localizer
+		l.loc = i18n.NewLocalizer(bundle, langTag)
+
+		msg, err := l.loc.Localize(&i18n.LocalizeConfig{
+			MessageID: "LanguageName",
+		})
+		if err != nil {
+			msg = langTag
+		}
+
+		langslice = append(langslice, TagTranslation{Tag: langTag, Translation: msg})
+	}
+
+	return langslice
+}
+
+// ListLanguages returns a slice of the room's translated languages.
+// The entries of the slice are of the type TagTranslation, consisting of the fields Tag and Translation.
+// Each Tag fields is a language tag (as strings), and the field Translation is the corresponding translated language
+// name of that language tag.
+// Example: {Tag: en, Translation: English}, {Tag: sv, Translation: Svenska} {Tag: de, Translation: Deutsch}
+func (h Helper) ListLanguages() []TagTranslation {
+	return h.languages
+}
+
+func (h Helper) ChooseTranslation(requestedTag string) string {
+	for _, entry := range h.languages {
+		if entry.Tag == requestedTag {
+			return entry.Translation
+		}
+	}
+	return requestedTag
 }
 
 type Localizer struct {
@@ -146,11 +207,45 @@ func (h Helper) newLocalizer(lang string, accept ...string) *Localizer {
 
 // FromRequest returns a new Localizer for the passed helper,
 // using form value 'lang' and Accept-Language http header from the passed request.
-// TODO: user settings/cookie values?
+// If a language cookie is detected, then it takes precedence over the form value & Accept-Lanuage header.
 func (h Helper) FromRequest(r *http.Request) *Localizer {
 	lang := r.FormValue("lang")
 	accept := r.Header.Get("Accept-Language")
-	return h.newLocalizer(lang, accept)
+
+	session, err := h.cookieStore.Get(r, LanguageCookieName)
+	if err != nil {
+		return h.newLocalizer(lang, accept)
+	}
+
+	prevCookie := session.Values["lang"]
+	if prevCookie != nil {
+		return h.newLocalizer(prevCookie.(string), lang, accept)
+	}
+
+	defaultLang, err := h.config.GetDefaultLanguage(r.Context())
+
+	// if we don't have a default language set, then fallback to whatever we have left :^)
+	if err != nil {
+		return h.newLocalizer(lang, accept)
+	}
+
+	// if we don't have a user cookie set, then use the room's default language setting
+	return h.newLocalizer(defaultLang, accept)
+}
+
+func (h Helper) GetRenderFuncs() []render.Option {
+	var opts = []render.Option{
+		render.InjectTemplateFunc("i18npl", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizePlurals
+		}),
+
+		render.InjectTemplateFunc("i18n", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizeSimple
+		}),
+	}
+	return opts
 }
 
 func (l Localizer) LocalizeSimple(messageID string) string {

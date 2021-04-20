@@ -14,6 +14,8 @@ const (
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
 
+	CompleteSetLanguage = "complete:set-language"
+
 	CompleteAliasResolve = "complete:alias:resolve"
 
 	CompleteInviteFacade         = "complete:invite:accept"
@@ -41,6 +43,8 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/notice/show").Methods("GET").Name(CompleteNoticeShow)
 	m.Path("/notice/list").Methods("GET").Name(CompleteNoticeList)
+
+	m.Path("/set-language").Methods("POST").Name(CompleteSetLanguage)
 
 	return m
 }

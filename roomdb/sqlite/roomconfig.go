@@ -40,7 +40,6 @@ func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error
 		return err
 	}
 
-	// cblgh: a walkthrough of this step (again, now that i have some actual context) would be real good :)
 	err = transact(c.db, func(tx *sql.Tx) error {
 		// get the settings row
 		config, err := models.FindConfig(ctx, tx, configRowID)
@@ -57,6 +56,48 @@ func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error
 		}
 		if rowsAffected == 0 {
 			return fmt.Errorf("setting privacy mode should have update the settings row, instead 0 rows were updated")
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil // alles gut!!
+}
+
+func (c Config) GetDefaultLanguage(ctx context.Context) (string, error) {
+	config, err := models.FindConfig(ctx, c.db, configRowID)
+	if err != nil {
+		return "", err
+	}
+
+	return config.DefaultLanguage, nil
+}
+
+func (c Config) SetDefaultLanguage(ctx context.Context, langTag string) error {
+	if len(langTag) == 0 {
+		return fmt.Errorf("language tag cannot be empty")
+	}
+
+	err := transact(c.db, func(tx *sql.Tx) error {
+		// get the settings row
+		config, err := models.FindConfig(ctx, tx, configRowID)
+		if err != nil {
+			return err
+		}
+
+		// set the new language tag
+		config.DefaultLanguage = langTag
+		// issue update stmt
+		rowsAffected, err := config.Update(ctx, tx, boil.Infer())
+		if err != nil {
+			return err
+		}
+		if rowsAffected == 0 {
+			return fmt.Errorf("setting default language should have update the settings row, instead 0 rows were updated")
 		}
 
 		return nil

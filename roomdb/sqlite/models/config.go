@@ -23,19 +23,25 @@ import (
 
 // Config is an object representing the database table.
 type Config struct {
-	ID          int64              `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PrivacyMode roomdb.PrivacyMode `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
+	ID                     int64              `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PrivacyMode            roomdb.PrivacyMode `boil:"privacyMode" json:"privacyMode" toml:"privacyMode" yaml:"privacyMode"`
+	DefaultLanguage        string             `boil:"defaultLanguage" json:"defaultLanguage" toml:"defaultLanguage" yaml:"defaultLanguage"`
+	UseSubdomainForAliases bool               `boil:"use_subdomain_for_aliases" json:"use_subdomain_for_aliases" toml:"use_subdomain_for_aliases" yaml:"use_subdomain_for_aliases"`
 
 	R *configR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L configL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ConfigColumns = struct {
-	ID          string
-	PrivacyMode string
+	ID                     string
+	PrivacyMode            string
+	DefaultLanguage        string
+	UseSubdomainForAliases string
 }{
-	ID:          "id",
-	PrivacyMode: "privacyMode",
+	ID:                     "id",
+	PrivacyMode:            "privacyMode",
+	DefaultLanguage:        "defaultLanguage",
+	UseSubdomainForAliases: "use_subdomain_for_aliases",
 }
 
 // Generated where
@@ -61,12 +67,25 @@ func (w whereHelperroomdb_PrivacyMode) GTE(x roomdb.PrivacyMode) qm.QueryMod {
 	return qmhelper.Where(w.field, qmhelper.GTE, x)
 }
 
+type whereHelperbool struct{ field string }
+
+func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+
 var ConfigWhere = struct {
-	ID          whereHelperint64
-	PrivacyMode whereHelperroomdb_PrivacyMode
+	ID                     whereHelperint64
+	PrivacyMode            whereHelperroomdb_PrivacyMode
+	DefaultLanguage        whereHelperstring
+	UseSubdomainForAliases whereHelperbool
 }{
-	ID:          whereHelperint64{field: "\"config\".\"id\""},
-	PrivacyMode: whereHelperroomdb_PrivacyMode{field: "\"config\".\"privacyMode\""},
+	ID:                     whereHelperint64{field: "\"config\".\"id\""},
+	PrivacyMode:            whereHelperroomdb_PrivacyMode{field: "\"config\".\"privacyMode\""},
+	DefaultLanguage:        whereHelperstring{field: "\"config\".\"defaultLanguage\""},
+	UseSubdomainForAliases: whereHelperbool{field: "\"config\".\"use_subdomain_for_aliases\""},
 }
 
 // ConfigRels is where relationship names are stored.
@@ -86,8 +105,8 @@ func (*configR) NewStruct() *configR {
 type configL struct{}
 
 var (
-	configAllColumns            = []string{"id", "privacyMode"}
-	configColumnsWithoutDefault = []string{"privacyMode"}
+	configAllColumns            = []string{"id", "privacyMode", "defaultLanguage", "use_subdomain_for_aliases"}
+	configColumnsWithoutDefault = []string{"privacyMode", "defaultLanguage", "use_subdomain_for_aliases"}
 	configColumnsWithDefault    = []string{"id"}
 	configPrimaryKeyColumns     = []string{"id"}
 )
