@@ -16,7 +16,8 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 )
 
-// WebsockHandler returns a "middleware" like thing that is able to upgrade a websocket request to a muxrpc connection and authenticate using shs.
+// WebsockHandler returns a "middleware" like thing that is able to upgrade a
+// websocket request to a muxrpc connection and authenticate using shs.
 // It calls the next handler if it fails to upgrade the connection to websocket.
 // However, it will error on the request and not call the passed handler
 // if the websocket upgrade is successfull.
@@ -29,7 +30,8 @@ func (n *node) WebsockHandler(next http.Handler) http.Handler {
 			return true
 		},
 
-		// 99% of the traffic will be ciphertext which is impossible to distingish from randomness and thus also hard to compress
+		// 99% of the traffic will be ciphertext which is impossible to distinguish
+		// from randomness and thus also hard to compress
 		EnableCompression: false,
 
 		// if upgrading fails, just call the next handler and ignore the error

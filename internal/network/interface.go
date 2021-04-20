@@ -97,7 +97,8 @@ type Network interface {
 
 	GetConnTracker() ConnTracker
 
-	// WebsockHandler returns a "middleware" like thing that is able to upgrade a websocket request to a muxrpc connection and authenticate using shs.
+	// WebsockHandler returns a "middleware" like thing that is able to upgrade a
+	// websocket request to a muxrpc connection and authenticate using shs.
 	// It calls the next handler if it fails to upgrade the connection to websocket.
 	// However, it will error on the request and not call the passed handler
 	// if the websocket upgrade is successfull.

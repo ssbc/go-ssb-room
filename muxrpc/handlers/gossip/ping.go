@@ -82,8 +82,6 @@ func sillyPingPong(ctx context.Context, peerSrc *muxrpc.ByteSource, peerSnk *mux
 				return
 			}
 
-			// when := time.Time(ping)
-			// fmt.Printf("got ping: %s - age: %s\n", when.String(), time.Since(when))
 		}
 
 		return

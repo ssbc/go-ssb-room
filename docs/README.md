@@ -22,10 +22,10 @@ A summary can be seen in the following chart:
 
 We currently assume a standard HTTPS server in front of go-ssb-room to facilitate TLS termination and certificate management. This should be possible with most modern HTTP servers since it's a pretty standard practice, known as [reverse proxying](https://en.wikipedia.org/wiki/Reverse_proxy).
 
-Two bits of rational:
+Two bits of rationale:
 
-1) People usually want to have more then one site on their server. Put differently we could have LetsEncrypt inside the go-ssb-room server but it would have to listen on port :443, blocking the use of other domains on the same IP.
-2) Listening on :443 can be pretty annoying (you might need root priviliges or similar capabilities).
+1) People usually want to have more than one site on their server. Put differently, we could have [LetsEncrypt](https://letsencrypt.org/) inside the go-ssb-room server but it would have to listen on port :443—blocking the use of other domains on the same IP.
+2) Listening on :443 can be pretty annoying (you might need root privileges or similar capabilities).
 
 go-ssb-room needs three headers to function properly, which need to be forwarded by the webserver.
 
@@ -33,4 +33,4 @@ go-ssb-room needs three headers to function properly, which need to be forwarded
 * `X-Forwarded-Proto` to ensure that TLS is used (and redirect if necessary)
 * `X-Forwarded-For` the remote TCP/IP address of the client accessing the room (used for rate limiting)
 
-[nginx-example.conf](./nginx-example.conf) contains an [nginx](https://nginx.org) config that we use for `hermies.club`. To get a wildcard TLS certificate you can follow the steps in [this](https://medium.com/@alitou/getting-a-wildcard-ssl-certificate-using-certbot-and-deploy-on-nginx-15b8ffa34157) article which uses the [certbot](https://certbot.eff.org/) utility.
+[nginx-example.conf](./nginx-example.conf) contains an [nginx](https://nginx.org) config that we use for [hermies.club](https://hermies.club). To get a wildcard TLS certificate you can follow the steps in [this article](https://medium.com/@alitou/getting-a-wildcard-ssl-certificate-using-certbot-and-deploy-on-nginx-15b8ffa34157), which uses the [certbot](https://certbot.eff.org/) utility. 
