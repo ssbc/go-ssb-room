@@ -3,11 +3,11 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
@@ -130,32 +130,26 @@ func New(
 		}),
 
 		render.InjectTemplateFunc("list_languages", func(r *http.Request) interface{} {
-			csrfElement := csrf.TemplateField(r)
-
-			createFormElement := func(postRoute, tag, translation, classList string) string {
-				return fmt.Sprintf(`
-            <form
-              action="%s"
-              method="POST"
-              >
-              %s
-              <input type="hidden" name="lang" value="%s">
-              <input type="hidden" name="page" value="%s">
-              <input
-                type="submit"
-                value="%s"
-                class="%s"
-                />
-            </form>
-            `, postRoute, csrfElement, tag, r.RequestURI, translation, classList)
-			}
-			return func(postRoute *url.URL, classList string) template.HTML {
+			return func(postRoute *url.URL, classList string) (template.HTML, error) {
 				languages := locHelper.ListLanguages()
-				languageOptions := make([]string, len(languages))
+				var buf bytes.Buffer
+
 				for _, entry := range languages {
-					languageOptions = append(languageOptions, createFormElement(postRoute.String(), entry.Tag, entry.Translation, classList))
+					data := changeLanguageTemplateData{
+						PostRoute:    postRoute.String(),
+						CSRFElement:  csrf.TemplateField(r),
+						LangTag:      entry.Tag,
+						RedirectPage: r.RequestURI,
+						Translation:  entry.Translation,
+						ClassList:    classList,
+					}
+					err = changeLanguageTemplate.Execute(&buf, data)
+					if err != nil {
+						return "", fmt.Errorf("Error while executing change language template: %w", err)
+					}
 				}
-				return (template.HTML)(strings.Join(languageOptions, "\n"))
+
+				return (template.HTML)(buf.String()), nil
 			}
 		}),
 
