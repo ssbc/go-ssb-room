@@ -2,6 +2,7 @@ package roomstate
 
 import (
 	"context"
+	"sort"
 	"sync"
 	"time"
 
@@ -73,6 +74,7 @@ func (rsm roomStateMap) AsList() []string {
 	for m := range rsm {
 		memberList = append(memberList, m)
 	}
+	sort.Strings(memberList)
 	return memberList
 }
 
@@ -108,7 +110,8 @@ func (m *Manager) Remove(who refs.FeedRef) {
 	m.roomMu.Unlock()
 }
 
-// AlreadyAdded returns true if the peer was already added to the room
+// AlreadyAdded returns true if the peer was already added to the room.
+// if it isn't it will be added.
 func (m *Manager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
 	m.roomMu.Lock()
 

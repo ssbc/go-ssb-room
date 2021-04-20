@@ -32,6 +32,10 @@ const manifest manifestHandler = `
 
 	"whoami":"async",
 
+	"gossip": {
+		"ping": "duplex"
+	},
+
 	"room": {
 		"registerAlias": "async",
 		"revokeAlias": "async",

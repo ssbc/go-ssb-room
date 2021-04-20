@@ -14,10 +14,9 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
-	github.com/joefitzgerald/rainbow-reporter v0.1.0 // indirect
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0 // indirect
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
@@ -30,7 +29,7 @@ require (
 	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
-	go.cryptoscope.co/muxrpc/v2 v2.0.0-beta.1.0.20210308090127-5f1f5f9cbb59
+	go.cryptoscope.co/muxrpc/v2 v2.0.1-0.20210414085324-530a7df6ea1c
 	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/secretstream v1.2.2
 	go.mindeco.de v1.11.0
@@ -39,7 +38,7 @@ require (
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
 	golang.org/x/text v0.3.5
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
