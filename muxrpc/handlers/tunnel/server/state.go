@@ -48,7 +48,7 @@ func (h *Handler) announce(_ context.Context, req *muxrpc.Request) (interface{},
 
 	h.state.AddEndpoint(*ref, req.Endpoint())
 
-	return false, nil
+	return true, nil
 }
 
 func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
@@ -59,7 +59,7 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 
 	h.state.Remove(*ref)
 
-	return false, nil
+	return true, nil
 }
 
 func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
@@ -93,8 +93,14 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	has := h.state.AlreadyAdded(*ref, req.Endpoint())
 	if !has {
 		// just send the current state to the new peer
-		toPeer.Update(h.state.List())
 	}
+	toPeer.Update(h.state.List())
+
+	// go func() {
+	//	for range time.Tick(3 * time.Second) {
+	// 		toPeer.Update(h.state.List())
+	// 	}
+	// }()
 	return nil
 }
 
