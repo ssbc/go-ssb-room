@@ -21,8 +21,8 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
 // HTMLTemplates define the list of files the template system should load.
@@ -86,8 +86,8 @@ func Handler(
 	var sh = settingsHandler{
 		r:     r,
 		urlTo: urlTo,
-		db: dbs.Config,
-		loc: locHelper,
+		db:    dbs.Config,
+		loc:   locHelper,
 	}
 	mux.HandleFunc("/settings", r.HTML("admin/settings.tmpl", sh.overview))
 	mux.HandleFunc("/settings/set-privacy", sh.setPrivacy)

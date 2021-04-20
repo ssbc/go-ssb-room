@@ -68,7 +68,6 @@ func (c Config) SetPrivacyMode(ctx context.Context, pm roomdb.PrivacyMode) error
 	return nil // alles gut!!
 }
 
-// TODO: use proper language tag from "golang.org/x/text/language"?
 func (c Config) GetDefaultLanguage(ctx context.Context) (string, error) {
 	config, err := models.FindConfig(ctx, c.db, configRowID)
 	if err != nil {

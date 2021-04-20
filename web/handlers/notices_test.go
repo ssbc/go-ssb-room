@@ -92,7 +92,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	csrfCookie := resp.Result().Cookies()
 	a.True(len(csrfCookie) > 0, "should have one cookie for CSRF protection validation")
 
-	csrfTokenElem := doc.Find(`form[action="/fallback/finalize"] input[type="hidden"]`)
+	csrfTokenElem := doc.Find(`form#password-fallback input[type="hidden"]`)
 	a.Equal(1, csrfTokenElem.Length())
 
 	csrfName, has := csrfTokenElem.Attr("name")

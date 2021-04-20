@@ -2,17 +2,16 @@ package admin
 
 import (
 	"net/http"
-  "strings"
+	"strings"
 	"testing"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
 )
 
-
 /* can't test English atm due to web/i18n/i18ntesting/testing.go:justTheKeys, which generates translations that are just
 * translationLabel = "translationLabel"
-*/
+ */
 // func TestLanguageSetDefaultLanguageEnglish(t *testing.T) {
 // 	ts := newSession(t)
 // 	a := assert.New(t)
@@ -40,6 +39,6 @@ func TestLanguageSetDefaultLanguage(t *testing.T) {
 	a.Equal(http.StatusOK, resp.Code, "Wrong HTTP status code")
 
 	summaryElement := html.Find("#language-summary")
-  summaryText := strings.TrimSpace(summaryElement.Text())
-  a.Equal("Deutsch", summaryText, "summary language should display german translation of language name")
+	summaryText := strings.TrimSpace(summaryElement.Text())
+	a.Equal("Deutsch", summaryText, "summary language should display german translation of language name")
 }

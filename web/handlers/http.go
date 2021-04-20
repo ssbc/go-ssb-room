@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
-  "strings"
+	"strings"
 	"time"
 
 	"github.com/go-kit/kit/log/level"
@@ -283,7 +283,7 @@ func New(
 
 		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
 		if err != nil {
-			eh.Handle(w, req, http.StatusInternalServerError,err)
+			eh.Handle(w, req, http.StatusInternalServerError, err)
 			return
 		}
 

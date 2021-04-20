@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,13 +16,11 @@ func TestLanguageDefaultNoCookie(t *testing.T) {
 	ts := setup(t)
 	a := assert.New(t)
 	route := ts.URLTo(router.CompleteIndex)
-	postEndpoint := ts.URLTo(router.CompleteSetLanguage)
-	formAction := postEndpoint.Path
 
 	html, res := ts.Client.GetHTML(route)
 	a.Equal(http.StatusOK, res.Code, "wrong HTTP status code")
 
-	languageForms := html.Find(fmt.Sprintf(`form[action="%s"]`, formAction))
+	languageForms := html.Find("#visitor-set-language form")
 	// two languages: english, deutsch => two <form> elements
 	a.Equal(2, languageForms.Length())
 
@@ -40,13 +37,12 @@ func TestLanguageChooseGerman(t *testing.T) {
 	a := assert.New(t)
 	route := ts.URLTo(router.CompleteIndex)
 	postEndpoint := ts.URLTo(router.CompleteSetLanguage)
-	formAction := postEndpoint.Path
 
 	html, res := ts.Client.GetHTML(route)
 	a.Equal(http.StatusOK, res.Code, "wrong HTTP status code")
 
-	csrfTokenElem := html.Find(fmt.Sprintf(`form[action="%s"] input[type="hidden"]`, formAction))
-	a.Equal(6, csrfTokenElem.Length())
+	csrfTokenElem := html.Find(`#visitor-set-language input[name="gorilla.csrf.Token"]`)
+	a.Equal(2, csrfTokenElem.Length())
 
 	csrfName, has := csrfTokenElem.First().Attr("name")
 	a.True(has, "should have a name attribute")

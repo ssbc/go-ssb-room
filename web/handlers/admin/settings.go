@@ -19,10 +19,10 @@ import (
 )
 
 type settingsHandler struct {
-	r   *render.Renderer
+	r     *render.Renderer
 	urlTo web.URLMaker
-	db  roomdb.RoomConfig
-	loc *i18n.Helper
+	db    roomdb.RoomConfig
+	loc   *i18n.Helper
 }
 
 func (h settingsHandler) overview(w http.ResponseWriter, req *http.Request) (interface{}, error) {
