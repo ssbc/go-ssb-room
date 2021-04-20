@@ -283,14 +283,16 @@ func New(
 
 		session, err := cookieStore.Get(req, i18n.LanguageCookieName)
 		if err != nil {
-			fmt.Errorf("cookie error? %w\n", err)
+			eh.Handle(w, req, http.StatusInternalServerError,err)
 			return
 		}
 
 		session.Values["lang"] = lang
 		err = session.Save(req, w)
 		if err != nil {
-			fmt.Errorf("we failed to save the language session cookie %w\n", err)
+			err = fmt.Errorf("we failed to save the language session cookie %w\n", err)
+			eh.Handle(w, req, http.StatusInternalServerError, err)
+			return
 		}
 
 		http.Redirect(w, req, previousRoute, http.StatusSeeOther)

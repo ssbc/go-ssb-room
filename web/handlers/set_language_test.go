@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	// "github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )

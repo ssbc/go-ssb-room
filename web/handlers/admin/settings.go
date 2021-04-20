@@ -115,13 +115,13 @@ func (h settingsHandler) getMember(w http.ResponseWriter, req *http.Request) *ro
 
 func (h settingsHandler) verifyPostRequirements(w http.ResponseWriter, req *http.Request) bool {
 	if req.Method != "POST" {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request"))
+		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return false
 	}
 	if err := req.ParseForm(); err != nil {
-		// TODO: proper error type
-		h.r.Error(w, req, http.StatusBadRequest, fmt.Errorf("bad request: %w", err))
+		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
+		h.r.Error(w, req, http.StatusBadRequest, err)
 		return false
 	}
 	return true
