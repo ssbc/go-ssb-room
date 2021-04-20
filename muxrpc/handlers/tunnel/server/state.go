@@ -90,10 +90,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 		}
 	}
 
-	has := h.state.AlreadyAdded(*ref, req.Endpoint())
-	if !has {
-		// just send the current state to the new peer
-	}
+	h.state.AlreadyAdded(*ref, req.Endpoint())
 	toPeer.Update(h.state.List())
 
 	// go func() {

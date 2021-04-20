@@ -9,20 +9,24 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 	"go.cryptoscope.co/netwrap"
 	"go.cryptoscope.co/secretstream"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	refs "go.mindeco.de/ssb-refs"
 )
+
+type announcements map[string]struct{}
 
 // we will let three clients (alf, bre, crl) join and see that the endpoint output is as expected
 func TestEndpointClients(t *testing.T) {
 	r := require.New(t)
+	a := assert.New(t)
 
 	testPath := filepath.Join("testrun", t.Name())
 	os.RemoveAll(testPath)
@@ -35,57 +39,79 @@ func TestEndpointClients(t *testing.T) {
 	ts := makeNamedTestBot(t, "server", ctx, nil)
 	ctx = ts.ctx
 
-	alf := ts.makeTestClient("alf")
-	bre := ts.makeTestClient("bre")
-	// carl wont announce to emulate manyverse's behavior (where tunnel.endpoints should be taken as tunnel.announce)
-	carl := ts.makeTestClient("carl")
-
-	// let alf join the room
-
-	alfEndpointsSerc, err := alf.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
-	r.NoError(err)
-
-	go logStream(ts, alfEndpointsSerc, "alf")
-
-	var ok bool
-	err = alf.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
-	r.NoError(err)
-	r.True(ok)
-
-	time.Sleep(1 * time.Second)
-
-	// let bre join the room
-	ok = false
-	err = bre.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
-	r.NoError(err)
-	r.True(ok)
-
-	breEndpointsSrc, err := bre.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
-	r.NoError(err)
-
-	go logStream(ts, breEndpointsSrc, "bre")
-	time.Sleep(1 * time.Second)
+	// create three test clients
+	alf, alfFeed := ts.makeTestClient("alf")
+	bre, breFeed := ts.makeTestClient("bre")
+	carl, carlFeed := ts.makeTestClient("carl")
 
 	// let carl join the room
 	// carl wont announce to emulate manyverse
 	carlEndpointsSerc, err := carl.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
 	r.NoError(err)
+	t.Log("carl opened endpoints")
 
-	go logStream(ts, carlEndpointsSerc, "carl")
+	announcementsForCarl := make(announcements)
+	go logStream(ts, carlEndpointsSerc, "carl", announcementsForCarl)
+	time.Sleep(1 * time.Second) // give some time to process new events
 
-	time.Sleep(10 * time.Second)
+	_, seen := announcementsForCarl[carlFeed.Ref()]
+	a.True(seen, "carl saw himself")
 
-	// terminate the clients
+	// let alf join the room
+	alfEndpointsSerc, err := alf.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
+	r.NoError(err)
+
+	announcementsForAlf := make(announcements)
+	go logStream(ts, alfEndpointsSerc, "alf", announcementsForAlf)
+	time.Sleep(1 * time.Second) // give some time to process new events
+
+	// assert what alf saw
+	_, seen = announcementsForAlf[carlFeed.Ref()]
+	a.True(seen, "alf saw carl")
+	_, seen = announcementsForAlf[alfFeed.Ref()]
+	a.True(seen, "alf saw himself")
+
+	// assert what carl saw
+	_, seen = announcementsForCarl[alfFeed.Ref()]
+	a.True(seen, "carl saw alf")
+
+	// let bre join the room
+	breEndpointsSrc, err := bre.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
+	r.NoError(err)
+
+	announcementsForBre := make(announcements)
+	go logStream(ts, breEndpointsSrc, "bre", announcementsForBre)
+
+	time.Sleep(1 * time.Second) // give some time to process new events
+
+	// assert bre saw the other two and herself
+	_, seen = announcementsForBre[carlFeed.Ref()]
+	a.True(seen, "bre saw carl")
+	_, seen = announcementsForBre[alfFeed.Ref()]
+	a.True(seen, "bre saw alf")
+	_, seen = announcementsForBre[breFeed.Ref()]
+	a.True(seen, "bre saw herself")
+
+	// assert the others saw bre
+	_, seen = announcementsForAlf[breFeed.Ref()]
+	a.True(seen, "alf saw bre")
+	_, seen = announcementsForCarl[breFeed.Ref()]
+	a.True(seen, "carl saw bre")
+
+	// terminate server and the clients
+	ts.srv.Shutdown()
 	alf.Terminate()
 	bre.Terminate()
 	carl.Terminate()
+	ts.srv.Close()
 
 	// wait for all muxrpc serve()s to exit
 	r.NoError(ts.serveGroup.Wait())
+	cancel()
 }
 
-func logStream(ts *testSession, src *muxrpc.ByteSource, who string) {
-	var refs []refs.FeedRef
+func logStream(ts *testSession, src *muxrpc.ByteSource, who string, a announcements) {
+	var edps []refs.FeedRef
 
 	for src.Next(ts.ctx) {
 		body, err := src.Bytes()
@@ -94,11 +120,17 @@ func logStream(ts *testSession, src *muxrpc.ByteSource, who string) {
 		}
 		// ts.t.Log(who, "got body:", string(body))
 
-		err = json.Unmarshal(body, &refs)
+		err = json.Unmarshal(body, &edps)
 		if err != nil {
 			panic(err)
 		}
-		ts.t.Log(who, "got endpoints:", len(refs))
+		ts.t.Log(who, "got endpoints:", len(edps))
+		for i, f := range edps {
+			ts.t.Log(who, ":", i, f.ShortRef())
+
+			// mark as f is present
+			a[f.Ref()] = struct{}{}
+		}
 	}
 
 	if err := src.Err(); err != nil {
@@ -109,7 +141,7 @@ func logStream(ts *testSession, src *muxrpc.ByteSource, who string) {
 	ts.t.Log(who, "stream closed")
 }
 
-func (ts *testSession) makeTestClient(name string) muxrpc.Endpoint {
+func (ts *testSession) makeTestClient(name string) (muxrpc.Endpoint, refs.FeedRef) {
 	r := require.New(ts.t)
 
 	// create a fresh keypairs for the clients
@@ -121,7 +153,7 @@ func (ts *testSession) makeTestClient(name string) muxrpc.Endpoint {
 	// add it as a memeber
 	memberID, err := ts.srv.Members.Add(ts.ctx, client.Feed, roomdb.RoleMember)
 	r.NoError(err)
-	ts.t.Log("client member:", memberID)
+	ts.t.Log(name, "is member ID:", memberID)
 
 	// default app key for the secret-handshake connection
 	ak, err := base64.StdEncoding.DecodeString("1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=")
@@ -149,7 +181,9 @@ func (ts *testSession) makeTestClient(name string) muxrpc.Endpoint {
 	srv := wsEndpoint.(muxrpc.Server)
 	ts.serveGroup.Go(func() error {
 		err = srv.Serve()
-		ts.t.Logf("mux server %s error: %s", name, err)
+		if err != nil {
+			ts.t.Logf("mux server %s error: %v", name, err)
+		}
 		return err
 	})
 
@@ -159,5 +193,5 @@ func (ts *testSession) makeTestClient(name string) muxrpc.Endpoint {
 	r.NoError(err)
 	r.True(yup, "server is not a room?")
 
-	return wsEndpoint
+	return wsEndpoint, client.Feed
 }
