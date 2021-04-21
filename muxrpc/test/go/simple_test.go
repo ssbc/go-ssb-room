@@ -29,16 +29,16 @@ func TestTunnelServerSimple(t *testing.T) {
 		indexB
 	)
 
-	serv := theBots[indexSrv].Server
-	botA := theBots[indexA].Server
-	botB := theBots[indexB].Server
+	serv := theBots[indexSrv].srv
+	botA := theBots[indexA].srv
+	botB := theBots[indexB].srv
 
 	// only allow A
-	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].srv.Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
-	theBots[indexB].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexA].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexB].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// dial up B->A and C->A
 
@@ -105,17 +105,17 @@ func TestRoomAnnounce(t *testing.T) {
 		indexB
 	)
 
-	serv := theBots[indexSrv].Server
-	botA := theBots[indexA].Server
-	botB := theBots[indexB].Server
+	serv := theBots[indexSrv].srv
+	botA := theBots[indexA].srv
+	botB := theBots[indexB].srv
 
 	// allow both clients
-	theBots[indexSrv].Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
-	theBots[indexSrv].Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].srv.Members.Add(ctx, botA.Whoami(), roomdb.RoleMember)
+	theBots[indexSrv].srv.Members.Add(ctx, botB.Whoami(), roomdb.RoleMember)
 
 	// allow bots to dial the remote
-	theBots[indexA].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
-	theBots[indexB].Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexA].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
+	theBots[indexB].srv.Members.Add(ctx, serv.Whoami(), roomdb.RoleMember)
 
 	// should work (we allowed A)
 	err := botA.Network.Connect(ctx, serv.Network.GetListenAddr())
@@ -169,7 +169,7 @@ func TestRoomAnnounce(t *testing.T) {
 	var ret bool
 	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
 	r.NoError(err)
-	a.False(ret) // <ascii-shrugg>
+	a.True(ret)
 
 	select {
 	case <-time.After(10 * time.Second):
@@ -182,7 +182,7 @@ func TestRoomAnnounce(t *testing.T) {
 
 	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
-	a.False(ret) // <ascii-shrugg>
+	a.True(ret)
 
 	select {
 	case <-time.After(10 * time.Second):

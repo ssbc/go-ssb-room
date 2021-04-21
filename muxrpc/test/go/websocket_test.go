@@ -36,7 +36,8 @@ func TestWebsocketDialing(t *testing.T) {
 	t.Cleanup(cancel)
 
 	// create the roomsrv
-	serverMembers, server := makeNamedTestBot(t, "server", nil)
+	session := makeNamedTestBot(t, "server", ctx, nil)
+	server := session.srv
 
 	// open a TCP listener for HTTP
 	l, err := net.Listen("tcp4", "localhost:0")
@@ -53,7 +54,7 @@ func TestWebsocketDialing(t *testing.T) {
 	r.NoError(err)
 
 	// add it as a memeber
-	memberID, err := serverMembers.Add(ctx, client.Feed, roomdb.RoleMember)
+	memberID, err := server.Members.Add(ctx, client.Feed, roomdb.RoleMember)
 	r.NoError(err)
 	t.Log("client member:", memberID)
 

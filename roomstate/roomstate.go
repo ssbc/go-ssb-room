@@ -125,7 +125,6 @@ func (m *Manager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
 		m.updater.Update(m.room.AsList())
 	}
 
-	// send the current state
 	m.roomMu.Unlock()
 	return has
 }

@@ -48,7 +48,7 @@ func (h *Handler) announce(_ context.Context, req *muxrpc.Request) (interface{},
 
 	h.state.AddEndpoint(*ref, req.Endpoint())
 
-	return false, nil
+	return true, nil
 }
 
 func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, error) {
@@ -59,7 +59,7 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 
 	h.state.Remove(*ref)
 
-	return false, nil
+	return true, nil
 }
 
 func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
@@ -70,7 +70,8 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	// for future updates
 	h.state.Register(toPeer)
 
-	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
+	// get public key from the calling peer
+	peer, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return err
 	}
@@ -84,17 +85,18 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	case roomdb.ModeCommunity:
 		fallthrough
 	case roomdb.ModeRestricted:
-		_, err := h.members.GetByFeed(ctx, *ref)
+		_, err := h.members.GetByFeed(ctx, *peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
 
-	has := h.state.AlreadyAdded(*ref, req.Endpoint())
-	if !has {
-		// just send the current state to the new peer
-		toPeer.Update(h.state.List())
-	}
+	// add the peer to the room state if they arent already
+	h.state.AlreadyAdded(*peer, req.Endpoint())
+
+	// update the peer with
+	toPeer.Update(h.state.List())
+
 	return nil
 }
 
