@@ -70,7 +70,8 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	// for future updates
 	h.state.Register(toPeer)
 
-	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
+	// get public key from the calling peer
+	peer, err := network.GetFeedRefFromAddr(req.RemoteAddr())
 	if err != nil {
 		return err
 	}
@@ -84,20 +85,18 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	case roomdb.ModeCommunity:
 		fallthrough
 	case roomdb.ModeRestricted:
-		_, err := h.members.GetByFeed(ctx, *ref)
+		_, err := h.members.GetByFeed(ctx, *peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
 
-	h.state.AlreadyAdded(*ref, req.Endpoint())
+	// add the peer to the room state if they arent already
+	h.state.AlreadyAdded(*peer, req.Endpoint())
+
+	// update the peer with
 	toPeer.Update(h.state.List())
 
-	// go func() {
-	//	for range time.Tick(3 * time.Second) {
-	// 		toPeer.Update(h.state.List())
-	// 	}
-	// }()
 	return nil
 }
 
