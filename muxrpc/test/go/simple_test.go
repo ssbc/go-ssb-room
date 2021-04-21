@@ -169,7 +169,7 @@ func TestRoomAnnounce(t *testing.T) {
 	var ret bool
 	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
 	r.NoError(err)
-	a.False(ret) // <ascii-shrugg>
+	a.True(ret)
 
 	select {
 	case <-time.After(10 * time.Second):
@@ -182,7 +182,7 @@ func TestRoomAnnounce(t *testing.T) {
 
 	err = endpointA.Async(ctx, &ret, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "leave"})
 	r.NoError(err)
-	a.False(ret) // <ascii-shrugg>
+	a.True(ret)
 
 	select {
 	case <-time.After(10 * time.Second):
