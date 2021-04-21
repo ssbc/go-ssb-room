@@ -53,7 +53,7 @@ func (h *Handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *mux
 
 	edp, has := h.state.Has(arg.Target)
 	if !has {
-		return fmt.Errorf("no such endpoint")
+		return fmt.Errorf("could not connect to:%s", arg.Target.Ref())
 	}
 
 	// call connect on them
@@ -63,7 +63,7 @@ func (h *Handler) connect(ctx context.Context, req *muxrpc.Request, peerSrc *mux
 
 	targetSrc, targetSnk, err := edp.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"tunnel", "connect"}, argWorigin)
 	if err != nil {
-		return fmt.Errorf("failed to init connect call with target: %w", err)
+		return fmt.Errorf("could not connect to:%s", arg.Target.Ref())
 	}
 
 	// pipe data between caller and target
