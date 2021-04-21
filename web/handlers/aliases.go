@@ -76,12 +76,12 @@ type aliasResponder interface {
 
 // aliasJSONResponse dictates the field names and format of the JSON response for the alias web endpoint
 type aliasJSONResponse struct {
-	Status    string `json:"status"`
-	Address   string `json:"address"`
-	RoomID    string `json:"roomId"`
-	UserID    string `json:"userId"`
-	Alias     string `json:"alias"`
-	Signature string `json:"signature"`
+	Status             string `json:"status"`
+	MultiserverAddress string `json:"multiserverAddress"`
+	RoomID             string `json:"roomId"`
+	UserID             string `json:"userId"`
+	Alias              string `json:"alias"`
+	Signature          string `json:"signature"`
 }
 
 // handles JSON responses
@@ -104,12 +104,12 @@ func (json *aliasJSONResponder) UpdateRoomInfo(netInfo network.ServerEndpointDet
 
 func (json aliasJSONResponder) SendConfirmation(alias roomdb.Alias) {
 	var resp = aliasJSONResponse{
-		Status:    "successful",
-		RoomID:    json.netInfo.RoomID.Ref(),
-		Address:   json.netInfo.MultiserverAddress(),
-		Alias:     alias.Name,
-		UserID:    alias.Feed.Ref(),
-		Signature: base64.StdEncoding.EncodeToString(alias.Signature),
+		Status:             "successful",
+		RoomID:             json.netInfo.RoomID.Ref(),
+		MultiserverAddress: json.netInfo.MultiserverAddress(),
+		Alias:              alias.Name,
+		UserID:             alias.Feed.Ref(),
+		Signature:          base64.StdEncoding.EncodeToString(alias.Signature),
 	}
 	json.enc.Encode(resp)
 }
