@@ -43,5 +43,9 @@ func (h *Handler) Register(mux typemux.HandlerMux, namespace muxrpc.Method) {
 
 	mux.RegisterSource(append(namespace, "endpoints"), typemux.SourceFunc(h.endpoints))
 
-	mux.RegisterDuplex(append(namespace, "connect"), typemux.DuplexFunc(h.connect))
+	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
+		logger: h.logger,
+		self:   h.self,
+		state:  h.state,
+	})
 }
