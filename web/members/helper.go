@@ -92,13 +92,15 @@ func ContextInjecter(mdb roomdb.MembersService, withPassword *auth.Handler, with
 }
 
 // TemplateHelpers returns functions to be used with the go.mindeco.de/http/render package.
-// Each has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
+// Each helper has to return a function twice because the first is evaluated with the request before it gets passed onto html/template's FuncMap.
 //
-//  {{ is_logged_in }} returns true or false depending if the user is logged in
+//  {{ is_logged_in }} returns true or false depending on if the user is logged in
 //
 //  {{ member_has_role "string" }} returns a boolean which confrms wether the member has a certain role (RoleMemeber, RoleAdmin, etc)
 //
 //  {{ member_is_admin }} is a shortcut for {{ member_has_role "RoleAdmin" }}
+//
+//  {{ member_is_admin }} is a shortcut for {{ or member_has_role "RoleAdmin" member_has_role "RoleModerator"}}
 func TemplateHelpers() []render.Option {
 
 	return []render.Option{
@@ -141,6 +143,20 @@ func TemplateHelpers() []render.Option {
 
 			return func() bool {
 				return member.Role == roomdb.RoleAdmin
+			}
+		}),
+
+		// shorthand for is admin || mod (used for editing notices, managing users, managing aliases)
+		render.InjectTemplateFunc("member_is_elevated", func(r *http.Request) interface{} {
+			no := func() bool { return false }
+
+			member := FromContext(r.Context())
+			if member == nil {
+				return no
+			}
+
+			return func() bool {
+				return member.Role == roomdb.RoleAdmin || member.Role == roomdb.RoleModerator
 			}
 		}),
 	}

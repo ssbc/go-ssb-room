@@ -11,6 +11,7 @@
       <a class="text-pink-600 underline" href="https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes">{{ i18n "RoomsSpecification" }}</a>.
     </p>
   <h3 class="text-gray-400 text-sm font-bold mb-2">{{ i18n "SetPrivacyModeTitle" }}</h3>
+  {{ if member_is_admin }}
   <details class="mb-8 self-start max-w-sm" id="change-privacy">
     <summary class="px-3 py-1 max-w-sm rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
     {{ i18n .CurrentMode.String }}
@@ -44,6 +45,11 @@
       {{end}}
     </div>
   </details>
+  {{ else }}
+  <input disabled type="text" value="{{ i18n $.CurrentMode.String }}" 
+   class="mb-8 self-start max-w-sm px-3 py-1 max-w-sm rounded shadow ring-1 ring-gray-300 bg-gray-200 opacity-50 cursor-not-allowed"
+  >
+  {{ end }}
     <div class="grid max-w-lg grid-cols-3 gap-y-2 mb-8">
       <div class="text-xl text-gray-500 font-bold">{{ i18n "ModeOpen" }}</div>
       <div class="text-md col-span-2 italic">{{ i18n "ExplanationOpen" }}</div>
@@ -59,6 +65,7 @@
       {{ i18n "ExplanationDefaultLanguage" }} 
     </p>
   <h3 class="text-gray-400 text-sm font-bold mb-2">{{ i18n "SetDefaultLanguageTitle" }}</h3>
+  {{ if member_is_admin }} 
   <details class="mb-8 self-start max-w-sm">
     <summary id="language-summary" class="px-3 py-1 max-w-sm rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
     {{ $.CurrentLanguage }}
@@ -68,6 +75,11 @@
        {{ list_languages $adminSetLanguageUrl "pl-10 pr-3 py-2 w-full text-left bg-white text-gray-700 hover:text-gray-900 hover:bg-gray-50 cursor-pointer" }}
     </div>
   </details>
+  {{ else }}
+  <input disabled type="text" value="{{ $.CurrentLanguage }}" 
+   class="mb-8 self-start max-w-sm px-3 py-1 max-w-sm rounded shadow ring-1 ring-gray-300 bg-gray-200 opacity-50 cursor-not-allowed"
+  >
+  {{ end }}
   </div>
 
   </div>

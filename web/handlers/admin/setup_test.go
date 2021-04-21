@@ -133,6 +133,10 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["language_count"] = func() int { return 1 }
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
+	testFuncs["member_is_elevated"] = func() bool { return true }
+	testFuncs["member_is_admin"] = func() bool { return true }
+	testFuncs["member_can_invite"] = func() bool { return true }
+	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
 	renderOpts := []render.Option{
