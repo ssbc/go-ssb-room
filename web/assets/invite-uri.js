@@ -7,7 +7,7 @@ window.addEventListener('focus', () => {
 });
 
 const waitingElem = document.getElementById('waiting');
-const anchorElem = document.getElementById('join-room-uri');
+const anchorElem = document.getElementById('claim-invite-uri');
 anchorElem.onclick = function handleURI(ev) {
   ev.preventDefault();
   const ssbUri = anchorElem.href;
