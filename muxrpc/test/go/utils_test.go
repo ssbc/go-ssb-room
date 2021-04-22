@@ -145,7 +145,7 @@ type testClient struct {
 
 	feed refs.FeedRef
 
-	mockedHandler muxrpc.FakeHandler
+	mockedHandler *muxrpc.FakeHandler
 }
 
 func (ts *testSession) makeTestClient(name string) testClient {
@@ -181,19 +181,19 @@ func (ts *testSession) makeTestClient(name string) testClient {
 	r.NoError(err)
 
 	// returns a new connection that went through shs and does boxstream
-
 	tcpAddr := netwrap.GetAddr(ts.srv.Network.GetListenAddr(), "tcp")
-
 	authedConn, err := netwrap.Dial(tcpAddr, clientSHS.ConnWrapper(ts.srv.Whoami().PubKey()))
 	r.NoError(err)
-
-	var muxMock muxrpc.FakeHandler
 
 	// testPath := filepath.Join("testrun", ts.t.Name())
 	// debugConn := debug.Dump(filepath.Join(testPath, "client-"+name), authedConn)
 	pkr := muxrpc.NewPacker(authedConn)
 
-	wsEndpoint := muxrpc.Handle(pkr, &muxMock, muxrpc.WithContext(ts.ctx))
+	var muxMock = new(muxrpc.FakeHandler)
+	wsEndpoint := muxrpc.Handle(pkr, muxMock,
+		muxrpc.WithLogger(log.With(mainLog, "client", name)),
+		muxrpc.WithContext(ts.ctx),
+	)
 
 	srv := wsEndpoint.(muxrpc.Server)
 	ts.serveGroup.Go(func() error {
