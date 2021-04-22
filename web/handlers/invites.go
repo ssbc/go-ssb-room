@@ -41,7 +41,7 @@ func (h inviteHandler) buildJoinRoomURI(token string) template.URL {
 	joinRoomURI.Opaque = "experimental"
 
 	queryVals := make(url.Values)
-	queryVals.Set("action", "join-room")
+	queryVals.Set("action", "claim-http-invite")
 	queryVals.Set("invite", token)
 
 	submissionURL := h.urlTo(router.CompleteInviteConsume)

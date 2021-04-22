@@ -72,18 +72,18 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal(testToken, tokenFromArg)
 
 		webassert.Localized(t, doc, []webassert.LocalizedElement{
-			{"#join-room-uri", "InviteFacadeJoin"},
+			{"#claim-invite-uri", "InviteFacadeJoin"},
 			{"title", "InviteFacadeTitle"},
 		})
 
 		// Fallback URL in data-href-fallback
 		fallbackURL := ts.URLTo(router.CompleteInviteFacadeFallback, "token", testToken)
-		joinDataHrefFallback, ok := doc.Find("#join-room-uri").Attr("data-href-fallback")
+		joinDataHrefFallback, ok := doc.Find("#claim-invite-uri").Attr("data-href-fallback")
 		a.Equal(fallbackURL.String(), joinDataHrefFallback)
 		a.True(ok)
 
 		// ssb-uri in href
-		joinDataHref, ok := doc.Find("#join-room-uri").Attr("href")
+		joinDataHref, ok := doc.Find("#claim-invite-uri").Attr("href")
 		a.True(ok)
 		joinURI, err := url.Parse(joinDataHref)
 		r.NoError(err)
@@ -92,7 +92,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 		a.Equal("experimental", joinURI.Opaque)
 
 		params := joinURI.Query()
-		a.Equal("join-room", params.Get("action"))
+		a.Equal("claim-http-invite", params.Get("action"))
 
 		inviteParam := params.Get("invite")
 		a.Equal(testToken, inviteParam)
