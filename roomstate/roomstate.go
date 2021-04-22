@@ -4,14 +4,12 @@ import (
 	"context"
 	"sort"
 	"sync"
-	"time"
 
 	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 type Manager struct {
@@ -31,38 +29,7 @@ func NewManager(ctx context.Context, log kitlog.Logger) *Manager {
 	m.roomMu = new(sync.Mutex)
 	m.room = make(roomStateMap)
 
-	go m.stateTicker(ctx)
-
 	return &m
-}
-
-func (m *Manager) stateTicker(ctx context.Context) {
-	tick := time.NewTicker(10 * time.Second)
-	last := 0
-	for {
-		select {
-		case <-ctx.Done():
-			tick.Stop()
-			return
-
-		case <-tick.C:
-		}
-		m.roomMu.Lock()
-
-		cnt := len(m.room)
-		if cnt == last {
-			m.roomMu.Unlock()
-			continue
-		}
-		last = cnt
-
-		level.Info(m.logger).Log("room-cnt", cnt)
-		for who := range m.room {
-			level.Info(m.logger).Log("feed", who[1:5])
-		}
-
-		m.roomMu.Unlock()
-	}
 }
 
 // roomStateMap is a single room
