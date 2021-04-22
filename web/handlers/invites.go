@@ -52,7 +52,53 @@ func (h inviteHandler) buildJoinRoomURI(token string) template.URL {
 	return template.URL(joinRoomURI.String())
 }
 
-func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+// switch between JSON and HTML responses
+func (h inviteHandler) presentFacade(rw http.ResponseWriter, req *http.Request) {
+	enc := req.URL.Query().Get("encoding")
+	if enc == "json" {
+		h.presentFacadeAsJSON(rw, req)
+		return
+	}
+
+	h.render.HTML("invite/facade.tmpl", h.presentFacadeAsHTML)(rw, req)
+}
+
+func (h inviteHandler) presentFacadeAsJSON(rw http.ResponseWriter, req *http.Request) {
+	logger := logging.FromContext(req.Context())
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(http.StatusOK)
+
+	enc := json.NewEncoder(rw)
+
+	// make sure token is still valid
+	token := req.URL.Query().Get("token")
+	_, err := h.invites.GetByToken(req.Context(), token)
+	if err != nil {
+		// send a json error back
+		data := struct {
+			Status string `json:"status"`
+			Error  string `json:"error"`
+		}{"failed", err.Error()}
+		if err := enc.Encode(data); err != nil {
+			level.Warn(logger).Log("event", "sending json error failed", "err", err)
+		}
+		return
+	}
+
+	// send them on to the next step
+	postTo := h.urlTo(router.CompleteInviteConsume)
+	data := struct {
+		Status string `json:"status"`
+		Invite string `json:"invite"`
+		PostTo string `json:"postTo"`
+	}{"success", token, postTo.String()}
+	if err := enc.Encode(data); err != nil {
+		level.Warn(logger).Log("event", "sending json response failed", "err", err)
+	}
+}
+
+func (h inviteHandler) presentFacadeAsHTML(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	token := req.URL.Query().Get("token")
 
 	_, err := h.invites.GetByToken(req.Context(), token)

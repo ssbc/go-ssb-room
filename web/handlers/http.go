@@ -342,7 +342,7 @@ func New(
 		invites:       dbs.Invites,
 		deniedKeys:    dbs.DeniedKeys,
 	}
-	m.Get(router.CompleteInviteFacade).Handler(r.HTML("invite/facade.tmpl", ih.presentFacade))
+	m.Get(router.CompleteInviteFacade).HandlerFunc(ih.presentFacade)
 	m.Get(router.CompleteInviteFacadeFallback).Handler(r.HTML("invite/facade-fallback.tmpl", ih.presentFacadeFallback))
 	m.Get(router.CompleteInviteInsertID).Handler(r.HTML("invite/insert-id.tmpl", ih.presentInsert))
 	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
