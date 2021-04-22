@@ -15,7 +15,7 @@
   >
     {{ .csrfField }}
     <label class="block mt-6 mb-1 text-sm text-gray-500">{{ i18n "AdminAddNewMemberTitle" }}</label>
-    <div class="flex flex-row items-center justify-start mb-6">
+    <div id="add-member-input-container" class="flex flex-row items-center justify-start mb-6">
       <input
         {{ if member_is_elevated }} {{ else }} disabled {{ end }}
         type="text"

@@ -20,7 +20,7 @@
       method="POST"
     >
       {{ .csrfField }}
-      <div class="flex flex-row items-center h-12">
+      <div id="denied-keys-input-container" class="flex flex-row items-center h-12">
         <input
           {{ if member_is_elevated }} {{ else }} disabled {{ end }}
           type="text"

@@ -100,7 +100,7 @@ func ContextInjecter(mdb roomdb.MembersService, withPassword *auth.Handler, with
 //
 //  {{ member_is_admin }} is a shortcut for {{ member_has_role "RoleAdmin" }}
 //
-//  {{ member_is_admin }} is a shortcut for {{ or member_has_role "RoleAdmin" member_has_role "RoleModerator"}}
+//  {{ member_is_elevated }} is a shortcut for {{ or member_has_role "RoleAdmin" member_has_role "RoleModerator"}}
 func TemplateHelpers() []render.Option {
 
 	return []render.Option{

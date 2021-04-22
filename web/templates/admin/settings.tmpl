@@ -4,7 +4,7 @@
     class="text-3xl tracking-tight font-black text-black mt-2 mb-0"
   >{{ i18n "Settings" }}</h1>
 
-  <div class="max-w-2xl">
+  <div class="max-w-2xl" id="privacy-mode-container">
     <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">{{ i18n "PrivacyModesTitle" }}</h2>
     <p class="mb-4">
       {{ i18n "ExplanationPrivacyModes" }} 
@@ -39,7 +39,7 @@
                 <path fill="currentColor" d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z" />
               </svg>
             </div>
-            <span>{{ i18n .String }}</span>
+            <span id="selected-mode">{{ i18n .String }}</span>
           </div>
           {{end}}
       {{end}}
@@ -59,7 +59,7 @@
       <div class="text-md col-span-2 italic">{{ i18n "ExplanationRestricted" }}</div>
     </div>
   </div>
-  <div class="max-w-2xl">
+  <div class="max-w-2xl" id="change-language-container">
     <h2 class="text-xl tracking-tight font-bold text-black mt-2 mb-2">{{ i18n "DefaultLanguageTitle" }}</h2>
     <p class="mb-4">
       {{ i18n "ExplanationDefaultLanguage" }} 

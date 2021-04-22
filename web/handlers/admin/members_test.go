@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -34,6 +35,11 @@ func TestMembersEmpty(t *testing.T) {
 func TestMembersAdd(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
+
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
 
 	listURL := ts.URLTo(router.AdminMembersOverview)
 
@@ -70,6 +76,43 @@ func TestMembersAdd(t *testing.T) {
 	a.Equal(newKey, addedPubKey.Ref())
 	a.Equal(roomdb.RoleMember, addedRole)
 
+	/* Verify that the inputs are visible/hidden depending on user roles */
+	checkInputsAreDisabled := func(shouldBeDisabled bool) {
+		html, resp = ts.Client.GetHTML(listURL)
+		a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+		inputContainer := html.Find("#add-member-input-container")
+		a.Equal(1, inputContainer.Length())
+		inputs := inputContainer.Find("input")
+		// pubkey
+		a.Equal(1, inputs.Length())
+		inputs.Each(func(i int, el *goquery.Selection) {
+			_, disabled := el.Attr("disabled")
+			a.Equal(shouldBeDisabled, disabled)
+		})
+		button := inputContainer.Find("button")
+		a.Equal(1, button.Length())
+		button.Each(func(i int, el *goquery.Selection) {
+			_, disabled := el.Attr("disabled")
+			a.Equal(shouldBeDisabled, disabled)
+		})
+	}
+
+	// verify that inputs are enabled for RoleAdmin
+	checkInputsAreDisabled(false)
+
+	// verify that inputs are enabled for RoleModerator
+	ts.User = roomdb.Member{
+		ID:   9001,
+		Role: roomdb.RoleModerator,
+	}
+	checkInputsAreDisabled(false)
+
+	// verify that inputs are disabled for RoleMember
+	ts.User = roomdb.Member{
+		ID:   7331,
+		Role: roomdb.RoleMember,
+	}
+	checkInputsAreDisabled(true)
 }
 
 func TestMembersDontAddInvalid(t *testing.T) {
@@ -173,20 +216,17 @@ func TestMemberDetails(t *testing.T) {
 
 	memberURL := ts.URLTo(router.AdminMemberDetails, "id", "1")
 
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
+
 	html, resp := ts.Client.GetHTML(memberURL)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
 	webassert.Localized(t, html, []webassert.LocalizedElement{
 		{"title", "AdminMemberDetailsTitle"},
 	})
-
-	// check for SSB ID
-	ssbID := html.Find("#ssb-id")
-	a.Equal(feedRef.Ref(), ssbID.Text())
-
-	// check for change-role dropdown
-	roleDropdown := html.Find("#change-role")
-	a.EqualValues(roleDropdown.Length(), 1)
 
 	aliasList := html.Find("#alias-list").Find("a")
 
@@ -220,6 +260,37 @@ func TestMemberDetails(t *testing.T) {
 	a.True(yes, "a-tag has href attribute")
 	wantLink = ts.URLTo(router.AdminMembersRemoveConfirm, "id", 1)
 	a.Equal(wantLink.String(), removeLink)
+
+	testDisabledBehaviour := func(isElevated bool) {
+		html, resp := ts.Client.GetHTML(memberURL)
+		a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+		// check for SSB ID
+		ssbID := html.Find("#ssb-id")
+		a.Equal(feedRef.Ref(), ssbID.Text())
+
+		// check for change-role dropdown
+		roleDropdown := html.Find("#change-role")
+		if isElevated {
+			a.Equal(1, roleDropdown.Length())
+		} else {
+			a.Equal(0, roleDropdown.Length())
+		}
+	}
+	testDisabledBehaviour(true)
+
+	/* Now: verify that moderators cannot make room settings changes */
+	ts.User = roomdb.Member{
+		ID:   7331,
+		Role: roomdb.RoleModerator,
+	}
+	testDisabledBehaviour(true)
+
+	/* Finally: verify that members cannot make room settings changes */
+	ts.User = roomdb.Member{
+		ID:   9001,
+		Role: roomdb.RoleMember,
+	}
+	testDisabledBehaviour(false)
 }
 
 func TestMembersRemoveConfirmation(t *testing.T) {

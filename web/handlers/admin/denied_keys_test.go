@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
@@ -30,6 +31,85 @@ func TestDeniedKeysEmpty(t *testing.T) {
 		{"title", "AdminDeniedKeysTitle"},
 		{"#DeniedKeysCount", "MemberCountPlural"},
 	})
+}
+
+func TestDeniedKeysDisabledInterface(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+
+	listURL := ts.URLTo(router.AdminDeniedKeysOverview)
+
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
+
+	html, resp := ts.Client.GetHTML(listURL)
+	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+
+	formSelection := html.Find("form#add-entry")
+	a.EqualValues(1, formSelection.Length())
+
+	method, ok := formSelection.Attr("method")
+	a.True(ok, "form has method set")
+	a.Equal("POST", method)
+
+	action, ok := formSelection.Attr("action")
+	a.True(ok, "form has action set")
+
+	addURL := ts.URLTo(router.AdminDeniedKeysAdd)
+	a.Equal(addURL.String(), action)
+
+	webassert.ElementsInForm(t, formSelection, []webassert.FormElement{
+		{Name: "pub_key", Type: "text"},
+		{Name: "comment", Type: "text"},
+	})
+
+	newKey := "@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519"
+	addVals := url.Values{
+		"comment": []string{"some comment"},
+		// just any key that looks valid
+		"pub_key": []string{newKey},
+	}
+	rec := ts.Client.PostForm(addURL, addVals)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+
+	a.Equal(1, ts.DeniedKeysDB.AddCallCount())
+	_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(0)
+	a.Equal(newKey, addedKey.Ref())
+	a.Equal("some comment", addedComment)
+
+	/* Verify that the inputs are visible/hidden depending on user roles */
+	checkInputsAreDisabled := func(shouldBeDisabled bool) {
+		html, resp = ts.Client.GetHTML(listURL)
+		a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+		inputContainer := html.Find("#denied-keys-input-container")
+		a.Equal(1, inputContainer.Length())
+		inputs := inputContainer.Find("input")
+		// pubkey, comment, submit button
+		a.Equal(3, inputs.Length())
+		inputs.Each(func(i int, el *goquery.Selection) {
+			_, disabled := el.Attr("disabled")
+			a.Equal(shouldBeDisabled, disabled)
+		})
+	}
+
+	// verify that inputs are enabled for RoleAdmin
+	checkInputsAreDisabled(false)
+
+	// verify that inputs are enabled for RoleModerator
+	ts.User = roomdb.Member{
+		ID:   9001,
+		Role: roomdb.RoleModerator,
+	}
+	checkInputsAreDisabled(false)
+
+	// verify that inputs are disabled for RoleMember
+	ts.User = roomdb.Member{
+		ID:   7331,
+		Role: roomdb.RoleMember,
+	}
+	checkInputsAreDisabled(true)
 }
 
 func TestDeniedKeysAdd(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,6 +34,10 @@ func TestLanguageSetDefaultLanguage(t *testing.T) {
 	a := assert.New(t)
 
 	ts.ConfigDB.GetDefaultLanguageReturns("de", nil)
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
 
 	u := ts.URLTo(router.AdminSettings)
 	html, resp := ts.Client.GetHTML(u)
