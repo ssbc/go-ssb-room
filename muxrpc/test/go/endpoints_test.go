@@ -34,9 +34,9 @@ func TestEndpointClients(t *testing.T) {
 	ctx = ts.ctx
 
 	// create three test clients
-	alf, alfFeed := ts.makeTestClient("alf")
-	bre, breFeed := ts.makeTestClient("bre")
-	carl, carlFeed := ts.makeTestClient("carl")
+	alf := ts.makeTestClient("alf")
+	bre := ts.makeTestClient("bre")
+	carl := ts.makeTestClient("carl")
 
 	// let carl join the room
 	// carl wont announce to emulate manyverse
@@ -48,7 +48,7 @@ func TestEndpointClients(t *testing.T) {
 	go logEndpointsStream(ts, carlEndpointsSerc, "carl", announcementsForCarl)
 	time.Sleep(1 * time.Second) // give some time to process new events
 
-	_, seen := announcementsForCarl[carlFeed.Ref()]
+	_, seen := announcementsForCarl[carl.feed.Ref()]
 	a.True(seen, "carl saw himself")
 
 	// let alf join the room
@@ -60,13 +60,13 @@ func TestEndpointClients(t *testing.T) {
 	time.Sleep(1 * time.Second) // give some time to process new events
 
 	// assert what alf saw
-	_, seen = announcementsForAlf[carlFeed.Ref()]
+	_, seen = announcementsForAlf[carl.feed.Ref()]
 	a.True(seen, "alf saw carl")
-	_, seen = announcementsForAlf[alfFeed.Ref()]
+	_, seen = announcementsForAlf[alf.feed.Ref()]
 	a.True(seen, "alf saw himself")
 
 	// assert what carl saw
-	_, seen = announcementsForCarl[alfFeed.Ref()]
+	_, seen = announcementsForCarl[alf.feed.Ref()]
 	a.True(seen, "carl saw alf")
 
 	// let bre join the room
@@ -79,17 +79,17 @@ func TestEndpointClients(t *testing.T) {
 	time.Sleep(1 * time.Second) // give some time to process new events
 
 	// assert bre saw the other two and herself
-	_, seen = announcementsForBre[carlFeed.Ref()]
+	_, seen = announcementsForBre[carl.feed.Ref()]
 	a.True(seen, "bre saw carl")
-	_, seen = announcementsForBre[alfFeed.Ref()]
+	_, seen = announcementsForBre[alf.feed.Ref()]
 	a.True(seen, "bre saw alf")
-	_, seen = announcementsForBre[breFeed.Ref()]
+	_, seen = announcementsForBre[bre.feed.Ref()]
 	a.True(seen, "bre saw herself")
 
 	// assert the others saw bre
-	_, seen = announcementsForAlf[breFeed.Ref()]
+	_, seen = announcementsForAlf[bre.feed.Ref()]
 	a.True(seen, "alf saw bre")
-	_, seen = announcementsForCarl[breFeed.Ref()]
+	_, seen = announcementsForCarl[bre.feed.Ref()]
 	a.True(seen, "carl saw bre")
 
 	// terminate server and the clients

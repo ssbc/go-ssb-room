@@ -31,27 +31,27 @@ func TestStaleMembers(t *testing.T) {
 
 	// two new clients, connected to server automaticaly
 	// default to member during makeNamedTestBot
-	tal, _ := ts.makeTestClient("tal")
-	srh, srhFeed := ts.makeTestClient("srh")
+	tal := ts.makeTestClient("tal")
+	srh := ts.makeTestClient("srh")
 
 	// announce srh so that other could connect
 	var ok bool
 	err := srh.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
 	r.NoError(err)
 
-	_, has := ts.srv.StateManager.Has(srhFeed)
+	_, has := ts.srv.StateManager.Has(srh.feed)
 	r.True(has, "srh should be connected")
 
 	// shut down srh
 	srh.Terminate()
 	time.Sleep(1 * time.Second)
-	_, has = ts.srv.StateManager.Has(srhFeed)
+	_, has = ts.srv.StateManager.Has(srh.feed)
 	r.False(has, "srh shouldn't be connected")
 
 	// try to connect srh
 	var arg server.ConnectArg
 	arg.Portal = ts.srv.Whoami()
-	arg.Target = srhFeed
+	arg.Target = srh.feed
 
 	src, snk, err := tal.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"room", "connect"}, arg)
 	r.NoError(err)
@@ -67,8 +67,12 @@ func TestStaleMembers(t *testing.T) {
 	_, err = snk.Write([]byte("fake keyexchange"))
 	r.Error(err, "stream should should be canceled")
 
+	// restart srh
+
+	// shut everythign down
 	ts.srv.Shutdown()
 	tal.Terminate()
+	srh.Terminate()
 	ts.srv.Close()
 
 	// wait for all muxrpc serve()s to exit

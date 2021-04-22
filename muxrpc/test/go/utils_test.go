@@ -82,6 +82,9 @@ type testSession struct {
 
 	ctx        context.Context
 	serveGroup *errgroup.Group
+
+	// so that we can re-spawn clients
+	clientKeys map[string]*keys.KeyPair
 }
 
 func makeNamedTestBot(t testing.TB, name string, ctx context.Context, opts []roomsrv.Option) *testSession {
@@ -123,8 +126,9 @@ func makeNamedTestBot(t testing.TB, name string, ctx context.Context, opts []roo
 	r.NoError(err)
 
 	ts := testSession{
-		t:   t,
-		srv: theBot,
+		t:          t,
+		srv:        theBot,
+		clientKeys: make(map[string]*keys.KeyPair),
 	}
 
 	ts.serveGroup, ts.ctx = errgroup.WithContext(ctx)
@@ -136,19 +140,37 @@ func makeNamedTestBot(t testing.TB, name string, ctx context.Context, opts []roo
 	return &ts
 }
 
-func (ts *testSession) makeTestClient(name string) (muxrpc.Endpoint, refs.FeedRef) {
+type testClient struct {
+	muxrpc.Endpoint
+
+	feed refs.FeedRef
+
+	mockedHandler muxrpc.FakeHandler
+}
+
+func (ts *testSession) makeTestClient(name string) testClient {
 	r := require.New(ts.t)
 
 	// create a fresh keypairs for the clients
-	client, err := keys.NewKeyPair(nil)
-	r.NoError(err)
+	client, has := ts.clientKeys[name]
+	if !has {
+		var err error
+		client, err = keys.NewKeyPair(nil)
+		r.NoError(err)
+		ts.clientKeys[name] = client
+	}
 
 	ts.t.Log(name, "is", client.Feed.ShortRef())
 
-	// add it as a memeber
-	memberID, err := ts.srv.Members.Add(ts.ctx, client.Feed, roomdb.RoleMember)
-	r.NoError(err)
-	ts.t.Log(name, "is member ID:", memberID)
+	// add it as a memeber, if it isnt already
+	_, err := ts.srv.Members.GetByFeed(ts.ctx, client.Feed)
+	if errors.Is(err, roomdb.ErrNotFound) {
+		memberID, err := ts.srv.Members.Add(ts.ctx, client.Feed, roomdb.RoleMember)
+		r.NoError(err)
+		ts.t.Log(name, "is member ID:", memberID)
+	} else {
+		r.NoError(err)
+	}
 
 	// default app key for the secret-handshake connection
 	ak, err := base64.StdEncoding.DecodeString("1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=")
@@ -167,9 +189,9 @@ func (ts *testSession) makeTestClient(name string) (muxrpc.Endpoint, refs.FeedRe
 
 	var muxMock muxrpc.FakeHandler
 
-	testPath := filepath.Join("testrun", ts.t.Name())
-	debugConn := debug.Dump(filepath.Join(testPath, "client-"+name), authedConn)
-	pkr := muxrpc.NewPacker(debugConn)
+	// testPath := filepath.Join("testrun", ts.t.Name())
+	// debugConn := debug.Dump(filepath.Join(testPath, "client-"+name), authedConn)
+	pkr := muxrpc.NewPacker(authedConn)
 
 	wsEndpoint := muxrpc.Handle(pkr, &muxMock, muxrpc.WithContext(ts.ctx))
 
@@ -188,7 +210,11 @@ func (ts *testSession) makeTestClient(name string) (muxrpc.Endpoint, refs.FeedRe
 	r.NoError(err)
 	r.True(yup, "server is not a room?")
 
-	return wsEndpoint, client.Feed
+	return testClient{
+		feed:          client.Feed,
+		Endpoint:      wsEndpoint,
+		mockedHandler: muxMock,
+	}
 }
 
 // TODO: refactor for single test session and use makeTestClient()
