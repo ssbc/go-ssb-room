@@ -158,7 +158,7 @@ func New(
 		}
 	}
 
-	s.StateManager = roomstate.NewManager(s.rootCtx, s.logger)
+	s.StateManager = roomstate.NewManager(s.logger)
 
 	s.initHandlers()
 

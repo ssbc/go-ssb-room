@@ -1,7 +1,6 @@
 package roomstate
 
 import (
-	"context"
 	"sort"
 	"sync"
 
@@ -22,7 +21,7 @@ type Manager struct {
 	room   roomStateMap
 }
 
-func NewManager(ctx context.Context, log kitlog.Logger) *Manager {
+func NewManager(log kitlog.Logger) *Manager {
 	var m Manager
 	m.logger = log
 	m.updater, m.broadcaster = broadcasts.NewRoomChanger()

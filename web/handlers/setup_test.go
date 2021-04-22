@@ -4,7 +4,6 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -95,8 +94,8 @@ func setup(t *testing.T) *testSession {
 	}
 
 	log, _ := logtest.KitLogger("complete", t)
-	ctx := context.TODO()
-	ts.RoomState = roomstate.NewManager(ctx, log)
+
+	ts.RoomState = roomstate.NewManager(log)
 
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme

@@ -4,7 +4,6 @@ package admin
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"net/http"
 	"net/url"
@@ -72,8 +71,7 @@ func newSession(t *testing.T) *testSession {
 	ts.InvitesDB = new(mockdb.FakeInvitesService)
 
 	log, _ := logtest.KitLogger("admin", t)
-	ctx := context.TODO()
-	ts.RoomState = roomstate.NewManager(ctx, log)
+	ts.RoomState = roomstate.NewManager(log)
 
 	ts.netInfo = network.ServerEndpointDetails{
 		Domain: randutil.String(10),
