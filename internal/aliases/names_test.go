@@ -20,6 +20,8 @@ func TestIsValid(t *testing.T) {
 		{"no.dots", false},
 		{"#*!(! nope", false},
 
+		{"NoUpperCase", false},
+
 		// too long
 		{"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", false},
 	}
