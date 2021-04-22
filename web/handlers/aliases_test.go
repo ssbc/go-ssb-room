@@ -65,6 +65,7 @@ func TestAliasResolve(t *testing.T) {
 	r.NoError(err)
 	a.Equal(testAlias.Signature, sigData)
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), params.Get("roomId"))
+	a.Equal(ts.NetworkInfo.MultiserverAddress(), params.Get("multiserverAddress"))
 
 	// now as JSON
 	jsonURL, err := routes.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
@@ -86,4 +87,5 @@ func TestAliasResolve(t *testing.T) {
 	a.Equal(testAlias.Signature, sigData2)
 	a.Equal(testAlias.Feed.Ref(), ar.UserID, "wrong user feed on response")
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), ar.RoomID, "wrong room feed on response")
+	a.Equal(ts.NetworkInfo.MultiserverAddress(), ar.MultiserverAddress)
 }
