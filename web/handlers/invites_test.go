@@ -181,25 +181,46 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	testInvite := roomdb.Invite{ID: 4321}
 	ts.InvitesDB.GetByTokenReturns(testInvite, nil)
 
+	// check if the token is still valid
+	checkInviteURL := ts.URLTo(router.CompleteInviteFacade)
+	qvals := url.Values{
+		"token":    []string{testToken},
+		"encoding": []string{"json"},
+	}
+	checkInviteURL.RawQuery = qvals.Encode()
+
+	// send the request and check the json
+	resp := ts.Client.GetBody(checkInviteURL)
+	result := resp.Result()
+	a.Equal(http.StatusOK, result.StatusCode)
+
+	var reply struct {
+		Invite string
+		PostTo string
+	}
+	err := json.NewDecoder(result.Body).Decode(&reply)
+	r.NoError(err)
+
+	// construct the consume endpoint url
+	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
+
+	a.Equal(consumeInviteURL.String(), reply.PostTo, "wrong postTo in JSON body")
+	a.Equal(testToken, reply.Invite, "wrong invite token")
+
 	// create the consume request
 	testNewMember := refs.FeedRef{
 		ID:   bytes.Repeat([]byte{1}, 32),
 		Algo: refs.RefAlgoFeedSSB1,
 	}
-
 	var consume inviteConsumePayload
 	consume.Invite = testToken
 	consume.ID = testNewMember
-
-	// construct the consume endpoint url
-	consumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
-	r.NotNil(consumeInviteURL)
 
 	// prepare the mock
 	ts.InvitesDB.ConsumeReturns(testInvite, nil)
 
 	// send the POST
-	resp := ts.Client.SendJSON(consumeInviteURL, consume)
+	resp = ts.Client.SendJSON(consumeInviteURL, consume)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for sign in")
 
 	// check how consume was called
@@ -209,7 +230,7 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	a.True(newMemberRef.Equal(&testNewMember))
 
 	var jsonConsumeResp inviteConsumeJSONResponse
-	err := json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
+	err = json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
 	r.NoError(err)
 
 	a.Equal("successful", jsonConsumeResp.Status)
