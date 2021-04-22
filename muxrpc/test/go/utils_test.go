@@ -5,6 +5,7 @@ package go_test
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -15,22 +16,25 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
+	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/debug"
+	"go.cryptoscope.co/netwrap"
+	"go.cryptoscope.co/secretstream"
+	"golang.org/x/sync/errgroup"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	refs "go.mindeco.de/ssb-refs"
 )
 
 var (
@@ -130,6 +134,61 @@ func makeNamedTestBot(t testing.TB, name string, ctx context.Context, opts []roo
 	})
 
 	return &ts
+}
+
+func (ts *testSession) makeTestClient(name string) (muxrpc.Endpoint, refs.FeedRef) {
+	r := require.New(ts.t)
+
+	// create a fresh keypairs for the clients
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+
+	ts.t.Log(name, "is", client.Feed.ShortRef())
+
+	// add it as a memeber
+	memberID, err := ts.srv.Members.Add(ts.ctx, client.Feed, roomdb.RoleMember)
+	r.NoError(err)
+	ts.t.Log(name, "is member ID:", memberID)
+
+	// default app key for the secret-handshake connection
+	ak, err := base64.StdEncoding.DecodeString("1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=")
+	r.NoError(err)
+
+	// create a shs client to authenticate and encrypt the connection
+	clientSHS, err := secretstream.NewClient(client.Pair, ak)
+	r.NoError(err)
+
+	// returns a new connection that went through shs and does boxstream
+
+	tcpAddr := netwrap.GetAddr(ts.srv.Network.GetListenAddr(), "tcp")
+
+	authedConn, err := netwrap.Dial(tcpAddr, clientSHS.ConnWrapper(ts.srv.Whoami().PubKey()))
+	r.NoError(err)
+
+	var muxMock muxrpc.FakeHandler
+
+	testPath := filepath.Join("testrun", ts.t.Name())
+	debugConn := debug.Dump(filepath.Join(testPath, "client-"+name), authedConn)
+	pkr := muxrpc.NewPacker(debugConn)
+
+	wsEndpoint := muxrpc.Handle(pkr, &muxMock, muxrpc.WithContext(ts.ctx))
+
+	srv := wsEndpoint.(muxrpc.Server)
+	ts.serveGroup.Go(func() error {
+		err = srv.Serve()
+		if err != nil {
+			ts.t.Logf("mux server %s error: %v", name, err)
+		}
+		return err
+	})
+
+	// check we are talking to a room
+	var yup bool
+	err = wsEndpoint.Async(ts.ctx, &yup, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	r.NoError(err)
+	r.True(yup, "server is not a room?")
+
+	return wsEndpoint, client.Feed
 }
 
 // TODO: refactor for single test session and use makeTestClient()
