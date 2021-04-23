@@ -109,7 +109,7 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	}
 
 	// have the database return okay for any user
-	testUser := roomdb.Member{ID: 23}
+	testUser := roomdb.Member{ID: 23, Role: roomdb.RoleAdmin}
 	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
 	ts.MembersDB.GetByIDReturns(testUser, nil)
 

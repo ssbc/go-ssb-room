@@ -117,6 +117,7 @@ AdminMemberDetailsRemove = "Mitglied entfernen"
 AdminMemberAdded = "Mitglied erfolgreich hinzugefügt."
 AdminMemberUpdated = "Mitglied aktualisiert."
 AdminMemberRemoved = "Mitglied entfernt."
+AdminAddNewMemberTitle = "Add a new member"
 
 AdminAliasesRevoke = "Widerrufen"
 AdminAliasesRevokeConfirmTitle = "Alias ​​widerrufen"

@@ -20,7 +20,7 @@
         >{{.Language}}</a>
       {{end}}
 
-      {{if is_logged_in}}
+      {{if and is_logged_in member_is_elevated }}
         <a
           href="{{urlTo "admin:notice:translation:draft" "name" .Name.String}}"
           class="inline-block rounded-full py-1 px-3 text-sm text-gray-500 font-bold border-2 border-dashed box-content border-gray-200 hover:border-transparent hover:bg-white hover:shadow"

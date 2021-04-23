@@ -12,7 +12,7 @@
   </div>
 
   <div class="h-8"></div>
-  {{if is_logged_in}}
+    {{if and is_logged_in member_is_elevated }}
     <a
       id="edit-notice"
       href="{{urlTo "admin:notice:edit" "id" .ID}}"

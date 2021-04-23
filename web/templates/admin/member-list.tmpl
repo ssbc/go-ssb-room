@@ -14,16 +14,23 @@
     method="POST"
   >
     {{ .csrfField }}
-    <label class="block mt-6 mb-1 text-sm text-gray-500">Add a new member</label>
-    <div class="flex flex-row items-center justify-start mb-6">
+    <label class="block mt-6 mb-1 text-sm text-gray-500">{{ i18n "AdminAddNewMemberTitle" }}</label>
+    <div id="add-member-input-container" class="flex flex-row items-center justify-start mb-6">
       <input
+        {{ if member_is_elevated }} {{ else }} disabled {{ end }}
         type="text"
         name="pub_key"
         placeholder="{{i18n "PubKeyRefPlaceholder"}}"
-        class="w-8/12 self-stretch shadow rounded border border-transparent h-10 p-1 pl-4 font-mono truncate text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent">
+        class="w-8/12 self-stretch shadow rounded border border-transparent h-10 p-1 pl-4 font-mono truncate 
+        text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent
+        {{ if member_is_elevated }} {{ else }} shadow ring-1 ring-gray-300 opacity-50 bg-gray-200 cursor-not-allowed {{ end }}
+        ">
       <button
+        {{ if member_is_elevated }} {{ else }} disabled {{ end }}
         type="submit"
-        class="ml-4 h-10 shadow rounded px-6 text-purple-600 ring-1 ring-purple-400 bg-white hover:bg-purple-600 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        class="ml-4 h-10 shadow rounded px-6 text-purple-600 ring-1 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400
+        {{ if member_is_elevated }} ring-purple-400 hover:bg-purple-600 hover:text-gray-100 {{ else }} opacity-50 ring-purple-300 bg-purple-200 cursor-not-allowed {{ end }}
+        "
         >{{i18n "AdminMembersAdd"}}</button>
     </div>
   </form>

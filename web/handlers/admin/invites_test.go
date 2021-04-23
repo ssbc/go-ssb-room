@@ -64,6 +64,50 @@ func TestInvitesOverview(t *testing.T) {
 	a.True(yes, "a-tag has href attribute")
 	wantURL := ts.URLTo(router.AdminInvitesRevokeConfirm, "id", 666)
 	a.Equal(wantURL.String(), link)
+
+	testInviteButtonDisabled := func(shouldBeDisabled bool) {
+		html, resp = ts.Client.GetHTML(invitesOverviewURL)
+		a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+		inviteButton := html.Find("#create-invite button")
+		_, disabled := inviteButton.Attr("disabled")
+		a.EqualValues(shouldBeDisabled, disabled, "invite button should be disabled")
+	}
+
+	// member, mod, admin should all be able to invite in ModeCommunity
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
+	testInviteButtonDisabled(false)
+	ts.User = roomdb.Member{
+		ID:   7331,
+		Role: roomdb.RoleModerator,
+	}
+	testInviteButtonDisabled(false)
+	ts.User = roomdb.Member{
+		ID:   9001,
+		Role: roomdb.RoleMember,
+	}
+	testInviteButtonDisabled(false)
+
+	// mod and admin should be able to invite, member should not
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeRestricted, nil)
+	ts.User = roomdb.Member{
+		ID:   1234,
+		Role: roomdb.RoleAdmin,
+	}
+	testInviteButtonDisabled(false)
+	ts.User = roomdb.Member{
+		ID:   7331,
+		Role: roomdb.RoleModerator,
+	}
+	testInviteButtonDisabled(false)
+	ts.User = roomdb.Member{
+		ID:   9001,
+		Role: roomdb.RoleMember,
+	}
+	testInviteButtonDisabled(true)
 }
 
 func TestInvitesCreateForm(t *testing.T) {

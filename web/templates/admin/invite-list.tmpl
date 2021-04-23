@@ -28,8 +28,15 @@
             >
             {{ .csrfField }}
             <button
+              {{ if not member_can_invite }} disabled {{ end }}
               type="submit"
-              class="shadow rounded px-3 py-1.5 text-green-600 ring-1 ring-green-400 bg-white hover:bg-green-500 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-400"
+              class="shadow rounded px-3 py-1.5 ring-1 focus:outline-none focus:ring-2 
+              {{ if member_can_invite }} 
+                text-green-600 ring-green-400 bg-white hover:bg-green-500 hover:text-gray-100 focus:ring-green-400 
+              {{ else }} 
+                text-gray-500 ring-gray-200 bg-gray-300 cursor-not-allowed 
+              {{ end }}
+              "
               >{{i18n "AdminInvitesCreate"}}</button>
           </form>
         </td>
@@ -44,6 +51,8 @@
 
     <tbody id="the-table-rows" class="divide-y">
       {{range .Entries}}
+        {{ $user := is_logged_in }}
+        {{$hasCreatedInvite := eq $user.PubKey.Ref .CreatedBy.PubKey.Ref }}
         {{$creator := .CreatedBy.PubKey.Ref}}
         {{$creatorIsAlias := false}}
         {{range $index, $alias := .CreatedBy.Aliases}}
@@ -67,10 +76,12 @@
           {{end}}
         </td>
         <td class="w-3/12 pl-2 pr-3 text-right">
+        {{ if or member_is_elevated $hasCreatedInvite }}
           <a
             href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
             class="pl-2 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
           >{{i18n "AdminInviteRevoke"}}</a>
+        {{ end }}
         </td>
       </tr>
       <tr class="h-12 table-row sm:hidden">
@@ -84,10 +95,12 @@
                 >{{$creator}}</span>, {{human_time .CreatedAt}}
             {{end}}
           </span>
-          <a
-            href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
-            class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
-            >{{i18n "AdminInviteRevoke"}}</a>
+          {{ if or member_is_elevated $hasCreatedInvite }}
+            <a
+              href="{{urlTo "admin:invites:revoke:confirm" "id" .ID}}"
+              class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+              >{{i18n "AdminInviteRevoke"}}</a>
+          {{ end }}
         </td>
       </tr>
       {{end}}
