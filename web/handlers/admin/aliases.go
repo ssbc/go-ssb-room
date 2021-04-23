@@ -88,7 +88,8 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	// ensure own alias or admin
 	if !aliasEntry.Feed.Equal(&currentMember.PubKey) && currentMember.Role != roomdb.RoleAdmin {
 		err := weberrors.ErrForbidden{Details: fmt.Errorf("not your alias or not an admin")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
+		http.Redirect(rw, req, redirectToMembers, http.StatusForbidden)
 		return
 	}
 

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/sessions"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"go.mindeco.de/logging"
 )
 
 type FlashHelper struct {
@@ -71,6 +73,8 @@ func (fh FlashHelper) AddError(rw http.ResponseWriter, req *http.Request, err er
 
 	ih := fh.locHelper.FromRequest(req)
 
+	logger := logging.FromContext(req.Context())
+	level.Warn(logger).Log("event", "flash-err", "err", err)
 	_, msg := localizeError(ih, err)
 
 	session.AddFlash(FlashMessage{

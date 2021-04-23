@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"bytes"
 	"net/http"
 	"net/url"
 	"testing"
@@ -53,10 +54,16 @@ func TestAliasesRevoke(t *testing.T) {
 	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
 	overviewURL := ts.URLTo(router.AdminMembersOverview)
 
+	testAlias := roomdb.Alias{
+		Name: "testAlias",
+		Feed: ts.User.PubKey,
+	}
+	ts.AliasesDB.ResolveReturns(testAlias, nil)
+
 	ts.AliasesDB.RevokeReturns(nil)
 
-	addVals := url.Values{"name": []string{"the-name"}}
-	rec := ts.Client.PostForm(urlRevoke, addVals)
+	revokeVal := url.Values{"name": []string{testAlias.Name}}
+	rec := ts.Client.PostForm(urlRevoke, revokeVal)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
@@ -65,15 +72,71 @@ func TestAliasesRevoke(t *testing.T) {
 
 	a.Equal(1, ts.AliasesDB.RevokeCallCount())
 	_, theName := ts.AliasesDB.RevokeArgsForCall(0)
-	a.EqualValues("the-name", theName)
+	a.EqualValues(testAlias.Name, theName)
 
 	// now for unknown ID
 	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
-	addVals = url.Values{"name": []string{"nope"}}
-	rec = ts.Client.PostForm(urlRevoke, addVals)
+	revokeVal = url.Values{"name": []string{"nope"}}
+	rec = ts.Client.PostForm(urlRevoke, revokeVal)
 	a.Equal(http.StatusTemporaryRedirect, rec.Code)
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
 	webassert.HasFlashMessages(t, ts.Client, overviewURL, "ErrorNotFound")
+}
+
+func TestAliasesRevokeByMember(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+
+	// the alias we test against
+	testAlias := roomdb.Alias{
+		Name: "testalias",
+		Feed: refs.FeedRef{
+			ID:   bytes.Repeat([]byte("1"), 32),
+			Algo: "ed25519",
+		},
+	}
+	ts.AliasesDB.ResolveReturns(testAlias, nil)
+
+	// start with someone else trying to remove it
+	ts.User = roomdb.Member{
+		ID: 666,
+		PubKey: refs.FeedRef{
+			ID:   bytes.Repeat([]byte("2"), 32),
+			Algo: "ed25519",
+		},
+		Role: roomdb.RoleMember,
+	}
+
+	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
+	overviewURL := ts.URLTo(router.AdminMembersOverview)
+
+	revokeVal := url.Values{"name": []string{testAlias.Name}}
+	rec := ts.Client.PostForm(urlRevoke, revokeVal)
+	a.Equal(http.StatusForbidden, rec.Code)
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "ErrorForbidden")
+	a.Equal(0, ts.AliasesDB.RevokeCallCount())
+
+	// now change the user to the one owning the alias
+	ts.User = roomdb.Member{
+		ID:     123,
+		PubKey: testAlias.Feed,
+		Role:   roomdb.RoleMember,
+	}
+
+	rec = ts.Client.PostForm(urlRevoke, revokeVal)
+	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
+	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, overviewURL, "AdminMemberDetailsAliasRevoked")
+
+	if a.Equal(1, ts.AliasesDB.RevokeCallCount()) {
+		_, theName := ts.AliasesDB.RevokeArgsForCall(0)
+		a.EqualValues(testAlias.Name, theName)
+	}
+
 }
