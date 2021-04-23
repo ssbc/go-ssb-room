@@ -4,6 +4,7 @@ package admin
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"net/http"
 	"net/url"
@@ -134,7 +135,7 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["member_is_elevated"] = func() bool { return ts.User.Role == roomdb.RoleAdmin || ts.User.Role == roomdb.RoleModerator }
 	testFuncs["member_is_admin"] = func() bool { return ts.User.Role == roomdb.RoleAdmin }
 	testFuncs["member_can_invite"] = func() bool {
-		pm, _ := ts.ConfigDB.GetPrivacyMode(ctx)
+		pm, _ := ts.ConfigDB.GetPrivacyMode(context.TODO())
 		memberElevated := ts.User.Role == roomdb.RoleAdmin || ts.User.Role == roomdb.RoleModerator
 		memberCanInvite := ts.User.Role == roomdb.RoleMember && (pm == roomdb.ModeCommunity || pm == roomdb.ModeOpen)
 		return memberElevated || memberCanInvite
