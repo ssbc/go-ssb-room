@@ -99,6 +99,10 @@ func newSession(t *testing.T) *testSession {
 	ts.User = roomdb.Member{
 		ID:   1234,
 		Role: roomdb.RoleModerator,
+		PubKey: refs.FeedRef{
+			ID:   bytes.Repeat([]byte("0"), 32),
+			Algo: "ed25519",
+		},
 	}
 
 	testPath := filepath.Join("testrun", t.Name())
@@ -174,7 +178,7 @@ func newSession(t *testing.T) *testSession {
 		},
 	)
 
-	handler = members.MiddlewareForTests(ts.User)(handler)
+	handler = members.MiddlewareForTests(&ts.User)(handler)
 
 	ts.Mux = http.NewServeMux()
 	ts.Mux.Handle("/", handler)
