@@ -76,11 +76,11 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	case roomdb.ModeOpen:
 	case roomdb.ModeCommunity:
 		if member.Role == roomdb.RoleUnknown {
-			return nil, fmt.Errorf("warning: member with unknown role tried to create an invite")
+			return nil, weberrors.ErrNotAuthorized
 		}
 	case roomdb.ModeRestricted:
 		if member.Role == roomdb.RoleMember || member.Role == roomdb.RoleUnknown {
-			return nil, fmt.Errorf("warning: non-admin/mod user tried to create an invite")
+			return nil, weberrors.ErrNotAuthorized
 		}
 	}
 

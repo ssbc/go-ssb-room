@@ -56,6 +56,14 @@ type testSession struct {
 	RoomState *roomstate.Manager
 }
 
+var pubKeyCount byte
+
+func generatePubKey() refs.FeedRef {
+	pk := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{pubKeyCount}, 32)}
+	pubKeyCount++
+	return pk
+}
+
 func newSession(t *testing.T) *testSession {
 	var ts testSession
 
@@ -76,7 +84,7 @@ func newSession(t *testing.T) *testSession {
 
 	ts.netInfo = network.ServerEndpointDetails{
 		Domain: randutil.String(10),
-		RoomID: refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)},
+		RoomID: generatePubKey(),
 
 		UseSubdomainForAliases: true,
 	}
@@ -97,12 +105,9 @@ func newSession(t *testing.T) *testSession {
 
 	// fake user
 	ts.User = roomdb.Member{
-		ID:   1234,
-		Role: roomdb.RoleModerator,
-		PubKey: refs.FeedRef{
-			ID:   bytes.Repeat([]byte("0"), 32),
-			Algo: "ed25519",
-		},
+		ID:     1234,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
 	}
 
 	testPath := filepath.Join("testrun", t.Name())

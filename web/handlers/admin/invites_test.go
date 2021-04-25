@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -143,17 +144,29 @@ func TestInvitesCreate(t *testing.T) {
 	a := assert.New(t)
 	r := require.New(t)
 
-	urlRemove := ts.URLTo(router.AdminInvitesCreate)
+	urlCreate := ts.URLTo(router.AdminInvitesCreate)
 
 	testInvite := "your-fake-test-invite"
 	ts.InvitesDB.CreateReturns(testInvite, nil)
 
-	rec := ts.Client.PostForm(urlRemove, url.Values{})
-	a.Equal(http.StatusOK, rec.Code)
+	totalCreateCallCount := 0
+	createInviteShouldWork := func(works bool) *httptest.ResponseRecorder {
+		rec := ts.Client.PostForm(urlCreate, url.Values{})
+		if works {
+			totalCreateCallCount += 1
+			a.Equal(http.StatusOK, rec.Code)
+			r.Equal(totalCreateCallCount, ts.InvitesDB.CreateCallCount())
+			_, userID := ts.InvitesDB.CreateArgsForCall(totalCreateCallCount - 1)
+			a.EqualValues(ts.User.ID, userID)
+		} else {
+			// TODO: status should be http.StatusForbidden? see invites.go:79
+			a.Equal(http.StatusInternalServerError, rec.Code)
+			r.Equal(totalCreateCallCount, ts.InvitesDB.CreateCallCount())
+		}
+		return rec
+	}
 
-	r.Equal(1, ts.InvitesDB.CreateCallCount(), "expected one invites.Create call")
-	_, userID := ts.InvitesDB.CreateArgsForCall(0)
-	a.EqualValues(ts.User.ID, userID)
+	rec := createInviteShouldWork(true)
 
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
 	require.NoError(t, err, "failed to parse response")
@@ -167,4 +180,34 @@ func TestInvitesCreate(t *testing.T) {
 
 	shownLink := doc.Find("#invite-facade-link").Text()
 	a.Equal(wantURL.String(), shownLink)
+
+	memberUser := roomdb.Member{
+		ID:     7331,
+		Role:   roomdb.RoleMember,
+		PubKey: generatePubKey(),
+	}
+	modUser := roomdb.Member{
+		ID:     9001,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
+	}
+	adminUser := roomdb.Member{
+		ID:     1337,
+		Role:   roomdb.RoleAdmin,
+		PubKey: generatePubKey(),
+	}
+
+	/* test invite creation under various restricted mode with the roles member, mod, admin */
+	modes := []roomdb.PrivacyMode{roomdb.ModeRestricted, roomdb.ModeCommunity}
+	for _, mode := range modes {
+		ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
+		ts.User = memberUser
+		// members can only invite in community rooms
+		createInviteShouldWork(mode == roomdb.ModeCommunity)
+		// mods & admins can always invite
+		ts.User = modUser
+		createInviteShouldWork(true)
+		ts.User = adminUser
+		createInviteShouldWork(true)
+	}
 }
