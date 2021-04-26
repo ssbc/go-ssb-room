@@ -56,6 +56,14 @@ type testSession struct {
 	RoomState *roomstate.Manager
 }
 
+var pubKeyCount byte
+
+func generatePubKey() refs.FeedRef {
+	pk := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{pubKeyCount}, 32)}
+	pubKeyCount++
+	return pk
+}
+
 func newSession(t *testing.T) *testSession {
 	var ts testSession
 
@@ -76,7 +84,7 @@ func newSession(t *testing.T) *testSession {
 
 	ts.netInfo = network.ServerEndpointDetails{
 		Domain: randutil.String(10),
-		RoomID: refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)},
+		RoomID: generatePubKey(),
 
 		UseSubdomainForAliases: true,
 	}
@@ -97,8 +105,9 @@ func newSession(t *testing.T) *testSession {
 
 	// fake user
 	ts.User = roomdb.Member{
-		ID:   1234,
-		Role: roomdb.RoleModerator,
+		ID:     1234,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
 	}
 
 	testPath := filepath.Join("testrun", t.Name())
@@ -121,10 +130,10 @@ func newSession(t *testing.T) *testSession {
 	os.MkdirAll(sessionsPath, 0700)
 	fsStore := sessions.NewFilesystemStore(sessionsPath, authKey, encKey)
 
+	// setup rendering
 	flashHelper := weberrs.NewFlashHelper(fsStore, locHelper)
 
-	// setup rendering
-
+	// template funcs
 	// TODO: make testing utils and move these there
 	testFuncs := web.TemplateFuncs(router, ts.netInfo)
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
@@ -143,11 +152,13 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
+	eh := weberrs.NewErrorHandler(locHelper, flashHelper)
+
 	renderOpts := []render.Option{
 		render.SetLogger(log),
 		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "error.tmpl")...),
-		render.ErrorTemplate("error.tmpl"),
+		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(testFuncs),
 	}
 	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
@@ -156,6 +167,8 @@ func newSession(t *testing.T) *testSession {
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "setup: render init failed"))
 	}
+
+	eh.SetRenderer(r)
 
 	handler := Handler(
 		ts.netInfo,
@@ -174,7 +187,7 @@ func newSession(t *testing.T) *testSession {
 		},
 	)
 
-	handler = members.MiddlewareForTests(ts.User)(handler)
+	handler = members.MiddlewareForTests(&ts.User)(handler)
 
 	ts.Mux = http.NewServeMux()
 	ts.Mux.Handle("/", handler)

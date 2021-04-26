@@ -61,8 +61,6 @@ type Server struct {
 	public typemux.HandlerMux
 	master typemux.HandlerMux
 
-	authorizer roomdb.MembersService
-
 	StateManager *roomstate.Manager
 
 	Members    roomdb.MembersService
@@ -89,7 +87,6 @@ func New(
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
-	s.authorizer = membersdb
 
 	s.Members = membersdb
 	s.DeniedKeys = deniedkeysdb

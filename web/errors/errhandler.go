@@ -34,7 +34,7 @@ func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 
 func (eh *ErrorHandler) Handle(rw http.ResponseWriter, req *http.Request, code int, err error) {
 	log := logging.FromContext(req.Context())
-	level.Error(log).Log("event", "handling error","path", req.URL.Path, "err",err)
+	level.Error(log).Log("event", "handling error", "path", req.URL.Path, "err", err)
 	var redirectErr ErrRedirect
 	if errors.As(err, &redirectErr) {
 		if redirectErr.Reason != nil {

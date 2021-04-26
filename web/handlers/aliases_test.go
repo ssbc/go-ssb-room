@@ -88,4 +88,11 @@ func TestAliasResolve(t *testing.T) {
 	a.Equal(testAlias.Feed.Ref(), ar.UserID, "wrong user feed on response")
 	a.Equal(ts.NetworkInfo.RoomID.Ref(), ar.RoomID, "wrong room feed on response")
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), ar.MultiserverAddress)
+
+	/* alias resolving should not work for restricted rooms */
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeRestricted, nil)
+	htmlURL, err = routes.Get(router.CompleteAliasResolve).URL("alias", testAlias.Name)
+	r.NoError(err)
+	html, resp = ts.Client.GetHTML(htmlURL)
+	a.Equal(http.StatusInternalServerError, resp.Code)
 }

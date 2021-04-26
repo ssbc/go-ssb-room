@@ -35,7 +35,7 @@ func (s *Server) initNetwork() error {
 
 		// if privacy mode is restricted, deny connections from non-members
 		if pm == roomdb.ModeRestricted {
-			if _, err := s.authorizer.GetByFeed(s.rootCtx, *remote); err != nil {
+			if _, err := s.Members.GetByFeed(s.rootCtx, *remote); err != nil {
 				return nil, fmt.Errorf("access restricted to members")
 			}
 		}

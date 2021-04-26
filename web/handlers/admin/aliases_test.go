@@ -53,7 +53,13 @@ func TestAliasesRevoke(t *testing.T) {
 	urlRevoke := ts.URLTo(router.AdminAliasesRevoke)
 	overviewURL := ts.URLTo(router.AdminMembersOverview)
 
+	aliasEntry := roomdb.Alias{
+		ID:   ts.User.ID,
+		Feed: ts.User.PubKey,
+		Name: "Blobby",
+	}
 	ts.AliasesDB.RevokeReturns(nil)
+	ts.AliasesDB.ResolveReturns(aliasEntry, nil)
 
 	addVals := url.Values{"name": []string{"the-name"}}
 	rec := ts.Client.PostForm(urlRevoke, addVals)

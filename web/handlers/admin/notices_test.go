@@ -89,7 +89,7 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 	// verify that a GET request is no bueno
 	u := ts.URLTo(router.AdminNoticeAddTranslation, "name", roomdb.NoticeNews.String())
 	_, resp := ts.Client.GetHTML(u)
-	a.Equal(http.StatusMethodNotAllowed, resp.Code, "GET should not be allowed for this route")
+	a.Equal(http.StatusBadRequest, resp.Code, "GET should not be allowed for this route")
 
 	// next up, we verify that a correct POST request actually works:
 	id := []string{"1"}
