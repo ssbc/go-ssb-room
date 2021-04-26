@@ -17,13 +17,13 @@ import (
 	refs "go.mindeco.de/ssb-refs"
 )
 
-type connectArg struct {
+type ConnectArg struct {
 	Portal refs.FeedRef `json:"portal"` // the room server
 	Target refs.FeedRef `json:"target"` // which peer the initiator/caller wants to be tunneld to
 }
 
 type connectWithOriginArg struct {
-	connectArg
+	ConnectArg
 	Origin refs.FeedRef `json:"origin"` // who started the call
 }
 
@@ -50,7 +50,7 @@ func (h connectHandler) HandleConnect(ctx context.Context, edp muxrpc.Endpoint) 
 // HandleDuplex here implements the tunnel.connect behavior of the server-side. It receives incoming events
 func (h connectHandler) HandleDuplex(ctx context.Context, req *muxrpc.Request, peerSrc *muxrpc.ByteSource, peerSnk *muxrpc.ByteSink) error {
 	// unpack arguments
-	var args []connectArg
+	var args []ConnectArg
 	err := json.Unmarshal(req.RawArgs, &args)
 	if err != nil {
 		return fmt.Errorf("connect: invalid arguments: %w", err)
@@ -80,7 +80,7 @@ func (h connectHandler) HandleDuplex(ctx context.Context, req *muxrpc.Request, p
 
 	// call connect on them
 	var argWorigin connectWithOriginArg
-	argWorigin.connectArg = arg
+	argWorigin.ConnectArg = arg
 	argWorigin.Origin = *caller
 
 	targetSrc, targetSnk, err := edp.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"tunnel", "connect"}, argWorigin)

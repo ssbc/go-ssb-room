@@ -499,6 +499,8 @@ go.cryptoscope.co/muxrpc/v2 v2.0.1-0.20210420101321-264bf6a7df2c h1:+78PDKICrSKw
 go.cryptoscope.co/muxrpc/v2 v2.0.1-0.20210420101321-264bf6a7df2c/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
 go.cryptoscope.co/muxrpc/v2 v2.0.1 h1:U1dS1dsFk7/LygH8o2qsWy8dHB5g3YeLtm0lsN7c1CI=
 go.cryptoscope.co/muxrpc/v2 v2.0.1/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
+go.cryptoscope.co/muxrpc/v2 v2.0.2 h1:UdlGHY+EEYZpJz5HWnWz0r34pULYxJHfFTeqLvv+7sA=
+go.cryptoscope.co/muxrpc/v2 v2.0.2/go.mod h1:MgaeojIkWY3lLuoNw1mlMT3b3jiZwOj/fgsoGZp/VNA=
 go.cryptoscope.co/netwrap v0.1.0/go.mod h1:7zcYswCa4CT+ct54e9uH9+IIbYYETEMHKDNpzl8Ukew=
 go.cryptoscope.co/netwrap v0.1.1 h1:JLzzGKEvrUrkKzu3iM0DhpHmt+L/gYqmpcf1lJMUyFs=
 go.cryptoscope.co/netwrap v0.1.1/go.mod h1:7zcYswCa4CT+ct54e9uH9+IIbYYETEMHKDNpzl8Ukew=

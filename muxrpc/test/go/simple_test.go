@@ -7,15 +7,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestTunnelServerSimple(t *testing.T) {
+	testInit(t)
+
 	// defer leakcheck.Check(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	theBots := createServerAndBots(t, ctx, 2)
