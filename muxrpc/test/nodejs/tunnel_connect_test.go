@@ -133,6 +133,45 @@ func TestModernJSClient(t *testing.T) {
 	ts.wait()
 }
 
+// found a nasty `throw err` in the JS stack around pull.drain. lets make sure it stays gone
+// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/190
+func TestClientSurvivesShutdown(t *testing.T) {
+	r := require.New(t)
+
+	ts := newRandomSession(t)
+
+	var membersDB = &mockdb.FakeMembersService{}
+	var aliasesDB = &mockdb.FakeAliasesService{}
+	srv := ts.startGoServer(membersDB, aliasesDB)
+	membersDB.GetByFeedReturns(roomdb.Member{ID: 1234}, nil)
+
+	alice := ts.startJSClient("alice", "./testscripts/modern_client.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
+	// write the handle to the testrun folder of the bot
+	handleFile := filepath.Join("testrun", t.Name(), "bob", "endpoint_through_room.txt")
+	r.NoError(writeRoomHandleFile(srv.Whoami(), alice, handleFile))
+
+	ts.startJSClient("bob", "./testscripts/modern_client_opening_tunnel.js",
+		srv.Network.GetListenAddr(),
+		srv.Whoami(),
+	)
+
+	// give them time to connect (which would make them pass the test)
+	time.Sleep(6 * time.Second)
+
+	// shut down server (which closes all the muxrpc streams)
+	srv.Close()
+
+	// give the node processes a moment to process what just happend (don't kill them immediatl in wait())
+	// in the buggy case they will crash and exit with error code 1
+	// the error is visible when running the tests with `go test -v`
+	time.Sleep(2 * time.Second)
+
+	ts.wait()
+}
+
 func writeRoomHandleFile(srv, target refs.FeedRef, filePath string) error {
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
