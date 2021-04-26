@@ -7,12 +7,18 @@ It includes:
 * muxrpc handlers for tunneling connections
 * a fully embedded HTTP server & HTML frontend, for administering the room
 
+![](./docs/screenshot.png)
+
 ## Features
 
 * [x] Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
-* [x] Simple allow-listing, administerd via the web dashboard
-* [x] Sign-in with SSB
-* [ ] Alias management
+* [x] User management (allow- & denylisting + moderator & administrator roles), all administered via the web dashboard
+* [x] Multiple [privacy modes](https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes)
+* [x] [Sign-in with SSB](https://ssb-ngi-pointer.github.io/ssb-http-auth-spec/)
+* [x] Alias management
+
+## Getting started
+For an architecture and instructions on setting up a webserver to use with `go-ssb-room`, [read the documentation](./docs).
 
 ## Development
 
@@ -26,22 +32,29 @@ go build
 ./server -h
  
 Usage of ./server:
+  -aliases-as-subdomains
+    	needs to be disabled if a wildcard certificate for the room is not available. (default true)
   -dbg string
     	listen addr for metrics and pprof HTTP server (default "localhost:6078")
+  -https-domain string
+    	which domain to use for TLS and AllowedHosts checks
   -lishttp string
     	address to listen on for HTTP requests (default ":3000")
   -lismux string
     	address to listen on for secret-handshake+muxrpc (default ":8008")
-  -nounixsock
-    	disable the UNIX socket RPC interface
   -logs string
     	where to write debug output to (default is just stderr)
+  -mode value
+    	the privacy mode (values: open, community, restricted) determining room access controls
+  -nounixsock
+    	disable the UNIX socket RPC interface
   -repo string
-    	where to put the log and indexes (default "/home/cryptix/.ssb-go-room")
+    	where to put the log and indexes (default "~/.ssb-go-room")
   -shscap string
     	secret-handshake app-key (or capability) (default "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=")
   -version
     	print version number and build date
+
 ```
 
 If you want to view the development server in your browser:
@@ -108,7 +121,7 @@ cd cmd/insert-user
 go build
 # optional step: run a script to generate a valid ssb id @<pubkey>.ed25519, useful for trying things out quickly
 ./generate-fake-id.sh   
-./insert-user -name <username> -key <@pubkey.ed25519>
+./insert-user -login <username> -key <@pubkey.ed25519>
 ```
 Then repeat your password twice and you are all set for development.
 
@@ -132,6 +145,8 @@ The folder `web/handlers` contains the HTTP handlers for the dashboard. Each sub
 ## Authors
 
 * [cryptix](https://github.com/cryptix) (`@p13zSAiOpguI9nsawkGijsnMfWmFd5rlUNpzekEE+vI=.ed25519`)
+* [staltz](https://github.com/staltz)
+* [cblgh](https://github.com/cblgh)
 
 ## License
 
