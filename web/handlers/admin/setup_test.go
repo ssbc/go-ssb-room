@@ -130,10 +130,10 @@ func newSession(t *testing.T) *testSession {
 	os.MkdirAll(sessionsPath, 0700)
 	fsStore := sessions.NewFilesystemStore(sessionsPath, authKey, encKey)
 
+	// setup rendering
 	flashHelper := weberrs.NewFlashHelper(fsStore, locHelper)
 
-	// setup rendering
-
+	// template funcs
 	// TODO: make testing utils and move these there
 	testFuncs := web.TemplateFuncs(router, ts.netInfo)
 	testFuncs["current_page_is"] = func(routeName string) bool { return true }
@@ -152,11 +152,13 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }
 
+	eh := weberrs.NewErrorHandler(locHelper, flashHelper)
+
 	renderOpts := []render.Option{
 		render.SetLogger(log),
 		render.BaseTemplates("base.tmpl", "menu.tmpl", "flashes.tmpl"),
 		render.AddTemplates(append(HTMLTemplates, "error.tmpl")...),
-		render.ErrorTemplate("error.tmpl"),
+		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(testFuncs),
 	}
 	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
@@ -165,6 +167,8 @@ func newSession(t *testing.T) *testSession {
 	if err != nil {
 		t.Fatal(errors.Wrap(err, "setup: render init failed"))
 	}
+
+	eh.SetRenderer(r)
 
 	handler := Handler(
 		ts.netInfo,

@@ -159,8 +159,7 @@ func TestInvitesCreate(t *testing.T) {
 			_, userID := ts.InvitesDB.CreateArgsForCall(totalCreateCallCount - 1)
 			a.EqualValues(ts.User.ID, userID)
 		} else {
-			// TODO: status should be http.StatusForbidden? see invites.go:79
-			a.Equal(http.StatusInternalServerError, rec.Code)
+			a.Equal(http.StatusForbidden, rec.Code)
 			r.Equal(totalCreateCallCount, ts.InvitesDB.CreateCallCount())
 		}
 		return rec
