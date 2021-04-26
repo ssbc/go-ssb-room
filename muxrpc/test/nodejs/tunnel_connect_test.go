@@ -159,7 +159,7 @@ func TestClientSurvivesShutdown(t *testing.T) {
 	)
 
 	// give them time to connect (which would make them pass the test)
-	time.Sleep(6 * time.Second)
+	time.Sleep(8 * time.Second)
 
 	// shut down server (which closes all the muxrpc streams)
 	srv.Close()
