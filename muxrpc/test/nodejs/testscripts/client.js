@@ -19,10 +19,10 @@ module.exports = (t, sbot, rpc, exit) => {
         t.error(err, 'tunnel.leave')
         comment(`tunnel error: ${err}`)
         comment(`leave value: ${ret}`)
-        comment('left, exiting in 1s')
-        setTimeout(exit, 1000)
+        comment('left, exiting in 3s')
+        setTimeout(exit, 3000)
       })
-    }, 3000)
+    }, 1000)
   })
 
   // announce ourselves to the room/tunnel
@@ -38,6 +38,8 @@ module.exports = (t, sbot, rpc, exit) => {
     rpc.tunnel.endpoints(),
     pull.drain(el => {
       comment(`from roomsrv: ${el}`)
+    }, (err) => {
+      t.comment('endpoints closed', err)
     })
   )
 }

@@ -25,6 +25,8 @@ module.exports = (t, client, roomrpc, exit) => {
     roomrpc.tunnel.endpoints(),
     pull.drain(el => {
       comment(`from roomsrv: ${JSON.stringify(el)}`)
+    }, (err) => {
+      t.comment('endpoints closed', err)
     })
   )
 
