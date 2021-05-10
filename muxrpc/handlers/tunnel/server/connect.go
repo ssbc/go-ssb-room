@@ -71,8 +71,12 @@ func (h connectHandler) HandleDuplex(ctx context.Context, req *muxrpc.Request, p
 		return err
 	}
 
-	// see if we have and endpoint for the target
+	// make sure they dont want to connect to themselves
+	if caller.Equal(&arg.Target) {
+		return fmt.Errorf("can't connect to self")
+	}
 
+	// see if we have and endpoint for the target
 	edp, has := h.state.Has(arg.Target)
 	if !has {
 		return fmt.Errorf("could not connect to:%s", arg.Target.Ref())
