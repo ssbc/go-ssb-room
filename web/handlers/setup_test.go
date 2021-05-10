@@ -5,6 +5,7 @@ package handlers
 import (
 	"bytes"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -99,7 +100,14 @@ func setup(t *testing.T) *testSession {
 
 	// instantiate the urlTo helper (constructs urls for us!)
 	// the cookiejar in our custom http/tester needs a non-empty domain and scheme
-	ts.URLTo = web.NewURLTo(router.CompleteApp(), ts.NetworkInfo)
+	mkUrl := web.NewURLTo(router.CompleteApp(), ts.NetworkInfo)
+	ts.URLTo = func(name string, vals ...interface{}) *url.URL {
+		u := mkUrl(name, vals...)
+		if u.Path == "" || u.Host == "" {
+			t.Fatal("failed to make URL for: ", name, vals)
+		}
+		return u
+	}
 
 	ts.SignalBridge = signinwithssb.NewSignalBridge()
 
