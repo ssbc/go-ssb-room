@@ -3,7 +3,6 @@
 package admin
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,14 +26,18 @@ type deniedKeysHandler struct {
 const redirectToDeniedKeys = "/admin/denied"
 
 func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
+	// always redirect
+	defer http.Redirect(w, req, redirectToDeniedKeys, http.StatusSeeOther)
+
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
-		h.r.Error(w, req, http.StatusBadRequest, err)
+		h.flashes.AddError(w, req, err)
 		return
 	}
+
 	if err := req.ParseForm(); err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		h.r.Error(w, req, http.StatusBadRequest, err)
+		h.flashes.AddError(w, req, err)
 		return
 	}
 
@@ -43,7 +46,6 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
 		h.flashes.AddError(w, req, err)
-		http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -56,8 +58,6 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	} else {
 		h.flashes.AddMessage(w, req, "AdminDeniedKeysAdded")
 	}
-
-	http.Redirect(w, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
 }
 
 func (h deniedKeysHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -106,32 +106,27 @@ func (h deniedKeysHandler) removeConfirm(rw http.ResponseWriter, req *http.Reque
 }
 
 func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
+	// always redirect
+	defer http.Redirect(rw, req, redirectToDeniedKeys, http.StatusSeeOther)
+
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToDeniedKeys, http.StatusTemporaryRedirect)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
-	status := http.StatusFound
 	err = h.db.RemoveID(req.Context(), id)
 	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
-			// TODO "flash" errors
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
-		}
-		status = http.StatusNotFound
+		h.flashes.AddError(rw, req, err)
+	} else {
+		h.flashes.AddMessage(rw, req, "AdminDeniedKeysRemoved")
 	}
-
-	http.Redirect(rw, req, redirectToDeniedKeys, status)
 }

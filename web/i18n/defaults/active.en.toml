@@ -101,6 +101,7 @@ AdminDeniedKeysComment = "Comment"
 AdminDeniedKeysCommentDescription = "The person who added this ban, added the following comment"
 AdminDeniedKeysRemoveConfirmWelcome = "Are you sure you want to remove this ban? They will will be able to access the room again."
 AdminDeniedKeysRemoveConfirmTitle = "Confirm member removal"
+AdminDeniedKeysRemoved = "The key was removed from the list and is thus no longer banned."
 
 # members dashboard
 ###################

@@ -72,7 +72,11 @@ func TestDeniedKeysDisabledInterface(t *testing.T) {
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
+
+	overview := ts.URLTo(router.AdminDeniedKeysOverview)
+	a.Equal(overview.Path, rec.Header().Get("Location"))
+	webassert.HasFlashMessages(t, ts.Client, overview, "AdminDeniedKeysAdded")
 
 	a.Equal(1, ts.DeniedKeysDB.AddCallCount())
 	_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(0)
@@ -146,7 +150,11 @@ func TestDeniedKeysAdd(t *testing.T) {
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
+
+	overview := ts.URLTo(router.AdminDeniedKeysOverview)
+	a.Equal(overview.Path, rec.Header().Get("Location"))
+	webassert.HasFlashMessages(t, ts.Client, overview, "AdminDeniedKeysAdded")
 
 	a.Equal(1, ts.DeniedKeysDB.AddCallCount())
 	_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(0)
@@ -166,7 +174,7 @@ func TestDeniedKeysDontAddInvalid(t *testing.T) {
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 
 	a.Equal(0, ts.DeniedKeysDB.AddCallCount(), "did not call add")
 
@@ -269,7 +277,11 @@ func TestDeniedKeysRemove(t *testing.T) {
 
 	addVals := url.Values{"id": []string{"666"}}
 	rec := ts.Client.PostForm(urlRemove, addVals)
-	a.Equal(http.StatusFound, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
+
+	overview := ts.URLTo(router.AdminDeniedKeysOverview)
+	a.Equal(overview.Path, rec.Header().Get("Location"))
+	webassert.HasFlashMessages(t, ts.Client, overview, "AdminDeniedKeysRemoved")
 
 	a.Equal(1, ts.DeniedKeysDB.RemoveIDCallCount())
 	_, theID := ts.DeniedKeysDB.RemoveIDArgsForCall(0)
@@ -279,6 +291,7 @@ func TestDeniedKeysRemove(t *testing.T) {
 	ts.DeniedKeysDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
 	rec = ts.Client.PostForm(urlRemove, addVals)
-	a.Equal(http.StatusNotFound, rec.Code)
-	//TODO: update redirect code with flash errors
+	a.Equal(http.StatusSeeOther, rec.Code)
+	a.Equal(overview.Path, rec.Header().Get("Location"))
+	webassert.HasFlashMessages(t, ts.Client, overview, "ErrorNotFound")
 }
