@@ -21,6 +21,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -69,6 +70,8 @@ func NewURLTo(appRouter *mux.Router, netInfo network.ServerEndpointDetails) URLM
 				params = append(params, strconv.FormatInt(v, 10))
 			case refs.FeedRef:
 				params = append(params, v.Ref())
+			case roomdb.PinnedNoticeName:
+				params = append(params, string(v))
 			default:
 				level.Error(l).Log("msg", "invalid param type", "param", fmt.Sprintf("%T", p), "route", routeName)
 				return &url.URL{}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -130,4 +131,77 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	a.Equal(cnt+1, ts.MembersDB.GetByIDCallCount())
 
 	a.EqualValues(1, doc.Find(editButtonSelector).Length())
+}
+
+func TestNoticesCreateOnlyModsAndHigher(t *testing.T) {
+	ts := setup(t)
+	a := assert.New(t)
+
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
+
+	// first, we confirm that we can't access the page when not logged in
+	draftNotice := ts.URLTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews)
+
+	doc, resp := ts.Client.GetHTML(draftNotice)
+	a.Equal(http.StatusForbidden, resp.Code)
+
+	// start preparing the ~login dance~
+	// TODO: make this code reusable and share it with the login => /dashboard http:200 test
+	// TODO: refactor login dance for re-use in testing / across tests
+
+	// when dealing with cookies we also need to have an Host and URL-Scheme
+	// for the jar to save and load them correctly
+	formEndpoint := ts.URLTo(router.AuthFallbackLogin)
+
+	doc, resp = ts.Client.GetHTML(formEndpoint)
+	a.Equal(http.StatusOK, resp.Code)
+
+	csrfCookie := resp.Result().Cookies()
+	a.True(len(csrfCookie) > 0, "should have one cookie for CSRF protection validation")
+
+	csrfTokenElem := doc.Find(`form#password-fallback input[type="hidden"]`)
+	a.Equal(1, csrfTokenElem.Length())
+
+	csrfName, has := csrfTokenElem.Attr("name")
+	a.True(has, "should have a name attribute")
+
+	csrfValue, has := csrfTokenElem.Attr("value")
+	a.True(has, "should have value attribute")
+
+	loginVals := url.Values{
+		"user": []string{"test"},
+		"pass": []string{"test"},
+
+		csrfName: []string{csrfValue},
+	}
+
+	// have the database return okay for any user
+	testUser := roomdb.Member{ID: 123, Role: roomdb.RoleMember}
+	ts.AuthFallbackDB.CheckReturns(testUser.ID, nil)
+	ts.MembersDB.GetByIDReturns(testUser, nil)
+
+	postEndpoint := ts.URLTo(router.AuthFallbackFinalize)
+
+	// construct HTTP Header with Referer and Cookie
+	var refererHeader = make(http.Header)
+	refererHeader.Set("Referer", "https://localhost")
+	ts.Client.SetHeaders(refererHeader)
+
+	resp = ts.Client.PostForm(postEndpoint, loginVals)
+	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
+
+	cnt := ts.MembersDB.GetByIDCallCount()
+
+	// now we are logged in, but we shouldn't be able to get the draft page
+	doc, resp = ts.Client.GetHTML(draftNotice)
+	a.Equal(http.StatusTemporaryRedirect, resp.Code)
+
+	dashboardURL := ts.URLTo(router.AdminDashboard)
+	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
+	a.True(len(resp.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "AdminMemberDetailsAliasRevoked")
+
+	a.Equal(cnt+1, ts.MembersDB.GetByIDCallCount())
+
 }
