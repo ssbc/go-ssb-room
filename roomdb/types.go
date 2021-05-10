@@ -31,7 +31,7 @@ type ErrAliasTaken struct {
 }
 
 func (e ErrAliasTaken) Error() string {
-	return fmt.Sprintf("roomdb: alias (%q) is already taken", e.Name)
+	return fmt.Sprintf("alias (%q) is already taken", e.Name)
 }
 
 // Member holds all the information an internal user of the room has.

@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"net/url"
 	"testing"
 	"time"
@@ -104,6 +105,14 @@ func TestAliasRegister(t *testing.T) {
 	a.True(confirmation.UserID.Equal(&bobsKey.Feed))
 
 	t.Log("alias stored")
+
+	// check taken error
+	err = clientForServer.Async(ctx, &registerResponse, muxrpc.TypeString, muxrpc.Method{"room", "registerAlias"}, "bob", sig)
+	r.Error(err)
+
+	var callErr *muxrpc.CallError
+	r.True(errors.As(err, &callErr), "expected a call error: %T", err)
+	r.Equal(`alias ("bob") is already taken`, callErr.Message)
 
 	for _, bot := range theBots {
 		bot.srv.Shutdown()

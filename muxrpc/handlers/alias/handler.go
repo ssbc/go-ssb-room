@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -99,6 +100,10 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 
 	err = h.db.Register(ctx, confirmation.Alias, confirmation.UserID, confirmation.Signature)
 	if err != nil {
+		var takenErr roomdb.ErrAliasTaken
+		if errors.As(err, &takenErr) {
+			return nil, takenErr
+		}
 		return nil, fmt.Errorf("registerAlias: could not register alias: %w", err)
 	}
 
