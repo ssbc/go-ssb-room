@@ -190,18 +190,32 @@ func TestNoticesCreateOnlyModsAndHigher(t *testing.T) {
 	resp = ts.Client.PostForm(postEndpoint, loginVals)
 	a.Equal(http.StatusSeeOther, resp.Code, "wrong HTTP status code for sign in")
 
-	cnt := ts.MembersDB.GetByIDCallCount()
-
 	// now we are logged in, but we shouldn't be able to get the draft page
 	doc, resp = ts.Client.GetHTML(draftNotice)
-	a.Equal(http.StatusTemporaryRedirect, resp.Code)
+	a.Equal(http.StatusSeeOther, resp.Code)
 
 	dashboardURL := ts.URLTo(router.AdminDashboard)
 	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
 	a.True(len(resp.Result().Cookies()) > 0, "got a cookie")
 
-	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "AdminMemberDetailsAliasRevoked")
+	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
 
-	a.Equal(cnt+1, ts.MembersDB.GetByIDCallCount())
+	// also shouldnt be allowed to save/post
+	id := []string{"1"}
+	title := []string{"SSB Breaking News: This Test Is Great"}
+	content := []string{"Absolutely Thrilling Content"}
+	language := []string{"en-GB"}
+
+	// POST a correct request to the save handler, and verify that the save was handled using the mock database)
+	u := ts.URLTo(router.AdminNoticeSave)
+	formValues := url.Values{"id": id, "title": title, "content": content, "language": language, csrfName: []string{csrfValue}}
+	resp = ts.Client.PostForm(u, formValues)
+	a.Equal(http.StatusSeeOther, resp.Code, "POST should work")
+	a.Equal(0, ts.NoticeDB.SaveCallCount(), "noticedb should not save the notice")
+
+	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
+	a.True(len(resp.Result().Cookies()) > 0, "got a cookie")
+
+	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
 
 }

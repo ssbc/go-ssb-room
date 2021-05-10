@@ -22,6 +22,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 )
 
@@ -155,10 +156,11 @@ func Handler(
 		noticeDB: dbs.Notices,
 		pinnedDB: dbs.PinnedNotices,
 	}
-	mux.HandleFunc("/notice/edit", r.HTML("admin/notice-edit.tmpl", nh.edit))
-	mux.HandleFunc("/notice/translation/draft", r.HTML("admin/notice-edit.tmpl", nh.draftTranslation))
-	mux.HandleFunc("/notice/translation/add", nh.addTranslation)
-	mux.HandleFunc("/notice/save", nh.save)
+	onlyModsAndAdmins := checkMemberRole(r.Error, roomdb.RoleModerator, roomdb.RoleAdmin)
+	mux.Handle("/notice/edit", onlyModsAndAdmins(r.HTML("admin/notice-edit.tmpl", nh.edit)))
+	mux.Handle("/notice/translation/draft", onlyModsAndAdmins(r.HTML("admin/notice-edit.tmpl", nh.draftTranslation)))
+	mux.Handle("/notice/translation/add", onlyModsAndAdmins(http.HandlerFunc(nh.addTranslation)))
+	mux.Handle("/notice/save", onlyModsAndAdmins(http.HandlerFunc(nh.save)))
 
 	// path:/ matches everything that isn't registerd (ie. its the "Not Found handler")
 	mux.HandleFunc("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -166,6 +168,35 @@ func Handler(
 	}))
 
 	return customStripPrefix("/admin", mux)
+}
+
+func checkMemberRole(eh render.ErrorHandlerFunc, roles ...roomdb.Role) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			currentMember := members.FromContext(req.Context())
+			if currentMember == nil {
+				err := weberrors.ErrRedirect{Path: "/admin/dashboard", Reason: fmt.Errorf("not an member")}
+				eh(rw, req, http.StatusSeeOther, err)
+				return
+			}
+
+			var roleMatched = false
+			for _, r := range roles {
+				if currentMember.Role == r {
+					roleMatched = true
+					break
+				}
+			}
+
+			if !roleMatched {
+				err := weberrors.ErrRedirect{Path: "/admin/dashboard", Reason: weberrors.ErrNotAuthorized}
+				eh(rw, req, http.StatusSeeOther, err)
+				return
+			}
+
+			next.ServeHTTP(rw, req)
+		})
+	}
 }
 
 // how many elements does a paginated page have by default

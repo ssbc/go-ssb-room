@@ -92,7 +92,7 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	status := http.StatusTemporaryRedirect
+	status := http.StatusTemporaryRedirect // TODO: should be SeeOther because it's method POST coming in
 	err = h.db.Revoke(ctx, aliasName)
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
