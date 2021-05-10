@@ -26,6 +26,14 @@ type Alias struct {
 	Signature []byte
 }
 
+type ErrAliasTaken struct {
+	Name string
+}
+
+func (e ErrAliasTaken) Error() string {
+	return fmt.Sprintf("alias (%q) is already taken", e.Name)
+}
+
 // Member holds all the information an internal user of the room has.
 type Member struct {
 	ID      int64
