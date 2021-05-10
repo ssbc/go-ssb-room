@@ -7,6 +7,7 @@ import (
 	"database/sql"
 
 	"github.com/friendsofgo/errors"
+	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
@@ -93,7 +94,10 @@ func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedR
 		newEntry.Signature = signature
 
 		err = newEntry.Insert(ctx, tx, boil.Infer())
-
+		var sqlErr sqlite3.Error
+		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			return roomdb.ErrAliasTaken{Name: alias}
+		}
 		return err
 	})
 }

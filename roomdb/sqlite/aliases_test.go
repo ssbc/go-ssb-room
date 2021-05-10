@@ -71,7 +71,7 @@ func TestAliases(t *testing.T) {
 		err = db.Aliases.Register(ctx, testName, newMember, testSig)
 		r.NoError(err)
 
-		// should have one member now
+		// should have one alias now
 		lst, err := db.Aliases.List(ctx)
 		r.NoError(err)
 		r.Len(lst, 1)
@@ -96,4 +96,43 @@ func TestAliases(t *testing.T) {
 		r.Error(err)
 		r.EqualError(err, roomdb.ErrNotFound.Error())
 	})
+}
+
+func TestAliasesUniqueError(t *testing.T) {
+	r := require.New(t)
+	ctx := context.Background()
+
+	testRepo := filepath.Join("testrun", t.Name())
+	os.RemoveAll(testRepo)
+	tr := repo.New(testRepo)
+
+	db, err := Open(tr)
+	r.NoError(err)
+
+	// fake feed for testing, looks ok at least
+	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+
+	// 64 bytes of random for testing (validation is handled by the handlers)
+	testSig := make([]byte, 64)
+	rand.Read(testSig)
+
+	testName := "thealias"
+
+	// allow the member
+	_, err = db.Members.Add(ctx, newMember, roomdb.RoleMember)
+	r.NoError(err)
+
+	err = db.Aliases.Register(ctx, testName, newMember, testSig)
+	r.NoError(err)
+
+	// should have one alias now
+	lst, err := db.Aliases.List(ctx)
+	r.NoError(err)
+	r.Len(lst, 1)
+
+	err = db.Aliases.Register(ctx, testName, newMember, testSig)
+	r.Error(err)
+	var takenErr roomdb.ErrAliasTaken
+	r.True(errors.As(err, &takenErr), "expected a special error value")
+	r.Equal(testName, takenErr.Name)
 }
