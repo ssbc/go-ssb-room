@@ -9,7 +9,7 @@
 
   <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsRole"}}</label>
   {{ $user := is_logged_in }}
-  {{ $aliasBelongsToUser := eq $user.PubKey.Ref .Member.PubKey.Ref }}
+  {{ $viewerIsSameAsMember := eq $user.PubKey.Ref .Member.PubKey.Ref }}
   {{ if member_is_elevated }}
     <details class="mb-8 self-start w-40" id="change-role">
       <summary class="px-3 py-1 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">
@@ -69,7 +69,7 @@
         >{{.Name}}</a>
     </div>
 
-    {{ if or member_is_elevated $aliasBelongsToUser }}
+    {{ if or member_is_elevated $viewerIsSameAsMember }}
       <a
         href="{{urlTo "admin:aliases:revoke:confirm" "id" .ID}}"
         class="w-20 py-2 text-sm text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
@@ -78,6 +78,24 @@
   {{end}}
   </div>
   {{end}}
+
+
+  {{ if $viewerIsSameAsMember }}
+    <label class="mt-10 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsInitiatePasswordChange"}}</label>
+    <a
+      id="change-password"
+      href="{{urlTo "members:change-password:form" "id" .Member.ID}}"
+      class="mb-8 self-start shadow rounded px-3 py-1 text-yellow-600 ring-1 ring-yellow-400 bg-white hover:bg-yellow-600 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer"
+      >{{i18n "AdminMemberDetailsChangePassword"}}</a>
+  {{ else if member_is_elevated }}
+    <label class="mt-10 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsInitiatePasswordChange"}}</label>
+    <form method="POST" action="{{urlTo "admin:members:create-password-reset-link" "id" .Member.ID}}">
+        {{ .csrfField }}
+        <input type="submit"
+        class="mb-8 self-start shadow rounded px-3 py-1 text-yellow-600 ring-1 ring-yellow-400 bg-white hover:bg-yellow-600 hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-400 cursor-pointer"
+        value="{{i18n "AdminMemberDetailsCreatePasswordResetLink"}}">
+    </form>
+  {{ end }}
 
   {{ if member_is_elevated }}
   <label class="mt-10 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsExclusion"}}</label>

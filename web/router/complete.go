@@ -9,7 +9,6 @@ import (
 // constant names for the named routes
 const (
 	CompleteIndex = "complete:index"
-	CompleteAbout = "complete:about"
 
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
@@ -22,6 +21,9 @@ const (
 	CompleteInviteFacadeFallback = "complete:invite:accept:fallback"
 	CompleteInviteInsertID       = "complete:invite:insert-id"
 	CompleteInviteConsume        = "complete:invite:consume"
+
+	MembersChangePasswordForm = "members:change-password:form"
+	MembersChangePassword     = "members:change-password"
 )
 
 // CompleteApp constructs a mux.Router containing the routes for batch Complete html frontend
@@ -32,9 +34,11 @@ func CompleteApp() *mux.Router {
 	Admin(m.PathPrefix("/admin").Subrouter())
 
 	m.Path("/").Methods("GET").Name(CompleteIndex)
-	m.Path("/about").Methods("GET").Name(CompleteAbout)
 
 	m.Path("/alias/{alias}").Methods("GET").Name(CompleteAliasResolve)
+
+	m.Path("/members/change-password").Methods("GET").Name(MembersChangePasswordForm)
+	m.Path("/members/change-password").Methods("POST").Name(MembersChangePassword)
 
 	m.Path("/join").Methods("GET").Name(CompleteInviteFacade)
 	m.Path("/join-fallback").Methods("GET").Name(CompleteInviteFacadeFallback)

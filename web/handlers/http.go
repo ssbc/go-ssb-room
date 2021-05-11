@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
+	hibp "github.com/mattevans/pwned-passwords"
 	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -36,6 +37,8 @@ var HTMLTemplates = []string{
 	"landing/index.tmpl",
 	"landing/about.tmpl",
 	"alias.tmpl",
+
+	"change-member-password.tmpl",
 
 	"invite/consumed.tmpl",
 	"invite/facade.tmpl",
@@ -231,6 +234,10 @@ func New(
 		})),
 	)
 
+	// Init the have-i-been-pwned client for insecure password checks.
+	const storeExpiry = 1 * time.Hour
+	hibpClient := hibp.NewClient(storeExpiry)
+
 	// this router is a bit of a qurik
 	// TODO: explain problem between gorilla/mux named routers and authentication
 	mainMux := &http.ServeMux{}
@@ -294,6 +301,73 @@ func New(
 		},
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
+
+	m.Get(router.MembersChangePasswordForm).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if members.FromContext(req.Context()) == nil {
+			r.Error(w, req, http.StatusUnauthorized, weberrs.ErrNotAuthorized)
+			return
+		}
+
+		var pageData = make(map[string]interface{})
+		pageData[csrf.TemplateTag] = csrf.TemplateField(req)
+
+		pageData["Flashes"], err = flashHelper.GetAll(w, req)
+		if err != nil {
+			r.Error(w, req, http.StatusInternalServerError, err)
+			return
+		}
+
+		// TODO: add resetToken to render
+
+		err = r.Render(w, req, "change-member-password.tmpl", http.StatusOK, pageData)
+		if err != nil {
+			r.Error(w, req, http.StatusInternalServerError, err)
+		}
+	})
+
+	m.Get(router.MembersChangePassword).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		redirectURL := req.Header.Get("Referer")
+		if redirectURL == "" {
+			http.Error(w, "TODO: add correct redirect handling", http.StatusInternalServerError)
+			return
+		}
+
+		err := req.ParseForm()
+		if err != nil {
+			r.Error(w, req, http.StatusInternalServerError, err)
+			return
+		}
+
+		repeat := req.FormValue("repeat-password")
+		newpw := req.FormValue("new-password")
+
+		if newpw != repeat {
+			flashHelper.AddError(w, req, weberrs.ErrPasswordMissmatch)
+			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
+			return
+		}
+
+		if len(newpw) < 10 {
+			flashHelper.AddError(w, req, fmt.Errorf("password too short"))
+			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
+			return
+		}
+
+		isPwned, err := hibpClient.Pwned.Compromised(newpw)
+		if err != nil {
+			r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("have-i-been-pwned client failed: %w", err))
+			return
+		}
+
+		if isPwned {
+			flashHelper.AddError(w, req, weberrs.ErrInsecurePassword)
+			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
+			return
+		}
+
+		fmt.Fprintln(w, "password looks okay!")
+		// TODO: update password db
+	})
 
 	// handle setting language
 	m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

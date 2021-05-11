@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	// ErrRedirect decide to not render a page during the controller
 	ErrNotAuthorized = errors.New("rooms/web: not authorized")
 
 	ErrDenied = errors.New("rooms: this key has been banned")
+
+	ErrInsecurePassword  = errors.New("room: password was found on the insecure password list of have-i-been-pwned")
+	ErrPasswordMissmatch = errors.New("room: the entered password did not match the repeated one")
 )
 
 type ErrNotFound struct{ What string }

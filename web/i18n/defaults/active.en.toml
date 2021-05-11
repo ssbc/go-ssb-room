@@ -62,6 +62,9 @@ AuthFallbackTitle = "Password sign-in"
 AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
 AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
+AuthFallbackPasswordChangeFormTitle = "Change Password"
+AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Make sure it's longer then 10 characters and that they match."
+
 # general dashboard stuff
 #########################
 
@@ -120,6 +123,9 @@ AdminMemberDetailsRole = "Permission level"
 AdminMemberDetailsAliases = "Aliases"
 AdminMemberDetailsAliasRevoke = "Revoke"
 AdminMemberDetailsAliasRevoked = "Alias was revoked"
+AdminMemberDetailsInitiatePasswordChange = "Re-set Fallback password"
+AdminMemberDetailsChangePassword = "Change password"
+AdminMemberDetailsCreatePasswordResetLink = "Create password reset link"
 AdminMemberDetailsExclusion = "Exclusion from this room"
 AdminMemberDetailsRemove = "Remove member"
 
