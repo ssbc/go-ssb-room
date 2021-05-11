@@ -31,19 +31,6 @@ func TestIndex(t *testing.T) {
 	a.Equal("Default Notice Content", content)
 }
 
-func TestAbout(t *testing.T) {
-	ts := setup(t)
-
-	a := assert.New(t)
-
-	url := ts.URLTo(router.CompleteAbout)
-
-	html, resp := ts.Client.GetHTML(url)
-	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
-	found := html.Find("h1").Text()
-	a.Equal("The about page", found)
-}
-
 func TestNotFound(t *testing.T) {
 	ts := setup(t)
 

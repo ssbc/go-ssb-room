@@ -164,7 +164,7 @@ func Handler(
 
 	// path:/ matches everything that isn't registerd (ie. its the "Not Found handler")
 	mux.HandleFunc("/", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		r.Error(rw, req, 404, weberrors.ErrNotFound{What: req.URL.Path})
+		r.Error(rw, req, 404, weberrors.PageNotFound{Path: req.URL.Path})
 	}))
 
 	return customStripPrefix("/admin", mux)

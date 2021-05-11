@@ -35,7 +35,6 @@ import (
 
 var HTMLTemplates = []string{
 	"landing/index.tmpl",
-	"landing/about.tmpl",
 	"alias.tmpl",
 
 	"change-member-password.tmpl",
@@ -407,7 +406,6 @@ func New(
 			Language: notice.Language,
 		}, nil
 	}))
-	m.Get(router.CompleteAbout).Handler(r.StaticHTML("landing/about.tmpl"))
 
 	// notices (the mini-CMS)
 	var nh = noticeHandler{
@@ -446,22 +444,22 @@ func New(
 	m.Get(router.CompleteInviteInsertID).Handler(r.HTML("invite/insert-id.tmpl", ih.presentInsert))
 	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
 
-	// statuc assets
+	// static assets
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))
 
+	// TODO: doesnt work because of of mainMux wrapper, see issue #35
 	m.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		eh.Handle(rw, req, http.StatusNotFound, weberrs.PageNotFound{Path: req.URL.Path})
 	})
 
 	// hook up main stdlib mux to the gorrilla/mux with named routes
+	// TODO: issue #35
 	mainMux.Handle("/", m)
 
 	consumeURL := urlTo(router.CompleteInviteConsume)
 
 	// apply HTTP middleware
 	middlewares := []func(http.Handler) http.Handler{
-		logging.RecoveryHandler(),
-		logging.InjectHandler(logger),
 		members.ContextInjecter(dbs.Members, authWithPassword, authWithSSB),
 		CSRF,
 
@@ -477,6 +475,9 @@ func New(
 				next.ServeHTTP(w, req)
 			})
 		},
+
+		logging.InjectHandler(logger),
+		logging.RecoveryHandler(),
 	}
 
 	if !web.Production {
