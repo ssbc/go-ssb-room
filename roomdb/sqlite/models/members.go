@@ -55,23 +55,29 @@ var MemberWhere = struct {
 
 // MemberRels is where relationship names are stored.
 var MemberRels = struct {
-	SIWSSBSessions    string
-	Aliases           string
-	FallbackPasswords string
-	CreatedByInvites  string
+	FallbackPassword             string
+	SIWSSBSessions               string
+	Aliases                      string
+	ForMemberFallbackResetTokens string
+	CreatedByFallbackResetTokens string
+	CreatedByInvites             string
 }{
-	SIWSSBSessions:    "SIWSSBSessions",
-	Aliases:           "Aliases",
-	FallbackPasswords: "FallbackPasswords",
-	CreatedByInvites:  "CreatedByInvites",
+	FallbackPassword:             "FallbackPassword",
+	SIWSSBSessions:               "SIWSSBSessions",
+	Aliases:                      "Aliases",
+	ForMemberFallbackResetTokens: "ForMemberFallbackResetTokens",
+	CreatedByFallbackResetTokens: "CreatedByFallbackResetTokens",
+	CreatedByInvites:             "CreatedByInvites",
 }
 
 // memberR is where relationships are stored.
 type memberR struct {
-	SIWSSBSessions    SIWSSBSessionSlice    `boil:"SIWSSBSessions" json:"SIWSSBSessions" toml:"SIWSSBSessions" yaml:"SIWSSBSessions"`
-	Aliases           AliasSlice            `boil:"Aliases" json:"Aliases" toml:"Aliases" yaml:"Aliases"`
-	FallbackPasswords FallbackPasswordSlice `boil:"FallbackPasswords" json:"FallbackPasswords" toml:"FallbackPasswords" yaml:"FallbackPasswords"`
-	CreatedByInvites  InviteSlice           `boil:"CreatedByInvites" json:"CreatedByInvites" toml:"CreatedByInvites" yaml:"CreatedByInvites"`
+	FallbackPassword             *FallbackPassword       `boil:"FallbackPassword" json:"FallbackPassword" toml:"FallbackPassword" yaml:"FallbackPassword"`
+	SIWSSBSessions               SIWSSBSessionSlice      `boil:"SIWSSBSessions" json:"SIWSSBSessions" toml:"SIWSSBSessions" yaml:"SIWSSBSessions"`
+	Aliases                      AliasSlice              `boil:"Aliases" json:"Aliases" toml:"Aliases" yaml:"Aliases"`
+	ForMemberFallbackResetTokens FallbackResetTokenSlice `boil:"ForMemberFallbackResetTokens" json:"ForMemberFallbackResetTokens" toml:"ForMemberFallbackResetTokens" yaml:"ForMemberFallbackResetTokens"`
+	CreatedByFallbackResetTokens FallbackResetTokenSlice `boil:"CreatedByFallbackResetTokens" json:"CreatedByFallbackResetTokens" toml:"CreatedByFallbackResetTokens" yaml:"CreatedByFallbackResetTokens"`
+	CreatedByInvites             InviteSlice             `boil:"CreatedByInvites" json:"CreatedByInvites" toml:"CreatedByInvites" yaml:"CreatedByInvites"`
 }
 
 // NewStruct creates a new relationship struct
@@ -364,6 +370,20 @@ func (q memberQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
+// FallbackPassword pointed to by the foreign key.
+func (o *Member) FallbackPassword(mods ...qm.QueryMod) fallbackPasswordQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"member_id\" = ?", o.ID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := FallbackPasswords(queryMods...)
+	queries.SetFrom(query.Query, "\"fallback_passwords\"")
+
+	return query
+}
+
 // SIWSSBSessions retrieves all the SIWSSB_session's SIWSSBSessions with an executor.
 func (o *Member) SIWSSBSessions(mods ...qm.QueryMod) sIWSSBSessionQuery {
 	var queryMods []qm.QueryMod
@@ -406,22 +426,43 @@ func (o *Member) Aliases(mods ...qm.QueryMod) aliasQuery {
 	return query
 }
 
-// FallbackPasswords retrieves all the fallback_password's FallbackPasswords with an executor.
-func (o *Member) FallbackPasswords(mods ...qm.QueryMod) fallbackPasswordQuery {
+// ForMemberFallbackResetTokens retrieves all the fallback_reset_token's FallbackResetTokens with an executor via for_member column.
+func (o *Member) ForMemberFallbackResetTokens(mods ...qm.QueryMod) fallbackResetTokenQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"fallback_passwords\".\"member_id\"=?", o.ID),
+		qm.Where("\"fallback_reset_tokens\".\"for_member\"=?", o.ID),
 	)
 
-	query := FallbackPasswords(queryMods...)
-	queries.SetFrom(query.Query, "\"fallback_passwords\"")
+	query := FallbackResetTokens(queryMods...)
+	queries.SetFrom(query.Query, "\"fallback_reset_tokens\"")
 
 	if len(queries.GetSelect(query.Query)) == 0 {
-		queries.SetSelect(query.Query, []string{"\"fallback_passwords\".*"})
+		queries.SetSelect(query.Query, []string{"\"fallback_reset_tokens\".*"})
+	}
+
+	return query
+}
+
+// CreatedByFallbackResetTokens retrieves all the fallback_reset_token's FallbackResetTokens with an executor via created_by column.
+func (o *Member) CreatedByFallbackResetTokens(mods ...qm.QueryMod) fallbackResetTokenQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"fallback_reset_tokens\".\"created_by\"=?", o.ID),
+	)
+
+	query := FallbackResetTokens(queryMods...)
+	queries.SetFrom(query.Query, "\"fallback_reset_tokens\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"fallback_reset_tokens\".*"})
 	}
 
 	return query
@@ -446,6 +487,107 @@ func (o *Member) CreatedByInvites(mods ...qm.QueryMod) inviteQuery {
 	}
 
 	return query
+}
+
+// LoadFallbackPassword allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-1 relationship.
+func (memberL) LoadFallbackPassword(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMember interface{}, mods queries.Applicator) error {
+	var slice []*Member
+	var object *Member
+
+	if singular {
+		object = maybeMember.(*Member)
+	} else {
+		slice = *maybeMember.(*[]*Member)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &memberR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &memberR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`fallback_passwords`),
+		qm.WhereIn(`fallback_passwords.member_id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load FallbackPassword")
+	}
+
+	var resultSlice []*FallbackPassword
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice FallbackPassword")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for fallback_passwords")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for fallback_passwords")
+	}
+
+	if len(memberAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.FallbackPassword = foreign
+		if foreign.R == nil {
+			foreign.R = &fallbackPasswordR{}
+		}
+		foreign.R.Member = object
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.ID == foreign.MemberID {
+				local.R.FallbackPassword = foreign
+				if foreign.R == nil {
+					foreign.R = &fallbackPasswordR{}
+				}
+				foreign.R.Member = local
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadSIWSSBSessions allows an eager lookup of values, cached into the
@@ -644,9 +786,9 @@ func (memberL) LoadAliases(ctx context.Context, e boil.ContextExecutor, singular
 	return nil
 }
 
-// LoadFallbackPasswords allows an eager lookup of values, cached into the
+// LoadForMemberFallbackResetTokens allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (memberL) LoadFallbackPasswords(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMember interface{}, mods queries.Applicator) error {
+func (memberL) LoadForMemberFallbackResetTokens(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMember interface{}, mods queries.Applicator) error {
 	var slice []*Member
 	var object *Member
 
@@ -684,8 +826,8 @@ func (memberL) LoadFallbackPasswords(ctx context.Context, e boil.ContextExecutor
 	}
 
 	query := NewQuery(
-		qm.From(`fallback_passwords`),
-		qm.WhereIn(`fallback_passwords.member_id in ?`, args...),
+		qm.From(`fallback_reset_tokens`),
+		qm.WhereIn(`fallback_reset_tokens.for_member in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -693,22 +835,22 @@ func (memberL) LoadFallbackPasswords(ctx context.Context, e boil.ContextExecutor
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load fallback_passwords")
+		return errors.Wrap(err, "failed to eager load fallback_reset_tokens")
 	}
 
-	var resultSlice []*FallbackPassword
+	var resultSlice []*FallbackResetToken
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice fallback_passwords")
+		return errors.Wrap(err, "failed to bind eager loaded slice fallback_reset_tokens")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on fallback_passwords")
+		return errors.Wrap(err, "failed to close results in eager load on fallback_reset_tokens")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for fallback_passwords")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for fallback_reset_tokens")
 	}
 
-	if len(fallbackPasswordAfterSelectHooks) != 0 {
+	if len(fallbackResetTokenAfterSelectHooks) != 0 {
 		for _, obj := range resultSlice {
 			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
 				return err
@@ -716,24 +858,122 @@ func (memberL) LoadFallbackPasswords(ctx context.Context, e boil.ContextExecutor
 		}
 	}
 	if singular {
-		object.R.FallbackPasswords = resultSlice
+		object.R.ForMemberFallbackResetTokens = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &fallbackPasswordR{}
+				foreign.R = &fallbackResetTokenR{}
 			}
-			foreign.R.Member = object
+			foreign.R.ForMemberMember = object
 		}
 		return nil
 	}
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.MemberID {
-				local.R.FallbackPasswords = append(local.R.FallbackPasswords, foreign)
+			if local.ID == foreign.ForMember {
+				local.R.ForMemberFallbackResetTokens = append(local.R.ForMemberFallbackResetTokens, foreign)
 				if foreign.R == nil {
-					foreign.R = &fallbackPasswordR{}
+					foreign.R = &fallbackResetTokenR{}
 				}
-				foreign.R.Member = local
+				foreign.R.ForMemberMember = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadCreatedByFallbackResetTokens allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (memberL) LoadCreatedByFallbackResetTokens(ctx context.Context, e boil.ContextExecutor, singular bool, maybeMember interface{}, mods queries.Applicator) error {
+	var slice []*Member
+	var object *Member
+
+	if singular {
+		object = maybeMember.(*Member)
+	} else {
+		slice = *maybeMember.(*[]*Member)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &memberR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &memberR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`fallback_reset_tokens`),
+		qm.WhereIn(`fallback_reset_tokens.created_by in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load fallback_reset_tokens")
+	}
+
+	var resultSlice []*FallbackResetToken
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice fallback_reset_tokens")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on fallback_reset_tokens")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for fallback_reset_tokens")
+	}
+
+	if len(fallbackResetTokenAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+	if singular {
+		object.R.CreatedByFallbackResetTokens = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &fallbackResetTokenR{}
+			}
+			foreign.R.CreatedByMember = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.CreatedBy {
+				local.R.CreatedByFallbackResetTokens = append(local.R.CreatedByFallbackResetTokens, foreign)
+				if foreign.R == nil {
+					foreign.R = &fallbackResetTokenR{}
+				}
+				foreign.R.CreatedByMember = local
 				break
 			}
 		}
@@ -837,6 +1077,57 @@ func (memberL) LoadCreatedByInvites(ctx context.Context, e boil.ContextExecutor,
 		}
 	}
 
+	return nil
+}
+
+// SetFallbackPassword of the member to the related item.
+// Sets o.R.FallbackPassword to related.
+// Adds o to related.R.Member.
+func (o *Member) SetFallbackPassword(ctx context.Context, exec boil.ContextExecutor, insert bool, related *FallbackPassword) error {
+	var err error
+
+	if insert {
+		related.MemberID = o.ID
+
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	} else {
+		updateQuery := fmt.Sprintf(
+			"UPDATE \"fallback_passwords\" SET %s WHERE %s",
+			strmangle.SetParamNames("\"", "\"", 0, []string{"member_id"}),
+			strmangle.WhereClause("\"", "\"", 0, fallbackPasswordPrimaryKeyColumns),
+		)
+		values := []interface{}{o.ID, related.ID}
+
+		if boil.IsDebug(ctx) {
+			writer := boil.DebugWriterFrom(ctx)
+			fmt.Fprintln(writer, updateQuery)
+			fmt.Fprintln(writer, values)
+		}
+		if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+			return errors.Wrap(err, "failed to update foreign table")
+		}
+
+		related.MemberID = o.ID
+
+	}
+
+	if o.R == nil {
+		o.R = &memberR{
+			FallbackPassword: related,
+		}
+	} else {
+		o.R.FallbackPassword = related
+	}
+
+	if related.R == nil {
+		related.R = &fallbackPasswordR{
+			Member: o,
+		}
+	} else {
+		related.R.Member = o
+	}
 	return nil
 }
 
@@ -946,23 +1237,23 @@ func (o *Member) AddAliases(ctx context.Context, exec boil.ContextExecutor, inse
 	return nil
 }
 
-// AddFallbackPasswords adds the given related objects to the existing relationships
+// AddForMemberFallbackResetTokens adds the given related objects to the existing relationships
 // of the member, optionally inserting them as new records.
-// Appends related to o.R.FallbackPasswords.
-// Sets related.R.Member appropriately.
-func (o *Member) AddFallbackPasswords(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*FallbackPassword) error {
+// Appends related to o.R.ForMemberFallbackResetTokens.
+// Sets related.R.ForMemberMember appropriately.
+func (o *Member) AddForMemberFallbackResetTokens(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*FallbackResetToken) error {
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.MemberID = o.ID
+			rel.ForMember = o.ID
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"fallback_passwords\" SET %s WHERE %s",
-				strmangle.SetParamNames("\"", "\"", 0, []string{"member_id"}),
-				strmangle.WhereClause("\"", "\"", 0, fallbackPasswordPrimaryKeyColumns),
+				"UPDATE \"fallback_reset_tokens\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 0, []string{"for_member"}),
+				strmangle.WhereClause("\"", "\"", 0, fallbackResetTokenPrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -975,25 +1266,78 @@ func (o *Member) AddFallbackPasswords(ctx context.Context, exec boil.ContextExec
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.MemberID = o.ID
+			rel.ForMember = o.ID
 		}
 	}
 
 	if o.R == nil {
 		o.R = &memberR{
-			FallbackPasswords: related,
+			ForMemberFallbackResetTokens: related,
 		}
 	} else {
-		o.R.FallbackPasswords = append(o.R.FallbackPasswords, related...)
+		o.R.ForMemberFallbackResetTokens = append(o.R.ForMemberFallbackResetTokens, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &fallbackPasswordR{
-				Member: o,
+			rel.R = &fallbackResetTokenR{
+				ForMemberMember: o,
 			}
 		} else {
-			rel.R.Member = o
+			rel.R.ForMemberMember = o
+		}
+	}
+	return nil
+}
+
+// AddCreatedByFallbackResetTokens adds the given related objects to the existing relationships
+// of the member, optionally inserting them as new records.
+// Appends related to o.R.CreatedByFallbackResetTokens.
+// Sets related.R.CreatedByMember appropriately.
+func (o *Member) AddCreatedByFallbackResetTokens(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*FallbackResetToken) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.CreatedBy = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"fallback_reset_tokens\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 0, []string{"created_by"}),
+				strmangle.WhereClause("\"", "\"", 0, fallbackResetTokenPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.CreatedBy = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &memberR{
+			CreatedByFallbackResetTokens: related,
+		}
+	} else {
+		o.R.CreatedByFallbackResetTokens = append(o.R.CreatedByFallbackResetTokens, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &fallbackResetTokenR{
+				CreatedByMember: o,
+			}
+		} else {
+			rel.R.CreatedByMember = o
 		}
 	}
 	return nil

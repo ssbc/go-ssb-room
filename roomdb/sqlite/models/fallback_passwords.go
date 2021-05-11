@@ -23,7 +23,6 @@ import (
 // FallbackPassword is an object representing the database table.
 type FallbackPassword struct {
 	ID           int64  `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Login        string `boil:"login" json:"login" toml:"login" yaml:"login"`
 	PasswordHash []byte `boil:"password_hash" json:"password_hash" toml:"password_hash" yaml:"password_hash"`
 	MemberID     int64  `boil:"member_id" json:"member_id" toml:"member_id" yaml:"member_id"`
 
@@ -33,12 +32,10 @@ type FallbackPassword struct {
 
 var FallbackPasswordColumns = struct {
 	ID           string
-	Login        string
 	PasswordHash string
 	MemberID     string
 }{
 	ID:           "id",
-	Login:        "login",
 	PasswordHash: "password_hash",
 	MemberID:     "member_id",
 }
@@ -47,12 +44,10 @@ var FallbackPasswordColumns = struct {
 
 var FallbackPasswordWhere = struct {
 	ID           whereHelperint64
-	Login        whereHelperstring
 	PasswordHash whereHelper__byte
 	MemberID     whereHelperint64
 }{
 	ID:           whereHelperint64{field: "\"fallback_passwords\".\"id\""},
-	Login:        whereHelperstring{field: "\"fallback_passwords\".\"login\""},
 	PasswordHash: whereHelper__byte{field: "\"fallback_passwords\".\"password_hash\""},
 	MemberID:     whereHelperint64{field: "\"fallback_passwords\".\"member_id\""},
 }
@@ -78,9 +73,9 @@ func (*fallbackPasswordR) NewStruct() *fallbackPasswordR {
 type fallbackPasswordL struct{}
 
 var (
-	fallbackPasswordAllColumns            = []string{"id", "login", "password_hash", "member_id"}
+	fallbackPasswordAllColumns            = []string{"id", "password_hash", "member_id"}
 	fallbackPasswordColumnsWithoutDefault = []string{}
-	fallbackPasswordColumnsWithDefault    = []string{"id", "login", "password_hash", "member_id"}
+	fallbackPasswordColumnsWithDefault    = []string{"id", "password_hash", "member_id"}
 	fallbackPasswordPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -457,7 +452,7 @@ func (fallbackPasswordL) LoadMember(ctx context.Context, e boil.ContextExecutor,
 		if foreign.R == nil {
 			foreign.R = &memberR{}
 		}
-		foreign.R.FallbackPasswords = append(foreign.R.FallbackPasswords, object)
+		foreign.R.FallbackPassword = object
 		return nil
 	}
 
@@ -468,7 +463,7 @@ func (fallbackPasswordL) LoadMember(ctx context.Context, e boil.ContextExecutor,
 				if foreign.R == nil {
 					foreign.R = &memberR{}
 				}
-				foreign.R.FallbackPasswords = append(foreign.R.FallbackPasswords, local)
+				foreign.R.FallbackPassword = local
 				break
 			}
 		}
@@ -479,7 +474,7 @@ func (fallbackPasswordL) LoadMember(ctx context.Context, e boil.ContextExecutor,
 
 // SetMember of the fallbackPassword to the related item.
 // Sets o.R.Member to related.
-// Adds o to related.R.FallbackPasswords.
+// Adds o to related.R.FallbackPassword.
 func (o *FallbackPassword) SetMember(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Member) error {
 	var err error
 	if insert {
@@ -515,10 +510,10 @@ func (o *FallbackPassword) SetMember(ctx context.Context, exec boil.ContextExecu
 
 	if related.R == nil {
 		related.R = &memberR{
-			FallbackPasswords: FallbackPasswordSlice{o},
+			FallbackPassword: o,
 		}
 	} else {
-		related.R.FallbackPasswords = append(related.R.FallbackPasswords, o)
+		related.R.FallbackPassword = o
 	}
 
 	return nil

@@ -47,11 +47,13 @@ var HTMLTemplates = []string{
 	"admin/member.tmpl",
 	"admin/member-list.tmpl",
 	"admin/members-remove-confirm.tmpl",
+	"admin/members-show-password-reset-token.tmpl",
 }
 
 // Databases is an option struct that encapsulates the required database services
 type Databases struct {
 	Aliases       roomdb.AliasesService
+	AuthFallback  roomdb.AuthFallbackService
 	Config        roomdb.RoomConfig
 	DeniedKeys    roomdb.DeniedKeysService
 	Invites       roomdb.InvitesService
@@ -125,6 +127,8 @@ func Handler(
 		netInfo: netInfo,
 
 		db: dbs.Members,
+
+		fallbackAuthDB: dbs.AuthFallback,
 	}
 	mux.HandleFunc("/member", r.HTML("admin/member.tmpl", mh.details))
 	mux.HandleFunc("/members", r.HTML("admin/member-list.tmpl", mh.overview))
@@ -132,6 +136,7 @@ func Handler(
 	mux.HandleFunc("/members/change-role", mh.changeRole)
 	mux.HandleFunc("/members/remove/confirm", r.HTML("admin/members-remove-confirm.tmpl", mh.removeConfirm))
 	mux.HandleFunc("/members/remove", mh.remove)
+	mux.HandleFunc("/members/create-fallback-reset-link", r.HTML("admin/members-show-password-reset-token.tmpl", mh.createPasswordResetToken))
 
 	var ih = invitesHandler{
 		r:       r,

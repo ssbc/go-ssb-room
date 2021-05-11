@@ -60,17 +60,17 @@ CREATE INDEX denied_keys_by_pubkey ON invites(active);
 -- +migrate Down
 DROP TABLE members;
 
-DROP TABLE fallback_passwords;
 DROP INDEX fallback_passwords_by_login;
+DROP TABLE fallback_passwords;
 
-DROP TABLE invites;
 DROP INDEX invite_active_ids;
 DROP INDEX invite_active_tokens;
 DROP INDEX invite_inactive;
+DROP TABLE invites;
 
-DROP TABLE aliases;
 DROP INDEX aliases_ids;
 DROP INDEX aliases_names;
+DROP TABLE aliases;
 
-DROP TABLE denied_keys;
 DROP INDEX denied_keys_by_pubkey;
+DROP TABLE denied_keys;

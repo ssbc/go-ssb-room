@@ -55,8 +55,13 @@ AuthFallbackTitle = "Passwort anmelden"
 AuthFallbackWelcome = "Eine Anmeldung mit Benutzername und Passwort ist nur möglich, wenn der Administrator Ihnen eines gegeben hat, da wir die Benutzerregistrierung nicht unterstützen."
 AuthFallbackInstruct = "Diese Methode ist ein akzeptabler Fallback, wenn Sie einen Benutzernamen und ein Passwort haben."
 
-AuthFallbackPasswordChangeFormTitle = "Change Password"
-AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Make sure it's longer then 10 characters and that they match."
+AuthFallbackNewPassword="Neues Passwort"
+AuthFallbackRepeatPassword="Passwort wiederholen"
+AuthFallbackPasswordChangeFormTitle = "Passwort ändern"
+AuthFallbackPasswordChangeWelcome = "Hier können Sie ihr Passwort neu setzen. Bitte achten sie darauf, dass es länger als 10 Zeichen ist. Durch die doppelte eingabe wird sichergestellt, dass Sie sich nicht vertippt haben. Auserdem verwenden wir die Datenbank von haveibeenpwned.com um sicher zu stellen, dass Sie kein unsicherers Passwort verwenden, ohne es zu wissen."
+AuthFallbackPasswordUpdated = "Das Passwort wurde aktualisiert. Sie können sich nun damit Einloggen."
+AdminMemberPasswordResetLinkCreatedTitle = "Passwort reset link erstellt"
+AdminMemberPasswordResetLinkCreatedInstruct = "Der reset Link wurde erstellt. Bitte senden Sie ihn, uber einen geeigneten Seitenkanal wie z.B. E-Mail, an das Mitglied. Wenn die Person den Link offnet, ist Sie in der Lage sich ein neues Passwort zu geben."
 
 # general dashboard stuff
 #########################

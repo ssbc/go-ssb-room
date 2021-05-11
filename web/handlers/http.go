@@ -291,6 +291,7 @@ func New(
 		locHelper,
 		admin.Databases{
 			Aliases:       dbs.Aliases,
+			AuthFallback:  dbs.AuthFallback,
 			Config:        dbs.Config,
 			DeniedKeys:    dbs.DeniedKeys,
 			Invites:       dbs.Invites,
@@ -302,7 +303,8 @@ func New(
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
 
 	m.Get(router.MembersChangePasswordForm).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		if members.FromContext(req.Context()) == nil {
+		resetToken := req.URL.Query().Get("token")
+		if members.FromContext(req.Context()) == nil && resetToken == "" {
 			r.Error(w, req, http.StatusUnauthorized, weberrs.ErrNotAuthorized)
 			return
 		}
@@ -316,7 +318,7 @@ func New(
 			return
 		}
 
-		// TODO: add resetToken to render
+		pageData["ResetToken"] = resetToken
 
 		err = r.Render(w, req, "change-member-password.tmpl", http.StatusOK, pageData)
 		if err != nil {
@@ -325,18 +327,42 @@ func New(
 	})
 
 	m.Get(router.MembersChangePassword).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		redirectURL := req.Header.Get("Referer")
+		var (
+			ctx         = req.Context()
+			memberID    = int64(-1)
+			redirectURL = req.Header.Get("Referer")
+
+			resetToken string
+		)
+
 		if redirectURL == "" {
 			http.Error(w, "TODO: add correct redirect handling", http.StatusInternalServerError)
 			return
 		}
 
-		err := req.ParseForm()
-		if err != nil {
-			r.Error(w, req, http.StatusInternalServerError, err)
+		if req.Method != http.MethodPost {
+			r.Error(w, req, http.StatusBadRequest, fmt.Errorf("expected POST method"))
 			return
 		}
 
+		err := req.ParseForm()
+		if err != nil {
+			r.Error(w, req, http.StatusBadRequest, err)
+			return
+		}
+
+		resetToken = req.FormValue("reset-token")
+		if m := members.FromContext(ctx); m != nil {
+			memberID = m.ID
+
+			// shouldn't have both token and logged in user
+			if resetToken != "" {
+				r.Error(w, req, http.StatusBadRequest, fmt.Errorf("can't have logged in user and reset-token present. Log out and try again"))
+				return
+			}
+		}
+
+		// check the passwords match and it hasnt been pwned
 		repeat := req.FormValue("repeat-password")
 		newpw := req.FormValue("new-password")
 
@@ -364,8 +390,22 @@ func New(
 			return
 		}
 
-		fmt.Fprintln(w, "password looks okay!")
-		// TODO: update password db
+		// update the password
+		if resetToken == "" {
+			err = dbs.AuthFallback.SetPassword(ctx, memberID, []byte(newpw))
+		} else {
+			err = dbs.AuthFallback.SetPasswordWithToken(ctx, resetToken, []byte(newpw))
+		}
+
+		// add flash msg about the outcome and redirect the user
+		if err != nil {
+			flashHelper.AddError(w, req, err)
+		} else {
+			flashHelper.AddMessage(w, req, "AuthFallbackPasswordUpdated")
+		}
+
+		redirectURL = urlTo(router.AuthFallbackLogin).Path
+		http.Redirect(w, req, redirectURL, http.StatusSeeOther)
 	})
 
 	// handle setting language

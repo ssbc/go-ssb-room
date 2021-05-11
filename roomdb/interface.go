@@ -29,14 +29,18 @@ type RoomConfig interface {
 type AuthFallbackService interface {
 
 	// Check receives the username and password (in clear) and checks them accordingly.
+	// Login might be a registered alias or a ssb id who belongs to a member.
 	// If it's a valid combination it returns the user ID, or an error if they are not.
 	auth.Auther
 
-	Create(_ context.Context, memberID int64, login string, password []byte) error
-	// GetByID(context.Context, int64) (User, error)
-	// ListAll()
-	// ListByMember()
-	// Remove(pwid)
+	// SetPassword creates or updates a fallback login password for this user.
+	SetPassword(_ context.Context, memberID int64, password []byte) error
+
+	// CreateResetToken returns a token which can be used via SetPasswordWithToken() to reset the password of a member.
+	CreateResetToken(_ context.Context, createdByMember, forMember int64) (string, error)
+
+	// SetPasswordWithToken consumes a token created with CreateResetToken() and updates the password for that member accordingly.
+	SetPasswordWithToken(_ context.Context, resetToken string, password []byte) error
 }
 
 // AuthWithSSBService defines utility functions for the challenge/response system of sign-in with ssb

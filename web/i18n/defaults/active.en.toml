@@ -62,8 +62,13 @@ AuthFallbackTitle = "Password sign-in"
 AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
 AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
 
+AuthFallbackNewPassword="New Password"
+AuthFallbackRepeatPassword="Repeat Password"
 AuthFallbackPasswordChangeFormTitle = "Change Password"
-AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Make sure it's longer then 10 characters and that they match."
+AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Please make sure it's longer then 10 characters. Via the repition we make sure that you don't accidentally mistype it. Additionally we use the lookup from haveibeenpwned.com to make sure you don't accidentally use a weak password."
+AuthFallbackPasswordUpdated = "The password was updated. You can now use it to sign in."
+AdminMemberPasswordResetLinkCreatedTitle = "Password reset token created"
+AdminMemberPasswordResetLinkCreatedInstruct = "The reset token was created. Please send it to the member via some means (like E-Mail or another suitable side-channel). When they open it, they will be able to choose a new password for themselves."
 
 # general dashboard stuff
 #########################
