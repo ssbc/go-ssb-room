@@ -109,6 +109,7 @@ AdminDeniedKeysRemoved = "The key was removed from the list and is thus no longe
 AdminMembersTitle = "Members"
 AdminMembersWelcome = "Here you can see all the members of the room and ways to add new ones (by their SSB ID) or remove exising ones."
 AdminMembersAdd = "Add"
+AdminMembersSelf = "This is you"
 
 AdminMembersRemoveConfirmTitle = "Confirm member removal"
 AdminMembersRemoveConfirmWelcome = "Are you sure you want to remove this member? They will lose their alias, if they have one."
