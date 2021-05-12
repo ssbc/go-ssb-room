@@ -34,13 +34,13 @@ type AuthFallbackService interface {
 	auth.Auther
 
 	// SetPassword creates or updates a fallback login password for this user.
-	SetPassword(_ context.Context, memberID int64, password []byte) error
+	SetPassword(_ context.Context, memberID int64, password string) error
 
 	// CreateResetToken returns a token which can be used via SetPasswordWithToken() to reset the password of a member.
 	CreateResetToken(_ context.Context, createdByMember, forMember int64) (string, error)
 
 	// SetPasswordWithToken consumes a token created with CreateResetToken() and updates the password for that member accordingly.
-	SetPasswordWithToken(_ context.Context, resetToken string, password []byte) error
+	SetPasswordWithToken(_ context.Context, resetToken string, password string) error
 }
 
 // AuthWithSSBService defines utility functions for the challenge/response system of sign-in with ssb

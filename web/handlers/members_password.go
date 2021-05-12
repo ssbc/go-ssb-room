@@ -139,9 +139,9 @@ func (mh membersHandler) changePassword(w http.ResponseWriter, req *http.Request
 
 	// update the password
 	if resetToken == "" {
-		err = mh.authFallbackDB.SetPassword(ctx, memberID, []byte(newpw))
+		err = mh.authFallbackDB.SetPassword(ctx, memberID, newpw)
 	} else {
-		err = mh.authFallbackDB.SetPasswordWithToken(ctx, resetToken, []byte(newpw))
+		err = mh.authFallbackDB.SetPasswordWithToken(ctx, resetToken, newpw)
 	}
 
 	// add flash msg about the outcome and redirect the user

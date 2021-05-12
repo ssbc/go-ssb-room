@@ -38,12 +38,12 @@ type FakeAuthFallbackService struct {
 		result1 string
 		result2 error
 	}
-	SetPasswordStub        func(context.Context, int64, []byte) error
+	SetPasswordStub        func(context.Context, int64, string) error
 	setPasswordMutex       sync.RWMutex
 	setPasswordArgsForCall []struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 []byte
+		arg3 string
 	}
 	setPasswordReturns struct {
 		result1 error
@@ -51,12 +51,12 @@ type FakeAuthFallbackService struct {
 	setPasswordReturnsOnCall map[int]struct {
 		result1 error
 	}
-	SetPasswordWithTokenStub        func(context.Context, string, []byte) error
+	SetPasswordWithTokenStub        func(context.Context, string, string) error
 	setPasswordWithTokenMutex       sync.RWMutex
 	setPasswordWithTokenArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []byte
+		arg3 string
 	}
 	setPasswordWithTokenReturns struct {
 		result1 error
@@ -199,22 +199,17 @@ func (fake *FakeAuthFallbackService) CreateResetTokenReturnsOnCall(i int, result
 	}{result1, result2}
 }
 
-func (fake *FakeAuthFallbackService) SetPassword(arg1 context.Context, arg2 int64, arg3 []byte) error {
-	var arg3Copy []byte
-	if arg3 != nil {
-		arg3Copy = make([]byte, len(arg3))
-		copy(arg3Copy, arg3)
-	}
+func (fake *FakeAuthFallbackService) SetPassword(arg1 context.Context, arg2 int64, arg3 string) error {
 	fake.setPasswordMutex.Lock()
 	ret, specificReturn := fake.setPasswordReturnsOnCall[len(fake.setPasswordArgsForCall)]
 	fake.setPasswordArgsForCall = append(fake.setPasswordArgsForCall, struct {
 		arg1 context.Context
 		arg2 int64
-		arg3 []byte
-	}{arg1, arg2, arg3Copy})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.SetPasswordStub
 	fakeReturns := fake.setPasswordReturns
-	fake.recordInvocation("SetPassword", []interface{}{arg1, arg2, arg3Copy})
+	fake.recordInvocation("SetPassword", []interface{}{arg1, arg2, arg3})
 	fake.setPasswordMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
@@ -231,13 +226,13 @@ func (fake *FakeAuthFallbackService) SetPasswordCallCount() int {
 	return len(fake.setPasswordArgsForCall)
 }
 
-func (fake *FakeAuthFallbackService) SetPasswordCalls(stub func(context.Context, int64, []byte) error) {
+func (fake *FakeAuthFallbackService) SetPasswordCalls(stub func(context.Context, int64, string) error) {
 	fake.setPasswordMutex.Lock()
 	defer fake.setPasswordMutex.Unlock()
 	fake.SetPasswordStub = stub
 }
 
-func (fake *FakeAuthFallbackService) SetPasswordArgsForCall(i int) (context.Context, int64, []byte) {
+func (fake *FakeAuthFallbackService) SetPasswordArgsForCall(i int) (context.Context, int64, string) {
 	fake.setPasswordMutex.RLock()
 	defer fake.setPasswordMutex.RUnlock()
 	argsForCall := fake.setPasswordArgsForCall[i]
@@ -267,22 +262,17 @@ func (fake *FakeAuthFallbackService) SetPasswordReturnsOnCall(i int, result1 err
 	}{result1}
 }
 
-func (fake *FakeAuthFallbackService) SetPasswordWithToken(arg1 context.Context, arg2 string, arg3 []byte) error {
-	var arg3Copy []byte
-	if arg3 != nil {
-		arg3Copy = make([]byte, len(arg3))
-		copy(arg3Copy, arg3)
-	}
+func (fake *FakeAuthFallbackService) SetPasswordWithToken(arg1 context.Context, arg2 string, arg3 string) error {
 	fake.setPasswordWithTokenMutex.Lock()
 	ret, specificReturn := fake.setPasswordWithTokenReturnsOnCall[len(fake.setPasswordWithTokenArgsForCall)]
 	fake.setPasswordWithTokenArgsForCall = append(fake.setPasswordWithTokenArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
-		arg3 []byte
-	}{arg1, arg2, arg3Copy})
+		arg3 string
+	}{arg1, arg2, arg3})
 	stub := fake.SetPasswordWithTokenStub
 	fakeReturns := fake.setPasswordWithTokenReturns
-	fake.recordInvocation("SetPasswordWithToken", []interface{}{arg1, arg2, arg3Copy})
+	fake.recordInvocation("SetPasswordWithToken", []interface{}{arg1, arg2, arg3})
 	fake.setPasswordWithTokenMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
@@ -299,13 +289,13 @@ func (fake *FakeAuthFallbackService) SetPasswordWithTokenCallCount() int {
 	return len(fake.setPasswordWithTokenArgsForCall)
 }
 
-func (fake *FakeAuthFallbackService) SetPasswordWithTokenCalls(stub func(context.Context, string, []byte) error) {
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenCalls(stub func(context.Context, string, string) error) {
 	fake.setPasswordWithTokenMutex.Lock()
 	defer fake.setPasswordWithTokenMutex.Unlock()
 	fake.SetPasswordWithTokenStub = stub
 }
 
-func (fake *FakeAuthFallbackService) SetPasswordWithTokenArgsForCall(i int) (context.Context, string, []byte) {
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenArgsForCall(i int) (context.Context, string, string) {
 	fake.setPasswordWithTokenMutex.RLock()
 	defer fake.setPasswordWithTokenMutex.RUnlock()
 	argsForCall := fake.setPasswordWithTokenArgsForCall[i]

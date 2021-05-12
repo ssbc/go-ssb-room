@@ -31,7 +31,7 @@ func TestFallbackAuth(t *testing.T) {
 	memberID, err := db.Members.Add(ctx, newMember, roomdb.RoleMember)
 	r.NoError(err, "failed to create member")
 
-	testPassword := []byte("super-secure-and-secret-password")
+	testPassword := "super-secure-and-secret-password"
 
 	err = db.AuthFallback.SetPassword(ctx, memberID, testPassword)
 	r.NoError(err, "failed to create password")
@@ -78,7 +78,7 @@ func TestFallbackAuthSetPassword(t *testing.T) {
 	memberID, err := db.Members.Add(ctx, newMember, roomdb.RoleMember)
 	r.NoError(err, "failed to create member")
 
-	testPassword := []byte("super-secure-and-secret-password")
+	testPassword := "super-secure-and-secret-password"
 
 	err = db.AuthFallback.SetPassword(ctx, memberID, testPassword)
 	r.NoError(err, "failed to set password")
@@ -96,7 +96,7 @@ func TestFallbackAuthSetPassword(t *testing.T) {
 	r.Nil(cookieVal)
 
 	// set it to something different
-	changedTestPassword := []byte("some-different-super-secure-password")
+	changedTestPassword := "some-different-super-secure-password"
 	err = db.AuthFallback.SetPassword(ctx, memberID, changedTestPassword)
 	r.NoError(err, "failed to update password")
 
@@ -133,7 +133,7 @@ func TestFallbackAuthSetPasswordWithToken(t *testing.T) {
 	carlID, err := db.Members.Add(ctx, carl, roomdb.RoleModerator)
 	r.NoError(err, "failed to create member")
 
-	err = db.AuthFallback.SetPassword(ctx, carlID, []byte("i swear i wont forgettt thiszzz91238129e812hjejahsdkasdhaksjdh"))
+	err = db.AuthFallback.SetPassword(ctx, carlID, "i swear i wont forgettt thiszzz91238129e812hjejahsdkasdhaksjdh")
 	r.NoError(err, "failed to update password")
 
 	// and he does... so lets create a token for him
@@ -147,7 +147,7 @@ func TestFallbackAuthSetPasswordWithToken(t *testing.T) {
 
 	// change carls password by using the token
 	newPassword := "marry had a little lamp"
-	err = db.AuthFallback.SetPasswordWithToken(ctx, resetTok, []byte(newPassword))
+	err = db.AuthFallback.SetPasswordWithToken(ctx, resetTok, newPassword)
 	r.NoError(err, "setPassword with token failed")
 
 	// now use the new password

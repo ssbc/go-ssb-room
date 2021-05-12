@@ -79,8 +79,8 @@ func (af AuthFallback) Check(login, password string) (interface{}, error) {
 	return foundPassword.MemberID, nil
 }
 
-func (af AuthFallback) SetPassword(ctx context.Context, memberID int64, password []byte) error {
-	hashed, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+func (af AuthFallback) SetPassword(ctx context.Context, memberID int64, password string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("auth/fallback: failed to hash password for member")
 	}
@@ -115,8 +115,8 @@ func (af AuthFallback) SetPassword(ctx context.Context, memberID int64, password
 	})
 }
 
-func (af AuthFallback) SetPasswordWithToken(ctx context.Context, resetToken string, password []byte) error {
-	hashed, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+func (af AuthFallback) SetPasswordWithToken(ctx context.Context, resetToken string, password string) error {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("auth/fallback: failed to hash password for member")
 	}
