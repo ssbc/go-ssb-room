@@ -1,22 +1,26 @@
 # Testing
-* Fill the fake route
-* Write your test (preferably getting the route from the router)
+`go-ssb-room` has a variety of tests to ensure that functionality that once worked, keeps
+working (it does not regress.) These tests are scattered around the repositories modules, but
+they are always contained in a file ending with `_test.go`—a compiler-enforced naming
+convention for Golang tests.
 
 ## Structure
-Most routes are focused on administrating the room server. Tasks such as adding new users, editing notices (like the Welcome page or Code of Conduct). These are routes that require authentication, and they live at `web/handlers/admin`.
+Most routes are focused on administrating the room server. Tasks such as adding new users,
+editing notices (like the _Welcome_ or _Code of Conduct_ pages). These are routes that require
+elevated privileges to perform actions, and they live in `web/handlers/admin`.
 
 Routes that are to be visited by all users can be found in `web/handlers`.
 
 ### Places to write tests
 * `web/handlers` covers site-functionality usable by all
 * `web/handlers/admin` covers admin-only functionality
-* `admindb/sqlite` covers tests that are using default data as opposed to a given tests's mockdata
+* `roomdb/sqlite` covers tests that are using default data as opposed to a given tests's mockdata
 
 ## Goquery
-The frontend tests, the tests that check for the presence of various elements on served pages,
-use the module [`goquery`](https://github.com/PuerkitoBio/goquery) for querying the returned
-HTML.
+The frontend tests—tests that check for the presence of various elements on served pages—use
+the module [`goquery`](https://github.com/PuerkitoBio/goquery) for querying the returned HTML.
 
+## Snippets
 #### Print the raw html of the corresponding page
 ```
     html, _ := ts.Client.GetHTML(url)
@@ -31,29 +35,13 @@ HTML.
     fmt.Println(title.Text())
 ```
 
+## Filling the mockdb
+`go-ssb-room` uses database mocks for performing tests against the backend database logic. This
+means prefilling a route with the data you expect to be returned when the route is queried.
+This type of testing is an alternative to using an entire pre-filled sqlite database of test
+data.
 
-## Functions
-#### `web/handlers/admin:newSession(*testing.T)`
-Creates a testing session with admin capabilities mocked.
-More concretely, the following is mocked:
-* databases
-    * `ts.AllowListDB`
-    * `ts.PinnedDB`
-    * `ts.NoticeDB`
-* `ts.RoomState`
-    * I don't know what this is
-* `ts.Router`
-    * I don't really know what this does
-* `ts.Mux`
-* `ts.Client`
-    * Testing facility used for performing mocked HTTP requests:  
-    `ts.Client.GetHTML(url string)`
-
-## Filling the fakedb
-This means prefilling a mock route with the data you expect. Note: This is in
-opposition to using an entire pre-filled sqlite database of fake data.
-
-Thus, there is no command you run first to generate your fake database, but
+As such, there is no command you run first to generate your fake database, but
 functions you have to call in a kind of pre-test setup, inside each testing
 block you are authoring. 
 
@@ -65,6 +53,28 @@ block you are authoring.
 That is, for a function `GetUID` there is a corresponding mock-filling function
 `GetUIDReturns`.
 
+The following examples show more concretely what mocking the data looks like.
+
+**Having the List() function return a static list of three items:**
+```go
+// go-ssb-room/web/handlers/admin/allow_list_test.go:113
+lst := roomdb.ListEntries{
+	{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
+	{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
+	{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
+}
+ts.MembersDB.ListReturns(lst, nil)
+
+```
+
+**Checking how often RemoveID was called and with what arguments:**
+```go
+// go-ssb-room/web/handlers/admin/allow_list_test.go:210
+ a.Equal(1, ts.MembersDB.RemoveIDCallCount())
+ _, theID := ts.MembersDB.RemoveIDArgsForCall(0)
+ a.EqualValues(666, theID)
+```
+
 
 ## Example test
 ```
@@ -75,7 +85,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/admindb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -84,7 +94,7 @@ func TestNoticeShow(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)
 
-	testNotice := admindb.Notice{
+	testNotice := roomdb.Notice{
 		ID:    123,
 		Title: "foo",
 	}
