@@ -37,7 +37,10 @@
           </svg>
           <!-- TODO: i'd like to include the key SVG in the lnk but this breaks the layout -->
           <div class="text-green-500 text-sm truncate w-32">
-            <a href="{{urlTo "admin:member:details" "id" $user.ID}}">{{$user.PubKey.Ref}}</a>
+            <a
+              id="own-details-page"
+              href="{{urlTo "admin:member:details" "id" $user.ID}}"
+            >{{$user.PubKey.Ref}}</a>
           </div>
         </div>
         <a

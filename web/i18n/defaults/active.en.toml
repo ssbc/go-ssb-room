@@ -36,6 +36,9 @@ ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not ther
 ErrorNotAuthorized = "You are not authorized to access this page."
 ErrorForbidden = "The request could not be executed because of lacking privileges ({{.Details}})"
 ErrorBadRequest = "There was a problem with your Request: {{.Where}} ({{.Details}}"
+ErrorPasswordDidntMatch = "The passwords you entered did not match."
+ErrorPasswordTooShort = "The new password is to short. Need at least 10 characters."
+ErrorPasswordLeaked = "The new password was found on the insecure password list of have-i-been-pwned. You need to choose a different one."
 
 # TODO: might be obsolete with notices
 LandingTitle = "ohai my room"

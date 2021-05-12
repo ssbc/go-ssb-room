@@ -13,7 +13,6 @@ import (
 	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	hibp "github.com/mattevans/pwned-passwords"
 	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
@@ -233,10 +232,6 @@ func New(
 		})),
 	)
 
-	// Init the have-i-been-pwned client for insecure password checks.
-	const storeExpiry = 1 * time.Hour
-	hibpClient := hibp.NewClient(storeExpiry)
-
 	// this router is a bit of a qurik
 	// TODO: explain problem between gorilla/mux named routers and authentication
 	mainMux := &http.ServeMux{}
@@ -302,111 +297,9 @@ func New(
 	)
 	mainMux.Handle("/admin/", members.AuthenticateFromContext(r)(adminHandler))
 
-	m.Get(router.MembersChangePasswordForm).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		resetToken := req.URL.Query().Get("token")
-		if members.FromContext(req.Context()) == nil && resetToken == "" {
-			r.Error(w, req, http.StatusUnauthorized, weberrs.ErrNotAuthorized)
-			return
-		}
-
-		var pageData = make(map[string]interface{})
-		pageData[csrf.TemplateTag] = csrf.TemplateField(req)
-
-		pageData["Flashes"], err = flashHelper.GetAll(w, req)
-		if err != nil {
-			r.Error(w, req, http.StatusInternalServerError, err)
-			return
-		}
-
-		pageData["ResetToken"] = resetToken
-
-		err = r.Render(w, req, "change-member-password.tmpl", http.StatusOK, pageData)
-		if err != nil {
-			r.Error(w, req, http.StatusInternalServerError, err)
-		}
-	})
-
-	m.Get(router.MembersChangePassword).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		var (
-			ctx         = req.Context()
-			memberID    = int64(-1)
-			redirectURL = req.Header.Get("Referer")
-
-			resetToken string
-		)
-
-		if redirectURL == "" {
-			http.Error(w, "TODO: add correct redirect handling", http.StatusInternalServerError)
-			return
-		}
-
-		if req.Method != http.MethodPost {
-			r.Error(w, req, http.StatusBadRequest, fmt.Errorf("expected POST method"))
-			return
-		}
-
-		err := req.ParseForm()
-		if err != nil {
-			r.Error(w, req, http.StatusBadRequest, err)
-			return
-		}
-
-		resetToken = req.FormValue("reset-token")
-		if m := members.FromContext(ctx); m != nil {
-			memberID = m.ID
-
-			// shouldn't have both token and logged in user
-			if resetToken != "" {
-				r.Error(w, req, http.StatusBadRequest, fmt.Errorf("can't have logged in user and reset-token present. Log out and try again"))
-				return
-			}
-		}
-
-		// check the passwords match and it hasnt been pwned
-		repeat := req.FormValue("repeat-password")
-		newpw := req.FormValue("new-password")
-
-		if newpw != repeat {
-			flashHelper.AddError(w, req, weberrs.ErrPasswordMissmatch)
-			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
-			return
-		}
-
-		if len(newpw) < 10 {
-			flashHelper.AddError(w, req, fmt.Errorf("password too short"))
-			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
-			return
-		}
-
-		isPwned, err := hibpClient.Pwned.Compromised(newpw)
-		if err != nil {
-			r.Error(w, req, http.StatusInternalServerError, fmt.Errorf("have-i-been-pwned client failed: %w", err))
-			return
-		}
-
-		if isPwned {
-			flashHelper.AddError(w, req, weberrs.ErrInsecurePassword)
-			http.Redirect(w, req, redirectURL, http.StatusSeeOther)
-			return
-		}
-
-		// update the password
-		if resetToken == "" {
-			err = dbs.AuthFallback.SetPassword(ctx, memberID, []byte(newpw))
-		} else {
-			err = dbs.AuthFallback.SetPasswordWithToken(ctx, resetToken, []byte(newpw))
-		}
-
-		// add flash msg about the outcome and redirect the user
-		if err != nil {
-			flashHelper.AddError(w, req, err)
-		} else {
-			flashHelper.AddMessage(w, req, "AuthFallbackPasswordUpdated")
-		}
-
-		redirectURL = urlTo(router.AuthFallbackLogin).Path
-		http.Redirect(w, req, redirectURL, http.StatusSeeOther)
-	})
+	var mh = newMembersHandler(netInfo.Development, r, urlTo, flashHelper, dbs.AuthFallback)
+	m.Get(router.MembersChangePasswordForm).HandlerFunc(r.HTML("change-member-password.tmpl", mh.changePasswordForm))
+	m.Get(router.MembersChangePassword).HandlerFunc(mh.changePassword)
 
 	// handle setting language
 	m.Get(router.CompleteSetLanguage).HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

@@ -94,6 +94,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 		pnf PageNotFound
 		br  ErrBadRequest
 		f   ErrForbidden
+		gl  ErrGenericLocalized
 	)
 
 	code := http.StatusInternalServerError
@@ -106,6 +107,9 @@ func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 
 	case err == auth.ErrBadLogin:
 		msg = ih.LocalizeSimple("ErrorAuthBadLogin")
+
+	case errors.As(err, &gl):
+		msg = ih.LocalizeSimple(gl.Label)
 
 	case errors.Is(err, roomdb.ErrNotFound):
 		code = http.StatusNotFound

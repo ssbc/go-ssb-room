@@ -46,6 +46,7 @@ type testSession struct {
 	AliasesDB    *mockdb.FakeAliasesService
 	ConfigDB     *mockdb.FakeRoomConfig
 	DeniedKeysDB *mockdb.FakeDeniedKeysService
+	FallbackDB   *mockdb.FakeAuthFallbackService
 	InvitesDB    *mockdb.FakeInvitesService
 	NoticeDB     *mockdb.FakeNoticesService
 	MembersDB    *mockdb.FakeMembersService
@@ -74,6 +75,7 @@ func newSession(t *testing.T) *testSession {
 	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
 	ts.ConfigDB.GetDefaultLanguageReturns("en", nil)
 	ts.DeniedKeysDB = new(mockdb.FakeDeniedKeysService)
+	ts.FallbackDB = new(mockdb.FakeAuthFallbackService)
 	ts.MembersDB = new(mockdb.FakeMembersService)
 	ts.PinnedDB = new(mockdb.FakePinnedNoticesService)
 	ts.NoticeDB = new(mockdb.FakeNoticesService)
@@ -178,6 +180,7 @@ func newSession(t *testing.T) *testSession {
 		locHelper,
 		Databases{
 			Aliases:       ts.AliasesDB,
+			AuthFallback:  ts.FallbackDB,
 			Config:        ts.ConfigDB,
 			DeniedKeys:    ts.DeniedKeysDB,
 			Members:       ts.MembersDB,
