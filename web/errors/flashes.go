@@ -3,6 +3,7 @@ package errors
 import (
 	"encoding/gob"
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -38,7 +39,7 @@ const (
 
 type FlashMessage struct {
 	Kind    FlashKind
-	Message string
+	Message template.HTML
 }
 
 // TODO: rethink error return - maybe panic() / maybe render package?

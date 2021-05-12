@@ -83,10 +83,10 @@ type errorTemplateData struct {
 	BackURL string
 }
 
-func localizeError(ih *i18n.Localizer, err error) (int, string) {
+func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 
 	// default, unlocalized message
-	msg := err.Error()
+	msg := template.HTML(err.Error())
 
 	// localize some specific error messages
 	var (

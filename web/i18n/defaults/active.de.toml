@@ -58,7 +58,7 @@ AuthFallbackInstruct = "Diese Methode ist ein akzeptabler Fallback, wenn Sie ein
 AuthFallbackNewPassword="Neues Passwort"
 AuthFallbackRepeatPassword="Passwort wiederholen"
 AuthFallbackPasswordChangeFormTitle = "Passwort ändern"
-AuthFallbackPasswordChangeWelcome = "Hier können Sie ihr Passwort neu setzen. Bitte achten sie darauf, dass es länger als 10 Zeichen ist. Durch die doppelte eingabe wird sichergestellt, dass Sie sich nicht vertippt haben. Auserdem verwenden wir die Datenbank von haveibeenpwned.com um sicher zu stellen, dass Sie kein unsicherers Passwort verwenden, ohne es zu wissen."
+AuthFallbackPasswordChangeWelcome = "Hier können Sie ihr Passwort neu setzen. Bitte achten sie darauf, dass es länger als 10 Zeichen ist. Durch die doppelte eingabe wird sichergestellt, dass Sie sich nicht vertippt haben. Auserdem verwenden wir die Datenbank von <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> um sicher zu stellen, dass Sie kein unsicherers Passwort verwenden, ohne es zu wissen."
 AuthFallbackPasswordUpdated = "Das Passwort wurde aktualisiert. Sie können sich nun damit Einloggen."
 AdminMemberPasswordResetLinkCreatedTitle = "Passwort reset link erstellt"
 AdminMemberPasswordResetLinkCreatedInstruct = "Der reset Link wurde erstellt. Bitte senden Sie ihn, uber einen geeigneten Seitenkanal wie z.B. E-Mail, an das Mitglied. Wenn die Person den Link offnet, ist Sie in der Lage sich ein neues Passwort zu geben."
