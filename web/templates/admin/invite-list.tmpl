@@ -28,10 +28,10 @@
             >
             {{ .csrfField }}
             <button
-              {{ if not member_can_invite }} disabled {{ end }}
+              {{ if member_can "invite" }} {{else}} disabled {{ end }}
               type="submit"
               class="shadow rounded px-3 py-1.5 ring-1 focus:outline-none focus:ring-2 
-              {{ if member_can_invite }} 
+              {{ if member_can "invite" }}
                 text-green-600 ring-green-400 bg-white hover:bg-green-500 hover:text-gray-100 focus:ring-green-400 
               {{ else }} 
                 text-gray-500 ring-gray-200 bg-gray-300 cursor-not-allowed 

@@ -124,31 +124,6 @@ func New(
 			}
 		}),
 
-		render.InjectTemplateFunc("member_can_invite", func(r *http.Request) interface{} {
-			return func() (bool, error) {
-				member := members.FromContext(r.Context())
-				if member == nil {
-					return false, nil
-				}
-
-				pm, err := dbs.Config.GetPrivacyMode(r.Context())
-				if err != nil {
-					return false, err
-				}
-
-				switch pm {
-				case roomdb.ModeOpen:
-					return true, nil
-				case roomdb.ModeCommunity:
-					return member.Role > roomdb.RoleUnknown && member.Role <= roomdb.RoleAdmin, nil
-				case roomdb.ModeRestricted:
-					return member.Role == roomdb.RoleAdmin || member.Role == roomdb.RoleModerator, nil
-				default:
-					return false, nil
-				}
-			}
-		}),
-
 		render.InjectTemplateFunc("language_count", func(r *http.Request) interface{} {
 			return func() int {
 				return len(locHelper.ListLanguages())
@@ -195,7 +170,7 @@ func New(
 	}
 
 	renderOpts = append(renderOpts, locHelper.GetRenderFuncs()...)
-	renderOpts = append(renderOpts, members.TemplateHelpers()...)
+	renderOpts = append(renderOpts, members.TemplateHelpers(dbs.Config)...)
 
 	r, err := render.New(web.Templates, renderOpts...)
 	if err != nil {

@@ -55,36 +55,19 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	if req.Method != "POST" {
 		return nil, weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
 	}
+
 	if err := req.ParseForm(); err != nil {
 		return nil, weberrors.ErrBadRequest{Where: "Form data", Details: err}
 	}
 
-	member := members.FromContext(req.Context())
-	if member == nil {
-		return nil, weberrors.ErrNotAuthorized
-	}
-	pm, err := h.config.GetPrivacyMode(req.Context())
+	ctx := req.Context()
+
+	member, err := members.CheckAllowed(ctx, h.config, members.ActionInviteMember)
 	if err != nil {
 		return nil, err
 	}
-	/* We want to check:
-		 * 1. the room's privacy mode
-		 * 2. the role of the member trying to create the invite
-	     * and deny unallowed requests (e.g. member creating invite in ModeRestricted)
-	*/
-	switch pm {
-	case roomdb.ModeOpen:
-	case roomdb.ModeCommunity:
-		if member.Role == roomdb.RoleUnknown {
-			return nil, weberrors.ErrNotAuthorized
-		}
-	case roomdb.ModeRestricted:
-		if member.Role == roomdb.RoleMember || member.Role == roomdb.RoleUnknown {
-			return nil, weberrors.ErrNotAuthorized
-		}
-	}
 
-	token, err := h.db.Create(req.Context(), member.ID)
+	token, err := h.db.Create(ctx, member.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,32 +105,37 @@ func (h invitesHandler) revokeConfirm(rw http.ResponseWriter, req *http.Request)
 const redirectToInvites = "/admin/invites"
 
 func (h invitesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
+	// always redirect
+	defer http.Redirect(rw, req, redirectToInvites, http.StatusSeeOther)
+
+	ctx := req.Context()
+
+	if _, err := members.CheckAllowed(ctx, h.config, members.ActionInviteMember); err != nil {
+		h.flashes.AddError(rw, req, err)
+		return
+	}
+
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToInvites, http.StatusFound)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
-		// TODO "flash" errors
-		http.Redirect(rw, req, redirectToInvites, http.StatusFound)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
-	status := http.StatusFound
-	err = h.db.Revoke(req.Context(), id)
+	err = h.db.Revoke(ctx, id)
 	if err != nil {
-		if !errors.Is(err, roomdb.ErrNotFound) {
-			// TODO "flash" errors
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
+		if errors.Is(err, roomdb.ErrNotFound) {
+			err = weberrors.ErrNotFound{What: "invite"}
 		}
-		status = http.StatusNotFound
+		h.flashes.AddError(rw, req, err)
+	} else {
+		h.flashes.AddMessage(rw, req, "InviteRevoked")
 	}
-
-	http.Redirect(rw, req, redirectToInvites, status)
 }

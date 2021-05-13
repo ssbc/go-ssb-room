@@ -133,11 +133,11 @@ func TestNoticesEditButtonVisible(t *testing.T) {
 	a.EqualValues(1, doc.Find(editButtonSelector).Length())
 }
 
-func TestNoticesCreateOnlyModsAndHigher(t *testing.T) {
+func TestNoticesCreateOnlyModsAndHigherInRestricted(t *testing.T) {
 	ts := setup(t)
 	a := assert.New(t)
 
-	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeCommunity, nil)
+	ts.ConfigDB.GetPrivacyModeReturns(roomdb.ModeRestricted, nil)
 
 	// first, we confirm that we can't access the page when not logged in
 	draftNotice := ts.URLTo(router.AdminNoticeDraftTranslation, "name", roomdb.NoticeNews)
@@ -194,11 +194,11 @@ func TestNoticesCreateOnlyModsAndHigher(t *testing.T) {
 	doc, resp = ts.Client.GetHTML(draftNotice)
 	a.Equal(http.StatusSeeOther, resp.Code)
 
-	dashboardURL := ts.URLTo(router.AdminDashboard)
-	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
+	noticeListURL := ts.URLTo(router.CompleteNoticeList)
+	a.Equal(noticeListURL.String(), resp.Header().Get("Location"))
 	a.True(len(resp.Result().Cookies()) > 0, "got a cookie")
 
-	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
+	webassert.HasFlashMessages(t, ts.Client, noticeListURL, "ErrorNotAuthorized")
 
 	// also shouldnt be allowed to save/post
 	id := []string{"1"}
@@ -213,9 +213,9 @@ func TestNoticesCreateOnlyModsAndHigher(t *testing.T) {
 	a.Equal(http.StatusSeeOther, resp.Code, "POST should work")
 	a.Equal(0, ts.NoticeDB.SaveCallCount(), "noticedb should not save the notice")
 
-	a.Equal(dashboardURL.Path, resp.Header().Get("Location"))
+	a.Equal(noticeListURL.String(), resp.Header().Get("Location"))
 	a.True(len(resp.Result().Cookies()) > 0, "got a cookie")
 
-	webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
+	webassert.HasFlashMessages(t, ts.Client, noticeListURL, "ErrorNotAuthorized")
 
 }

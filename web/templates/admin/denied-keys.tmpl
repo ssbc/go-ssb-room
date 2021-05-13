@@ -22,31 +22,31 @@
       {{ .csrfField }}
       <div id="denied-keys-input-container" class="flex flex-row items-center h-12">
         <input
-          {{ if member_is_elevated }} {{ else }} disabled {{ end }}
+          {{ if member_can "change-denied-keys" }} {{ else }} disabled {{ end }}
           type="text"
           name="pub_key"
           placeholder="{{i18n "PubKeyRefPlaceholder"}}"
           class="p-1 rounded font-mono truncate w-1/2 mr-2 tracking-wider h-12 shadow text-gray-900 focus:outline-none focus:ring-1
           focus:ring-green-500 focus:border-transparent placeholder-gray-300 
-          {{ if member_is_elevated }} {{ else }} shadow ring-1 ring-gray-300 opacity-50 bg-gray-200 cursor-not-allowed {{ end }}
+          {{ if member_can "change-denied-keys" }} {{ else }} shadow ring-1 ring-gray-300 opacity-50 bg-gray-200 cursor-not-allowed {{ end }}
           "
         >
         <input
-          {{ if member_is_elevated }} {{ else }} disabled {{ end }}
+          {{ if member_can "change-denied-keys" }} {{ else }} disabled {{ end }}
           type="text"
           name="comment"
           placeholder="{{i18n "AdminDeniedKeysComment"}}"
           class="p-1 rounded font-mono truncate w-1/2 mr-2 tracking-wider h-12 shadow text-gray-900 focus:outline-none focus:ring-1
           focus:ring-green-500 focus:border-transparent placeholder-gray-300 
-          {{ if member_is_elevated }} {{ else }} shadow ring-1 ring-gray-300 opacity-50 bg-gray-200 cursor-not-allowed {{ end }}
+          {{ if member_can "change-denied-keys" }} {{ else }} shadow ring-1 ring-gray-300 opacity-50 bg-gray-200 cursor-not-allowed {{ end }}
           "
         >
         <input
-          {{ if member_is_elevated }} {{ else }} disabled {{ end }}
+          {{ if member_can "change-denied-keys" }} {{ else }} disabled {{ end }}
           type="submit"
           value="{{i18n "AdminDeniedKeysAdd"}}"
           class="pl-4 w-20 py-2 text-center font-bold bg-transparent disabled:opacity-50
-          {{ if member_is_elevated }} text-green-500 hover:text-green-600 cursor-pointer {{ else }} text-gray-200 cursor-not-allowed {{ end }}
+          {{ if member_can "change-denied-keys" }} text-green-500 hover:text-green-600 cursor-pointer {{ else }} text-gray-200 cursor-not-allowed {{ end }}
           "
         >
       </div>
@@ -62,8 +62,8 @@
       >{{.Comment}}</span>
 
       <a
-        href="{{urlTo "admin:denied-keys:remove:confirm" "id" .ID}}"
-        class="pl-4 w-20 py-2 text-center text-gray-400 hover:text-red-600 font-bold cursor-pointer"
+        href="{{if member_can "change-denied-keys"}}{{urlTo "admin:denied-keys:remove:confirm" "id" .ID}}{{else}}#{{end}}"
+        class="pl-4 w-20 py-2 text-center {{if member_can "change-denied-keys"}}text-gray-400 hover:text-red-600 font-bold cursor-pointer{{else}} text-gray-200 line-through cursor-not-allowed {{end}}"
       >{{i18n "AdminDeniedKeysRemove"}}</a>
     </li>
     {{end}}

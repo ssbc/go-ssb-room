@@ -29,6 +29,7 @@ type membersHandler struct {
 
 	db             roomdb.MembersService
 	fallbackAuthDB roomdb.AuthFallbackService
+	roomCfgDB      roomdb.RoomConfig
 }
 
 const redirectToMembers = "/admin/members"
@@ -46,23 +47,23 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer http.Redirect(w, req, redirectToMembers, http.StatusSeeOther)
+
 	newEntry := req.Form.Get("pub_key")
 	newEntryParsed, err := refs.ParseFeedRef(newEntry)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Public Key", Details: err}
 		h.flashes.AddError(w, req, err)
-		http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
 	_, err = h.db.Add(req.Context(), *newEntryParsed, roomdb.RoleMember)
 	if err != nil {
 		h.flashes.AddError(w, req, err)
-	} else {
-		h.flashes.AddMessage(w, req, "AdminMemberAdded")
+		return
 	}
 
-	http.Redirect(w, req, redirectToMembers, http.StatusTemporaryRedirect)
+	h.flashes.AddMessage(w, req, "AdminMemberAdded")
 }
 
 func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
@@ -108,7 +109,7 @@ func (h membersHandler) changeRole(w http.ResponseWriter, req *http.Request) {
 	h.flashes.AddMessage(w, req, "AdminMemberUpdated")
 
 	memberDetailsURL := h.urlTo(router.AdminMemberDetails, "id", memberID).String()
-	http.Redirect(w, req, memberDetailsURL, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, memberDetailsURL, http.StatusSeeOther)
 }
 
 func (h membersHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -191,6 +192,8 @@ func (h membersHandler) removeConfirm(rw http.ResponseWriter, req *http.Request)
 }
 
 func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
 		h.r.Error(rw, req, http.StatusBadRequest, err)
@@ -203,22 +206,26 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer http.Redirect(rw, req, redirectToMembers, http.StatusSeeOther)
+
+	if _, err := members.CheckAllowed(ctx, h.roomCfgDB, members.ActionRemoveMember); err != nil {
+		h.flashes.AddError(rw, req, err)
+		return
+	}
+
 	id, err := strconv.ParseInt(req.FormValue("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 		return
 	}
 
-	err = h.db.RemoveID(req.Context(), id)
+	err = h.db.RemoveID(ctx, id)
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
 	} else {
 		h.flashes.AddMessage(rw, req, "AdminMemberRemoved")
 	}
-
-	http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
 }
 
 func (h membersHandler) createPasswordResetToken(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
