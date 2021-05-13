@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -145,11 +146,18 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["member_is_elevated"] = func() bool { return ts.User.Role == roomdb.RoleAdmin || ts.User.Role == roomdb.RoleModerator }
 	testFuncs["member_is_admin"] = func() bool { return ts.User.Role == roomdb.RoleAdmin }
-	testFuncs["member_can_invite"] = func() bool {
-		pm, _ := ts.ConfigDB.GetPrivacyMode(context.TODO())
-		memberElevated := ts.User.Role == roomdb.RoleAdmin || ts.User.Role == roomdb.RoleModerator
-		memberCanInvite := ts.User.Role == roomdb.RoleMember && (pm == roomdb.ModeCommunity || pm == roomdb.ModeOpen)
-		return memberElevated || memberCanInvite
+	testFuncs["member_can"] = func(what string) (bool, error) {
+		actionCheck, has := members.AllowedActions(what)
+		if !has {
+			return false, fmt.Errorf("unrecognized action: %s", what)
+		}
+
+		pm, err := ts.ConfigDB.GetPrivacyMode(context.TODO())
+		if err != nil {
+			return false, err
+		}
+
+		return actionCheck(pm, ts.User.Role), nil
 	}
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
 	testFuncs["relative_time"] = func(when time.Time) string { return humanize.Time(when) }

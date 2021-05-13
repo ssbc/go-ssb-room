@@ -70,7 +70,7 @@ func TestMembersAdd(t *testing.T) {
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 
 	a.Equal(1, ts.MembersDB.AddCallCount())
 	_, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
@@ -128,7 +128,7 @@ func TestMembersDontAddInvalid(t *testing.T) {
 		"pub_key": []string{newKey},
 	}
 	rec := ts.Client.PostForm(addURL, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 
 	a.Equal(0, ts.MembersDB.AddCallCount())
 
@@ -262,36 +262,102 @@ func TestMemberDetails(t *testing.T) {
 	wantLink = ts.URLTo(router.AdminMembersRemoveConfirm, "id", 1)
 	a.Equal(wantLink.String(), removeLink)
 
-	testDisabledBehaviour := func(isElevated bool) {
-		html, resp := ts.Client.GetHTML(memberURL)
-		a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+	testChangeRoleDisabledBehaviour := func(t *testing.T, html *goquery.Document, canSee bool) {
+		a := assert.New(t)
+
 		// check for SSB ID
 		ssbID := html.Find("#ssb-id")
 		a.Equal(feedRef.Ref(), ssbID.Text())
 
 		// check for change-role dropdown
 		roleDropdown := html.Find("#change-role")
-		if isElevated {
+		if canSee {
 			a.Equal(1, roleDropdown.Length())
 		} else {
 			a.Equal(0, roleDropdown.Length())
 		}
 	}
-	testDisabledBehaviour(true)
 
-	/* Now: verify that moderators cannot make room settings changes */
-	ts.User = roomdb.Member{
-		ID:   7331,
-		Role: roomdb.RoleModerator,
-	}
-	testDisabledBehaviour(true)
+	testRemoveButtonHiddenBehavior := func(t *testing.T, html *goquery.Document, canSee bool) {
+		a := assert.New(t)
 
-	/* Finally: verify that members cannot make room settings changes */
-	ts.User = roomdb.Member{
-		ID:   9001,
-		Role: roomdb.RoleMember,
+		rmButton := html.Find("a#remove-member")
+		if canSee {
+			a.Equal(1, rmButton.Length())
+		} else {
+			a.Equal(0, rmButton.Length())
+		}
 	}
-	testDisabledBehaviour(false)
+	overviewURL := ts.URLTo(router.AdminMembersOverview)
+	removeURL := ts.URLTo(router.AdminMembersRemove)
+	totalRemoveCallCount := 0
+	testCanDoRemoveBehavior := func(t *testing.T, html *goquery.Document, canDo bool) {
+		a := assert.New(t)
+
+		resp := ts.Client.PostForm(removeURL, url.Values{"id": []string{"1"}})
+		a.Equal(http.StatusSeeOther, resp.Code, "unexpected status code")
+
+		var wantLabel string
+		if canDo {
+			totalRemoveCallCount++
+			wantLabel = "AdminMemberRemoved"
+		} else {
+			wantLabel = "ErrorNotAuthorized"
+		}
+		a.Equal(totalRemoveCallCount, ts.MembersDB.RemoveIDCallCount())
+		webassert.HasFlashMessages(t, ts.Client, overviewURL, wantLabel)
+	}
+
+	memberUser := roomdb.Member{
+		ID:     7331,
+		Role:   roomdb.RoleMember,
+		PubKey: generatePubKey(),
+	}
+	modUser := roomdb.Member{
+		ID:     9001,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
+	}
+	adminUser := roomdb.Member{
+		ID:     1337,
+		Role:   roomdb.RoleAdmin,
+		PubKey: generatePubKey(),
+	}
+
+	for _, mode := range roomdb.AllPrivacyModes {
+		t.Run(mode.String(), func(t *testing.T) {
+			ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
+
+			// members can only invite in community rooms
+			t.Run("members", func(t *testing.T) {
+				ts.User = memberUser
+				html, resp := ts.Client.GetHTML(memberURL)
+				a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+				testChangeRoleDisabledBehaviour(t, html, false)
+				testRemoveButtonHiddenBehavior(t, html, false)
+				testCanDoRemoveBehavior(t, html, false)
+			})
+
+			// mods & admins can always invite
+			t.Run("mods", func(t *testing.T) {
+				ts.User = modUser
+				html, resp := ts.Client.GetHTML(memberURL)
+				a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+				testChangeRoleDisabledBehaviour(t, html, true)
+				testRemoveButtonHiddenBehavior(t, html, true)
+				testCanDoRemoveBehavior(t, html, true)
+			})
+
+			t.Run("admins", func(t *testing.T) {
+				ts.User = adminUser
+				html, resp := ts.Client.GetHTML(memberURL)
+				a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
+				testChangeRoleDisabledBehaviour(t, html, true)
+				testRemoveButtonHiddenBehavior(t, html, true)
+				testCanDoRemoveBehavior(t, html, true)
+			})
+		})
+	}
 }
 
 func TestMembersRemoveConfirmation(t *testing.T) {
@@ -337,7 +403,7 @@ func TestMembersRemove(t *testing.T) {
 
 	addVals := url.Values{"id": []string{"666"}}
 	rec := ts.Client.PostForm(urlRemove, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 
 	a.Equal(1, ts.MembersDB.RemoveIDCallCount())
 	_, theID := ts.MembersDB.RemoveIDArgsForCall(0)
@@ -355,7 +421,7 @@ func TestMembersRemove(t *testing.T) {
 	ts.MembersDB.RemoveIDReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"id": []string{"667"}}
 	rec = ts.Client.PostForm(urlRemove, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 
 	// check flash message
 	res = rec.Result()

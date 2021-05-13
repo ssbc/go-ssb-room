@@ -157,6 +157,8 @@ AdminInvitesCreatorColumn = "Created by"
 AdminInvitesActionColumn = "Action"
 AdminInviteRevoke = "Revoke"
 
+InviteRevoked = "Invite Revoked."
+
 AdminInviteRevokeConfirmTitle = "Confirm invite revocation"
 AdminInviteRevokeConfirmWelcome = "Are you sure you want to remove this invite? If you already sent it out, they will not be able to use it."
 

@@ -63,7 +63,7 @@ func TestAliasesRevoke(t *testing.T) {
 
 	addVals := url.Values{"name": []string{"the-name"}}
 	rec := ts.Client.PostForm(urlRevoke, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 
@@ -77,7 +77,7 @@ func TestAliasesRevoke(t *testing.T) {
 	ts.AliasesDB.RevokeReturns(roomdb.ErrNotFound)
 	addVals = url.Values{"name": []string{"nope"}}
 	rec = ts.Client.PostForm(urlRevoke, addVals)
-	a.Equal(http.StatusTemporaryRedirect, rec.Code)
+	a.Equal(http.StatusSeeOther, rec.Code)
 	a.Equal(overviewURL.Path, rec.Header().Get("Location"))
 	a.True(len(rec.Result().Cookies()) > 0, "got a cookie")
 

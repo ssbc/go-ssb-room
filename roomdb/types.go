@@ -83,6 +83,8 @@ const (
 	ModeRestricted
 )
 
+var AllPrivacyModes = []PrivacyMode{ModeOpen, ModeCommunity, ModeRestricted}
+
 // Implements the SQL marshaling interfaces (Scanner for Scan & Valuer for Value) for PrivacyMode
 
 // Scan implements https://pkg.go.dev/database/sql#Scanner to read integers into a privacy mode

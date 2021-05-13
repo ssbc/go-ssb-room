@@ -37,7 +37,7 @@ type Server struct {
 	closers  multicloser.Closer
 
 	closed   bool
-	closedMu sync.Mutex
+	closedMu *sync.Mutex
 	closeErr error
 
 	Network    network.Network
@@ -87,6 +87,7 @@ func New(
 	opts ...Option,
 ) (*Server, error) {
 	var s Server
+	s.closedMu = new(sync.Mutex)
 
 	s.Members = membersdb
 	s.DeniedKeys = deniedkeysdb

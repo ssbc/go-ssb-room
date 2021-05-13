@@ -150,6 +150,8 @@ AdminInvitesCreatorColumn = "Erstellt von"
 AdminInvitesActionColumn = "Aktion"
 AdminInviteRevoke = "Widerrufen"
 
+InviteRevoked = "Einladug wurde Widerrufen."
+
 AdminInviteRevokeConfirmTitle = "Widerruf der Einladung bestätigen"
 AdminInviteRevokeConfirmWelcome = "Sind Sie sicher, dass Sie diese Einladung entfernen möchten? Wenn Sie sie bereits gesendet haben, können sie sie nicht verwenden."
 

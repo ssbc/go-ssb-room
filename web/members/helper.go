@@ -5,6 +5,7 @@ package members
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"go.mindeco.de/http/auth"
@@ -101,7 +102,9 @@ func ContextInjecter(mdb roomdb.MembersService, withPassword *auth.Handler, with
 //  {{ member_is_admin }} is a shortcut for {{ member_has_role "RoleAdmin" }}
 //
 //  {{ member_is_elevated }} is a shortcut for {{ or member_has_role "RoleAdmin" member_has_role "RoleModerator"}}
-func TemplateHelpers() []render.Option {
+//
+//  {{ member_can "action" }} returns true if a member can execute a certain action. Actions are "invite" and "remove-denied-key". See allowedActions to add more.
+func TemplateHelpers(roomCfg roomdb.RoomConfig) []render.Option {
 
 	return []render.Option{
 		render.InjectTemplateFunc("is_logged_in", func(r *http.Request) interface{} {
@@ -159,5 +162,116 @@ func TemplateHelpers() []render.Option {
 				return member.Role == roomdb.RoleAdmin || member.Role == roomdb.RoleModerator
 			}
 		}),
+
+		render.InjectTemplateFunc("member_can", func(r *http.Request) interface{} {
+			// evaluate member and privacy mode first to reduce some churn for multiple calls to this helper
+			// works fine since they are not changing during one request
+			member := FromContext(r.Context())
+			if member == nil {
+				return func(_ string) bool { return false }
+			}
+
+			pm, err := roomCfg.GetPrivacyMode(r.Context())
+			if err != nil {
+				return func(_ string) (bool, error) { return false, err }
+			}
+
+			// now return the template func which closes over pm and the member
+			return func(what string) (bool, error) {
+				actionCheck, has := allowedActionsMap[what]
+				if !has {
+					return false, fmt.Errorf("unrecognized action: %s", what)
+				}
+
+				return actionCheck(pm, member.Role), nil
+			}
+		}),
 	}
+}
+
+// AllowedFunc returns true if a member role is allowed to do a thing under the passed mode
+type AllowedFunc func(mode roomdb.PrivacyMode, role roomdb.Role) bool
+
+// AllowedActions exposes check function by name. It exists to protected against changes of the map
+func AllowedActions(name string) (AllowedFunc, bool) {
+	fn, has := allowedActionsMap[name]
+	return fn, has
+}
+
+// member actions
+const (
+	ActionInviteMember     = "invite"
+	ActionChangeDeniedKeys = "change-denied-keys"
+	ActionRemoveMember     = "remove-member"
+	ActionChangeNotice     = "change-notice"
+)
+
+var allowedActionsMap = map[string]AllowedFunc{
+	ActionInviteMember: func(pm roomdb.PrivacyMode, role roomdb.Role) bool {
+		switch pm {
+		case roomdb.ModeOpen:
+			return true
+		case roomdb.ModeCommunity:
+			return role > roomdb.RoleUnknown && role <= roomdb.RoleAdmin
+		case roomdb.ModeRestricted:
+			return role == roomdb.RoleAdmin || role == roomdb.RoleModerator
+		default:
+			return false
+		}
+	},
+
+	ActionChangeDeniedKeys: func(pm roomdb.PrivacyMode, role roomdb.Role) bool {
+		switch pm {
+		case roomdb.ModeCommunity:
+			return true
+		case roomdb.ModeOpen:
+			fallthrough
+		case roomdb.ModeRestricted:
+			return role == roomdb.RoleAdmin || role == roomdb.RoleModerator
+		default:
+			return false
+		}
+	},
+
+	ActionRemoveMember: func(_ roomdb.PrivacyMode, role roomdb.Role) bool {
+		return role == roomdb.RoleAdmin || role == roomdb.RoleModerator
+	},
+
+	ActionChangeNotice: func(pm roomdb.PrivacyMode, role roomdb.Role) bool {
+		switch pm {
+		case roomdb.ModeCommunity:
+			return true
+		case roomdb.ModeOpen:
+			fallthrough
+		case roomdb.ModeRestricted:
+			return role == roomdb.RoleAdmin || role == roomdb.RoleModerator
+		default:
+			return false
+		}
+	},
+}
+
+// CheckAllowed retreives the member from the passed context and lookups the current privacy mode from the passed cfg to determain if the action is okay or not.
+// If it's not it returns an error. For convenience it also returns the member if the action is okay.
+func CheckAllowed(ctx context.Context, cfg roomdb.RoomConfig, action string) (*roomdb.Member, error) {
+	member := FromContext(ctx)
+	if member == nil {
+		return nil, weberrors.ErrNotAuthorized
+	}
+
+	pm, err := cfg.GetPrivacyMode(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	allowed, ok := AllowedActions(action)
+	if !ok {
+		return nil, fmt.Errorf("unknown action: %s: %w", action, weberrors.ErrNotAuthorized)
+	}
+
+	if !allowed(pm, member.Role) {
+		return nil, weberrors.ErrNotAuthorized
+	}
+
+	return member, nil
 }

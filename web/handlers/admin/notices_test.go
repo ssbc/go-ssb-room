@@ -50,7 +50,7 @@ func TestNoticeSaveRefusesIncomplete(t *testing.T) {
 	loc := resp.Header().Get("Location")
 
 	noticesList := ts.URLTo(router.CompleteNoticeList)
-	a.Equal(noticesList.Path, loc)
+	a.Equal(noticesList.String(), loc)
 
 	// we should get noticesList here but
 	// due to issue #35 we cant get /notices/list in package admin tests
@@ -99,7 +99,8 @@ func TestNoticeAddLanguageOnlyAllowsPost(t *testing.T) {
 
 	formValues := url.Values{"name": []string{roomdb.NoticeNews.String()}, "id": id, "title": title, "content": content, "language": language}
 	resp = ts.Client.PostForm(u, formValues)
-	a.Equal(http.StatusTemporaryRedirect, resp.Code)
+	a.Equal(http.StatusSeeOther, resp.Code)
+	webassert.HasFlashMessages(t, ts.Client, ts.URLTo(router.AdminDashboard), "NoticeUpdated")
 }
 
 // Verifies that the "add a translation" page contains all the required form fields (id/title/content/language)
@@ -157,4 +158,194 @@ func TestNoticeEditFormIncludesAllFields(t *testing.T) {
 		{Name: "id", Value: fmt.Sprintf("%d", notice.ID), Type: "hidden"},
 		{Tag: "textarea", Name: "content"},
 	})
+}
+
+func TestNoticesRoleRightsEditing(t *testing.T) {
+	ts := newSession(t)
+
+	dashboardURL := ts.URLTo(router.AdminDashboard)
+	editURL := ts.URLTo(router.AdminNoticeEdit, "id", 1)
+	saveURL := ts.URLTo(router.AdminNoticeSave)
+
+	formValues := url.Values{
+		"id":       []string{"1"},
+		"title":    []string{"SSB Breaking News: This Test Is Great"},
+		"content":  []string{"Absolutely Thrilling Content"},
+		"language": []string{"en-GB"},
+	}
+
+	canSeeEditForm := func(t *testing.T, shouldWork bool) {
+		a := assert.New(t)
+
+		doc, resp := ts.Client.GetHTML(editURL)
+
+		if shouldWork {
+			a.Equal(http.StatusOK, resp.Code, "unexpected status code")
+			form := doc.Find("form")
+			action, has := form.Attr("action")
+			a.True(has, "no action on a form?!")
+			a.Equal(saveURL.String(), action)
+		} else {
+			a.Equal(http.StatusSeeOther, resp.Code, "unexpected status code")
+			webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
+		}
+	}
+
+	totalSaveCallCount := 0
+	canSaveNotice := func(t *testing.T, shouldWork bool) {
+		a := assert.New(t)
+
+		// POST a correct request to the save handler, and verify that the save was handled using the mock database)
+		resp := ts.Client.PostForm(saveURL, formValues)
+		a.Equal(http.StatusSeeOther, resp.Code, "should have redirected")
+
+		var wantLabel string
+		if shouldWork {
+			totalSaveCallCount++
+			wantLabel = "NoticeUpdated"
+		} else {
+			wantLabel = "ErrorNotAuthorized"
+		}
+		webassert.HasFlashMessages(t, ts.Client, dashboardURL, wantLabel)
+		a.Equal(totalSaveCallCount, ts.NoticeDB.SaveCallCount(), "call count missmatch")
+	}
+
+	memberUser := roomdb.Member{
+		ID:     7331,
+		Role:   roomdb.RoleMember,
+		PubKey: generatePubKey(),
+	}
+	modUser := roomdb.Member{
+		ID:     9001,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
+	}
+	adminUser := roomdb.Member{
+		ID:     1337,
+		Role:   roomdb.RoleAdmin,
+		PubKey: generatePubKey(),
+	}
+
+	/* test invite creation under various restricted mode with the roles member, mod, admin */
+	for _, mode := range roomdb.AllPrivacyModes {
+		t.Run(mode.String(), func(t *testing.T) {
+			ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
+
+			// members can only invite in community rooms
+			t.Run("members", func(t *testing.T) {
+				ts.User = memberUser
+				canSeeEditForm(t, mode == roomdb.ModeCommunity)
+				canSaveNotice(t, mode == roomdb.ModeCommunity)
+			})
+
+			// mods & admins can always invite
+			t.Run("mods", func(t *testing.T) {
+				ts.User = modUser
+				canSeeEditForm(t, true)
+				canSaveNotice(t, true)
+			})
+
+			t.Run("admins", func(t *testing.T) {
+				ts.User = adminUser
+				canSeeEditForm(t, true)
+				canSaveNotice(t, true)
+			})
+		})
+	}
+}
+
+func TestNoticesRoleRightsAddingTranslation(t *testing.T) {
+	ts := newSession(t)
+
+	dashboardURL := ts.URLTo(router.AdminDashboard)
+	draftTrURL := ts.URLTo(router.AdminNoticeDraftTranslation, "name", "NoticeNews")
+	addTrURL := ts.URLTo(router.AdminNoticeAddTranslation)
+
+	formValues := url.Values{
+		"id":       []string{"1"},
+		"title":    []string{"SSB Breaking News: This Test Is Great"},
+		"content":  []string{"Absolutely Thrilling Content"},
+		"language": []string{"en-GB"},
+
+		"name": []string{"NoticeNews"},
+	}
+
+	canSeeAddTranslationForm := func(t *testing.T, shouldWork bool) {
+		a := assert.New(t)
+
+		doc, resp := ts.Client.GetHTML(draftTrURL)
+
+		if shouldWork {
+			a.Equal(http.StatusOK, resp.Code, "unexpected status code")
+			form := doc.Find("form")
+			action, has := form.Attr("action")
+			a.True(has, "no action on a form?!")
+			a.Equal(addTrURL.String(), action)
+		} else {
+			a.Equal(http.StatusSeeOther, resp.Code, "unexpected status code")
+			webassert.HasFlashMessages(t, ts.Client, dashboardURL, "ErrorNotAuthorized")
+		}
+	}
+
+	totalAddCallCount := 0
+	canAddNewTranslation := func(t *testing.T, shouldWork bool) {
+		a := assert.New(t)
+
+		// POST a correct request to the save handler, and verify that the save was handled using the mock database)
+		resp := ts.Client.PostForm(addTrURL, formValues)
+		a.Equal(http.StatusSeeOther, resp.Code, "should have redirected")
+
+		var wantLabel string
+		if shouldWork {
+			totalAddCallCount++
+			wantLabel = "NoticeUpdated"
+		} else {
+			wantLabel = "ErrorNotAuthorized"
+		}
+		webassert.HasFlashMessages(t, ts.Client, dashboardURL, wantLabel)
+		a.Equal(totalAddCallCount, ts.PinnedDB.SetCallCount(), "call count missmatch")
+	}
+
+	memberUser := roomdb.Member{
+		ID:     7331,
+		Role:   roomdb.RoleMember,
+		PubKey: generatePubKey(),
+	}
+	modUser := roomdb.Member{
+		ID:     9001,
+		Role:   roomdb.RoleModerator,
+		PubKey: generatePubKey(),
+	}
+	adminUser := roomdb.Member{
+		ID:     1337,
+		Role:   roomdb.RoleAdmin,
+		PubKey: generatePubKey(),
+	}
+
+	/* test invite creation under various restricted mode with the roles member, mod, admin */
+	for _, mode := range roomdb.AllPrivacyModes {
+		t.Run(mode.String(), func(t *testing.T) {
+			ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
+
+			// members can only invite in community rooms
+			t.Run("members", func(t *testing.T) {
+				ts.User = memberUser
+				canSeeAddTranslationForm(t, mode == roomdb.ModeCommunity)
+				canAddNewTranslation(t, mode == roomdb.ModeCommunity)
+			})
+
+			// mods & admins can always invite
+			t.Run("mods", func(t *testing.T) {
+				ts.User = modUser
+				canSeeAddTranslationForm(t, true)
+				canAddNewTranslation(t, true)
+			})
+
+			t.Run("admins", func(t *testing.T) {
+				ts.User = adminUser
+				canSeeAddTranslationForm(t, true)
+				canAddNewTranslation(t, true)
+			})
+		})
+	}
 }

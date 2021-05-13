@@ -111,7 +111,7 @@ func TestAliasRegister(t *testing.T) {
 	r.Error(err)
 
 	var callErr *muxrpc.CallError
-	r.True(errors.As(err, &callErr), "expected a call error: %T", err)
+	r.True(errors.As(err, &callErr), "expected a call error: %T -- %s", err, err)
 	r.Equal(`alias ("bob") is already taken`, callErr.Message)
 
 	for _, bot := range theBots {

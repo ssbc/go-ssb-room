@@ -12,6 +12,7 @@ import (
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -20,7 +21,8 @@ type deniedKeysHandler struct {
 
 	flashes *weberrors.FlashHelper
 
-	db roomdb.DeniedKeysService
+	db      roomdb.DeniedKeysService
+	roomCfg roomdb.RoomConfig
 }
 
 const redirectToDeniedKeys = "/admin/denied"
@@ -28,6 +30,15 @@ const redirectToDeniedKeys = "/admin/denied"
 func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	// always redirect
 	defer http.Redirect(w, req, redirectToDeniedKeys, http.StatusSeeOther)
+
+	ctx := req.Context()
+
+	_, err := members.CheckAllowed(ctx, h.roomCfg, members.ActionChangeDeniedKeys)
+	if err != nil {
+		err := weberrors.ErrNotAuthorized
+		h.flashes.AddError(w, req, err)
+		return
+	}
 
 	if req.Method != "POST" {
 		err := weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
@@ -109,7 +120,16 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	// always redirect
 	defer http.Redirect(rw, req, redirectToDeniedKeys, http.StatusSeeOther)
 
-	err := req.ParseForm()
+	ctx := req.Context()
+
+	_, err := members.CheckAllowed(ctx, h.roomCfg, members.ActionChangeDeniedKeys)
+	if err != nil {
+		err := weberrors.ErrNotAuthorized
+		h.flashes.AddError(rw, req, err)
+		return
+	}
+
+	err = req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "Form data", Details: err}
 		h.flashes.AddError(rw, req, err)
@@ -123,7 +143,7 @@ func (h deniedKeysHandler) remove(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = h.db.RemoveID(req.Context(), id)
+	err = h.db.RemoveID(ctx, id)
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
 	} else {

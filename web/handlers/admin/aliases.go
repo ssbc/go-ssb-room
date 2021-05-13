@@ -67,13 +67,15 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	defer http.Redirect(rw, req, redirectToMembers, http.StatusSeeOther)
+
 	aliasName := req.FormValue("name")
 
 	ctx := req.Context()
 
 	aliasEntry, err := h.db.Resolve(ctx, aliasName)
 	if err != nil {
-		h.r.Error(rw, req, http.StatusBadRequest, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
@@ -81,24 +83,22 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	currentMember := members.FromContext(ctx)
 	if currentMember == nil {
 		err := weberrors.ErrForbidden{Details: fmt.Errorf("not an member")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
 	// ensure own alias or admin
 	if !aliasEntry.Feed.Equal(&currentMember.PubKey) && currentMember.Role != roomdb.RoleAdmin {
 		err := weberrors.ErrForbidden{Details: fmt.Errorf("not your alias or not an admin")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
-	status := http.StatusTemporaryRedirect // TODO: should be SeeOther because it's method POST coming in
 	err = h.db.Revoke(ctx, aliasName)
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
-	} else {
-		h.flashes.AddMessage(rw, req, "AdminMemberDetailsAliasRevoked")
+		return
 	}
 
-	http.Redirect(rw, req, redirectToMembers, status)
+	h.flashes.AddMessage(rw, req, "AdminMemberDetailsAliasRevoked")
 }

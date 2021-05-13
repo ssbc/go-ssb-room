@@ -81,11 +81,13 @@ func TestInvitesOverview(t *testing.T) {
 		Role: roomdb.RoleAdmin,
 	}
 	testInviteButtonDisabled(false)
+
 	ts.User = roomdb.Member{
 		ID:   7331,
 		Role: roomdb.RoleModerator,
 	}
 	testInviteButtonDisabled(false)
+
 	ts.User = roomdb.Member{
 		ID:   9001,
 		Role: roomdb.RoleMember,
@@ -99,11 +101,13 @@ func TestInvitesOverview(t *testing.T) {
 		Role: roomdb.RoleAdmin,
 	}
 	testInviteButtonDisabled(false)
+
 	ts.User = roomdb.Member{
 		ID:   7331,
 		Role: roomdb.RoleModerator,
 	}
 	testInviteButtonDisabled(false)
+
 	ts.User = roomdb.Member{
 		ID:   9001,
 		Role: roomdb.RoleMember,
@@ -139,7 +143,7 @@ func TestInvitesCreateForm(t *testing.T) {
 	a.Equal(addURL.String(), action)
 }
 
-func TestInvitesCreate(t *testing.T) {
+func TestInvitesCreateAndRevoke(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 	r := require.New(t)
@@ -150,7 +154,10 @@ func TestInvitesCreate(t *testing.T) {
 	ts.InvitesDB.CreateReturns(testInvite, nil)
 
 	totalCreateCallCount := 0
-	createInviteShouldWork := func(works bool) *httptest.ResponseRecorder {
+	createInviteShouldWork := func(t *testing.T, works bool) *httptest.ResponseRecorder {
+		a := assert.New(t)
+		r := require.New(t)
+
 		rec := ts.Client.PostForm(urlCreate, url.Values{})
 		if works {
 			totalCreateCallCount += 1
@@ -165,10 +172,31 @@ func TestInvitesCreate(t *testing.T) {
 		return rec
 	}
 
-	rec := createInviteShouldWork(true)
+	totalRevokeCallCount := 0
+	urlRevoke := ts.URLTo(router.AdminInvitesRevoke)
+	canRevokeInvite := func(t *testing.T, canRevoke bool) {
+		a := assert.New(t)
+		r := require.New(t)
+
+		rec := ts.Client.PostForm(urlRevoke, url.Values{
+			"id": []string{"666"},
+		})
+		a.Equal(http.StatusSeeOther, rec.Code)
+		if canRevoke {
+			totalRevokeCallCount += 1
+			r.Equal(totalRevokeCallCount, ts.InvitesDB.RevokeCallCount())
+			_, userID := ts.InvitesDB.RevokeArgsForCall(totalRevokeCallCount - 1)
+			a.EqualValues(666, userID)
+		} else {
+			r.Equal(totalRevokeCallCount, ts.InvitesDB.RevokeCallCount())
+		}
+		return
+	}
+
+	rec := createInviteShouldWork(t, true)
 
 	doc, err := goquery.NewDocumentFromReader(rec.Body)
-	require.NoError(t, err, "failed to parse response")
+	r.NoError(err, "failed to parse response")
 
 	webassert.Localized(t, doc, []webassert.LocalizedElement{
 		{"title", "AdminInviteCreatedTitle"},
@@ -197,16 +225,29 @@ func TestInvitesCreate(t *testing.T) {
 	}
 
 	/* test invite creation under various restricted mode with the roles member, mod, admin */
-	modes := []roomdb.PrivacyMode{roomdb.ModeRestricted, roomdb.ModeCommunity}
-	for _, mode := range modes {
-		ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
-		ts.User = memberUser
-		// members can only invite in community rooms
-		createInviteShouldWork(mode == roomdb.ModeCommunity)
-		// mods & admins can always invite
-		ts.User = modUser
-		createInviteShouldWork(true)
-		ts.User = adminUser
-		createInviteShouldWork(true)
+	for _, mode := range roomdb.AllPrivacyModes {
+		t.Run(mode.String(), func(t *testing.T) {
+			ts.ConfigDB.GetPrivacyModeReturns(mode, nil)
+
+			// members can only invite in community rooms
+			t.Run("members", func(t *testing.T) {
+				ts.User = memberUser
+				createInviteShouldWork(t, mode != roomdb.ModeRestricted)
+				canRevokeInvite(t, mode != roomdb.ModeRestricted)
+			})
+
+			// mods & admins can always invite
+			t.Run("mods", func(t *testing.T) {
+				ts.User = modUser
+				createInviteShouldWork(t, true)
+				canRevokeInvite(t, true)
+			})
+
+			t.Run("admins", func(t *testing.T) {
+				ts.User = adminUser
+				createInviteShouldWork(t, true)
+				canRevokeInvite(t, true)
+			})
+		})
 	}
 }

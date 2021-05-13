@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
 
 	"github.com/gorilla/csrf"
@@ -17,17 +19,24 @@ import (
 )
 
 type noticeHandler struct {
-	r *render.Renderer
-
+	r       *render.Renderer
+	urlTo   web.URLMaker
 	flashes *weberrors.FlashHelper
 
 	noticeDB roomdb.NoticesService
 	pinnedDB roomdb.PinnedNoticesService
+	roomCfg  roomdb.RoomConfig
 }
 
 func (h noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
-	pinnedName := req.URL.Query().Get("name")
+	if _, err := members.CheckAllowed(req.Context(), h.roomCfg, members.ActionChangeNotice); err != nil {
+		h.flashes.AddError(rw, req, err)
+		noticesURL := h.urlTo(router.CompleteNoticeList)
+		http.Redirect(rw, req, noticesURL.String(), http.StatusSeeOther)
+		return nil, err
+	}
 
+	pinnedName := req.URL.Query().Get("name")
 	if !roomdb.PinnedNoticeName(pinnedName).Valid() {
 		return nil, weberrors.ErrBadRequest{Where: "pinnedName", Details: fmt.Errorf("invalid pinned notice name")}
 	}
@@ -40,12 +49,7 @@ func (h noticeHandler) draftTranslation(rw http.ResponseWriter, req *http.Reques
 }
 
 func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request) {
-	err := req.ParseForm()
-	if err != nil {
-		err = weberrors.ErrBadRequest{Where: "form data", Details: err}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
-		return
-	}
+	ctx := req.Context()
 
 	// reply with 405 error: Method not allowed
 	if req.Method != "POST" {
@@ -54,10 +58,30 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 		return
 	}
 
+	err := req.ParseForm()
+	if err != nil {
+		err = weberrors.ErrBadRequest{Where: "form data", Details: err}
+		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		return
+	}
+
+	redirect := req.FormValue("redirect")
+	if redirect == "" {
+		noticesURL := h.urlTo(router.CompleteNoticeList)
+		redirect = noticesURL.String()
+	}
+
+	defer http.Redirect(rw, req, redirect, http.StatusSeeOther)
+
+	if _, err := members.CheckAllowed(ctx, h.roomCfg, members.ActionChangeNotice); err != nil {
+		h.flashes.AddError(rw, req, err)
+		return
+	}
+
 	pinnedName := roomdb.PinnedNoticeName(req.FormValue("name"))
 	if !pinnedName.Valid() {
 		err := weberrors.ErrBadRequest{Where: "name", Details: fmt.Errorf("invalid pinned notice name")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
@@ -65,7 +89,7 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	n.Title = req.FormValue("title")
 	if n.Title == "" {
 		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
@@ -73,40 +97,45 @@ func (h noticeHandler) addTranslation(rw http.ResponseWriter, req *http.Request)
 	n.Language = req.FormValue("language")
 	if n.Language == "" {
 		err := weberrors.ErrBadRequest{Where: "language", Details: fmt.Errorf("language can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
 	n.Content = req.FormValue("content")
 	if n.Content == "" {
 		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 	// https://github.com/russross/blackfriday/issues/575
 	n.Content = strings.Replace(n.Content, "\r\n", "\n", -1)
 
-	err = h.noticeDB.Save(req.Context(), &n)
+	err = h.noticeDB.Save(ctx, &n)
 	if err != nil {
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
-	err = h.pinnedDB.Set(req.Context(), pinnedName, n.ID)
+	err = h.pinnedDB.Set(ctx, pinnedName, n.ID)
 	if err != nil {
-		h.r.Error(rw, req, http.StatusInternalServerError, err)
+		h.flashes.AddError(rw, req, err)
 		return
 	}
 
-	// TODO: redirect to edit page of the new notice (need to add urlTo to handler)
-	redirect := req.FormValue("redirect")
-	if redirect == "" {
-		redirect = "/"
-	}
-	http.Redirect(rw, req, redirect, http.StatusTemporaryRedirect)
+	h.flashes.AddMessage(rw, req, "NoticeUpdated")
+
 }
 
 func (h noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	ctx := req.Context()
+
+	if _, err := members.CheckAllowed(ctx, h.roomCfg, members.ActionChangeNotice); err != nil {
+		h.flashes.AddError(rw, req, err)
+		noticesURL := h.urlTo(router.CompleteNoticeList)
+		http.Redirect(rw, req, noticesURL.String(), http.StatusSeeOther)
+		return nil, err
+	}
+
 	id, err := strconv.ParseInt(req.URL.Query().Get("id"), 10, 64)
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "ID", Details: err}
@@ -128,8 +157,6 @@ func (h noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interfac
 		"SubmitAction":   router.AdminNoticeSave,
 		"Notice":         n,
 		"ContentPreview": template.HTML(preview),
-		// "Debug":          string(preview),
-		// "DebugHex":       hex.Dump(contentBytes),
 		csrf.TemplateTag: csrf.TemplateField(req),
 	}
 	pageData["Flashes"], err = h.flashes.GetAll(rw, req)
@@ -141,6 +168,14 @@ func (h noticeHandler) edit(rw http.ResponseWriter, req *http.Request) (interfac
 }
 
 func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
+	if req.Method != "POST" {
+		err := weberrors.ErrBadRequest{Where: "http method type", Details: fmt.Errorf("add translation only accepts POST requests, sorry!")}
+		h.r.Error(rw, req, http.StatusMethodNotAllowed, err)
+		return
+	}
+
 	err := req.ParseForm()
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "form data", Details: err}
@@ -150,12 +185,16 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 
 	redirect := req.FormValue("redirect")
 	if redirect == "" {
-		noticesURL, err := router.CompleteApp().Get(router.CompleteNoticeList).URL()
-		if err != nil {
-			h.r.Error(rw, req, http.StatusInternalServerError, err)
-			return
-		}
-		redirect = noticesURL.Path
+		noticesURL := h.urlTo(router.CompleteNoticeList)
+		redirect = noticesURL.String()
+	}
+
+	// now, always redirect
+	defer http.Redirect(rw, req, redirect, http.StatusSeeOther)
+
+	if _, err := members.CheckAllowed(ctx, h.roomCfg, members.ActionChangeNotice); err != nil {
+		h.flashes.AddError(rw, req, err)
+		return
 	}
 
 	var n roomdb.Notice
@@ -163,7 +202,6 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		err = weberrors.ErrBadRequest{Where: "id", Details: err}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
@@ -171,7 +209,6 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	if n.Title == "" {
 		err = weberrors.ErrBadRequest{Where: "title", Details: fmt.Errorf("title can't be empty")}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
@@ -180,7 +217,6 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	if n.Language == "" {
 		err = weberrors.ErrBadRequest{Where: "language", Details: fmt.Errorf("language can't be empty")}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
@@ -188,7 +224,6 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	if n.Content == "" {
 		err = weberrors.ErrBadRequest{Where: "content", Details: fmt.Errorf("content can't be empty")}
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
@@ -198,10 +233,8 @@ func (h noticeHandler) save(rw http.ResponseWriter, req *http.Request) {
 	err = h.noticeDB.Save(req.Context(), &n)
 	if err != nil {
 		h.flashes.AddError(rw, req, err)
-		http.Redirect(rw, req, redirect, http.StatusSeeOther)
 		return
 	}
 
 	h.flashes.AddMessage(rw, req, "NoticeUpdated")
-	http.Redirect(rw, req, redirect, http.StatusSeeOther)
 }
