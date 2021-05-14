@@ -345,3 +345,18 @@ func (html inviteConsumeHTMLResponder) SendSuccess() {
 func (html inviteConsumeHTMLResponder) SendError(err error) {
 	html.renderer.Error(html.rw, html.req, http.StatusInternalServerError, err)
 }
+
+func (h inviteHandler) createOpenMode(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	ctx := req.Context()
+
+	token, err := h.invites.Create(ctx, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	facadeURL := h.urlTo(router.CompleteInviteFacade, "token", token)
+
+	return map[string]interface{}{
+		"FacadeURL": facadeURL.String(),
+	}, nil
+}

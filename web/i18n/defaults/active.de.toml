@@ -161,14 +161,14 @@ AdminInviteSuggestedAliasIs = "Der vorgeschlagene Alias ​​lautet:"
 AdminInviteSuggestedAliasIsShort = "Alias:"
 
 AdminInviteCreatedTitle = "Einladung erfolgreich erstellt!"
-AdminInviteCreatedInstruct = "Kopieren Sie nun den folgenden Link und fügen Sie ihn in einen Freund ein, den Sie in diesen Raum einladen möchten."
+AdminInviteCreatedInstruct = "Kopieren Sie nun den folgenden Link und geben Sie ihn an den Entfänger weiter, den Sie in diesen Raum einladen möchten."
 
 # public invites
 ################
 
 InviteFacade = "Raum betreten"
 InviteFacadeTitle = "Raum betreten"
-InviteFacadeWelcome = "Sie haben die Erlaubnis, Mitglied dieses Raums zu werden, weil jemand diese Einladung mit Ihnen geteilt hat."
+InviteFacadeWelcome = "Willkommen bei {{.RoomTitle}}! Sie haben die Erlaubnis, Mitglied dieses Raums zu werden, weil jemand diese Einladung mit Ihnen geteilt hat."
 InviteFacadeInstruct = "Um die Einladung zu erhalten, klicken Sie auf die Schaltfläche unten, um eine kompatible SSB-App zu öffnen, falls diese installiert ist."
 InviteFacadeJoin = "Tritt diesem Raum bei"
 InviteFacadeWaiting = "SSB App öffnen"
@@ -182,6 +182,13 @@ InviteInsertWelcome = "Sie können Ihre Einladung anfordern, indem Sie unten Ihr
 
 InviteConsumedTitle = "Einladung angenommen!"
 InviteConsumedWelcome = "Sie sind jetzt Mitglied dieses Raums. Wenn Sie eine Multiserver-Adresse benötigen, um eine Verbindung zum Raum herzustellen, können Sie die folgende kopieren und einfügen:"
+
+# ssb uri links
+###############
+
+SSBURIOpening = "SSB App öffnen "
+SSBURIFailureWelcome = "Sind Sie neu bei SSB? Es scheint, dass Sie keine SSB-App haben, die diesen Link verstehen kann. Sie können eine dieser Apps installieren: "
+SSBURIFailureInstallManyverse = "Manyverse Installieren"
 
 # notices (mini-CMS)
 ####################

@@ -110,6 +110,16 @@ func New(
 		render.SetErrorHandler(eh.Handle),
 		render.FuncMap(web.TemplateFuncs(m, netInfo)),
 
+		render.InjectTemplateFunc("privacy_mode_is", func(r *http.Request) interface{} {
+			return func(want string) bool {
+				has, err := dbs.Config.GetPrivacyMode(r.Context())
+				if err != nil {
+					return false
+				}
+				return has.String() == want
+			}
+		}),
+
 		render.InjectTemplateFunc("current_page_is", func(r *http.Request) interface{} {
 			return func(routeName string) bool {
 				route := m.Get(routeName)
@@ -351,6 +361,7 @@ func New(
 	m.Get(router.CompleteInviteFacadeFallback).Handler(r.HTML("invite/facade-fallback.tmpl", ih.presentFacadeFallback))
 	m.Get(router.CompleteInviteInsertID).Handler(r.HTML("invite/insert-id.tmpl", ih.presentInsert))
 	m.Get(router.CompleteInviteConsume).HandlerFunc(ih.consume)
+	m.Get(router.OpenModeCreateInvite).HandlerFunc(r.HTML("admin/invite-created.tmpl", ih.createOpenMode))
 
 	// static assets
 	m.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", http.FileServer(web.Assets)))

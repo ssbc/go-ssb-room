@@ -46,10 +46,18 @@
         >{{i18n "AuthSignOut"}}</a>
       </span>
       {{else}}
+      <span class="divide-x divide-gray-300">
+      {{if privacy_mode_is "ModeOpen"}}
+      <a
+        href="{{urlTo "open:invites:create"}}"
+        class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-green-500"
+      >{{i18n "AdminInvitesCreate"}}</a>
+      {{end}}
       <a
         href="{{urlTo "auth:login"}}"
         class="pl-3 pr-4 py-2 sm:py-1 font-semibold text-sm text-gray-500 hover:text-green-500"
       >{{i18n "AuthSignIn"}}</a>
+      </span>
       {{end}}
     </div>
 

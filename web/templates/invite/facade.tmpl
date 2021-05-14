@@ -1,7 +1,7 @@
 {{ define "title" }}{{ i18n "InviteFacadeTitle" }}{{ end }}
 {{ define "content" }}
 <div class="flex flex-col justify-center items-center self-center max-w-lg">
-  <p id="welcome" class="text-center mt-8 italic">Welcome to {{.RoomTitle}}! {{i18n "InviteFacadeWelcome"}}</p>
+  <p id="welcome" class="text-center mt-8 italic">{{i18nWithData "InviteFacadeWelcome" "RoomTitle" .RoomTitle}}</p>
   <p class="text-center mt-3">{{i18n "InviteFacadeInstruct"}}</p>
 
   <a

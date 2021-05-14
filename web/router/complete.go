@@ -24,6 +24,8 @@ const (
 
 	MembersChangePasswordForm = "members:change-password:form"
 	MembersChangePassword     = "members:change-password"
+
+	OpenModeCreateInvite = "open:invites:create"
 )
 
 // CompleteApp constructs a mux.Router containing the routes for batch Complete html frontend
@@ -40,6 +42,7 @@ func CompleteApp() *mux.Router {
 	m.Path("/members/change-password").Methods("GET").Name(MembersChangePasswordForm)
 	m.Path("/members/change-password").Methods("POST").Name(MembersChangePassword)
 
+	m.Path("/create-invite").Methods("GET").Name(OpenModeCreateInvite)
 	m.Path("/join").Methods("GET").Name(CompleteInviteFacade)
 	m.Path("/join-fallback").Methods("GET").Name(CompleteInviteFacadeFallback)
 	m.Path("/join-manually").Methods("GET").Name(CompleteInviteInsertID)

@@ -144,6 +144,14 @@ func newSession(t *testing.T) *testSession {
 	testFuncs["urlToNotice"] = func(name string) string { return "" }
 	testFuncs["language_count"] = func() int { return 1 }
 	testFuncs["list_languages"] = func(*url.URL, string) string { return "" }
+	testFuncs["privacy_mode_is"] = func(mode string) bool {
+		pm, err := ts.ConfigDB.GetPrivacyMode(context.TODO())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		return pm.String() == mode
+	}
 	testFuncs["member_is_elevated"] = func() bool { return ts.User.Role == roomdb.RoleAdmin || ts.User.Role == roomdb.RoleModerator }
 	testFuncs["member_is_admin"] = func() bool { return ts.User.Role == roomdb.RoleAdmin }
 	testFuncs["member_can"] = func(what string) (bool, error) {

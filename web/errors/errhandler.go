@@ -116,30 +116,21 @@ func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 		msg = ih.LocalizeSimple("ErrorNotFound")
 
 	case errors.As(err, &aa):
-		msg = ih.LocalizeWithData("ErrorAlreadyAdded", map[string]string{
-			"Feed": aa.Ref.Ref(),
-		})
+		msg = ih.LocalizeWithData("ErrorAlreadyAdded", "Feed", aa.Ref.Ref())
 
 	case errors.As(err, &pnf):
 		code = http.StatusNotFound
-		msg = ih.LocalizeWithData("ErrorPageNotFound", map[string]string{
-			"Path": pnf.Path,
-		})
+		msg = ih.LocalizeWithData("ErrorPageNotFound", "Path", pnf.Path)
 
 	case errors.As(err, &br):
 		code = http.StatusBadRequest
 		// TODO: we could localize all the "Where:" as labels, too
 		// buttt it feels like overkill right now
-		msg = ih.LocalizeWithData("ErrorBadRequest", map[string]string{
-			"Where":   br.Where,
-			"Details": br.Details.Error(),
-		})
+		msg = ih.LocalizeWithData("ErrorBadRequest", "Where", br.Where, "Details", br.Details.Error())
 
 	case errors.As(err, &f):
 		code = http.StatusForbidden
-		msg = ih.LocalizeWithData("ErrorForbidden", map[string]string{
-			"Details": f.Details.Error(),
-		})
+		msg = ih.LocalizeWithData("ErrorForbidden", "Details", f.Details.Error())
 	}
 
 	return code, msg

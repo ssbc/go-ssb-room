@@ -245,6 +245,11 @@ func (h Helper) GetRenderFuncs() []render.Option {
 			loc := h.FromRequest(r)
 			return loc.LocalizeSimple
 		}),
+
+		render.InjectTemplateFunc("i18nWithData", func(r *http.Request) interface{} {
+			loc := h.FromRequest(r)
+			return loc.LocalizeWithData
+		}),
 	}
 	return opts
 }
@@ -260,7 +265,19 @@ func (l Localizer) LocalizeSimple(messageID string) template.HTML {
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
-func (l Localizer) LocalizeWithData(messageID string, tplData map[string]string) template.HTML {
+func (l Localizer) LocalizeWithData(messageID string, labelsAndData ...string) template.HTML {
+	n := len(labelsAndData)
+	if n%2 != 0 {
+		panic(fmt.Errorf("expected an even amount of labels and data. got %d", n))
+	}
+
+	tplData := make(map[string]string, n/2)
+	for i := 0; i < n; i += 2 {
+		key := labelsAndData[i]
+		data := labelsAndData[i+1]
+		tplData[key] = data
+	}
+
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:    messageID,
 		TemplateData: tplData,
