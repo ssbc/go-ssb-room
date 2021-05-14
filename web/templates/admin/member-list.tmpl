@@ -40,6 +40,7 @@
     class="text-lg font-bold my-2 ml-4"
   >{{i18npl "MemberCount" .Count}}</p>
 
+  {{ $self := is_logged_in }}
   <ul id="theList" class="pb-4">
     {{range $index, $member := .Entries}}
     <li class="odd:bg-gray-100 rounded-lg relative z-0 hover:z-10 hover:bg-white hover:shadow-md">
@@ -48,13 +49,16 @@
           <span class="font-mono truncate text-gray-600 group-hover:text-gray-800">{{$member.PubKey.Ref}}</span>
 
           <div class="inline-block h-6">
+          {{if eq .ID $self.ID}}
+              <span class="mr-1 text-green-800 bg-green-100 rounded-lg px-2">{{i18n "AdminMembersSelf"}}</span>
+          {{end}}
           {{range $member.Aliases}}
             <span class="mr-1 text-purple-800 bg-purple-100 rounded-lg px-2">{{.Name}}</span>
           {{end}}
           {{if eq .Role.String "RoleModerator"}}
             <span
               data-role="moderator"
-              class="text-green-800 bg-green-100 border-green-800 rounded-lg px-2"
+              class="text-blue-800 bg-blue-100 border-blue-800 rounded-lg px-2"
               >{{i18n "RoleModerator"}}</span>
           {{else if eq .Role.String "RoleAdmin"}}
             <span

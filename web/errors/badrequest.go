@@ -9,11 +9,18 @@ import (
 )
 
 var (
-	// ErrRedirect decide to not render a page during the controller
 	ErrNotAuthorized = errors.New("rooms/web: not authorized")
 
 	ErrDenied = errors.New("rooms: this key has been banned")
 )
+
+// ErrGenericLocalized is used for one-off errors that primarily are presented for the user.
+// The contained label is passed to the i18n engine for translation.
+type ErrGenericLocalized struct{ Label string }
+
+func (err ErrGenericLocalized) Error() string {
+	return fmt.Sprintf("rooms/web: localized error (%s)", err.Label)
+}
 
 type ErrNotFound struct{ What string }
 
@@ -24,6 +31,10 @@ func (nf ErrNotFound) Error() string {
 type ErrBadRequest struct {
 	Where   string
 	Details error
+}
+
+func (err ErrBadRequest) Unwrap() error {
+	return err.Details
 }
 
 func (br ErrBadRequest) Error() string {
@@ -44,8 +55,12 @@ type ErrRedirect struct {
 	Reason error
 }
 
+func (err ErrRedirect) Unwrap() error {
+	return err.Reason
+}
+
 func (err ErrRedirect) Error() string {
-	return fmt.Sprintf("rooms/web: redirecting to: %s", err.Path)
+	return fmt.Sprintf("rooms/web: redirecting to: %s (reason: %s)", err.Path, err.Reason)
 }
 
 type PageNotFound struct{ Path string }

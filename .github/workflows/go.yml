@@ -27,7 +27,7 @@ jobs:
       run: go get -v -t -d ./...
 
     - name: Build smoke test
-      run: go build ./cmd/server
+      run: go build ./cmd/...
 
     - name: install node ssb-stack
       run: |

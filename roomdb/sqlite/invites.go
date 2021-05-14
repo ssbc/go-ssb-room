@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"time"
 
 	"github.com/friendsofgo/errors"
 	"github.com/mattn/go-sqlite3"
@@ -48,9 +47,6 @@ func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 		for tries := 100; tries > 0; tries-- {
 			// generate an invite code
 			rand.Read(tokenBytes)
-
-			// see comment on migrations/6-invite-createdAt.sql
-			newInvite.CreatedAt = time.Now()
 
 			// hash the binary of the token for storage
 			h := sha256.New()

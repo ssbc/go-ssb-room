@@ -9,6 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
@@ -362,4 +363,61 @@ func TestMembersRemove(t *testing.T) {
 	a.True(len(res.Cookies()) > 0, "got a cookie (flash msg)")
 
 	webassert.HasFlashMessages(t, ts.Client, listURL, "ErrorNotFound")
+}
+
+func TestMembersCreateResetToken(t *testing.T) {
+	ts := newSession(t)
+	a := assert.New(t)
+
+	// setup mock
+
+	ts.MembersDB.GetByIDReturns(roomdb.Member{
+		ID:     2342,
+		Role:   roomdb.RoleMember,
+		PubKey: refs.FeedRef{ID: make([]byte, 32), Algo: refs.RefAlgoFeedSSB1},
+	}, nil)
+
+	urlViewDetails := ts.URLTo(router.AdminMemberDetails, "id", "2342")
+
+	doc, resp := ts.Client.GetHTML(urlViewDetails)
+	a.Equal(http.StatusOK, resp.Code)
+
+	form := doc.Find("#create-reset-token")
+	a.Equal(1, form.Length(), "form missing from page")
+
+	formMethod, hasMethod := form.Attr("method")
+	a.True(hasMethod, "missing method")
+	a.Equal(http.MethodPost, formMethod, "wrong method")
+
+	formAction, hasAction := form.Attr("action")
+	a.True(hasAction, "missing action")
+
+	resetURL := ts.URLTo(router.AdminMembersCreateFallbackReset)
+	a.Equal(resetURL.String(), formAction, "wrong action")
+
+	webassert.ElementsInForm(t, form, []webassert.FormElement{
+		{Name: "member_id", Value: "2342", Type: "hidden"},
+	})
+
+	// now create the reset link
+
+	ts.User.Role = roomdb.RoleAdmin
+
+	testToken := "super-secure-token"
+	ts.FallbackDB.CreateResetTokenReturns(testToken, nil)
+
+	resp = ts.Client.PostForm(resetURL, url.Values{
+		"member_id": []string{"2342"},
+		// dont need to setup csrf on admin tests
+	})
+	a.Equal(http.StatusOK, resp.Code)
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	require.NoError(t, err)
+
+	gotResetURL, has := doc.Find("#password-reset-link").Attr("href")
+	a.True(has, "should have an href")
+
+	wantResetURL := ts.URLTo(router.MembersChangePassword, "token", testToken)
+	a.Equal(wantResetURL.String(), gotResetURL)
 }

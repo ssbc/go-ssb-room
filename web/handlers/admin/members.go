@@ -27,7 +27,8 @@ type membersHandler struct {
 	urlTo   web.URLMaker
 	netInfo network.ServerEndpointDetails
 
-	db roomdb.MembersService
+	db             roomdb.MembersService
+	fallbackAuthDB roomdb.AuthFallbackService
 }
 
 const redirectToMembers = "/admin/members"
@@ -218,4 +219,37 @@ func (h membersHandler) remove(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	http.Redirect(rw, req, redirectToMembers, http.StatusTemporaryRedirect)
+}
+
+func (h membersHandler) createPasswordResetToken(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+	if req.Method != "POST" {
+		return nil, weberrors.ErrBadRequest{Where: "HTTP Method", Details: fmt.Errorf("expected POST not %s", req.Method)}
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, weberrors.ErrBadRequest{Where: "Form data", Details: err}
+	}
+
+	forMemberID, err := strconv.ParseInt(req.FormValue("member_id"), 10, 64)
+	if err != nil {
+		err = weberrors.ErrBadRequest{Where: "Member ID", Details: err}
+		return nil, weberrors.ErrRedirect{Path: redirectToMembers, Reason: err}
+	}
+
+	creatingMember := members.FromContext(req.Context())
+	if creatingMember == nil || creatingMember.Role != roomdb.RoleAdmin {
+		err = weberrors.ErrForbidden{Details: fmt.Errorf("not an admin")}
+		return nil, weberrors.ErrRedirect{Path: redirectToMembers, Reason: err}
+	}
+
+	token, err := h.fallbackAuthDB.CreateResetToken(req.Context(), creatingMember.ID, forMemberID)
+	if err != nil {
+		return nil, weberrors.ErrRedirect{Path: redirectToMembers, Reason: err}
+	}
+
+	resetFormURL := h.urlTo(router.MembersChangePasswordForm, "token", token)
+
+	return map[string]interface{}{
+		"ResetLinkURL": template.URL(resetFormURL.String()),
+	}, nil
 }

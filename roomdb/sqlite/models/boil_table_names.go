@@ -4,25 +4,27 @@
 package models
 
 var TableNames = struct {
-	SIWSSBSessions    string
-	Aliases           string
-	Config            string
-	DeniedKeys        string
-	FallbackPasswords string
-	Invites           string
-	Members           string
-	Notices           string
-	PinNotices        string
-	Pins              string
+	SIWSSBSessions      string
+	Aliases             string
+	Config              string
+	DeniedKeys          string
+	FallbackPasswords   string
+	FallbackResetTokens string
+	Invites             string
+	Members             string
+	Notices             string
+	PinNotices          string
+	Pins                string
 }{
-	SIWSSBSessions:    "SIWSSB_sessions",
-	Aliases:           "aliases",
-	Config:            "config",
-	DeniedKeys:        "denied_keys",
-	FallbackPasswords: "fallback_passwords",
-	Invites:           "invites",
-	Members:           "members",
-	Notices:           "notices",
-	PinNotices:        "pin_notices",
-	Pins:              "pins",
+	SIWSSBSessions:      "SIWSSB_sessions",
+	Aliases:             "aliases",
+	Config:              "config",
+	DeniedKeys:          "denied_keys",
+	FallbackPasswords:   "fallback_passwords",
+	FallbackResetTokens: "fallback_reset_tokens",
+	Invites:             "invites",
+	Members:             "members",
+	Notices:             "notices",
+	PinNotices:          "pin_notices",
+	Pins:                "pins",
 }

@@ -5,6 +5,7 @@ package i18n
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"io/fs"
 	"io/ioutil"
@@ -248,30 +249,30 @@ func (h Helper) GetRenderFuncs() []render.Option {
 	return opts
 }
 
-func (l Localizer) LocalizeSimple(messageID string) string {
+func (l Localizer) LocalizeSimple(messageID string) template.HTML {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID: messageID,
 	})
 	if err == nil {
-		return msg
+		return template.HTML(msg)
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
-func (l Localizer) LocalizeWithData(messageID string, tplData map[string]string) string {
+func (l Localizer) LocalizeWithData(messageID string, tplData map[string]string) template.HTML {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:    messageID,
 		TemplateData: tplData,
 	})
 	if err == nil {
-		return msg
+		return template.HTML(msg)
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
-func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
+func (l Localizer) LocalizePlurals(messageID string, pluralCount int) template.HTML {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:   messageID,
 		PluralCount: pluralCount,
@@ -280,20 +281,20 @@ func (l Localizer) LocalizePlurals(messageID string, pluralCount int) string {
 		},
 	})
 	if err == nil {
-		return msg
+		return template.HTML(msg)
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))
 }
 
-func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tplData map[string]string) string {
+func (l Localizer) LocalizePluralsWithData(messageID string, pluralCount int, tplData map[string]string) template.HTML {
 	msg, err := l.loc.Localize(&i18n.LocalizeConfig{
 		MessageID:    messageID,
 		PluralCount:  pluralCount,
 		TemplateData: tplData,
 	})
 	if err == nil {
-		return msg
+		return template.HTML(msg)
 	}
 
 	panic(fmt.Sprintf("i18n/error: failed to localize label %s: %s", messageID, err))

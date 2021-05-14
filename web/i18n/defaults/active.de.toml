@@ -33,6 +33,9 @@ ErrorPageNotFound = "Die angeforderte Seite <strong> ({{.Path}}) </ strong> ist 
 ErrorNotAuthorized = "Sie sind nicht autorisiert auf diese Seite zuzugreifen."
 ErrorForbidden = "Die Anforderung konnte wegen fehlender Berechtigungen ({{.Details}}) nicht ausgeführt werden."
 ErrorBadRequest = "Bei Ihrer Anfrage ist ein Problem aufgetreten: {{.Where}} ({{.Details}}"
+ErrorPasswordDidntMatch = "Die eingegebenen Passwörter sind nicht identisch."
+ErrorPasswordTooShort = "Das neue Passwort ist zu kurz. Brauche mindestens 10 Zeichen."
+ErrorPasswordLeaked = "Das neue Passwort wurde in der Liste der unsicheren Passwörter von have-i-been-pwned gefunden. Sie müssen ein anderes wählen."
 
 # authentication
 ################
@@ -54,6 +57,14 @@ AuthWithSSBError = "Anmeldung fehlgeschlagen. Stellen Sie sicher, dass Sie eine 
 AuthFallbackTitle = "Passwort anmelden"
 AuthFallbackWelcome = "Eine Anmeldung mit Benutzername und Passwort ist nur möglich, wenn der Administrator Ihnen eines gegeben hat, da wir die Benutzerregistrierung nicht unterstützen."
 AuthFallbackInstruct = "Diese Methode ist ein akzeptabler Fallback, wenn Sie einen Benutzernamen und ein Passwort haben."
+
+AuthFallbackNewPassword="Neues Passwort"
+AuthFallbackRepeatPassword="Passwort wiederholen"
+AuthFallbackPasswordChangeFormTitle = "Passwort ändern"
+AuthFallbackPasswordChangeWelcome = "Hier können Sie ihr Passwort neu setzen. Bitte achten sie darauf, dass es länger als 10 Zeichen ist. Durch die doppelte eingabe wird sichergestellt, dass Sie sich nicht vertippt haben. Auserdem verwenden wir die Datenbank von <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> um sicher zu stellen, dass Sie kein unsicherers Passwort verwenden, ohne es zu wissen."
+AuthFallbackPasswordUpdated = "Das Passwort wurde aktualisiert. Sie können sich nun damit Einloggen."
+AdminMemberPasswordResetLinkCreatedTitle = "Passwort reset link erstellt"
+AdminMemberPasswordResetLinkCreatedInstruct = "Der reset Link wurde erstellt. Bitte senden Sie ihn, uber einen geeigneten Seitenkanal wie z.B. E-Mail, an das Mitglied. Wenn die Person den Link offnet, ist Sie in der Lage sich ein neues Passwort zu geben."
 
 # general dashboard stuff
 #########################
@@ -89,6 +100,7 @@ AdminDeniedKeysTitle = "Verboten"
 AdminDeniedKeysWelcome = "Auf dieser Seite können SSB-IDs gesperrt werden, damit sie nicht mehr auf den Raum zugreifen können."
 AdminDeniedKeysAdd = "Hinzufügen"
 AdminDeniedKeysAdded = "Schlüssel wurde zur Liste hinzugefügt."
+AdminDeniedKeysRemoved = "Schlüssel wurde von der Liste entfernt."
 AdminDeniedKeysRemove = "Entfernen"
 AdminDeniedKeysComment = "Kommentar"
 AdminDeniedKeysCommentDescription = "Die Person, die dieses Verbot hinzugefügt hat, hat den folgenden Kommentar hinzugefügt"
@@ -101,6 +113,7 @@ AdminDeniedKeysRemoveConfirmTitle = "Mitgliederentfernung bestätigen"
 AdminMembersTitle = "Mitglieder"
 AdminMembersWelcome = "Hier sehen Sie alle Mitglieder des Raums und Möglichkeiten, neue hinzuzufügen (anhand ihrer SSB-ID) oder vorhandene zu entfernen."
 AdminMembersAdd = "Hinzufügen"
+AdminMembersSelf = "Das bist du"
 
 AdminMembersRemoveConfirmTitle = "Mitgliederentfernung bestätigen"
 AdminMembersRemoveConfirmWelcome = "Sind Sie sicher, dass Sie dieses Mitglied entfernen möchten? Sie verlieren ihren Alias, wenn sie einen haben."
@@ -111,6 +124,9 @@ AdminMemberDetailsRole = "Berechtigungsstufe"
 AdminMemberDetailsAliases = "Aliase"
 AdminMemberDetailsAliasRevoke = "Widerrufen"
 AdminMemberDetailsAliasRevoked = "Alias ​​wurde widerrufen"
+AdminMemberDetailsInitiatePasswordChange = "Zurücksetzen des Plan-B Passworts"
+AdminMemberDetailsChangePassword = "Passwort ändern"
+AdminMemberDetailsCreatePasswordResetLink = "Reset Link erzeugen"
 AdminMemberDetailsExclusion = "Ausschluss aus diesem Raum"
 AdminMemberDetailsRemove = "Mitglied entfernen"
 

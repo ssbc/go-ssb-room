@@ -32,10 +32,13 @@
       </div>
       <span class="flex flex-row items-center divide-x divide-gray-300">
         <div class="flex flex-row items-center pr-3">
-          <svg class="text-green-500 w-4 h-4 mr-1" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22,18V22H18V19H15V16H12L9.74,13.74C9.19,13.91 8.61,14 8,14A6,6 0 0,1 2,8A6,6 0 0,1 8,2A6,6 0 0,1 14,8C14,8.61 13.91,9.19 13.74,9.74L22,18M7,5A2,2 0 0,0 5,7A2,2 0 0,0 7,9A2,2 0 0,0 9,7A2,2 0 0,0 7,5Z" />
-          </svg>
-          <span class="text-green-500 text-sm truncate w-32">{{$user.PubKey.Ref}}</span>
+          <div class="text-green-500">
+            <a id="own-details-page" href="{{urlTo "admin:member:details" "id" $user.ID}}">
+              <svg class="text-green-500 w-4 h-4 mr-1 float-left" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M22,18V22H18V19H15V16H12L9.74,13.74C9.19,13.91 8.61,14 8,14A6,6 0 0,1 2,8A6,6 0 0,1 8,2A6,6 0 0,1 14,8C14,8.61 13.91,9.19 13.74,9.74L22,18M7,5A2,2 0 0,0 5,7A2,2 0 0,0 7,9A2,2 0 0,0 9,7A2,2 0 0,0 7,5Z" />
+              </svg><div class="float-right text-sm truncate w-32">{{$user.PubKey.Ref}}</div>
+            </a>
+          </div>
         </div>
         <a
           href="{{urlTo "auth:logout"}}"

@@ -12,6 +12,6 @@ CREATE UNIQUE INDEX SIWSSB_by_token ON SIWSSB_sessions(token);
 CREATE INDEX SIWSSB_by_member ON SIWSSB_sessions(member_id);
 
 -- +migrate Down
-DROP TABLE SIWSSB_sessions;
 DROP INDEX SIWSSB_by_token;
 DROP INDEX SIWSSB_by_member;
+DROP TABLE SIWSSB_sessions;

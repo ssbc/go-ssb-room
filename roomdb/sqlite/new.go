@@ -82,11 +82,19 @@ func Open(r repo.Interface) (*Database, error) {
 		return nil, err
 	}
 
+	if err := deleteConsumedResetTokens(db); err != nil {
+		return nil, err
+	}
+
+	// scrub old invites and reset tokens
 	go func() { // server might not restart as often
-		threeDays := 5 * 24 * time.Hour
-		ticker := time.NewTicker(threeDays)
+		fiveDays := 5 * 24 * time.Hour
+		ticker := time.NewTicker(fiveDays)
 		for range ticker.C {
 			err := transact(db, func(tx *sql.Tx) error {
+				if err := deleteConsumedResetTokens(tx); err != nil {
+					return err
+				}
 				return deleteConsumedInvites(tx)
 			})
 			if err != nil {

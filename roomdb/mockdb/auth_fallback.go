@@ -23,18 +23,45 @@ type FakeAuthFallbackService struct {
 		result1 interface{}
 		result2 error
 	}
-	CreateStub        func(context.Context, int64, string, []byte) error
-	createMutex       sync.RWMutex
-	createArgsForCall []struct {
+	CreateResetTokenStub        func(context.Context, int64, int64) (string, error)
+	createResetTokenMutex       sync.RWMutex
+	createResetTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 int64
+		arg3 int64
+	}
+	createResetTokenReturns struct {
+		result1 string
+		result2 error
+	}
+	createResetTokenReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	SetPasswordStub        func(context.Context, int64, string) error
+	setPasswordMutex       sync.RWMutex
+	setPasswordArgsForCall []struct {
 		arg1 context.Context
 		arg2 int64
 		arg3 string
-		arg4 []byte
 	}
-	createReturns struct {
+	setPasswordReturns struct {
 		result1 error
 	}
-	createReturnsOnCall map[int]struct {
+	setPasswordReturnsOnCall map[int]struct {
+		result1 error
+	}
+	SetPasswordWithTokenStub        func(context.Context, string, string) error
+	setPasswordWithTokenMutex       sync.RWMutex
+	setPasswordWithTokenArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}
+	setPasswordWithTokenReturns struct {
+		result1 error
+	}
+	setPasswordWithTokenReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -106,26 +133,86 @@ func (fake *FakeAuthFallbackService) CheckReturnsOnCall(i int, result1 interface
 	}{result1, result2}
 }
 
-func (fake *FakeAuthFallbackService) Create(arg1 context.Context, arg2 int64, arg3 string, arg4 []byte) error {
-	var arg4Copy []byte
-	if arg4 != nil {
-		arg4Copy = make([]byte, len(arg4))
-		copy(arg4Copy, arg4)
+func (fake *FakeAuthFallbackService) CreateResetToken(arg1 context.Context, arg2 int64, arg3 int64) (string, error) {
+	fake.createResetTokenMutex.Lock()
+	ret, specificReturn := fake.createResetTokenReturnsOnCall[len(fake.createResetTokenArgsForCall)]
+	fake.createResetTokenArgsForCall = append(fake.createResetTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 int64
+		arg3 int64
+	}{arg1, arg2, arg3})
+	stub := fake.CreateResetTokenStub
+	fakeReturns := fake.createResetTokenReturns
+	fake.recordInvocation("CreateResetToken", []interface{}{arg1, arg2, arg3})
+	fake.createResetTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
-	fake.createMutex.Lock()
-	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
-	fake.createArgsForCall = append(fake.createArgsForCall, struct {
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeAuthFallbackService) CreateResetTokenCallCount() int {
+	fake.createResetTokenMutex.RLock()
+	defer fake.createResetTokenMutex.RUnlock()
+	return len(fake.createResetTokenArgsForCall)
+}
+
+func (fake *FakeAuthFallbackService) CreateResetTokenCalls(stub func(context.Context, int64, int64) (string, error)) {
+	fake.createResetTokenMutex.Lock()
+	defer fake.createResetTokenMutex.Unlock()
+	fake.CreateResetTokenStub = stub
+}
+
+func (fake *FakeAuthFallbackService) CreateResetTokenArgsForCall(i int) (context.Context, int64, int64) {
+	fake.createResetTokenMutex.RLock()
+	defer fake.createResetTokenMutex.RUnlock()
+	argsForCall := fake.createResetTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeAuthFallbackService) CreateResetTokenReturns(result1 string, result2 error) {
+	fake.createResetTokenMutex.Lock()
+	defer fake.createResetTokenMutex.Unlock()
+	fake.CreateResetTokenStub = nil
+	fake.createResetTokenReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAuthFallbackService) CreateResetTokenReturnsOnCall(i int, result1 string, result2 error) {
+	fake.createResetTokenMutex.Lock()
+	defer fake.createResetTokenMutex.Unlock()
+	fake.CreateResetTokenStub = nil
+	if fake.createResetTokenReturnsOnCall == nil {
+		fake.createResetTokenReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.createResetTokenReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeAuthFallbackService) SetPassword(arg1 context.Context, arg2 int64, arg3 string) error {
+	fake.setPasswordMutex.Lock()
+	ret, specificReturn := fake.setPasswordReturnsOnCall[len(fake.setPasswordArgsForCall)]
+	fake.setPasswordArgsForCall = append(fake.setPasswordArgsForCall, struct {
 		arg1 context.Context
 		arg2 int64
 		arg3 string
-		arg4 []byte
-	}{arg1, arg2, arg3, arg4Copy})
-	stub := fake.CreateStub
-	fakeReturns := fake.createReturns
-	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3, arg4Copy})
-	fake.createMutex.Unlock()
+	}{arg1, arg2, arg3})
+	stub := fake.SetPasswordStub
+	fakeReturns := fake.setPasswordReturns
+	fake.recordInvocation("SetPassword", []interface{}{arg1, arg2, arg3})
+	fake.setPasswordMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -133,44 +220,107 @@ func (fake *FakeAuthFallbackService) Create(arg1 context.Context, arg2 int64, ar
 	return fakeReturns.result1
 }
 
-func (fake *FakeAuthFallbackService) CreateCallCount() int {
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
-	return len(fake.createArgsForCall)
+func (fake *FakeAuthFallbackService) SetPasswordCallCount() int {
+	fake.setPasswordMutex.RLock()
+	defer fake.setPasswordMutex.RUnlock()
+	return len(fake.setPasswordArgsForCall)
 }
 
-func (fake *FakeAuthFallbackService) CreateCalls(stub func(context.Context, int64, string, []byte) error) {
-	fake.createMutex.Lock()
-	defer fake.createMutex.Unlock()
-	fake.CreateStub = stub
+func (fake *FakeAuthFallbackService) SetPasswordCalls(stub func(context.Context, int64, string) error) {
+	fake.setPasswordMutex.Lock()
+	defer fake.setPasswordMutex.Unlock()
+	fake.SetPasswordStub = stub
 }
 
-func (fake *FakeAuthFallbackService) CreateArgsForCall(i int) (context.Context, int64, string, []byte) {
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
-	argsForCall := fake.createArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+func (fake *FakeAuthFallbackService) SetPasswordArgsForCall(i int) (context.Context, int64, string) {
+	fake.setPasswordMutex.RLock()
+	defer fake.setPasswordMutex.RUnlock()
+	argsForCall := fake.setPasswordArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeAuthFallbackService) CreateReturns(result1 error) {
-	fake.createMutex.Lock()
-	defer fake.createMutex.Unlock()
-	fake.CreateStub = nil
-	fake.createReturns = struct {
+func (fake *FakeAuthFallbackService) SetPasswordReturns(result1 error) {
+	fake.setPasswordMutex.Lock()
+	defer fake.setPasswordMutex.Unlock()
+	fake.SetPasswordStub = nil
+	fake.setPasswordReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeAuthFallbackService) CreateReturnsOnCall(i int, result1 error) {
-	fake.createMutex.Lock()
-	defer fake.createMutex.Unlock()
-	fake.CreateStub = nil
-	if fake.createReturnsOnCall == nil {
-		fake.createReturnsOnCall = make(map[int]struct {
+func (fake *FakeAuthFallbackService) SetPasswordReturnsOnCall(i int, result1 error) {
+	fake.setPasswordMutex.Lock()
+	defer fake.setPasswordMutex.Unlock()
+	fake.SetPasswordStub = nil
+	if fake.setPasswordReturnsOnCall == nil {
+		fake.setPasswordReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.createReturnsOnCall[i] = struct {
+	fake.setPasswordReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithToken(arg1 context.Context, arg2 string, arg3 string) error {
+	fake.setPasswordWithTokenMutex.Lock()
+	ret, specificReturn := fake.setPasswordWithTokenReturnsOnCall[len(fake.setPasswordWithTokenArgsForCall)]
+	fake.setPasswordWithTokenArgsForCall = append(fake.setPasswordWithTokenArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.SetPasswordWithTokenStub
+	fakeReturns := fake.setPasswordWithTokenReturns
+	fake.recordInvocation("SetPasswordWithToken", []interface{}{arg1, arg2, arg3})
+	fake.setPasswordWithTokenMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenCallCount() int {
+	fake.setPasswordWithTokenMutex.RLock()
+	defer fake.setPasswordWithTokenMutex.RUnlock()
+	return len(fake.setPasswordWithTokenArgsForCall)
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenCalls(stub func(context.Context, string, string) error) {
+	fake.setPasswordWithTokenMutex.Lock()
+	defer fake.setPasswordWithTokenMutex.Unlock()
+	fake.SetPasswordWithTokenStub = stub
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenArgsForCall(i int) (context.Context, string, string) {
+	fake.setPasswordWithTokenMutex.RLock()
+	defer fake.setPasswordWithTokenMutex.RUnlock()
+	argsForCall := fake.setPasswordWithTokenArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenReturns(result1 error) {
+	fake.setPasswordWithTokenMutex.Lock()
+	defer fake.setPasswordWithTokenMutex.Unlock()
+	fake.SetPasswordWithTokenStub = nil
+	fake.setPasswordWithTokenReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeAuthFallbackService) SetPasswordWithTokenReturnsOnCall(i int, result1 error) {
+	fake.setPasswordWithTokenMutex.Lock()
+	defer fake.setPasswordWithTokenMutex.Unlock()
+	fake.SetPasswordWithTokenStub = nil
+	if fake.setPasswordWithTokenReturnsOnCall == nil {
+		fake.setPasswordWithTokenReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.setPasswordWithTokenReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -180,8 +330,12 @@ func (fake *FakeAuthFallbackService) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.checkMutex.RLock()
 	defer fake.checkMutex.RUnlock()
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
+	fake.createResetTokenMutex.RLock()
+	defer fake.createResetTokenMutex.RUnlock()
+	fake.setPasswordMutex.RLock()
+	defer fake.setPasswordMutex.RUnlock()
+	fake.setPasswordWithTokenMutex.RLock()
+	defer fake.setPasswordWithTokenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

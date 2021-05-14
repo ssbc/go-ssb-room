@@ -23,11 +23,12 @@ const (
 
 	AdminMemberDetails = "admin:member:details"
 
-	AdminMembersOverview      = "admin:members:overview"
-	AdminMembersAdd           = "admin:members:add"
-	AdminMembersChangeRole    = "admin:members:change-role"
-	AdminMembersRemoveConfirm = "admin:members:remove:confirm"
-	AdminMembersRemove        = "admin:members:remove"
+	AdminMembersOverview            = "admin:members:overview"
+	AdminMembersAdd                 = "admin:members:add"
+	AdminMembersChangeRole          = "admin:members:change-role"
+	AdminMembersCreateFallbackReset = "admin:members:create-password-reset-link"
+	AdminMembersRemoveConfirm       = "admin:members:remove:confirm"
+	AdminMembersRemove              = "admin:members:remove"
 
 	AdminInvitesOverview      = "admin:invites:overview"
 	AdminInvitesRevokeConfirm = "admin:invites:revoke:confirm"
@@ -67,6 +68,7 @@ func Admin(m *mux.Router) *mux.Router {
 	m.Path("/members").Methods("GET").Name(AdminMembersOverview)
 	m.Path("/members/add").Methods("POST").Name(AdminMembersAdd)
 	m.Path("/members/change-role").Methods("POST").Name(AdminMembersChangeRole)
+	m.Path("/members/create-fallback-reset-link").Methods("POST").Name(AdminMembersCreateFallbackReset)
 	m.Path("/members/remove/confirm").Methods("GET").Name(AdminMembersRemoveConfirm)
 	m.Path("/members/remove").Methods("POST").Name(AdminMembersRemove)
 

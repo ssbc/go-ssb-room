@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-// insert-user is a utility to create a new member and password
+// insert-user is a utility to create a new member and fallback password for them
 package main
 
 import (
@@ -28,24 +28,10 @@ func main() {
 	check(err)
 
 	var (
-		login    string
-		pubKey   *refs.FeedRef
 		role     roomdb.Role = roomdb.RoleAdmin
 		repoPath string
 	)
 
-	flag.StringVar(&login, "login", "", "username (used when logging into the room's web ui)")
-	flag.Func("key", "the public key of the user, format: @<base64-encoded public-key>.ed25519", func(val string) error {
-		if len(val) == 0 {
-			return fmt.Errorf("the public key is required. if you are just testing things out, generate one by running 'cmd/insert-user/generate-fake-id.sh'\n")
-		}
-		key, err := refs.ParseFeedRef(val)
-		if err != nil {
-			return fmt.Errorf("%s\n", err)
-		}
-		pubKey = key
-		return nil
-	})
 	flag.StringVar(&repoPath, "repo", filepath.Join(u.HomeDir, ".ssb-go-room"), "[optional] where the locally stored files of the room is located")
 	flag.Func("role", "[optional] which role the new member should have (values: mod[erator], admin, or member. default is admin)", func(val string) error {
 		switch strings.ToLower(val) {
@@ -65,18 +51,15 @@ func main() {
 	})
 	flag.Parse()
 
-	/* we require at least 5 arguments: <executable> + -login <val> + -key <val> */
-	/*                                  1              2     3       4    5     */
-	if len(os.Args) < 5 {
-		cliMissingArguments("please provide the default arguments -login and -key")
+	// we require one more argument which is not a flag.
+	if len(flag.Args()) != 1 {
+		cliMissingArguments("please provide a public key")
 	}
 
-	if login == "" {
-		cliMissingArguments("please provide a username with -login <username>")
-	}
-
-	if pubKey == nil {
-		cliMissingArguments("please provide a public key with -key")
+	pubKey, err := refs.ParseFeedRef(flag.Arg(0))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Invalid ssb public-key referenfce:", err)
+		os.Exit(1)
 	}
 
 	r := repo.New(repoPath)
@@ -95,22 +78,21 @@ func main() {
 	if !bytes.Equal(bytePassword, bytePasswordRepeat) {
 		fmt.Fprintln(os.Stderr, "Passwords didn't match")
 		os.Exit(1)
-		return
 	}
 
 	ctx := context.Background()
 	mid, err := db.Members.Add(ctx, *pubKey, role)
 	check(err)
 
-	err = db.AuthFallback.Create(ctx, mid, login, bytePassword)
+	err = db.AuthFallback.SetPassword(ctx, mid, string(bytePassword))
 	check(err)
 
-	fmt.Fprintf(os.Stderr, "Created member %s (%s) with ID %d\n", login, role, mid)
+	fmt.Fprintf(os.Stderr, "Created member (%s) with ID %d\n", role, mid)
 }
 
 func cliMissingArguments(message string) {
 	executable := strings.TrimPrefix(os.Args[0], "./")
-	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s -login <login-name> -key <@<base64-encoded public key>.ed25519> <optional flags>\n", executable, message, executable)
+	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s <@base64-encoded-public-key=.ed25519> <optional flags>\n", executable, message, executable)
 	flag.Usage()
 	os.Exit(1)
 }

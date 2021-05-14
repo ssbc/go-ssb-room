@@ -83,10 +83,10 @@ type errorTemplateData struct {
 	BackURL string
 }
 
-func localizeError(ih *i18n.Localizer, err error) (int, string) {
+func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 
 	// default, unlocalized message
-	msg := err.Error()
+	msg := template.HTML(err.Error())
 
 	// localize some specific error messages
 	var (
@@ -94,6 +94,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, string) {
 		pnf PageNotFound
 		br  ErrBadRequest
 		f   ErrForbidden
+		gl  ErrGenericLocalized
 	)
 
 	code := http.StatusInternalServerError
@@ -106,6 +107,9 @@ func localizeError(ih *i18n.Localizer, err error) (int, string) {
 
 	case err == auth.ErrBadLogin:
 		msg = ih.LocalizeSimple("ErrorAuthBadLogin")
+
+	case errors.As(err, &gl):
+		msg = ih.LocalizeSimple(gl.Label)
 
 	case errors.Is(err, roomdb.ErrNotFound):
 		code = http.StatusNotFound

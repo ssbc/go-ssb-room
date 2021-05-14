@@ -15,6 +15,7 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
+	github.com/mattevans/pwned-passwords v0.3.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.1.2

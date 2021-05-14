@@ -26,13 +26,20 @@ func Localized(t *testing.T, html *goquery.Document, elems []LocalizedElement) {
 	}
 }
 
-func CSRFTokenPresent(t *testing.T, sel *goquery.Selection) {
+// CSRFTokenPresent checks a CSRF token is in side the passed selection (ususally a form).
+// The function returns a url.Values map with the token, which can be used to craft further requests.
+func CSRFTokenPresent(t *testing.T, sel *goquery.Selection) url.Values {
 	a := assert.New(t)
 	csrfField := sel.Find("input[name='gorilla.csrf.Token']")
 	a.EqualValues(1, csrfField.Length(), "no csrf-token input tag")
 	tipe, ok := csrfField.Attr("type")
 	a.True(ok, "csrf input has a type")
 	a.Equal("hidden", tipe, "wrong type on csrf field")
+	val, ok := csrfField.Attr("value")
+	a.True(ok, "should have a value")
+	return url.Values{
+		"gorilla.csrf.Token": []string{val},
+	}
 }
 
 type FormElement struct {
