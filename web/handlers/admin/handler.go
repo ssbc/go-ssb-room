@@ -147,8 +147,6 @@ func Handler(
 
 		db:     dbs.Invites,
 		config: dbs.Config,
-
-		domainName: netInfo.Domain,
 	}
 
 	mux.HandleFunc("/invites", r.HTML("admin/invite-list.tmpl", ih.overview))

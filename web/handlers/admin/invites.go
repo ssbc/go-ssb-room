@@ -23,8 +23,6 @@ type invitesHandler struct {
 
 	db     roomdb.InvitesService
 	config roomdb.RoomConfig
-
-	domainName string
 }
 
 func (h invitesHandler) overview(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
@@ -73,8 +71,6 @@ func (h invitesHandler) create(w http.ResponseWriter, req *http.Request) (interf
 	}
 
 	facadeURL := h.urlTo(router.CompleteInviteFacade, "token", token)
-	facadeURL.Host = h.domainName
-	facadeURL.Scheme = "https"
 
 	return map[string]interface{}{
 		"FacadeURL": facadeURL.String(),

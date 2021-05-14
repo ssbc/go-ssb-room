@@ -175,7 +175,7 @@ AdminInviteCreatedInstruct = "Now, copy the link below and paste it to a friend 
 
 InviteFacade = "Join Room"
 InviteFacadeTitle = "Join Room"
-InviteFacadeWelcome = "You have permission to become a member of this room because someone has shared this invite with you."
+InviteFacadeWelcome = "Welcome to {{.RoomTitle}}! You have permission to become a member of this room because someone has shared this invite with you."
 InviteFacadeInstruct = "To claim the invite, press the button below which will open a compatible SSB app, if it's installed."
 InviteFacadeJoin = "Join this room"
 InviteFacadeInstructQR = "If your SSB app is on another device, you can scan the following QR code to claim your invite on that device:"
