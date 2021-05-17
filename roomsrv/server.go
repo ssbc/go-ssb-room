@@ -156,6 +156,8 @@ func New(
 		}
 	}
 
+	s.netInfo.RoomID = s.keyPair.Feed
+
 	s.StateManager = roomstate.NewManager(s.logger)
 
 	s.initHandlers()

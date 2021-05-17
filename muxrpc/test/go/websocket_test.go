@@ -12,16 +12,16 @@ import (
 	"testing"
 	"time"
 
-	"go.cryptoscope.co/muxrpc/v2/debug"
-	"go.mindeco.de/encodedTime"
-
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
+	"go.cryptoscope.co/muxrpc/v2/debug"
 	"go.cryptoscope.co/secretstream"
+	"go.mindeco.de/encodedTime"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 )
 
@@ -103,10 +103,11 @@ func TestWebsocketDialing(t *testing.T) {
 	}()
 
 	// check we are talking to a room
-	var yup bool
-	err = wsEndpoint.Async(ctx, &yup, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	var meta tunserv.MetadataReply
+	err = wsEndpoint.Async(ctx, &meta, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
 	r.NoError(err)
-	r.True(yup, "server is not a room?")
+	r.Equal("server", meta.Name)
+	r.True(meta.Membership, "not a member?")
 
 	// open the gossip.ping channel
 	src, snk, err := wsEndpoint.Duplex(ctx, muxrpc.TypeJSON, muxrpc.Method{"gossip", "ping"})

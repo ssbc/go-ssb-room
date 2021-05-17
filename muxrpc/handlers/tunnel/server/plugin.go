@@ -7,9 +7,9 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 /* manifest:
@@ -23,9 +23,9 @@ import (
 }
 */
 
-func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager, members roomdb.MembersService, config roomdb.RoomConfig) *Handler {
+func New(log kitlog.Logger, netInfo network.ServerEndpointDetails, m *roomstate.Manager, members roomdb.MembersService, config roomdb.RoomConfig) *Handler {
 	var h = new(Handler)
-	h.self = self
+	h.netInfo = netInfo
 	h.logger = log
 	h.state = m
 	h.members = members
@@ -35,7 +35,7 @@ func New(log kitlog.Logger, self refs.FeedRef, m *roomstate.Manager, members roo
 }
 
 func (h *Handler) Register(mux typemux.HandlerMux, namespace muxrpc.Method) {
-	mux.RegisterAsync(append(namespace, "isRoom"), typemux.AsyncFunc(h.isRoom))
+	mux.RegisterAsync(append(namespace, "isRoom"), typemux.AsyncFunc(h.metadata))
 	mux.RegisterAsync(append(namespace, "ping"), typemux.AsyncFunc(h.ping))
 
 	mux.RegisterAsync(append(namespace, "announce"), typemux.AsyncFunc(h.announce))
@@ -45,7 +45,7 @@ func (h *Handler) Register(mux typemux.HandlerMux, namespace muxrpc.Method) {
 
 	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
 		logger: h.logger,
-		self:   h.self,
+		self:   h.netInfo.RoomID,
 		state:  h.state,
 	})
 }

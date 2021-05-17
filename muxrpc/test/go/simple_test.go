@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 
+	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
@@ -78,10 +79,11 @@ func TestTunnelServerSimple(t *testing.T) {
 	a.True(serv.Whoami().Equal(&srvWho.ID))
 
 	// start testing basic room stuff
-	var yes bool
-	err = endpointA.Async(ctx, &yes, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	var meta tunserv.MetadataReply
+	err = endpointA.Async(ctx, &meta, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
 	r.NoError(err)
-	a.True(yes, "srv is not a room?!")
+	r.Equal("srv", meta.Name)
+	r.True(meta.Membership, "not a member?")
 
 	var ts int
 	err = endpointA.Async(ctx, &ts, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "ping"})

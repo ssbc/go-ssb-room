@@ -31,6 +31,7 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
@@ -205,10 +206,11 @@ func (ts *testSession) makeTestClient(name string) testClient {
 	})
 
 	// check we are talking to a room
-	var yup bool
-	err = wsEndpoint.Async(ts.ctx, &yup, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
+	var meta server.MetadataReply
+	err = wsEndpoint.Async(ts.ctx, &meta, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "isRoom"})
 	r.NoError(err)
-	r.True(yup, "server is not a room?")
+	r.Equal("server", meta.Name)
+	r.True(meta.Membership, "not a member?")
 
 	return testClient{
 		feed:          client.Feed,

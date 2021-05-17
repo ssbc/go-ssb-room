@@ -21,7 +21,7 @@ func (s *Server) initHandlers() {
 
 	tunnelHandler := server.New(
 		kitlog.With(s.logger, "unit", "tunnel"),
-		s.Whoami(),
+		s.netInfo,
 		s.StateManager,
 		s.Members,
 		s.Config,
