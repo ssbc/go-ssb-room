@@ -5,6 +5,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
-	refs "go.mindeco.de/ssb-refs"
 
 	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
@@ -20,15 +20,61 @@ import (
 
 type Handler struct {
 	logger kitlog.Logger
-	self   refs.FeedRef
 
+	netInfo network.ServerEndpointDetails
 	state   *roomstate.Manager
 	members roomdb.MembersService
 	config  roomdb.RoomConfig
 }
 
-func (h *Handler) isRoom(context.Context, *muxrpc.Request) (interface{}, error) {
-	return true, nil
+type MetadataReply struct {
+	Name       string   `json:"name"`
+	Membership bool     `json:"membership"`
+	Features   []string `json:"features"`
+}
+
+func (h *Handler) metadata(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
+	ref, err := network.GetFeedRefFromAddr(req.RemoteAddr())
+	if err != nil {
+		return nil, err
+	}
+
+	pm, err := h.config.GetPrivacyMode(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var reply MetadataReply
+	reply.Name = h.netInfo.Domain
+
+	// check if caller is a member
+	if _, err := h.members.GetByFeed(ctx, *ref); err != nil {
+		if !errors.Is(err, roomdb.ErrNotFound) {
+			return nil, err
+		}
+		// already initialized as false, just to be clear
+		reply.Membership = false
+	} else {
+		reply.Membership = true
+	}
+
+	// always-on features
+	reply.Features = []string{
+		"tunnel",
+		"httpAuth",
+		"httpInvite",
+		// TODO: add "room2" once implemented
+	}
+
+	if pm == roomdb.ModeOpen {
+		reply.Features = append(reply.Features, "room1")
+	}
+
+	if pm == roomdb.ModeOpen || pm == roomdb.ModeCommunity {
+		reply.Features = append(reply.Features, "alias")
+	}
+
+	return reply, nil
 }
 
 func (h *Handler) ping(context.Context, *muxrpc.Request) (interface{}, error) {

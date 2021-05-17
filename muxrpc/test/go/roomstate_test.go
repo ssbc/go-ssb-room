@@ -83,6 +83,7 @@ func TestStaleMembers(t *testing.T) {
 	err = srh.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
 	r.NoError(err)
 	r.True(ok)
+	t.Log("announced srh again")
 
 	testKexReply := []byte("fake kex reply")
 
@@ -105,7 +106,10 @@ func TestStaleMembers(t *testing.T) {
 			panic(fmt.Errorf("expected source for duplex call: %s", err))
 		}
 
-		src.Next(ctx)
+		if !src.Next(ctx) {
+			err = fmt.Errorf("did not get message from source: %v", src.Err())
+			panic(err)
+		}
 
 		gotKexMsg, err := src.Bytes()
 		if err != nil {
