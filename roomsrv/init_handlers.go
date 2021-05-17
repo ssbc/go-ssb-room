@@ -50,13 +50,13 @@ func (s *Server) initHandlers() {
 		mux.RegisterAsync(muxrpc.Method{"manifest"}, manifest)
 		mux.RegisterAsync(muxrpc.Method{"whoami"}, whoami)
 
-		// register tunnel.connect etc twice (as tunnel.* and room.*)
-		var method = muxrpc.Method{"tunnel"}
-		tunnelHandler.Register(mux, method)
+		// register old room v1 commands
+		tunnelHandler.RegisterTunnel(mux)
 
-		method = muxrpc.Method{"room"}
-		tunnelHandler.Register(mux, method)
+		// register new room v2 commands
+		tunnelHandler.RegisterRoom(mux)
 
+		var method = muxrpc.Method{"room"}
 		mux.RegisterAsync(append(method, "registerAlias"), typemux.AsyncFunc(aliasHandler.Register))
 		mux.RegisterAsync(append(method, "revokeAlias"), typemux.AsyncFunc(aliasHandler.Revoke))
 

@@ -43,8 +43,8 @@ const manifest manifestHandler = `
 		"announce": "sync",
 		"leave": "sync",
 		"connect": "duplex",
-		"endpoints": "source",
-		"isRoom": "async",
+		"attendants": "source",
+		"metadata": "async",
 		"ping": "sync"
 	},
 

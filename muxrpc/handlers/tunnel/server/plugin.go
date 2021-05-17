@@ -34,7 +34,8 @@ func New(log kitlog.Logger, netInfo network.ServerEndpointDetails, m *roomstate.
 	return h
 }
 
-func (h *Handler) Register(mux typemux.HandlerMux, namespace muxrpc.Method) {
+func (h *Handler) RegisterTunnel(mux typemux.HandlerMux) {
+	var namespace = muxrpc.Method{"tunnel"}
 	mux.RegisterAsync(append(namespace, "isRoom"), typemux.AsyncFunc(h.metadata))
 	mux.RegisterAsync(append(namespace, "ping"), typemux.AsyncFunc(h.ping))
 
@@ -42,6 +43,23 @@ func (h *Handler) Register(mux typemux.HandlerMux, namespace muxrpc.Method) {
 	mux.RegisterAsync(append(namespace, "leave"), typemux.AsyncFunc(h.leave))
 
 	mux.RegisterSource(append(namespace, "endpoints"), typemux.SourceFunc(h.endpoints))
+
+	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
+		logger: h.logger,
+		self:   h.netInfo.RoomID,
+		state:  h.state,
+	})
+}
+
+func (h *Handler) RegisterRoom(mux typemux.HandlerMux) {
+	var namespace = muxrpc.Method{"room"}
+	mux.RegisterAsync(append(namespace, "metadata"), typemux.AsyncFunc(h.metadata))
+	mux.RegisterAsync(append(namespace, "ping"), typemux.AsyncFunc(h.ping))
+
+	mux.RegisterAsync(append(namespace, "announce"), typemux.AsyncFunc(h.announce))
+	mux.RegisterAsync(append(namespace, "leave"), typemux.AsyncFunc(h.leave))
+
+	mux.RegisterSource(append(namespace, "attendants"), typemux.SourceFunc(h.endpoints))
 
 	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
 		logger: h.logger,
