@@ -14,8 +14,8 @@ import (
 type Manager struct {
 	logger kitlog.Logger
 
-	updater     broadcasts.RoomChangeSink
-	broadcaster *broadcasts.RoomChangeBroadcast
+	endpointsUpdater     broadcasts.RoomChangeSink
+	endpointsbroadcaster *broadcasts.RoomChangeBroadcast
 
 	roomMu *sync.Mutex
 	room   roomStateMap
@@ -24,7 +24,7 @@ type Manager struct {
 func NewManager(log kitlog.Logger) *Manager {
 	var m Manager
 	m.logger = log
-	m.updater, m.broadcaster = broadcasts.NewRoomChanger()
+	m.endpointsUpdater, m.endpointsbroadcaster = broadcasts.NewRoomChanger()
 	m.roomMu = new(sync.Mutex)
 	m.room = make(roomStateMap)
 
@@ -45,7 +45,7 @@ func (rsm roomStateMap) AsList() []string {
 }
 
 // Register listens to changes to the room
-func (m *Manager) Register(sink broadcasts.RoomChangeSink) {
+func (m *Manager) RegisterLegacyEndpoints(sink broadcasts.RoomChangeSink) {
 	m.broadcaster.Register(sink)
 }
 

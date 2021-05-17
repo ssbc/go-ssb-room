@@ -24,7 +24,7 @@ func (tp testPrinter) Update(members []string) error {
 func (tp testPrinter) Close() error { return nil }
 
 func ExampleBroadcast() {
-	sink, bcast := NewRoomChanger()
+	sink, bcast := NewEndpointsEmitter()
 	defer sink.Close()
 
 	var p1, p2 testPrinter
@@ -44,7 +44,7 @@ func ExampleBroadcast() {
 }
 
 func ExampleBroadcastCanceled() {
-	sink, bcast := NewRoomChanger()
+	sink, bcast := NewEndpointsEmitter()
 	defer sink.Close()
 
 	var p1, p2 testPrinter
@@ -78,7 +78,7 @@ func (tp erroringPrinter) Close() error { return nil }
 func TestBroadcastOneErrs(t *testing.T) {
 	var buf = &bytes.Buffer{}
 
-	sink, bcast := NewRoomChanger()
+	sink, bcast := NewEndpointsEmitter()
 	defer sink.Close()
 
 	var p1 testPrinter
@@ -144,7 +144,7 @@ func TestBroadcast(t *testing.T) {
 			tc.rx = tc.tx
 		}
 
-		sink, bcast := NewRoomChanger()
+		sink, bcast := NewEndpointsEmitter()
 
 		mkSink := func() Sink {
 			var (
