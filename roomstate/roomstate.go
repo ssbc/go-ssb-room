@@ -1,6 +1,7 @@
 package roomstate
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 
@@ -56,11 +57,27 @@ func (m *Manager) RegisterAttendantsUpdates(sink broadcasts.AttendantsEmitter) {
 	m.attendantsbroadcaster.Register(sink)
 }
 
-// List just returns a list of feed references
+// List just returns a list of feed references as strings
 func (m *Manager) List() []string {
 	m.roomMu.Lock()
 	defer m.roomMu.Unlock()
 	return m.room.AsList()
+}
+
+func (m *Manager) ListAsRefs() []refs.FeedRef {
+	m.roomMu.Lock()
+	lst := m.room.AsList()
+	m.roomMu.Unlock()
+
+	rlst := make([]refs.FeedRef, len(lst))
+	for i, s := range lst {
+		fr, err := refs.ParseFeedRef(s)
+		if err != nil {
+			panic(fmt.Errorf("invalid feed ref in room state: %d: %s", i, err))
+		}
+		rlst[i] = *fr
+	}
+	return rlst
 }
 
 // AddEndpoint adds the endpoint to the room

@@ -59,7 +59,7 @@ func (h *Handler) RegisterRoom(mux typemux.HandlerMux) {
 	mux.RegisterAsync(append(namespace, "announce"), typemux.AsyncFunc(h.announce))
 	mux.RegisterAsync(append(namespace, "leave"), typemux.AsyncFunc(h.leave))
 
-	mux.RegisterSource(append(namespace, "attendants"), typemux.SourceFunc(h.endpoints))
+	mux.RegisterSource(append(namespace, "attendants"), typemux.SourceFunc(h.attendants))
 
 	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
 		logger: h.logger,

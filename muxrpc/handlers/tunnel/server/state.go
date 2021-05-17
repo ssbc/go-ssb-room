@@ -105,7 +105,7 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 }
 
 func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
-	toPeer := newForwarder(snk)
+	toPeer := newEndpointsForwarder(snk)
 
 	// for future updates
 	h.state.RegisterLegacyEndpoints(toPeer)
@@ -147,7 +147,7 @@ type endpointsJSONEncoder struct {
 	enc *json.Encoder
 }
 
-func newForwarder(snk *muxrpc.ByteSink) *endpointsJSONEncoder {
+func newEndpointsForwarder(snk *muxrpc.ByteSink) *endpointsJSONEncoder {
 	enc := json.NewEncoder(snk)
 	snk.SetEncoding(muxrpc.TypeJSON)
 	return &endpointsJSONEncoder{

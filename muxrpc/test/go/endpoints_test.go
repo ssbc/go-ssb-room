@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package go_test
 
 import (
@@ -19,6 +21,8 @@ type announcements map[string]struct{}
 
 // we will let three clients (alf, bre, crl) join and see that the endpoint output is as expected
 func TestEndpointClients(t *testing.T) {
+	testInit(t)
+
 	r := require.New(t)
 	a := assert.New(t)
 
@@ -40,12 +44,12 @@ func TestEndpointClients(t *testing.T) {
 
 	// let carl join the room
 	// carl wont announce to emulate manyverse
-	carlEndpointsSerc, err := carl.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
+	carlEndpointsSrc, err := carl.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})
 	r.NoError(err)
 	t.Log("carl opened endpoints")
 
 	announcementsForCarl := make(announcements)
-	go logEndpointsStream(ts, carlEndpointsSerc, "carl", announcementsForCarl)
+	go logEndpointsStream(ts, carlEndpointsSrc, "carl", announcementsForCarl)
 	time.Sleep(1 * time.Second) // give some time to process new events
 
 	_, seen := announcementsForCarl[carl.feed.Ref()]
