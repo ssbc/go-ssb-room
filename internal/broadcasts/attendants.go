@@ -52,7 +52,6 @@ func (bcst *AttendantsBroadcast) Register(sink AttendantsEmitter) func() {
 type attendantsSink AttendantsBroadcast
 
 func (bcst *attendantsSink) Joined(member refs.FeedRef) error {
-
 	bcst.mu.Lock()
 	for s := range bcst.sinks {
 		err := (*s).Joined(member)
@@ -66,7 +65,6 @@ func (bcst *attendantsSink) Joined(member refs.FeedRef) error {
 }
 
 func (bcst *attendantsSink) Left(member refs.FeedRef) error {
-
 	bcst.mu.Lock()
 	for s := range bcst.sinks {
 		err := (*s).Left(member)
@@ -81,7 +79,13 @@ func (bcst *attendantsSink) Left(member refs.FeedRef) error {
 
 // Close implements the Sink interface.
 func (bcst *attendantsSink) Close() error {
-	var sinks []AttendantsEmitter
+	bcst.mu.Lock()
+	defer bcst.mu.Unlock()
+	sinks := make([]AttendantsEmitter, 0, len(bcst.sinks))
+
+	for sink := range bcst.sinks {
+		sinks = append(sinks, *sink)
+	}
 
 	bcst.mu.Lock()
 	defer bcst.mu.Unlock()

@@ -50,7 +50,7 @@ func TestRoomAttendants(t *testing.T) {
 
 	carlsSource, err := carl.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"room", "attendants"})
 	r.NoError(err)
-	t.Log("sarah opened endpoints")
+	t.Log("carl opened attendants")
 
 	// first message should be initial state
 	a.True(carlsSource.Next(ctx))
