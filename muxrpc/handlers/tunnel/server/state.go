@@ -105,10 +105,10 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 }
 
 func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
-	toPeer := newForwarder(snk)
+	toPeer := newEndpointsForwarder(snk)
 
 	// for future updates
-	h.state.Register(toPeer)
+	h.state.RegisterLegacyEndpoints(toPeer)
 
 	// get public key from the calling peer
 	peer, err := network.GetFeedRefFromAddr(req.RemoteAddr())
@@ -140,28 +140,29 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	return nil
 }
 
-type updateForwarder struct {
+// a muxrpc json encoder for endpoints broadcasts
+type endpointsJSONEncoder struct {
 	mu  sync.Mutex // only one caller to forwarder at a time
 	snk *muxrpc.ByteSink
 	enc *json.Encoder
 }
 
-func newForwarder(snk *muxrpc.ByteSink) *updateForwarder {
+func newEndpointsForwarder(snk *muxrpc.ByteSink) *endpointsJSONEncoder {
 	enc := json.NewEncoder(snk)
 	snk.SetEncoding(muxrpc.TypeJSON)
-	return &updateForwarder{
+	return &endpointsJSONEncoder{
 		snk: snk,
 		enc: enc,
 	}
 }
 
-func (uf *updateForwarder) Update(members []string) error {
+func (uf *endpointsJSONEncoder) Update(members []string) error {
 	uf.mu.Lock()
 	defer uf.mu.Unlock()
 	return uf.enc.Encode(members)
 }
 
-func (uf *updateForwarder) Close() error {
+func (uf *endpointsJSONEncoder) Close() error {
 	uf.mu.Lock()
 	defer uf.mu.Unlock()
 	return uf.snk.Close()

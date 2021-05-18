@@ -9,31 +9,31 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multierror"
 )
 
-type RoomChangeSink interface {
+type EndpointsEmitter interface {
 	Update(members []string) error
 	io.Closer
 }
 
-// NewRoomChanger returns the Sink, to write to the broadcaster, and the new
+// NewEndpointsEmitter returns the Sink, to write to the broadcaster, and the new
 // broadcast instance.
-func NewRoomChanger() (RoomChangeSink, *RoomChangeBroadcast) {
-	bcst := RoomChangeBroadcast{
+func NewEndpointsEmitter() (EndpointsEmitter, *EndpointsBroadcast) {
+	bcst := EndpointsBroadcast{
 		mu:    &sync.Mutex{},
-		sinks: make(map[*RoomChangeSink]struct{}),
+		sinks: make(map[*EndpointsEmitter]struct{}),
 	}
 
-	return (*broadcastSink)(&bcst), &bcst
+	return (*endpointsSink)(&bcst), &bcst
 }
 
-// RoomChangeBroadcast is an interface for registering one or more Sinks to recieve
+// EndpointsBroadcast is an interface for registering one or more Sinks to recieve
 // updates.
-type RoomChangeBroadcast struct {
+type EndpointsBroadcast struct {
 	mu    *sync.Mutex
-	sinks map[*RoomChangeSink]struct{}
+	sinks map[*EndpointsEmitter]struct{}
 }
 
 // Register a Sink for updates to be sent. also returns
-func (bcst *RoomChangeBroadcast) Register(sink RoomChangeSink) func() {
+func (bcst *EndpointsBroadcast) Register(sink EndpointsEmitter) func() {
 	bcst.mu.Lock()
 	defer bcst.mu.Unlock()
 	bcst.sinks[&sink] = struct{}{}
@@ -46,10 +46,10 @@ func (bcst *RoomChangeBroadcast) Register(sink RoomChangeSink) func() {
 	}
 }
 
-type broadcastSink RoomChangeBroadcast
+type endpointsSink EndpointsBroadcast
 
 // Pour implements the Sink interface.
-func (bcst *broadcastSink) Update(members []string) error {
+func (bcst *endpointsSink) Update(members []string) error {
 
 	bcst.mu.Lock()
 	for s := range bcst.sinks {
@@ -64,13 +64,13 @@ func (bcst *broadcastSink) Update(members []string) error {
 }
 
 // Close implements the Sink interface.
-func (bcst *broadcastSink) Close() error {
-	var sinks []RoomChangeSink
+func (bcst *endpointsSink) Close() error {
+	var sinks []EndpointsEmitter
 
 	bcst.mu.Lock()
 	defer bcst.mu.Unlock()
 
-	sinks = make([]RoomChangeSink, 0, len(bcst.sinks))
+	sinks = make([]EndpointsEmitter, 0, len(bcst.sinks))
 
 	for sink := range bcst.sinks {
 		sinks = append(sinks, *sink)
@@ -85,7 +85,7 @@ func (bcst *broadcastSink) Close() error {
 
 	wg.Add(len(sinks))
 	for _, sink_ := range sinks {
-		go func(sink RoomChangeSink) {
+		go func(sink EndpointsEmitter) {
 			defer wg.Done()
 
 			err := sink.Close()
