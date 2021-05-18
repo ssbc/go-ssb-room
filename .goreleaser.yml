@@ -1,0 +1,84 @@
+before:
+  hooks:
+    - go mod tidy
+    # refreshes the tailwind css
+    #- go generate ./...
+
+builds:
+  - env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+    main: github.com/ssb-ngi-pointer/go-ssb-room/cmd/server
+    binary: go-ssb-room
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+gomod:
+  # Proxy a module from proxy.golang.org, making the builds verifiable.
+  # This will only be effective if running against a tag. Snapshots will ignore this setting.
+  proxy: true
+
+  # If proxy is true, use these environment variables when running `go mod` commands (namely, `go mod tidy`).
+  # Defaults to `os.Environ()`.
+  env:
+    - GOPROXY=https://proxy.golang.org,direct
+    - GOSUMDB=sum.golang.org
+    - GOPRIVATE=example.com/blah
+
+# for .deb packages
+# see: https://goreleaser.com/customization/nfpm/
+nfpms:
+ - id: go-ssb-room
+   package_name: go-ssb-room
+   replacements:
+     linux: Linux
+     amd64: x86_64
+   vendor: Secure-Scuttlebutt Community
+   # TODO: make sure this email works
+   maintainer: SSB NGI-Pointer Team <go-ssb-room@ssb-ngi-pointer.eu>
+   homepage: https://scuttlebutt.nz
+   description: SSB Room v2 server, written in Go
+   license: MIT
+   formats:
+     - deb
+   suggests:
+     - ngingx
+     - certbot
+   empty_folders:
+     - /var/log/go-ssb-room
+   contents:
+     - src: docs/example-systemd.service
+       dst: /etc/systemd/system/go-ssb-room.service
+       type: "config|noreplace"
+
+     - src: docs/example-nginx.conf
+       dst: /usr/share/go-ssb-room/nginx-example.conf
+
+     # TODO: maybe (automatically) turn docs/README.md into a .txt with the links at the bottom?
+     - src: docs/README.md
+       dst: /usr/share/go-ssb-room/README.md
+      
+     # TODO: add more docs we want?
+   scripts:
+     postinstall: docs/debian/postinstall.sh
+     preremove: docs/debian/preremove.sh
+
+archives:
+  - replacements:
+      linux: Linux
+      amd64: x86_64
+
+checksum:
+  name_template: 'checksums.txt'
+ 
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

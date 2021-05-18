@@ -15,7 +15,7 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
 	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
-	github.com/mattevans/pwned-passwords v0.3.0 // indirect
+	github.com/mattevans/pwned-passwords v0.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
@@ -27,7 +27,6 @@ require (
 	github.com/throttled/throttled/v2 v2.7.1
 	github.com/unrolled/secure v1.0.8
 	github.com/vcraescu/go-paginator/v2 v2.0.0
-	github.com/volatiletech/sqlboiler-sqlite3 v0.0.0-20210314195744-a1c697a68aef // indirect
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
 	go.cryptoscope.co/muxrpc/v2 v2.0.5
