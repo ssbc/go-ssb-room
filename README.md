@@ -22,7 +22,11 @@ For an architecture and instructions on setting up a webserver to use with `go-s
 
 ## Development
 
+(_TODO: move this section to contributing document_ See: https://github.com/ssb-ngi-pointer/go-ssb-room/issues/206 )
+
 To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
+
+Also, if you want to develop the CSS and HTML on the website, you need Node.js v14 in order to compile Tailwind.
 
 To build the server and see a list of its options:
 
@@ -71,15 +75,18 @@ This can be useful if you are working on:
 * html templates, 
 * styling elements using [tailwind](https://tailwindcss.com/docs/)
   * _if you don't run generate with `-tags dev`, the bundled css will only contain the tailwind classes found in *.tmpl at the time of generation!_
-* or website assets
+* or website templates or assets like JavaScript files, the favicon or other images that are used inside the HTML.
 
 This way, the build won't use the assets embedded in the binary, but instead read them directly from the local filesystem.
 
-Once you are done with your changes and want to update the embedded assets:
+Once you are done with your changes and want to update the embedded assets to the production versions:
 ```sh
 # cd to the root of the folder, and then run go generate
-go generate -tags dev ./...
+go generate ./...
+# now build the server without the development mode
+cd cmd/server && go build && ./server -htts-domain my.room.example
 ```
+
 
 ## Tooling
 ### Mocks
