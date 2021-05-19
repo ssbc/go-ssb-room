@@ -26,6 +26,8 @@ For an architecture and instructions on setting up a webserver to use with `go-s
 
 To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
 
+Also, if you want to develop the CSS and HTML on the website, you need Node.js v14 in order to compile Tailwind.
+
 To build the server and see a list of its options:
 
 ```bash
