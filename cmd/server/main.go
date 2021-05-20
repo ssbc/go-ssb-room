@@ -41,8 +41,16 @@ import (
 	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers"
 )
 
+// Version and Build are set by ldflags
+var (
+	version = "v1.0.0-snapshot"
+	commit  = "unset"
+)
+
 var (
 	// flags
+	flagPrintVersion bool
+
 	flagDisableUNIXSock bool
 
 	listenAddrShsMux string
@@ -63,14 +71,6 @@ var (
 
 	// juicy bits
 	appKey string
-)
-
-// Version and Build are set by ldflags
-var (
-	Version = "snapshot"
-	Build   = ""
-
-	flagPrintVersion bool
 )
 
 func checkFatal(err error) {
@@ -140,7 +140,7 @@ func runroomsrv() error {
 	initFlags()
 
 	if flagPrintVersion {
-		log.Log("version", Version, "build", Build)
+		level.Info(log).Log("version", version, "commit", commit)
 		return nil
 	}
 
@@ -376,8 +376,7 @@ func runroomsrv() error {
 		"ID", roomsrv.Whoami().Ref(),
 		"shsmuxaddr", listenAddrShsMux,
 		"httpaddr", listenAddrHTTP,
-		"version", Version,
-		"build", Build,
+		"version", version, "commit", commit,
 	)
 
 	// start serving http connections
