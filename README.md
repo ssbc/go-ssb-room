@@ -1,4 +1,6 @@
 # Go-SSB Room
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room?ref=badge_shield)
+
 
 This repository contains code for a [Secure Scuttlebutt](https://ssb.nz) [Room (v1+v2) server](https://github.com/ssb-ngi-pointer/rooms2), written in Go.
 
@@ -158,3 +160,6 @@ The folder `web/handlers` contains the HTTP handlers for the dashboard. Each sub
 ## License
 
 MIT
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room?ref=badge_large)
