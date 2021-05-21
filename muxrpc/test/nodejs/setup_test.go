@@ -19,11 +19,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/kit/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2/debug"
 	"go.cryptoscope.co/netwrap"
+	"go.mindeco.de/log"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"

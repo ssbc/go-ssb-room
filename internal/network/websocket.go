@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/websocket"
 	"go.cryptoscope.co/muxrpc/v2"
+	kitlog "go.mindeco.de/log"
+	"go.mindeco.de/log/level"
 )
 
 // WebsockHandler returns a "middleware" like thing that is able to upgrade a

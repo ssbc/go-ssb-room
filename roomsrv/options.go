@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"strings"
 
-	kitlog "github.com/go-kit/kit/log"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
 	"go.cryptoscope.co/netwrap"
+	kitlog "go.mindeco.de/log"
 )
 
 type Option func(srv *Server) error

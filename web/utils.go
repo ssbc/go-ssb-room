@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
+	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"

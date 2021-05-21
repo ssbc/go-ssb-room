@@ -14,10 +14,10 @@ import (
 	"path/filepath"
 	"sync"
 
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 	"go.cryptoscope.co/netwrap"
+	kitlog "go.mindeco.de/log"
+	"go.mindeco.de/log/level"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"

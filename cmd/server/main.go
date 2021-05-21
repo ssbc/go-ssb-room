@@ -23,13 +23,13 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/throttled/throttled/v2"
 	"github.com/throttled/throttled/v2/store/memstore"
 	"github.com/unrolled/secure"
 	"go.cryptoscope.co/muxrpc/v2/debug"
+	kitlog "go.mindeco.de/log"
+	"go.mindeco.de/log/level"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"

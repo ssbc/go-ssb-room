@@ -7,14 +7,12 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/dustin/go-humanize v1.0.0
 	github.com/friendsofgo/errors v0.9.2
-	github.com/go-kit/kit v0.10.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.4.2
-	github.com/keks/nocomment v0.0.0-20181007001506-30c6dcb4a472
 	github.com/mattevans/pwned-passwords v0.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
@@ -23,22 +21,22 @@ require (
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/throttled/throttled/v2 v2.7.1
 	github.com/unrolled/secure v1.0.8
 	github.com/vcraescu/go-paginator/v2 v2.0.0
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
-	go.cryptoscope.co/muxrpc/v2 v2.0.5
+	go.cryptoscope.co/muxrpc/v2 v2.0.6
 	go.cryptoscope.co/netwrap v0.1.1
-	go.cryptoscope.co/secretstream v1.2.2
-	go.mindeco.de v1.11.0
-	go.mindeco.de/ssb-refs v0.1.1-0.20210108133850-cf1f44fea870
+	go.cryptoscope.co/nocomment v0.0.0-20210520094614-fb744e81f810
+	go.cryptoscope.co/secretstream v1.2.3
+	go.mindeco.de v1.12.0
+	go.mindeco.de/ssb-refs v0.2.0
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.5
-	golang.org/x/tools v0.0.0-20201023174141-c8cfbd0f21e6
+	golang.org/x/tools v0.1.1
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
@@ -54,4 +52,5 @@ exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79
 replace golang.org/x/crypto => github.com/cryptix/golang_x_crypto v0.0.0-20200924101112-886946aabeb8
 
 // https://github.com/rubenv/sql-migrate/pull/189
-replace github.com/rubenv/sql-migrate => github.com/cryptix/go-sql-migrate v0.0.0-20210218132118-3a09ec3cfca0
+// and using branch 'drop-other-drivers' for less dependency pollution (oracaldb and the like)
+replace github.com/rubenv/sql-migrate => github.com/cryptix/go-sql-migrate v0.0.0-20210521142015-a3e4d9974764

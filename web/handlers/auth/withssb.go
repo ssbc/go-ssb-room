@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/skip2/go-qrcode"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/render"
+	kitlog "go.mindeco.de/log"
+	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"

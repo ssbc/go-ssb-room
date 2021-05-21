@@ -10,10 +10,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/skip2/go-qrcode"
 	"go.mindeco.de/http/render"
+	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"

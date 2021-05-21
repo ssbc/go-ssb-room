@@ -8,9 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
 	"go.cryptoscope.co/muxrpc/v2"
+	kitlog "go.mindeco.de/log"
+	"go.mindeco.de/log/level"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/netwraputil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"

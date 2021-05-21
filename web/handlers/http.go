@@ -10,12 +10,12 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/go-kit/kit/log/level"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
 	"github.com/russross/blackfriday/v2"
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
+	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
