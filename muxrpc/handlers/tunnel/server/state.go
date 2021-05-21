@@ -105,10 +105,6 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 }
 
 func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
-	toPeer := newEndpointsForwarder(snk)
-
-	// for future updates
-	h.state.RegisterLegacyEndpoints(toPeer)
 
 	// get public key from the calling peer
 	peer, err := network.GetFeedRefFromAddr(req.RemoteAddr())
@@ -130,6 +126,10 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
+
+	// for future updates
+	toPeer := newEndpointsForwarder(snk)
+	h.state.RegisterLegacyEndpoints(toPeer)
 
 	// add the peer to the room state if they arent already
 	h.state.AlreadyAdded(*peer, req.Endpoint())

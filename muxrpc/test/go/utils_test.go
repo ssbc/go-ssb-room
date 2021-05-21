@@ -149,8 +149,12 @@ type testClient struct {
 	mockedHandler *muxrpc.FakeHandler
 }
 
+var clientNo = 0
+
 func (ts *testSession) makeTestClient(name string) testClient {
 	r := require.New(ts.t)
+
+	clientNo++
 
 	// create a fresh keypairs for the clients
 	client, has := ts.clientKeys[name]
@@ -186,9 +190,10 @@ func (ts *testSession) makeTestClient(name string) testClient {
 	authedConn, err := netwrap.Dial(tcpAddr, clientSHS.ConnWrapper(ts.srv.Whoami().PubKey()))
 	r.NoError(err)
 
-	// testPath := filepath.Join("testrun", ts.t.Name())
-	// debugConn := debug.Dump(filepath.Join(testPath, "client-"+name), authedConn)
-	pkr := muxrpc.NewPacker(authedConn)
+	testPath := filepath.Join("testrun", ts.t.Name())
+	dbgPath := filepath.Join(testPath, fmt.Sprintf("client-%d-%s", clientNo, name))
+	dbgConn := debug.Dump(dbgPath, authedConn)
+	pkr := muxrpc.NewPacker(dbgConn)
 
 	var muxMock = new(muxrpc.FakeHandler)
 	wsEndpoint := muxrpc.Handle(pkr, muxMock,

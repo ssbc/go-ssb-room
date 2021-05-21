@@ -40,13 +40,8 @@ func TestStaleMembers(t *testing.T) {
 	srh := ts.makeTestClient("srh") // https://en.wikipedia.org/wiki/Sarah
 
 	// announce srh so that tal could connect
-	var ok bool
-	err := srh.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
-	r.NoError(err)
-	r.True(ok)
 
 	_, has := ts.srv.StateManager.Has(srh.feed)
-	r.True(has, "srh should be connected")
 
 	// shut down srh
 	srh.Terminate()
@@ -82,7 +77,8 @@ func TestStaleMembers(t *testing.T) {
 	time.Sleep(1 * time.Second) // let server respond
 
 	// announce srh so that tal can connect
-	err = srh.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
+	var ok bool
+	err = srh.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "announce"})
 	r.NoError(err)
 	r.True(ok)
 	t.Log("announced srh again")

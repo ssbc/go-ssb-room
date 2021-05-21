@@ -28,9 +28,6 @@ type AttendantsInitialState struct {
 }
 
 func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxrpc.ByteSink) error {
-	// for future updates
-	toPeer := newAttendantsEncoder(snk)
-	h.state.RegisterAttendantsUpdates(toPeer)
 
 	// get public key from the calling peer
 	peer, err := network.GetFeedRefFromAddr(req.RemoteAddr())
@@ -49,6 +46,11 @@ func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxr
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
+
+	// add peer to the state
+	h.state.AddEndpoint(*peer, req.Endpoint())
+
+	// send the current state
 	err = json.NewEncoder(snk).Encode(AttendantsInitialState{
 		Type: "state",
 		IDs:  h.state.ListAsRefs(),
@@ -56,6 +58,10 @@ func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxr
 	if err != nil {
 		return err
 	}
+
+	// register for future updates
+	toPeer := newAttendantsEncoder(snk)
+	h.state.RegisterAttendantsUpdates(toPeer)
 
 	return nil
 }
