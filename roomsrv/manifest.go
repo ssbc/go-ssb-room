@@ -40,8 +40,6 @@ const manifest manifestHandler = `
 		"registerAlias": "async",
 		"revokeAlias": "async",
 
-		"announce": "sync",
-		"leave": "sync",
 		"connect": "duplex",
 		"attendants": "source",
 		"metadata": "async",

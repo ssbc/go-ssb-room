@@ -43,11 +43,6 @@ func TestRoomAttendants(t *testing.T) {
 
 	// start with carl
 	// ===============
-	var ok bool
-	err := carl.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
-	r.NoError(err)
-	a.True(ok, "announce should be fine")
-
 	carlsSource, err := carl.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"room", "attendants"})
 	r.NoError(err)
 	t.Log("carl opened attendants")
@@ -68,10 +63,6 @@ func TestRoomAttendants(t *testing.T) {
 
 	// let alf join the room
 	// =====================
-	err = alf.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
-	r.NoError(err)
-	a.True(ok, "announce should be fine")
-
 	alfsSource, err := alf.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"room", "attendants"})
 	r.NoError(err)
 
@@ -96,10 +87,6 @@ func TestRoomAttendants(t *testing.T) {
 	a.True(seen, "carl saw alf")
 
 	// let bre join the room
-	err = bre.Async(ctx, &ok, muxrpc.TypeJSON, muxrpc.Method{"room", "announce"})
-	r.NoError(err)
-	a.True(ok, "announce should be fine")
-
 	bresSource, err := bre.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"room", "attendants"})
 	r.NoError(err)
 
