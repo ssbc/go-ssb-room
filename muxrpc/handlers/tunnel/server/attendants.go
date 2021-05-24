@@ -51,6 +51,7 @@ func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxr
 	h.state.AddEndpoint(*peer, req.Endpoint())
 
 	// send the current state
+	snk.SetEncoding(muxrpc.TypeJSON)
 	err = json.NewEncoder(snk).Encode(AttendantsInitialState{
 		Type: "state",
 		IDs:  h.state.ListAsRefs(),
