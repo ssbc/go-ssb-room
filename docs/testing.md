@@ -77,7 +77,7 @@ ts.MembersDB.ListReturns(lst, nil)
 
 
 ## Example test
-```
+```go
 package handlers
 
 import (
@@ -107,3 +107,25 @@ func TestNoticeShow(t *testing.T) {
 	fmt.Println(html.Text())
 }
 ```
+
+## Muxrpc room functionality
+
+### Go
+
+The folder `tests/nodejs` contains basic tests of the client<>server functionality for the different aspects of a room.
+
+```bash
+cd muxrpc/test/go
+go test
+```
+
+### JavaScript
+
+The folder `tests/nodejs` contains tests for the JavaScript implementation. To run them, install node and npm and run the following:
+
+```bash
+cd muxrpc/test/nodejs
+npm ci
+go test
+```
+
