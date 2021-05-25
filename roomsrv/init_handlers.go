@@ -3,9 +3,9 @@
 package roomsrv
 
 import (
-	kitlog "github.com/go-kit/kit/log"
 	muxrpc "go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/muxrpc/v2/typemux"
+	kitlog "go.mindeco.de/log"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/alias"
 	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/gossip"

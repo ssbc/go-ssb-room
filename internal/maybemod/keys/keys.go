@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/keks/nocomment"
+	"go.cryptoscope.co/nocomment"
 	"go.cryptoscope.co/secretstream/secrethandshake"
 	refs "go.mindeco.de/ssb-refs"
 )

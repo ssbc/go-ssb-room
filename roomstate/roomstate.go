@@ -5,8 +5,8 @@ import (
 	"sort"
 	"sync"
 
-	kitlog "github.com/go-kit/kit/log"
 	"go.cryptoscope.co/muxrpc/v2"
+	kitlog "go.mindeco.de/log"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
 	refs "go.mindeco.de/ssb-refs"

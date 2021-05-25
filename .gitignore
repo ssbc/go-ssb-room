@@ -14,3 +14,6 @@ roomdb/sqlite/testrun
 
 # build artifacts from node.js project web/styles
 node_modules
+
+# goreleaser output
+dist/

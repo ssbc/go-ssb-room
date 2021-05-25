@@ -1,0 +1,18 @@
+[Unit]
+Description="The showcase v2 room"
+After=network.target
+# Uncomment these if you are using it with nginx
+# After=nginx.target
+# Wants=nginx.target
+
+[Service]
+# you need to change your -https-domain here. replace 'my-example-room.somewhere' with what you are using.
+# if you are using a different http configuration, you might also need to change value behind -lishttp.
+ExecStart=/usr/local/bin/go-ssb-room -repo /var/lib/go-ssb-room -lishttp localhost:8899 -https-domain my-example-room.somewhere
+WorkingDirectory=/var/lib/go-ssb-room
+Restart=always
+SyslogIdentifier=gossbroom
+User=go-ssb-room
+
+[Install]
+WantedBy=multi-user.target

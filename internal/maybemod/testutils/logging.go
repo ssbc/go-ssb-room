@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-	"github.com/go-kit/kit/log/term"
+	"go.mindeco.de/log"
+	"go.mindeco.de/log/level"
+	"go.mindeco.de/log/term"
 )
 
 func NewRelativeTimeLogger(w io.Writer) log.Logger {
