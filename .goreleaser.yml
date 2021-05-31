@@ -36,8 +36,7 @@ nfpms:
      linux: Linux
      amd64: x86_64
    vendor: Secure-Scuttlebutt Community
-   # TODO: make sure this email works
-   maintainer: SSB NGI-Pointer Team <go-ssb-room@ssb-ngi-pointer.eu>
+   maintainer: Go-SSB-Room NGI-Pointer Team <go-ssb-room@ssb-ngi-pointer.email>
    homepage: https://scuttlebutt.nz
    description: SSB Room v2 server, written in Go
    license: MIT
