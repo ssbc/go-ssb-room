@@ -62,7 +62,7 @@ webserver.
 * `X-Forwarded-For` the remote TCP/IP address of the client accessing the room (used for rate
   limiting)
 
-[nginx-example.conf](./nginx-example.conf) contains an [nginx](https://nginx.org) config that
+[example-nginx.conf](./example-nginx.conf) contains an [nginx](https://nginx.org) config that
 we use for [hermies.club](https://hermies.club). To get a wildcard TLS certificate you can
 follow the steps in [this
 article](https://medium.com/@alitou/getting-a-wildcard-ssl-certificate-using-certbot-and-deploy-on-nginx-15b8ffa34157),
