@@ -1,2 +1,6 @@
-- **Deployment** instructions are here: [deployment.md](./deployment.md)
-- **Development** instructions are here: [development.md](./development.md)
+## Table of contents
+
+- [**Deployment**](./deployment.md)
+- [**Development**](./development.md)
+  - [**Architecture**](./architecture.md)
+  - [**Testing**](./testing.md)
