@@ -14,10 +14,10 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 	refs "go.mindeco.de/ssb-refs"
 )
 

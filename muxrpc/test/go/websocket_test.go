@@ -19,10 +19,10 @@ import (
 	"go.cryptoscope.co/secretstream"
 	"go.mindeco.de/encodedTime"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 )
 
 func TestWebsocketDialing(t *testing.T) {

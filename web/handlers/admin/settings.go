@@ -10,12 +10,12 @@ import (
 	"go.mindeco.de/http/render"
 
 	"github.com/gorilla/csrf"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/members"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 )
 
 type settingsHandler struct {

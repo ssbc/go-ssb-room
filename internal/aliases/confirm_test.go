@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
 	"github.com/stretchr/testify/require"
 	refs "go.mindeco.de/ssb-refs"
 )

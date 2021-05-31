@@ -8,7 +8,7 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/broadcasts"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/broadcasts"
 	refs "go.mindeco.de/ssb-refs"
 )
 

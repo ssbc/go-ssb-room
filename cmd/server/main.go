@@ -31,19 +31,19 @@ import (
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
-	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/handlers"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
+	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/handlers"
 )
 
 // Version and Build are set by ldflags
 var (
-	version = "v1.0.0-snapshot"
+	version = "v2.0.0-snapshot"
 	commit  = "unset"
 )
 

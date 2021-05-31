@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 

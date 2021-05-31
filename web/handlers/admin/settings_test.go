@@ -8,8 +8,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 )
 
 func TestSettingsOverview(t *testing.T) {

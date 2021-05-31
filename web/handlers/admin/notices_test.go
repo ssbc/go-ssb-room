@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
 	"github.com/stretchr/testify/assert"
 )
 

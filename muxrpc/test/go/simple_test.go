@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 

@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
 	"go.mindeco.de/log"
 
 	"go.cryptoscope.co/muxrpc/v2"

@@ -1,4 +1,4 @@
-module github.com/ssb-ngi-pointer/go-ssb-room
+module github.com/ssb-ngi-pointer/go-ssb-room/v2
 
 go 1.16
 

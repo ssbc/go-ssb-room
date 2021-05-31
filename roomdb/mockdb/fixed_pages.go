@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 )
 
 type FakePinnedNoticesService struct {

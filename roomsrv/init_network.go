@@ -8,8 +8,8 @@ import (
 
 	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 )
 
 // opens the shs listener for TCP connections

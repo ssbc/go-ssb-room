@@ -12,8 +12,8 @@ import (
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/netwraputil"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/netwraputil"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
 )
 
 // WithUNIXSocket enables listening for muxrpc connections on a unix socket files ($repo/socket).

@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multierror"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/multierror"
 	refs "go.mindeco.de/ssb-refs"
 )
 

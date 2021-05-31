@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
 	"go.cryptoscope.co/netwrap"
 	kitlog "go.mindeco.de/log"
 )

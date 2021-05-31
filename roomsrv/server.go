@@ -19,13 +19,13 @@ import (
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/multicloser"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/multicloser"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomstate"
 	refs "go.mindeco.de/ssb-refs"
 )
 

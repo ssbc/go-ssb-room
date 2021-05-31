@@ -1,13 +1,14 @@
 package i18ntesting
 
 import (
-	"github.com/stretchr/testify/assert"
 	"path/filepath"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
 )
 
 func TestListLanguages(t *testing.T) {

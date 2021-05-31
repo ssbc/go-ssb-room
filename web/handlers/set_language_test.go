@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 )
 
 func TestLanguageDefaultNoCookie(t *testing.T) {

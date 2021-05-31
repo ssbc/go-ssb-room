@@ -26,12 +26,12 @@ import (
 	"go.mindeco.de/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/testutils"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/testutils"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -141,7 +141,7 @@ func (ts *testSession) startGoServer(
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
 		// if the muxrpc protocol fucks up by e.g. unpacking body data into a header, this type of error will be surfaced here and look scary in the test output
-		// example: https://github.com/ssb-ngi-pointer/go-ssb-room/pull/85#issuecomment-801106687
+		// example: https://github.com/ssb-ngi-pointer/go-ssb-room/v2/pull/85#issuecomment-801106687
 		if err != nil && !errors.Is(err, context.Canceled) {
 			err = fmt.Errorf("go server exited: %w", err)
 			ts.t.Log(err)

@@ -4,7 +4,7 @@ package mocked
 import (
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
 	muxrpc "go.cryptoscope.co/muxrpc/v2"
 	refs "go.mindeco.de/ssb-refs"
 )

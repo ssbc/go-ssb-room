@@ -12,10 +12,10 @@ import (
 	"go.mindeco.de/logging"
 	refs "go.mindeco.de/ssb-refs"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomstate"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomstate"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
 )
 
 type dashboardHandler struct {

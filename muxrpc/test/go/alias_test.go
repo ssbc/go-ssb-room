@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/aliases"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomsrv"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
 )
 
 // technically we are usign two servers here

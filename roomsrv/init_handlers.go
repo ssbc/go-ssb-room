@@ -7,11 +7,11 @@ import (
 	"go.cryptoscope.co/muxrpc/v2/typemux"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/alias"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/gossip"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/muxrpc/handlers/whoami"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/alias"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/gossip"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/whoami"
 )
 
 // instantiate and register the muxrpc handlers

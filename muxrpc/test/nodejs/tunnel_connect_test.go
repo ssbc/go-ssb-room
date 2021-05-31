@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/mockdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
 	refs "go.mindeco.de/ssb-refs"
 )
 
@@ -134,7 +134,7 @@ func TestModernJSClient(t *testing.T) {
 }
 
 // found a nasty `throw err` in the JS stack around pull.drain. lets make sure it stays gone
-// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/190
+// https://github.com/ssb-ngi-pointer/go-ssb-room/v2/issues/190
 func TestClientSurvivesShutdown(t *testing.T) {
 	r := require.New(t)
 

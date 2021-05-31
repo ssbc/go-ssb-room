@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/sessions"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/i18n"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
 )
 
 type FlashHelper struct {

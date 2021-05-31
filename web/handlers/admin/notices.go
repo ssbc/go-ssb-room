@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/members"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/members"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 
 	"github.com/gorilla/csrf"
 	"github.com/russross/blackfriday/v2"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
 	"go.mindeco.de/http/render"
 )
 

@@ -18,12 +18,12 @@ import (
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/auth"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web/webassert"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
 	refs "go.mindeco.de/ssb-refs"
 )
 

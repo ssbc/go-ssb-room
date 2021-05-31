@@ -18,12 +18,12 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/sessions"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/web"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
 	"go.mindeco.de/http/render"
 	"golang.org/x/text/language"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/repo"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
 )
 
 const LanguageCookieName = "gossbroom-language"

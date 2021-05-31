@@ -7,8 +7,8 @@ import (
 
 	"github.com/friendsofgo/errors"
 	"github.com/mattn/go-sqlite3"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb/sqlite/models"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	refs "go.mindeco.de/ssb-refs"

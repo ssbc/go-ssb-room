@@ -18,7 +18,7 @@ import (
 	"go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/internal/maybemod/keys"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
 	refs "go.mindeco.de/ssb-refs"
 )
 

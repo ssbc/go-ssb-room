@@ -11,9 +11,9 @@ import (
 	"go.mindeco.de/http/auth"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/web/errors"
-	authWithSSB "github.com/ssb-ngi-pointer/go-ssb-room/web/handlers/auth"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	authWithSSB "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/handlers/auth"
 )
 
 type roomMemberContextKeyType string
