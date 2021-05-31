@@ -85,11 +85,12 @@ func (m *Manager) AddEndpoint(who refs.FeedRef, edp muxrpc.Endpoint) {
 	m.roomMu.Lock()
 	// add ref to to the room map
 	m.room[who.Ref()] = edp
+	currentMembers := m.room.AsList()
+	m.roomMu.Unlock()
 	// update all the connected tunnel.endpoints calls
-	m.endpointsUpdater.Update(m.room.AsList())
+	m.endpointsUpdater.Update(currentMembers)
 	// update all the connected room.attendants calls
 	m.attendantsUpdater.Joined(who)
-	m.roomMu.Unlock()
 }
 
 // Remove removes the peer from the room
@@ -97,11 +98,12 @@ func (m *Manager) Remove(who refs.FeedRef) {
 	m.roomMu.Lock()
 	// remove ref from lobby
 	delete(m.room, who.Ref())
+	currentMembers := m.room.AsList()
+	m.roomMu.Unlock()
 	// update all the connected tunnel.endpoints calls
-	m.endpointsUpdater.Update(m.room.AsList())
+	m.endpointsUpdater.Update(currentMembers)
 	// update all the connected room.attendants calls
 	m.attendantsUpdater.Left(who)
-	m.roomMu.Unlock()
 }
 
 // AlreadyAdded returns true if the peer was already added to the room.
@@ -109,18 +111,22 @@ func (m *Manager) Remove(who refs.FeedRef) {
 func (m *Manager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
 	m.roomMu.Lock()
 
+	var currentMembers []string
 	// if the peer didn't call tunnel.announce()
 	_, has := m.room[who.Ref()]
 	if !has {
 		// register them as if they didnt
 		m.room[who.Ref()] = edp
+		currentMembers = m.room.AsList()
+	}
+	m.roomMu.Unlock()
 
+	if !has {
 		// update everyone
-		m.endpointsUpdater.Update(m.room.AsList())
+		m.endpointsUpdater.Update(currentMembers)
 		m.attendantsUpdater.Joined(who)
 	}
 
-	m.roomMu.Unlock()
 	return has
 }
 
