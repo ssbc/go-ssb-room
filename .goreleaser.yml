@@ -49,21 +49,21 @@ nfpms:
    empty_folders:
      - /var/log/go-ssb-room
    contents:
-     - src: docs/example-systemd.service
+     - src: docs/files/example-systemd.service
        dst: /etc/systemd/system/go-ssb-room.service
        type: "config|noreplace"
 
-     - src: docs/example-nginx.conf
+     - src: docs/files/example-nginx.conf
        dst: /usr/share/go-ssb-room/nginx-example.conf
 
      # TODO: maybe (automatically) turn docs/README.md into a .txt with the links at the bottom?
-     - src: docs/README.md
+     - src: README.md
        dst: /usr/share/go-ssb-room/README.md
-      
+
      # TODO: add more docs we want?
    scripts:
-     postinstall: docs/debian/postinstall.sh
-     preremove: docs/debian/preremove.sh
+     postinstall: docs/files/debian-postinstall.sh
+     preremove: docs/files/debian-preremove.sh
 
 archives:
   - replacements:
@@ -72,7 +72,7 @@ archives:
 
 checksum:
   name_template: 'checksums.txt'
- 
+
 snapshot:
   name_template: "{{ .Tag }}-next"
 

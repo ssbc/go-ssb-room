@@ -10,7 +10,7 @@ To build the server and see a list of its options:
 cd cmd/server
 go build
 ./server -h
- 
+
 Usage of ./server:
   -aliases-as-subdomains
     	needs to be disabled if a wildcard certificate for the room is not available. (default true)
@@ -47,8 +47,8 @@ cd cmd/server && go build -tags dev && ./server
 ```
 
 This can be useful if you are working on:
-* the sqlite migrations, 
-* html templates, 
+* the sqlite migrations,
+* html templates,
 * styling elements using [tailwind](https://tailwindcss.com/docs/)
   * _if you don't run generate with `-tags dev`, the bundled css will only contain the tailwind classes found in *.tmpl at the time of generation!_
 * or website templates or assets like JavaScript files, the favicon or other images that are used inside the HTML.
@@ -73,7 +73,7 @@ cd cmd/server && go build && ./server -htts-domain my.room.example
 
 This project uses [sql-migrate](https://github.com/rubenv/sql-migrate) to upgrade the sqlite database when necessary.
 
-To upgrade, create a new file in `admindb/sqlite/migrations` with your changes. 
+To upgrade, create a new file in `admindb/sqlite/migrations` with your changes.
 
 **Note**: similar to the web assets, you need to use `go test -tags dev` to test them. Afterwards run, `go generate` to embed the assets in the code and thus the resulting server binary.
 
@@ -103,12 +103,16 @@ Aside: I would have used `sqlc` since it's a bit more minimal and uses hand writ
 cd cmd/insert-user
 go build
 # optional step: run a script to generate a valid ssb id @<pubkey>.ed25519, useful for trying things out quickly
-./generate-fake-id.sh   
+./generate-fake-id.sh
 ./insert-user -login <username> -key <@pubkey.ed25519>
 ```
 Then repeat your password twice and you are all set for development.
 
 Run `insert-user` without any flags to see all the options.
+
+## Architecture
+
+For a few high-level overviews and diagrams of how the codebase works, read [architecture.md](./architecture.md).
 
 ## Testing
 
