@@ -92,7 +92,7 @@ func main() {
 
 func cliMissingArguments(message string) {
 	executable := strings.TrimPrefix(os.Args[0], "./")
-	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s <@base64-encoded-public-key=.ed25519> <optional flags>\n", executable, message, executable)
+	fmt.Fprintf(os.Stderr, "%s: %s\nusage:%s <optional flags> <@base64-encoded-public-key=.ed25519>\n", executable, message, executable)
 	flag.Usage()
 	os.Exit(1)
 }
