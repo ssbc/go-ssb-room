@@ -48,8 +48,8 @@ func NewURLTo(appRouter *mux.Router, netInfo network.ServerEndpointDetails) URLM
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)
 		if route == nil {
-			// TODO: https://github.com/ssb-ngi-pointer/go-ssb-room/v2/issues/35 for a
-			// for reference, see https://github.com/ssb-ngi-pointer/go-ssb-room/v2/pull/64
+			// TODO: https://github.com/ssb-ngi-pointer/go-ssb-room/issues/35 for a
+			// for reference, see https://github.com/ssb-ngi-pointer/go-ssb-room/pull/64
 			// level.Warn(l).Log("msg", "no such route", "route", routeName, "params", fmt.Sprintf("%v", ps))
 			return &url.URL{}
 		}

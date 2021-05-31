@@ -34,7 +34,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 
 		// request the form
 		doc, resp := ts.Client.GetHTML(acceptURL404)
-		// 500 until https://github.com/ssb-ngi-pointer/go-ssb-room/v2/issues/66 is fixed
+		// 500 until https://github.com/ssb-ngi-pointer/go-ssb-room/issues/66 is fixed
 		a.Equal(http.StatusInternalServerError, resp.Code)
 
 		// check database calls
