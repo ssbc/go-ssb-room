@@ -30,10 +30,10 @@ require (
 	go.cryptoscope.co/muxrpc/v2 v2.0.6
 	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/nocomment v0.0.0-20210520094614-fb744e81f810
-	go.cryptoscope.co/secretstream v1.2.3
+	go.cryptoscope.co/secretstream v1.2.8
 	go.mindeco.de v1.12.0
 	go.mindeco.de/ssb-refs v0.2.0
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.5
 	golang.org/x/tools v0.1.1

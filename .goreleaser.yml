@@ -2,13 +2,13 @@ before:
   hooks:
     - go mod tidy
     # refreshes the tailwind css
-    #- go generate ./...
+    - go generate ./...
 
 builds:
   - env:
       # needed for sqlite
       - CGO_ENABLED=1
-    main: github.com/ssb-ngi-pointer/go-ssb-room/cmd/server
+    main: ./cmd/server
     binary: go-ssb-room
     goos:
       - linux
@@ -16,16 +16,11 @@ builds:
       - amd64
 
 gomod:
-  # Proxy a module from proxy.golang.org, making the builds verifiable.
-  # This will only be effective if running against a tag. Snapshots will ignore this setting.
-  proxy: true
-
-  # If proxy is true, use these environment variables when running `go mod` commands (namely, `go mod tidy`).
-  # Defaults to `os.Environ()`.
+  # sum.golang.org somehow doesn't handle replace as expected. TODO: file issue
+  proxy: false
   env:
     - GOPROXY=https://proxy.golang.org,direct
     - GOSUMDB=sum.golang.org
-    - GOPRIVATE=example.com/blah
 
 # for .deb packages
 # see: https://goreleaser.com/customization/nfpm/
