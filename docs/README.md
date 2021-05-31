@@ -6,7 +6,7 @@ of the premade [releases](https://github.com/ssb-ngi-pointer/go-ssb-room/release
 * [Download Go](https://golang.org/doc/install) & [set up your Go environment](https://golang.org/doc/install#install). You will need at least Go v1.16.
 * Download the repository `git clone git@github.com:ssb-ngi-pointer/go-ssb-room.git && cd go-ssb-room`
 * [Read the development instructions](../README.md)
-* You should now have a working go-ssb-room binary! Read the HTTP Hosting section below, for
+* You should now have a working go-ssb-room binary! Read the HTTP Hosting and admin user sections below, for
   more instructions on the last mile.
 
 # Architecture
@@ -67,3 +67,24 @@ we use for [hermies.club](https://hermies.club). To get a wildcard TLS certifica
 follow the steps in [this
 article](https://medium.com/@alitou/getting-a-wildcard-ssl-certificate-using-certbot-and-deploy-on-nginx-15b8ffa34157),
 which uses the [certbot](https://certbot.eff.org/) utility. 
+
+# First Admin user
+
+To manage your now working server, you need an initial admin user. For this you can use the "insert-user" utility included with go-ssb-room.
+In a new terminal window navigate to the insert-user utility folder and compile the GO-based utility into an executable your computer can use
+
+```
+cd cmd/insert-user
+go build
+```
+
+A new executable file should be created called "insert-user"
+Execute the `./insert-user -h` command to get a full list of custom options (optional location of the repo & SQLite database and user role). follow the instructions given in the output you receive.
+
+example (with custom repo location, only needed if you setup your with a custom repo):
+
+```
+./insert-user -repo "/ssb-go-room-secrets" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519" 
+```
+
+You can now login in the web-front-end using these credentials
