@@ -15,7 +15,7 @@ blacklist = ["gorp_migrations"]
     type = "roomdb.DBFeedRef"
 
   [types.imports]
-    third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"']
+    third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"']
 
 # convert from database-stored integers to the type roomdb.RoomConfig
 [[types]]
@@ -29,4 +29,4 @@ blacklist = ["gorp_migrations"]
     type = "roomdb.PrivacyMode"
 
   [types.imports]
-    third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/roomdb"']
+    third_party = ['"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"']
