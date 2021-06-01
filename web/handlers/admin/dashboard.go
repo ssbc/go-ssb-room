@@ -3,6 +3,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -59,8 +60,13 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 		var err error
 		onlineMembers[i], err = h.dbs.Members.GetByFeed(ctx, ref)
 		if err != nil {
-			// TODO: do we want to show "external users" (non-members) on the dashboard?
-			return nil, fmt.Errorf("failed to lookup online member: %w", err)
+			if !errors.Is(err, roomdb.ErrNotFound) {
+				return nil, fmt.Errorf("failed to lookup online member: %w", err)
+			}
+
+			onlineMembers[i].ID = -1
+			onlineMembers[i].PubKey = ref
+			onlineMembers[i].Role = roomdb.RoleUnknown
 		}
 	}
 
