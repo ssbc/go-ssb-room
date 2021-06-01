@@ -21,6 +21,46 @@ After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special att
 * You should now have a working go-ssb-room binary! Read the HTTP Hosting section below and admin
   user sections below, for more instructions on the last mile.
 
+# Docker & Docker-compose
+
+This project includes a docker-compose.yml file as well as a Docker file. Using
+it should be fairly straight forward.
+
+Start off by making a copy of `.env_example` called `.env` and insert your 
+website domain there. With that done execute
+
+```
+docker-compose build room
+```
+
+Followed by
+
+```
+docker-compose up
+```
+
+Your database, secrets and other things will be synchronized to a folder in your
+project called "docker-secrets".
+
+After starting your server for the first time you need to enter your running
+server to insert your first user (your docker-compose up should be active).
+You can do this by:
+
+```
+docker-compose exec room sh
+```
+
+Then inside the virtual machine:
+
+```
+/app/cmd/insert-user/insert-user -repo /ssb-go-room-secrets @your-own-ssb-public-key
+```
+
+Fill in your password and then exit your instance by typing `exit`.
+
+You should setup Nginx or HTTPS load-balancing outside the docker-compose
+instance.
+
 # HTTP Hosting
 
 We currently assume a standard HTTPS server in front of go-ssb-room to facilitate TLS

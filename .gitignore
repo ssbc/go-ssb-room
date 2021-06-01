@@ -17,3 +17,7 @@ node_modules
 
 # goreleaser output
 dist/
+
+# secrets and config
+ssb-go-room-secrets/
+.env
