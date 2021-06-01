@@ -3,6 +3,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -29,6 +30,7 @@ type dashboardHandler struct {
 
 func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (interface{}, error) {
 	var (
+		err     error
 		ctx     = req.Context()
 		roomRef = h.netInfo.RoomID.Ref()
 
@@ -54,13 +56,19 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	}
 
 	// in the timeout case, nothing will happen here since the onlineRefs slice is empty
-	onlineMembers := make([]roomdb.Member, len(onlineRefs))
+	onlineUsers := make([]connectedUser, len(onlineRefs))
 	for i, ref := range onlineRefs {
-		var err error
-		onlineMembers[i], err = h.dbs.Members.GetByFeed(ctx, ref)
+		// try to get the member
+		onlineUsers[i].Member, err = h.dbs.Members.GetByFeed(ctx, ref)
 		if err != nil {
-			// TODO: do we want to show "external users" (non-members) on the dashboard?
-			return nil, fmt.Errorf("failed to lookup online member: %w", err)
+			if !errors.Is(err, roomdb.ErrNotFound) { // any other error can't be handled here
+				return nil, fmt.Errorf("failed to lookup online member: %w", err)
+			}
+
+			// if there is no member for this ref present it as role unknown
+			onlineUsers[i].ID = -1
+			onlineUsers[i].PubKey = ref
+			onlineUsers[i].Role = roomdb.RoleUnknown
 		}
 	}
 
@@ -80,12 +88,12 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	}
 
 	pageData := map[string]interface{}{
-		"RoomRef":       roomRef,
-		"OnlineMembers": onlineMembers,
-		"OnlineCount":   onlineCount,
-		"MemberCount":   memberCount,
-		"InviteCount":   inviteCount,
-		"DeniedCount":   deniedCount,
+		"RoomRef":     roomRef,
+		"OnlineUsers": onlineUsers,
+		"OnlineCount": onlineCount,
+		"MemberCount": memberCount,
+		"InviteCount": inviteCount,
+		"DeniedCount": deniedCount,
 	}
 
 	pageData["Flashes"], err = h.flashes.GetAll(w, req)
@@ -94,4 +102,17 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	}
 
 	return pageData, nil
+}
+
+// connectedUser defines how we want to present a connected user
+type connectedUser struct {
+	roomdb.Member
+}
+
+// if the member has an alias, use the first one. Otherwise use the public key
+func (dm connectedUser) String() string {
+	if len(dm.Aliases) > 0 {
+		return dm.Aliases[0].Name
+	}
+	return dm.PubKey.Ref()
 }
