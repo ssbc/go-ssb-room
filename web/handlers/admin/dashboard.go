@@ -58,13 +58,14 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	// in the timeout case, nothing will happen here since the onlineRefs slice is empty
 	onlineUsers := make([]connectedUser, len(onlineRefs))
 	for i, ref := range onlineRefs {
-		// get the member
+		// try to get the member
 		onlineUsers[i].Member, err = h.dbs.Members.GetByFeed(ctx, ref)
 		if err != nil {
-			if !errors.Is(err, roomdb.ErrNotFound) {
+			if !errors.Is(err, roomdb.ErrNotFound) { // any other error can't be handled here
 				return nil, fmt.Errorf("failed to lookup online member: %w", err)
 			}
 
+			// if there is no member for this ref present it as role unknown
 			onlineUsers[i].ID = -1
 			onlineUsers[i].PubKey = ref
 			onlineUsers[i].Role = roomdb.RoleUnknown
