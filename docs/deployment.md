@@ -49,6 +49,25 @@ follow the steps in [this
 article](https://medium.com/@alitou/getting-a-wildcard-ssl-certificate-using-certbot-and-deploy-on-nginx-15b8ffa34157),
 which uses the [certbot](https://certbot.eff.org/) utility.
 
+## Enable TCP ports
+
+For your room to fully work the following **TCP** ports need to be allowed:
+
+- 80 (HTTP)
+- 443 (HTTPS)
+- 8008 (SSB)
+
+### Example
+
+Using a Debian-compatible distribution with `ufw`, execute the commands below:
+
+```bash
+sudo ufw allow http
+sudo ufw allow https
+sudo ufw allow 8008/tcp
+```
+
+
 # First Admin user
 
 To manage your now working server, you need an initial admin user. For this you can use the "insert-user" utility included with go-ssb-room.
