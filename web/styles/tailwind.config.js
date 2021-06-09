@@ -2,7 +2,11 @@ module.exports = {
   purge: ['../templates/**/*.tmpl'],
   darkMode: false,
   theme: {
-    extend: {},
+    extend: {
+      minHeight: (theme) => ({
+        ...theme('spacing'),
+      }),
+    }
   },
   variants: {
     extend: {

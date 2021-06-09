@@ -43,12 +43,12 @@
   {{ $self := is_logged_in }}
   <ul id="theList" class="pb-4">
     {{range $index, $member := .Entries}}
-    <li class="odd:bg-gray-100 rounded-lg relative z-0 hover:z-10 hover:bg-white hover:shadow-md">
-      <a href="{{urlTo "admin:member:details" "id" $member.ID}}" class="group flex flex-row items-center h-16 px-4 rounded-lg">
+    <li class="odd:bg-gray-100 rounded-lg relative z-0 hover:z-10 hover:bg-white hover:shadow-md py-2">
+      <a href="{{urlTo "admin:member:details" "id" $member.ID}}" class="group flex flex-row items-center min-h-12 px-4 rounded-lg">
         <div class="flex flex-col flex-1 justify-center max-w-full">
           <span class="font-mono truncate text-gray-600 group-hover:text-gray-800">{{$member.PubKey.Ref}}</span>
 
-          <div class="inline-block h-6">
+          <div class="inline-block min-h-6">
           {{if eq .ID $self.ID}}
               <span class="mr-1 text-green-800 bg-green-100 rounded-lg px-2">{{i18n "AdminMembersSelf"}}</span>
           {{end}}
