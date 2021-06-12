@@ -25,10 +25,11 @@ type FakeInvitesService struct {
 		result1 roomdb.Invite
 		result2 error
 	}
-	CountStub        func(context.Context) (uint, error)
+	CountStub        func(context.Context, bool) (uint, error)
 	countMutex       sync.RWMutex
 	countArgsForCall []struct {
 		arg1 context.Context
+		arg2 bool
 	}
 	countReturns struct {
 		result1 uint
@@ -175,18 +176,19 @@ func (fake *FakeInvitesService) ConsumeReturnsOnCall(i int, result1 roomdb.Invit
 	}{result1, result2}
 }
 
-func (fake *FakeInvitesService) Count(arg1 context.Context) (uint, error) {
+func (fake *FakeInvitesService) Count(arg1 context.Context, arg2 bool) (uint, error) {
 	fake.countMutex.Lock()
 	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
 	fake.countArgsForCall = append(fake.countArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 bool
+	}{arg1, arg2})
 	stub := fake.CountStub
 	fakeReturns := fake.countReturns
-	fake.recordInvocation("Count", []interface{}{arg1})
+	fake.recordInvocation("Count", []interface{}{arg1, arg2})
 	fake.countMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -200,17 +202,17 @@ func (fake *FakeInvitesService) CountCallCount() int {
 	return len(fake.countArgsForCall)
 }
 
-func (fake *FakeInvitesService) CountCalls(stub func(context.Context) (uint, error)) {
+func (fake *FakeInvitesService) CountCalls(stub func(context.Context, bool) (uint, error)) {
 	fake.countMutex.Lock()
 	defer fake.countMutex.Unlock()
 	fake.CountStub = stub
 }
 
-func (fake *FakeInvitesService) CountArgsForCall(i int) context.Context {
+func (fake *FakeInvitesService) CountArgsForCall(i int) (context.Context, bool) {
 	fake.countMutex.RLock()
 	defer fake.countMutex.RUnlock()
 	argsForCall := fake.countArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeInvitesService) CountReturns(result1 uint, result2 error) {
