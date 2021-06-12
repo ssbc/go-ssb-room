@@ -77,7 +77,7 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 		return nil, fmt.Errorf("failed to count members: %w", err)
 	}
 
-	inviteCount, err := h.dbs.Invites.CountActive(ctx)
+	inviteCount, err := h.dbs.Invites.Count(ctx, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to count active invites: %w", err)
 	}

@@ -158,11 +158,8 @@ type InvitesService interface {
 	// List returns a list of all the valid invites
 	List(ctx context.Context) ([]Invite, error)
 
-	// Count returns the total number of invites.
-	Count(context.Context) (uint, error)
-
-	// CountActive returns the total number of active invites.
-	CountActive(context.Context) (uint, error)
+	// Count returns the total number of invites, optionally excluding inactive invites
+	Count(ctx context.Context, onlyActive bool) (uint, error)
 
 	// Revoke removes a active invite and invalidates it for future use.
 	Revoke(ctx context.Context, id int64) error
