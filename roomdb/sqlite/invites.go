@@ -250,8 +250,12 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 	return invs, nil
 }
 
-func (i Invites) Count(ctx context.Context) (uint, error) {
-	count, err := models.Invites().Count(ctx, i.db)
+func (i Invites) Count(ctx context.Context, onlyActive bool) (uint, error) {
+	queryMod := qm.Where("1")
+	if onlyActive {
+		queryMod = qm.Where("active = true")
+	}
+	count, err := models.Invites(queryMod).Count(ctx, i.db)
 	if err != nil {
 		return 0, err
 	}
