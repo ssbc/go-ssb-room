@@ -68,7 +68,7 @@ AuthFallbackInstruct = "This method is an acceptable fallback, if you have a use
 AuthFallbackNewPassword="New Password"
 AuthFallbackRepeatPassword="Repeat Password"
 AuthFallbackPasswordChangeFormTitle = "Change Password"
-AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Please make sure it's longer then 10 characters. Via the repition we make sure that you don't accidentally mistype it. Additionally we use the lookup from <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> to make sure you don't accidentally use a weak password."
+AuthFallbackPasswordChangeWelcome = "Here you can change your fallback password. Please make sure it's longer then 10 characters. Via the repetition we make sure that you don't accidentally mistype it. Additionally we use the lookup from <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> to make sure you don't accidentally use a weak password."
 AuthFallbackPasswordUpdated = "The password was updated. You can now use it to sign in."
 AdminMemberPasswordResetLinkCreatedTitle = "Password reset token created"
 AdminMemberPasswordResetLinkCreatedInstruct = "The reset token was created. Please send it to the member via some means (like E-Mail or another suitable side-channel). When they open it, they will be able to choose a new password for themselves."
@@ -150,7 +150,7 @@ AdminAliasesRevokeConfirmWelcome = "Are you sure you want to revoke this alias?"
 ##################
 
 AdminInvitesTitle = "Invites"
-AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. On this page you can also see previously created invites that are still not unclaimed by new members."
+AdminInvitesWelcome = "Create invite tokens for people who are not yet members of this room. On this page you can also see previously created invites that are still unclaimed by new members."
 AdminInvitesCreate = "Create new invite"
 AdminInvitesCreatedAtColumn = "Created at"
 AdminInvitesCreatorColumn = "Created by"

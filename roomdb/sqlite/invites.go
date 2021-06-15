@@ -155,7 +155,7 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 	return inv, nil
 }
 
-// since invites are marked as inavalid so that the code can't be generated twice,
+// since invites are marked as invalid so that the code can't be generated twice,
 // they need to be deleted periodically.
 func deleteConsumedInvites(tx boil.ContextExecutor) error {
 	_, err := models.Invites(qm.Where("active = false")).DeleteAll(context.Background(), tx)

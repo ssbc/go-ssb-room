@@ -27,7 +27,7 @@ func NewErrorHandler(locHelper *i18n.Helper, flashes *FlashHelper) *ErrorHandler
 	}
 }
 
-// SetRenderer needs to update the rendere later since we need to pass ErrorHandler into render.New (ie. befor we get the pointer for r)
+// SetRenderer needs to update the renderer later since we need to pass ErrorHandler into render.New (i.e. before we get the pointer for r)
 func (eh *ErrorHandler) SetRenderer(r *render.Renderer) {
 	eh.render = r
 }
