@@ -220,7 +220,7 @@ func (af AuthFallback) CreateResetToken(ctx context.Context, createdByMember, fo
 	return base64.URLEncoding.EncodeToString(tokenBytes), nil
 }
 
-// since reset tokens are marked as inavalid so that the code can't be generated twice,
+// since reset tokens are marked as invalid so that the code can't be generated twice,
 // they need to be deleted periodically.
 func deleteConsumedResetTokens(tx boil.ContextExecutor) error {
 	_, err := models.FallbackResetTokens(qm.Where("active = false")).DeleteAll(context.Background(), tx)
