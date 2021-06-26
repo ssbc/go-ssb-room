@@ -1,3 +1,6 @@
+# default localiztion file for german
+
+# the name of this language, in its language. Used for language picking
 LanguageName = "Deutsch"
 
 # generic terms
@@ -30,41 +33,44 @@ ErrorAuthBadLogin = "Die angegebenen Authentifizierungsdaten (Benutzername oder 
 ErrorNotFound = "Die Datenbank konnte den betreffenden Artikel nicht finden."
 ErrorAlreadyAdded = "Der öffentliche Schlüssel <strong> {{.Key}} </ strong> ist bereits in der Liste enthalten."
 ErrorPageNotFound = "Die angeforderte Seite <strong> ({{.Path}}) </ strong> ist nicht vorhanden."
-ErrorNotAuthorized = "Sie sind nicht autorisiert auf diese Seite zuzugreifen."
+ErrorNotAuthorized = "Du bsit nicht autorisiert auf diese Seite zuzugreifen."
 ErrorForbidden = "Die Anforderung konnte wegen fehlender Berechtigungen ({{.Details}}) nicht ausgeführt werden."
-ErrorBadRequest = "Bei Ihrer Anfrage ist ein Problem aufgetreten: {{.Where}} ({{.Details}})"
+ErrorBadRequest = "Bei deiner Anfrage ist ein Problem aufgetreten: {{.Where}} ({{.Details}})"
 ErrorPasswordDidntMatch = "Die eingegebenen Passwörter sind nicht identisch."
-ErrorPasswordTooShort = "Das neue Passwort ist zu kurz: mindestens 10 Zeichen."
-ErrorPasswordLeaked = "Das neue Passwort wurde in der Liste der unsicheren Passwörter bei \"have-i-been-pwned\" gefunden. Sie müssen ein anderes wählen."
+ErrorPasswordTooShort = "Das neue Passwort ist zu kurz: Mindestens 10 Zeichen."
+ErrorPasswordLeaked = "Das neue Passwort wurde in der Liste der unsicheren Passwörter bei \"have-i-been-pwned\" gefunden. Du solltest ein anderes wählen."# TODO: might be obsolete with notices
 
+# TODO: might be obsolete with notices
+#LandingTitle = "ohai my room"
+#LandingWelcome = "Landing welcome here"
 # authentication
 ################
 
 AuthTitle = "Login"
-AuthWelcome = "Als Mitglied dieses Raumes kannst du auf das interne Dashboard zugreifen. Wie möchtest du dich Anmelden?"
+AuthWelcome = "Wie möchtest du dich Anmelden?"
 
 AuthSignIn = "Anmelden"
 AuthSignOut = "Abmelden"
 
 # auth with ssb
 AuthWithSSBTitle = "Mit SSB anmelden"
-AuthWithSSBInstruct = "Einfache und sichere Methode, wenn Ihre SSB-App dies unterstützt."
+AuthWithSSBInstruct = "Die Einfache und sichere Anmeldemethode, falls deine SSB-App dies unterstützt."
 AuthWithSSBWelcome = "Falls sich deine SSB-ID auf diesem Gerät befindet und du eine kompatible SSB-App installiert hast, kannst du unten auf die Schaltfläche klicken, um dich anzumelden."
-AuthWithSSBInstructQR = "Wenn sich deine SSB-App auf einem anderen Gerät befindet, kannst Sie den folgenden QR-Code scannen, um dich anzumelden."
+AuthWithSSBInstructQR = "Wenn sich deine SSB-App auf einem anderen Gerät befindet, kannst du einfach den folgenden QR-Code scannen, um dich anzumelden."
 AuthWithSSBError = "Anmeldung fehlgeschlagen. Stelle sicher, dass du eine SSB-App verwendest, die diese Anmeldemethode unterstützt."
 
 # auth with password
-AuthFallbackTitle = "Passwort anmelden"
+AuthFallbackTitle = "Mit Passwort anmelden"
 AuthFallbackWelcome = "Eine Anmeldung mit Benutzername und Passwort ist nur möglich, wenn der Administrator dir einen solchen Zugang gegeben hat."
-AuthFallbackInstruct = "Diese ist eine alternative Methode, wenn du einen Benutzernamen und ein Passwort hast."
+AuthFallbackInstruct = "Alternative Anmeldemethode, falls du einen Benutzernamen und ein Passwort hast."
 
 AuthFallbackNewPassword="Neues Passwort"
 AuthFallbackRepeatPassword="Passwort wiederholen"
 AuthFallbackPasswordChangeFormTitle = "Passwort ändern"
-AuthFallbackPasswordChangeWelcome = "Hier kannst du dein Passwort neu setzen. Bitte achte darauf, dass es länger als 10 Zeichen ist. Durch die doppelte Eingabe wird sichergestellt, dass Sie sich nicht vertippt haben. Ausserdem verwenden wir die Datenbank von <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> um sicher zu stellen, dass du kein unsicheres Passwort verwendest, ohne es zu wissen."
+AuthFallbackPasswordChangeWelcome = "Hier kannst du dein Passwort neu setzen. Bitte achte darauf, dass es länger als 10 Zeichen ist. Durch die doppelte Eingabe wird sichergestellt, dass du dich nicht vertippt hast. Ausserdem verwenden wir die Datenbank von <a href='https://haveibeenpwned.com'>haveibeenpwned.com</a> um sicher zu stellen, dass du kein unsicheres Passwort verwendest, ohne es zu wissen."
 AuthFallbackPasswordUpdated = "Das Passwort wurde aktualisiert. Du kannst dich nun damit anmelden."
-AdminMemberPasswordResetLinkCreatedTitle = "Passwort zurücksetzen: Link erstellt"
-AdminMemberPasswordResetLinkCreatedInstruct = "Der Link für das Zurücksetzen des Passworts wurde erstellt. Bitte sende diesen, über einen geeigneten Weg wie z.B. E-Mail, an das Mitglied."
+AdminMemberPasswordResetLinkCreatedTitle = "Link erfolgreich erstellt!"
+AdminMemberPasswordResetLinkCreatedInstruct = "Der Link für das Zurücksetzen des Passworts wurde erstellt. Bitte sende diesen nun über einen geeigneten Weg wie z.B. E-Mail an das Mitglied."
 
 # general dashboard stuff
 #########################
@@ -81,17 +87,17 @@ ModeRestricted = "Eingeschränkt"
 
 SetPrivacyModeTitle = "Datenschutzmodus einstellen"
 PrivacyModesTitle = "Datenschutzmodus"
-RoomsSpecification = "Raum Spezifikation"
-ExplanationPrivacyModes = "Der Datenschutzmodus bestimmt, wer Einladungen erstellen und wer eine Verbindung zum Raum herstellen kann. Weitere Informationen findest du unter"
+RoomsSpecification = "Raum-Spezifikationen"
+ExplanationPrivacyModes = "Der Datenschutzmodus bestimmt, wer Einladungen erstellen und wer eine Verbindung zum Raum herstellen kann. Weitere Informationen findest du unter den"
 ExplanationOpen = "Öffentliche Einladungen: Alle können eine Verbindung herstellen"
 ExplanationCommunity = "Mitglieder können Einladungen erstellen"
 ExplanationRestricted = "Nur Administratoren und Moderatoren können Einladungen erstellen"
 
-Settings = "Einstellungen"
-
-DefaultLanguageTitle = "Sprecheinstellung"
+DefaultLanguageTitle = "Spracheinstellung"
 ExplanationDefaultLanguage = "Die Standardsprache bei Erstbesucher der Weboberfläche angezeigt. Die verfügbaren Sprachoptionen werden durch die installierten Übersetzungsdateien definiert."
-SetDefaultLanguageTitle = "Sprecheinstellung ändern"
+SetDefaultLanguageTitle = "Spracheinstellung ändern"
+
+Settings = "Einstellungen"
 
 # banned dashboard
 ##################
@@ -111,7 +117,7 @@ AdminDeniedKeysRemoveConfirmTitle = "Verbannung aufheben"
 ###################
 
 AdminMembersTitle = "Mitglieder"
-AdminMembersWelcome = "Hier siehst du alle Mitglieder des Raums, kannst neue hinzuzufügen (anhand ihrer SSB-ID) oder vorhandene entfernen."
+AdminMembersWelcome = "Hier siehst du alle Mitglieder des Raums, kannst neue hinzufügen (anhand ihrer SSB-ID) oder vorhandene entfernen."
 AdminMembersAdd = "Hinzufügen"
 AdminMembersSelf = "Das bist du"
 
@@ -145,7 +151,7 @@ AdminAliasesRevokeConfirmWelcome = "Bist du sicher, dass du diesen Alias ​​w
 AdminInvitesTitle = "Einladungen"
 AdminInvitesWelcome = "Erstelle Einladungen für Personen, die noch keine Mitglieder sind. Auf dieser Seite siehst du auch zuvor erstellte Einladungen, welche noch offen sind."
 AdminInvitesCreate = "Neue Einladung erstellen"
-AdminInvitesCreatedAtColumn = "Erstellt vor/am"
+AdminInvitesCreatedAtColumn = "Offen seit"
 AdminInvitesCreatorColumn = "Erstellt von"
 AdminInvitesActionColumn = "Aktion"
 AdminInviteRevoke = "Widerrufen"
@@ -171,17 +177,20 @@ InviteFacadeTitle = "Raum beitreten"
 InviteFacadeWelcome = "Willkommen bei {{.RoomTitle}}! Mit dieser Einladung kannst du Mitglied dieses Raums werden."
 InviteFacadeInstruct = "Um die Einladung zu verwenden, klicke auf die Schaltfläche unten. Danach öffent sich eine kompatible SSB-App und verbindet dich mit dem Raum."
 InviteFacadeJoin = "Tritt diesem Raum bei"
-InviteFacadeWaiting = "SSB-App öffnen"
 InviteFacadeInstructQR = "Falls dich deine SSB-App auf einem anderen Gerät befindet, kannst du damit den folgenden QR-Code scannen:"
 
-InviteFacadeFallbackWelcome = "Bist du neu bei SSB? Es scheint, dass du noch keine kompatible SSB-App installiert hast. Du kannst eine dieser Apps installieren:"
-InviteFacadeFallbackManyverse = "Installiere Manyverse"
 InviteFacadeFallbackInsertID = "SSB-ID einfügen"
 
 InviteInsertWelcome = "Du kannst mit deine SSB-ID eine Einladung anfordern. Danach kannst du mit deiner SSB-App eine Verbindung zum Raum herstellen."
 
 InviteConsumedTitle = "Einladung angenommen!"
 InviteConsumedWelcome = "Du bist jetzt Mitglied dieses Raums. Wenn du eine Multiserver-Adresse benötigst, kannst du die folgende kopieren und einfügen: "
+
+# alias resolution
+##################
+
+AliasResolutionInstruct = "Klicke auf die untere Schaltfläche, um dich zu verbinden. Danach öffnet sich eine kompatible SSB-App (falls du eine installiert hast)."
+AliasResolutionConnect = "Verbinde dich mit"
 
 # ssb uri links
 ###############
@@ -213,7 +222,7 @@ NoticePrivacyPolicy = "Datenschutz-Bestimmungen"
 
 [MemberCount]
 description = "Anzahl der Mitglieder"
-one = "1 Mitglied"
+one = "Ein Mitglied"
 other =   "{{.Count}} Mitglieder"
 
 [ListCount]
@@ -227,6 +236,6 @@ one = "Es ist ein Mitglied im Raum"
 other =  "Es sind {{.Count}} Mitglieder im Raum"
 
 [AdminInvitesCount]
-description = "Anzahl der Einladungen, welche noch nicht beansprucht wurden"
-one = "1 Einladung noch nicht beansprucht"
-other = "{{.Count}} noch nicht beanspruchte Einladungen"
+description = "Anzahl offener Einladungen"
+one = "Eine offene Einladung"
+other = "{{.Count}} offene Einladungen"
