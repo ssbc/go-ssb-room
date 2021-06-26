@@ -35,7 +35,7 @@ ErrorForbidden = "Die Anforderung konnte wegen fehlender Berechtigungen ({{.Deta
 ErrorBadRequest = "Bei Ihrer Anfrage ist ein Problem aufgetreten: {{.Where}} ({{.Details}})"
 ErrorPasswordDidntMatch = "Die eingegebenen Passwörter sind nicht identisch."
 ErrorPasswordTooShort = "Das neue Passwort ist zu kurz: mindestens 10 Zeichen."
-ErrorPasswordLeaked = "Das neue Passwort wurde in der Liste der unsicheren Passwörter bei "have-i-been-pwned" gefunden. Sie müssen ein anderes wählen."
+ErrorPasswordLeaked = "Das neue Passwort wurde in der Liste der unsicheren Passwörter bei \"have-i-been-pwned\" gefunden. Sie müssen ein anderes wählen."
 
 # authentication
 ################
