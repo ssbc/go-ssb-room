@@ -19,6 +19,8 @@ It includes:
 * [HTTP Invites](https://github.com/ssb-ngi-pointer/ssb-http-invite-spec)
 * Alias management
 
+For a comprehensive introduction to rooms 2.0, 🎥 [watch this video](https://www.youtube.com/watch?v=W5p0y_MWwDE).
+
 ## :rocket: Deployment
 
 If you want to deploy a room server yourself, follow our [deployment.md](./docs/deployment.md) docs.
