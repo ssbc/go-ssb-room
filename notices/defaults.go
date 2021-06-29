@@ -1,6 +1,7 @@
 package notices
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"io/fs"
@@ -70,4 +71,38 @@ func AllDefaults() (NoticesMap, error) {
 	}
 
 	return notices, nil
+}
+
+func InitDefaults(pinnedDB roomdb.PinnedNoticesService, noticesDB roomdb.NoticesService) error {
+	ctx := context.Background()
+
+	existingList, err := pinnedDB.List(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(existingList) != 0 {
+		return fmt.Errorf("expected an empty notices list")
+	}
+
+	def, err := AllDefaults()
+	if err != nil {
+		return err
+	}
+
+	for name, notices := range def {
+		for _, notice := range notices.Notices {
+			err = noticesDB.Save(ctx, &notice)
+			if err != nil {
+				return fmt.Errorf("InitDefaults: failed to save notice for %s: %w", name, err)
+			}
+
+			err = pinnedDB.Set(ctx, name, notice.ID)
+			if err != nil {
+				return fmt.Errorf("InitDefaults: failed to set pin for %s: %w", name, err)
+			}
+		}
+	}
+
+	return nil
 }
