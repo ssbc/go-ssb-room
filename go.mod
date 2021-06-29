@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/PuerkitoBio/goquery v1.5.0
+	github.com/cryptix/front v0.0.0-20210629121817-246a2cb32d0c // indirect
 	github.com/dustin/go-humanize v1.0.0
 	github.com/friendsofgo/errors v0.9.2
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect

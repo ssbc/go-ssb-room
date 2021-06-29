@@ -4,6 +4,7 @@ package roomdb
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -235,6 +236,22 @@ func (n PinnedNoticeName) Valid() bool {
 		n == NoticeDescription ||
 		n == NoticePrivacyPolicy ||
 		n == NoticeCodeOfConduct
+}
+
+func (n *PinnedNoticeName) UnmarshalJSON(input []byte) error {
+	var str string
+	if err := json.Unmarshal(input, &str); err != nil {
+		return err
+	}
+
+	newNoticeName := PinnedNoticeName(str)
+
+	if !newNoticeName.Valid() {
+		return fmt.Errorf("PinnedNoticeName: invalid notice %q", str)
+	}
+
+	*n = newNoticeName
+	return nil
 }
 
 type PinnedNotices map[PinnedNoticeName][]Notice
