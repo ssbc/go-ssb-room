@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
 // SPDX-License-Identifier: MIT
 
 // Package admin implements the dashboard for admins and moderators to change and control aspects of the room.

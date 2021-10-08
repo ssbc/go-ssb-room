@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
 // SPDX-License-Identifier: MIT
 
 // Package nodejs_test contains test scenarios and helpers to run interoparability tests against the javascript implementation.

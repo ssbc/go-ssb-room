@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Getting Started
 There are two paths to starting your own room: creating a build from source, or downloading one
 of the premade releases.

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
+// SPDX-License-Identifier: Unlicense
+
 module github.com/ssb-ngi-pointer/go-ssb-room/v2
 
 go 1.16

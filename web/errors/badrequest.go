@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
 // SPDX-License-Identifier: MIT
 
 // Package errors defines some well defined errors, like incomplete/wrong request data or object not found(404), for the purpose of internationalization.

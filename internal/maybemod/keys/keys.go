@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
 // SPDX-License-Identifier: MIT
 
 // Package keys could be it's own thing between go-ssb and this but not today

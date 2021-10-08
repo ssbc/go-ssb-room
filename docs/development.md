@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 ## Development notes
 
 To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
