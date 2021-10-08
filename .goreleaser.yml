@@ -29,10 +29,9 @@ builds:
       - amd64
 
 gomod:
-  # sum.golang.org somehow doesn't handle replace as expected. TODO: file issue
-  proxy: false
+  proxy: true
   env:
-    - GOPROXY=https://proxy.golang.org,direct
+    - GOPROXY=https://proxy.golang.org
     - GOSUMDB=sum.golang.org
 
 # for .deb packages
