@@ -12,6 +12,15 @@ builds:
   - env:
       # needed for sqlite
       - CGO_ENABLED=1
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
+    goos:
+      - linux
+    goarch:
+      - amd64
+  - env:
+      # needed for sqlite
+      - CGO_ENABLED=1
     main: ./cmd/server
     binary: go-ssb-room
     goos:
