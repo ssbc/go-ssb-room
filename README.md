@@ -1,5 +1,11 @@
+<!--
+SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Go-SSB Room
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room?ref=badge_shield)
+[![REUSE status](https://api.reuse.software/badge/github.com/ssb-ngi-pointer/go-ssb-room)](https://api.reuse.software/info/github.com/ssb-ngi-pointer/go-ssb-room)
 
 This repository contains code for a [Secure Scuttlebutt](https://ssb.nz) [Room (v1+v2) server](https://github.com/ssb-ngi-pointer/rooms2), written in Go.
 
@@ -19,6 +25,8 @@ It includes:
 * [HTTP Invites](https://github.com/ssb-ngi-pointer/ssb-http-invite-spec)
 * Alias management
 
+For a comprehensive introduction to rooms 2.0, 🎥 [watch this video](https://www.youtube.com/watch?v=W5p0y_MWwDE).
+
 ## :rocket: Deployment
 
 If you want to deploy a room server yourself, follow our [deployment.md](./docs/deployment.md) docs.
@@ -37,4 +45,3 @@ For an in-depth codebase walkthrough, see the [development.md](./docs/developmen
 
 MIT
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fssb-ngi-pointer%2Fgo-ssb-room?ref=badge_large)

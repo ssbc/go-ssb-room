@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Testing
 `go-ssb-room` has a variety of tests to ensure that functionality that once worked, keeps
 working (it does not regress.) These tests are scattered around the repositories modules, but

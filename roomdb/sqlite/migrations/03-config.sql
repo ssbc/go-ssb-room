@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+--
+-- SPDX-License-Identifier: CC0-1.0
+
 -- +migrate Up
 -- the configuration settings for this room, currently privacy mode settings and the default translation for the room
 CREATE TABLE config (

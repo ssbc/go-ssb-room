@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+//
+// SPDX-License-Identifier: MIT
+
 const ssbUriLink = document.querySelector('#start-auth-uri');
 const waitingElem = document.querySelector('#waiting');
 const errorElem = document.querySelector('#failed');
