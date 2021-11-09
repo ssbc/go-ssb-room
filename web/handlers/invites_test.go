@@ -107,6 +107,60 @@ func TestInviteShowAcceptForm(t *testing.T) {
 	})
 }
 
+func TestInviteShowAcceptFormOnAndroid(t *testing.T) {
+	ts := setup(t)
+
+	a, r := assert.New(t), require.New(t)
+
+	testToken := "existing-test-token"
+	validAcceptURL := ts.URLTo(router.CompleteInviteFacade, "token", testToken)
+
+	// Mimic Android Chrome
+	var uaHeader = make(http.Header)
+	uaHeader.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/MOB30H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36")
+	ts.Client.SetHeaders(uaHeader)
+
+	// prep the mocked db for http:200
+	fakeExistingInvite := roomdb.Invite{ID: 1234}
+	ts.InvitesDB.GetByTokenReturns(fakeExistingInvite, nil)
+
+	// request the form
+	doc, resp := ts.Client.GetHTML(validAcceptURL)
+	a.Equal(http.StatusOK, resp.Code)
+
+	// check database calls
+	r.EqualValues(1, ts.InvitesDB.GetByTokenCallCount())
+	_, tokenFromArg := ts.InvitesDB.GetByTokenArgsForCall(0)
+	a.Equal(testToken, tokenFromArg)
+
+	webassert.Localized(t, doc, []webassert.LocalizedElement{
+		{"#claim-invite-uri", "InviteFacadeJoin"},
+		{"title", "InviteFacadeTitle"},
+	})
+
+	// ssb-uri in href
+	joinDataHref, ok := doc.Find("#claim-invite-uri").Attr("href")
+	a.True(ok)
+	joinURI, err := url.Parse(joinDataHref)
+	r.NoError(err)
+
+	a.Equal("intent", joinURI.Scheme)
+	a.Equal("experimental", joinURI.Host)
+
+	params := joinURI.Query()
+	a.Equal("claim-http-invite", params.Get("action"))
+
+	inviteParam := params.Get("invite")
+	a.Equal(testToken, inviteParam)
+
+	postTo := params.Get("postTo")
+	expectedConsumeInviteURL := ts.URLTo(router.CompleteInviteConsume)
+	a.Equal(expectedConsumeInviteURL.String(), postTo)
+
+	frag := joinURI.Fragment
+	a.Equal("Intent;scheme=ssb;package=se.manyver;end;", frag)
+}
+
 func TestInviteConsumeInviteHTTP(t *testing.T) {
 	ts := setup(t)
 	a, r := assert.New(t), require.New(t)

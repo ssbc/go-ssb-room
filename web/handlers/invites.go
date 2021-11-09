@@ -15,6 +15,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/csrf"
+	ua "github.com/mileusna/useragent"
 	"github.com/skip2/go-qrcode"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/log/level"
@@ -39,11 +40,7 @@ type inviteHandler struct {
 	deniedKeys    roomdb.DeniedKeysService
 }
 
-func (h inviteHandler) buildJoinRoomURI(token string) template.URL {
-	var joinRoomURI url.URL
-	joinRoomURI.Scheme = "ssb"
-	joinRoomURI.Opaque = "experimental"
-
+func (h inviteHandler) buildJoinRoomURI(token string, userAgent string) template.URL {
 	queryVals := make(url.Values)
 	queryVals.Set("action", "claim-http-invite")
 	queryVals.Set("invite", token)
@@ -51,7 +48,23 @@ func (h inviteHandler) buildJoinRoomURI(token string) template.URL {
 	submissionURL := h.urlTo(router.CompleteInviteConsume)
 	queryVals.Set("postTo", submissionURL.String())
 
-	joinRoomURI.RawQuery = queryVals.Encode()
+	joinRoomURI := url.URL{
+		Scheme:  "ssb",
+		Opaque:  "experimental",
+		RawPath: queryVals.Encode(),
+	}
+
+	// Special treatment for Android Chrome for issue #135
+	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
+	browser := ua.Parse(userAgent)
+	if browser.IsAndroid() && browser.IsChrome() {
+		joinRoomURI = url.URL{
+			Scheme:   "intent",
+			Opaque:   "//experimental",
+			RawQuery: queryVals.Encode(),
+			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+		}
+	}
 
 	return template.URL(joinRoomURI.String())
 }
@@ -118,7 +131,7 @@ func (h inviteHandler) presentFacadeAsHTML(rw http.ResponseWriter, req *http.Req
 		return nil, fmt.Errorf("failed to find room's description: %w", err)
 	}
 
-	joinRoomURI := h.buildJoinRoomURI(token)
+	joinRoomURI := h.buildJoinRoomURI(token, req.UserAgent())
 
 	fallbackURL := h.urlTo(router.CompleteInviteFacadeFallback, "token", token)
 
