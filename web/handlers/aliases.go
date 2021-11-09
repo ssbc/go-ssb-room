@@ -13,8 +13,8 @@ import (
 	"net/http"
 	"net/url"
 
-	ua "github.com/mileusna/useragent"
 	"github.com/gorilla/mux"
+	ua "github.com/mileusna/useragent"
 	"go.mindeco.de/http/render"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
@@ -173,7 +173,7 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 			Scheme:   "intent",
 			Opaque:   "//experimental",
 			RawQuery: queryParams.Encode(),
-			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+			Fragment: "Intent;scheme=ssb;end;",
 		}
 	}
 

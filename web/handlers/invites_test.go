@@ -158,7 +158,7 @@ func TestInviteShowAcceptFormOnAndroid(t *testing.T) {
 	a.Equal(expectedConsumeInviteURL.String(), postTo)
 
 	frag := joinURI.Fragment
-	a.Equal("Intent;scheme=ssb;package=se.manyver;end;", frag)
+	a.Equal("Intent;scheme=ssb;end;", frag)
 }
 
 func TestInviteConsumeInviteHTTP(t *testing.T) {

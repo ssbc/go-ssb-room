@@ -598,5 +598,5 @@ func TestAuthWithSSBServerOnAndroidChrome(t *testing.T) {
 	a.Equal("start-http-auth", qry.Get("action"))
 
 	frag := parsedURI.Fragment
-	a.Equal("Intent;scheme=ssb;package=se.manyver;end;", frag)
+	a.Equal("Intent;scheme=ssb;end;", frag)
 }

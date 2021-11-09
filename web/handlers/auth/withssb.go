@@ -381,7 +381,7 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 			Scheme:   "intent",
 			Opaque:   "//experimental",
 			RawQuery: queryParams.Encode(),
-			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+			Fragment: "Intent;scheme=ssb;end;",
 		}
 	}
 
