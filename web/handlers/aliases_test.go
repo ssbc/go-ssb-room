@@ -158,5 +158,5 @@ func TestAliasResolveOnAndroidChrome(t *testing.T) {
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), params.Get("multiserverAddress"))
 
 	frag := aliasURI.Fragment
-	a.Equal("Intent;scheme=ssb;package=se.manyver;end;", frag)
+	a.Equal("Intent;scheme=ssb;end;", frag)
 }

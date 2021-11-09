@@ -62,7 +62,7 @@ func (h inviteHandler) buildJoinRoomURI(token string, userAgent string) template
 			Scheme:   "intent",
 			Opaque:   "//experimental",
 			RawQuery: queryVals.Encode(),
-			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+			Fragment: "Intent;scheme=ssb;end;",
 		}
 	}
 
