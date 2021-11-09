@@ -20,6 +20,7 @@ require (
 	github.com/mattevans/pwned-passwords v0.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
+	github.com/mileusna/useragent v1.0.2 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351

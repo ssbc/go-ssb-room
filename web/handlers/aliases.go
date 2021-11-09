@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 
+	ua "github.com/mileusna/useragent"
 	"github.com/gorilla/mux"
 	"go.mindeco.de/http/render"
 
@@ -159,10 +160,21 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 
 	// html.multiservAddr
 	ssbURI := url.URL{
-		Scheme: "ssb",
-		Opaque: "experimental",
-
+		Scheme:   "ssb",
+		Opaque:   "experimental",
 		RawQuery: queryParams.Encode(),
+	}
+
+	// Special treatment for Android Chrome for issue #135
+	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
+	browser := ua.Parse(html.req.UserAgent())
+	if browser.IsAndroid() && browser.IsChrome() {
+		ssbURI = url.URL{
+			Scheme:   "intent",
+			Opaque:   "//experimental",
+			RawQuery: queryParams.Encode(),
+			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+		}
 	}
 
 	err := html.renderer.Render(html.rw, html.req, "alias.tmpl", http.StatusOK, struct {

@@ -551,3 +551,52 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 	resp = ts.Client.GetBody(finalizeURL)
 	a.Equal(http.StatusForbidden, resp.Result().StatusCode)
 }
+
+func TestAuthWithSSBServerOnAndroidChrome(t *testing.T) {
+	ts := setup(t)
+	a, r := assert.New(t), require.New(t)
+
+	// the keypair for our client
+	testMember := roomdb.Member{ID: 1234}
+	client, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+	testMember.PubKey = client.Feed
+
+	// Mimic Android Chrome
+	var uaHeader = make(http.Header)
+	uaHeader.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5 Build/MOB30H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.133 Mobile Safari/537.36")
+	ts.Client.SetHeaders(uaHeader)
+
+	// setup the mocked database
+	ts.MembersDB.GetByFeedReturns(testMember, nil)
+
+	// prepare the url
+	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
+		"cid", client.Feed.Ref(),
+	)
+	r.NotNil(signInStartURL)
+
+	html, resp := ts.Client.GetHTML(signInStartURL)
+	if !a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code for dashboard") {
+		t.Log(html.Find("body").Text())
+	}
+
+	serverChallenge, has := html.Find("#challenge").Attr("data-sc")
+	a.True(has, "should have server challenge")
+	a.NotEqual("", serverChallenge)
+
+	ssbURI, has := html.Find("#start-auth-uri").Attr("href")
+	a.True(has, "should have an Android Intent URI")
+	a.True(strings.HasPrefix(ssbURI, "intent://experimental"), "not an Android Intent URI? %s", ssbURI)
+
+	parsedURI, err := url.Parse(ssbURI)
+	r.NoError(err)
+	a.Equal("intent", parsedURI.Scheme)
+	a.Equal("experimental", parsedURI.Host)
+
+	qry := parsedURI.Query()
+	a.Equal("start-http-auth", qry.Get("action"))
+
+	frag := parsedURI.Fragment
+	a.Equal("Intent;scheme=ssb;package=se.manyver;end;", frag)
+}

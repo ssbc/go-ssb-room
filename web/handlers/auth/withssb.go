@@ -20,6 +20,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	ua "github.com/mileusna/useragent"
 	"github.com/skip2/go-qrcode"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/render"
@@ -255,7 +256,7 @@ func (h WithSSBHandler) DecideMethod(w http.ResponseWriter, req *http.Request) {
 
 	// assume server-init sse dance
 	sc := queryVals.Get("sc") // is non-empty when a remote device sends the solution
-	data, err := h.serverInitiated(sc)
+	data, err := h.serverInitiated(sc, req.UserAgent())
 	if err != nil {
 		h.render.Error(w, req, http.StatusInternalServerError, err)
 		return
@@ -348,7 +349,7 @@ type templateData struct {
 	ServerChallenge   string
 }
 
-func (h WithSSBHandler) serverInitiated(sc string) (templateData, error) {
+func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateData, error) {
 	isSolvingRemotely := true
 	if sc == "" {
 		isSolvingRemotely = false
@@ -363,10 +364,26 @@ func (h WithSSBHandler) serverInitiated(sc string) (templateData, error) {
 	queryParams.Set("sc", sc)
 	queryParams.Set("multiserverAddress", h.netInfo.MultiserverAddress())
 
-	var startAuthURI url.URL
+	startAuthURI := url.URL{
+		Scheme:   "ssb",
+		Opaque:   "experimental",
+		RawQuery: queryParams.Encode(),
+	}
 	startAuthURI.Scheme = "ssb"
 	startAuthURI.Opaque = "experimental"
 	startAuthURI.RawQuery = queryParams.Encode()
+
+	// Special treatment for Android Chrome for issue #135
+	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
+	browser := ua.Parse(userAgent)
+	if browser.IsAndroid() && browser.IsChrome() {
+		startAuthURI = url.URL{
+			Scheme:   "intent",
+			Opaque:   "//experimental",
+			RawQuery: queryParams.Encode(),
+			Fragment: "Intent;scheme=ssb;package=se.manyver;end;",
+		}
+	}
 
 	var qrURI string
 	if !isSolvingRemotely {
