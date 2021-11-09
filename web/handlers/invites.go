@@ -49,9 +49,9 @@ func (h inviteHandler) buildJoinRoomURI(token string, userAgent string) template
 	queryVals.Set("postTo", submissionURL.String())
 
 	joinRoomURI := url.URL{
-		Scheme:  "ssb",
-		Opaque:  "experimental",
-		RawPath: queryVals.Encode(),
+		Scheme:   "ssb",
+		Opaque:   "experimental",
+		RawQuery: queryVals.Encode(),
 	}
 
 	// Special treatment for Android Chrome for issue #135

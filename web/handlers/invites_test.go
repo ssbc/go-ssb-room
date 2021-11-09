@@ -107,7 +107,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 	})
 }
 
-func TestInviteShowAcceptFormOnAndroid(t *testing.T) {
+func TestInviteShowAcceptFormOnAndroidChrome(t *testing.T) {
 	ts := setup(t)
 
 	a, r := assert.New(t), require.New(t)
