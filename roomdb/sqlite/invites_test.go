@@ -59,6 +59,11 @@ func TestInvites(t *testing.T) {
 	mid, err := db.Members.Add(ctx, invitingMember, roomdb.RoleModerator)
 	require.NoError(t, err, "failed to create test user")
 
+	aliasString := "alias"
+
+	err = db.Aliases.Register(ctx, aliasString, invitingMember, []byte("signature"))
+	require.NoError(t, err, "failed to create an alias for the test user")
+
 	t.Run("simple create and consume", func(t *testing.T) {
 		r := require.New(t)
 
@@ -76,6 +81,8 @@ func TestInvites(t *testing.T) {
 		r.Len(lst, 1, "expected 1 invite")
 
 		r.True(lst[0].CreatedAt.After(before), "expected CreatedAt to be after the start marker")
+		r.NotEmpty(lst[0].CreatedBy.Aliases, "expected aliases of the user to be populated")
+		r.Equal(aliasString, lst[0].CreatedBy.Aliases[0].Name, "alias name should be populated")
 
 		_, nope := db.Members.GetByFeed(ctx, newMember)
 		r.Error(nope, "expected feed to not yet be on the allow list")

@@ -75,11 +75,13 @@ SPDX-License-Identifier: CC-BY-4.0
           </div>
         </td>
         <td class="w-6/12 px-2">
-          {{if eq $creatorIsAlias true}}
-            {{$creator}}
-          {{else}}
-            <span class="font-mono text-sm w-32 truncate block">{{$creator}}</span>
-          {{end}}
+          <a href="{{urlTo "admin:member:details" "id" .CreatedBy.ID}}">
+            {{if eq $creatorIsAlias true}}
+              {{$creator}}
+            {{else}}
+              <span class="font-mono text-sm w-32 truncate block">{{$creator}}</span>
+            {{end}}
+          </a>
         </td>
         <td class="w-3/12 pl-2 pr-3 text-right">
         {{ if or member_is_elevated $hasCreatedInvite }}
