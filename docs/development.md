@@ -66,7 +66,7 @@ Once you are done with your changes and want to update the embedded assets to th
 # cd to the root of the folder, and then run go generate
 go generate ./...
 # now build the server without the development mode
-cd cmd/server && go build && ./server -htts-domain my.room.example
+cd cmd/server && go build && ./server -htts-domain=my.room.example
 ```
 
 

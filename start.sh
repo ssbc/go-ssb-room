@@ -5,4 +5,4 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [[ -f ".env" ]] && source .env
-./cmd/server/server -https-domain "${HTTPS_DOMAIN}" -repo "${REPO:-~/.ssb-go-room-secrets}" -aliases-as-subdomains "${ALIASES_AS_SUBDOMAINS}"
+./cmd/server/server -https-domain="${HTTPS_DOMAIN}" -repo="${REPO:-~/.ssb-go-room-secrets}" -aliases-as-subdomains="${ALIASES_AS_SUBDOMAINS}"
