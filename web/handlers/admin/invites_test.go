@@ -64,10 +64,16 @@ func TestInvitesOverview(t *testing.T) {
 	elems := html.Find(trSelector)
 	a.EqualValues(1, elems.Length()/2, "wrong number of entries on the table (signular)")
 
-	// check for link to remove confirm link
-	link, yes := elems.Find("a").Attr("href")
+	// check for the link to member details
+	link, yes := elems.Find("a").Eq(0).Attr("href")
 	a.True(yes, "a-tag has href attribute")
-	wantURL := ts.URLTo(router.AdminInvitesRevokeConfirm, "id", 666)
+	wantURL := ts.URLTo(router.AdminMemberDetails, "id", testUser.ID)
+	a.Equal(wantURL.String(), link)
+
+	// check for link to remove confirm link
+	link, yes = elems.Find("a").Eq(1).Attr("href")
+	a.True(yes, "a-tag has href attribute")
+	wantURL = ts.URLTo(router.AdminInvitesRevokeConfirm, "id", 666)
 	a.Equal(wantURL.String(), link)
 
 	testInviteButtonDisabled := func(shouldBeDisabled bool) {

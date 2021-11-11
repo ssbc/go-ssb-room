@@ -228,6 +228,7 @@ func (i Invites) List(ctx context.Context) ([]roomdb.Invite, error) {
 		entries, err := models.Invites(
 			qm.Where("active = true"),
 			qm.Load("CreatedByMember"),
+			qm.Load("CreatedByMember.Aliases"),
 		).All(ctx, tx)
 		if err != nil {
 			return err
