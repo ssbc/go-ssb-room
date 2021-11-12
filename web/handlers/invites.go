@@ -15,7 +15,6 @@ import (
 	"net/url"
 
 	"github.com/gorilla/csrf"
-	ua "github.com/mileusna/useragent"
 	"github.com/skip2/go-qrcode"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/log/level"
@@ -54,19 +53,7 @@ func (h inviteHandler) buildJoinRoomURI(token string, userAgent string) template
 		RawQuery: queryVals.Encode(),
 	}
 
-	// Special treatment for Android Chrome for issue #135
-	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
-	browser := ua.Parse(userAgent)
-	if browser.IsAndroid() && browser.IsChrome() {
-		joinRoomURI = url.URL{
-			Scheme:   "intent",
-			Opaque:   "//experimental",
-			RawQuery: queryVals.Encode(),
-			Fragment: "Intent;scheme=ssb;end;",
-		}
-	}
-
-	return template.URL(joinRoomURI.String())
+	return template.URL(web.StringifySSBURI(&joinRoomURI, userAgent))
 }
 
 // switch between JSON and HTML responses

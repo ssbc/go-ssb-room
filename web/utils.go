@@ -18,6 +18,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
+	ua "github.com/mileusna/useragent"
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
@@ -193,4 +194,24 @@ func LoadOrCreateCSRFSecret(repo repo.Interface) ([]byte, error) {
 	}
 
 	return secret, nil
+}
+
+// Transforms the SSB URI into a string suitable for an <a href> and
+// takes into account quirks from some browsers.
+func StringifySSBURI(uri *url.URL, userAgent string) string {
+	browser := ua.Parse(userAgent)
+
+	// Special treatment for Android Chrome for issue #135
+	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
+	if browser.IsAndroid() && browser.IsChrome() {
+		href := url.URL{
+			Scheme:   "intent",
+			Opaque:   fmt.Sprintf("//%v", uri.Opaque),
+			RawQuery: uri.RawQuery,
+			Fragment: fmt.Sprintf("Intent;scheme=%v;end;", uri.Scheme),
+		}
+		return href.String()
+	} else {
+		return uri.String()
+	}
 }
