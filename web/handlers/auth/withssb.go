@@ -368,9 +368,6 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 		Opaque:   "experimental",
 		RawQuery: queryParams.Encode(),
 	}
-	startAuthURI.Scheme = "ssb"
-	startAuthURI.Opaque = "experimental"
-	startAuthURI.RawQuery = queryParams.Encode()
 
 	var qrURI string
 	if !isSolvingRemotely {
