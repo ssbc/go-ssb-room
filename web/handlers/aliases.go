@@ -14,12 +14,12 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
-	ua "github.com/mileusna/useragent"
 	"go.mindeco.de/http/render"
 
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
 )
 
 // aliasHandler implements the public resolve endpoint for HTML and JSON requests.
@@ -165,23 +165,11 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 		RawQuery: queryParams.Encode(),
 	}
 
-	// Special treatment for Android Chrome for issue #135
-	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
-	browser := ua.Parse(html.req.UserAgent())
-	if browser.IsAndroid() && browser.IsChrome() {
-		ssbURI = url.URL{
-			Scheme:   "intent",
-			Opaque:   "//experimental",
-			RawQuery: queryParams.Encode(),
-			Fragment: "Intent;scheme=ssb;end;",
-		}
-	}
-
 	err := html.renderer.Render(html.rw, html.req, "alias.tmpl", http.StatusOK, struct {
 		Alias roomdb.Alias
 
 		SSBURI template.URL
-	}{alias, template.URL(ssbURI.String())})
+	}{alias, template.URL(web.StringifySSBURI(&ssbURI, html.req.UserAgent()))})
 	if err != nil {
 		log.Println("alias-resolve render errr:", err)
 	}

@@ -20,7 +20,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
-	ua "github.com/mileusna/useragent"
 	"github.com/skip2/go-qrcode"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.mindeco.de/http/render"
@@ -373,18 +372,6 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 	startAuthURI.Opaque = "experimental"
 	startAuthURI.RawQuery = queryParams.Encode()
 
-	// Special treatment for Android Chrome for issue #135
-	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
-	browser := ua.Parse(userAgent)
-	if browser.IsAndroid() && browser.IsChrome() {
-		startAuthURI = url.URL{
-			Scheme:   "intent",
-			Opaque:   "//experimental",
-			RawQuery: queryParams.Encode(),
-			Fragment: "Intent;scheme=ssb;end;",
-		}
-	}
-
 	var qrURI string
 	if !isSolvingRemotely {
 		urlTo := web.NewURLTo(router.Auth(h.router), h.netInfo)
@@ -416,7 +403,7 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 	// template.URL signals the template engine that those aren't fishy and from a trusted source
 
 	data := templateData{
-		SSBURI:            template.URL(startAuthURI.String()),
+		SSBURI:            template.URL(web.StringifySSBURI(&startAuthURI, userAgent)),
 		QRCodeURI:         template.URL(qrURI),
 		IsSolvingRemotely: isSolvingRemotely,
 
