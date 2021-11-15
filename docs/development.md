@@ -110,7 +110,7 @@ cd cmd/insert-user
 go build
 # optional step: run a script to generate a valid ssb id @<pubkey>.ed25519, useful for trying things out quickly
 ./generate-fake-id.sh
-./insert-user -login <username> -key <@pubkey.ed25519>
+./insert-user <@pubkey.ed25519>
 ```
 Then repeat your password twice and you are all set for development.
 
