@@ -45,7 +45,7 @@ import (
 
 // Version and Build are set by ldflags
 var (
-	version = "v2.0.7-snapshot"
+	version = "v2.0.7"
 	commit  = "unset"
 )
 
