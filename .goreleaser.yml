@@ -29,7 +29,7 @@ builds:
       - linux
     goarch:
       - amd64
-  - id: go-ssb-room-insert-arm64
+  - id: go-ssb-room-linux-arm64
     env:
       # needed for sqlite
       - CGO_ENABLED=1
@@ -55,13 +55,13 @@ builds:
       - linux
     goarch:
       - arm64
-  - id: go-ssb-room-insert-armel
+  - id: go-ssb-room-linux-armhf
     env:
       # needed for sqlite
       - CGO_ENABLED=1
       # cross-compilation
-      - CC=arm-linux-gnueabi-gcc
-      - CXX=arm-linux-gnueabi--g++
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf--g++
     main: ./cmd/server
     binary: go-ssb-room
     goos:
@@ -71,13 +71,13 @@ builds:
     goarm:
       - 6
       - 7
-  - id: go-ssb-room-insert-user-linux-armel
+  - id: go-ssb-room-insert-user-linux-armhf
     env:
       # needed for sqlite
       - CGO_ENABLED=1
       # cross-compilation
-      - CC=arm-linux-gnueabi-gcc
-      - CXX=arm-linux-gnueabi--g++
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf--g++
     main: ./cmd/insert-user
     binary: go-ssb-room-insert-user
     goos:

@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
         nodejs npm \
         build-essential \
         crossbuild-essential-arm64 \
-        crossbuild-essential-armel
+        crossbuild-essential-armhf
 
       sudo apt-get clean
 
