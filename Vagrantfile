@@ -19,12 +19,12 @@ Vagrant.configure("2") do |config|
         goreleaser \
         git-core wget xz-utils openssl \
         nodejs npm \
-        build-essential crossbuild-essential-arm64
+        build-essential \
+        crossbuild-essential-arm64 \
+        crossbuild-essential-armel
 
-      sudo apt -y autoremove
       sudo apt-get clean
 
-      sudo apt-get install -qy 
       wget -q https://golang.org/dl/go#{GO_VERSION}.linux-amd64.tar.gz -O go#{GO_VERSION}.linux-amd64.tar.gz
       sudo tar -zxf go#{GO_VERSION}.linux-amd64.tar.gz -C /usr/local/
       echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee /etc/profile.d/go.sh
