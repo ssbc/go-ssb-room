@@ -9,7 +9,8 @@ before:
     - go generate ./...
 
 builds:
-  - env:
+  - id: linux-amd64
+    env:
       # needed for sqlite
       - CGO_ENABLED=1
     main: ./cmd/server
@@ -18,6 +19,19 @@ builds:
       - linux
     goarch:
       - amd64
+  - id: linux-arm64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    main: ./cmd/server
+    binary: go-ssb-room
+    goos:
+      - linux
+    goarch:
+      - arm64
 
 gomod:
   # sum.golang.org somehow doesn't handle replace as expected. TODO: file issue
@@ -31,9 +45,6 @@ gomod:
 nfpms:
  - id: go-ssb-room
    package_name: go-ssb-room
-   replacements:
-     linux: Linux
-     amd64: x86_64
    vendor: Secure-Scuttlebutt Community
    maintainer: Go-SSB-Room NGI-Pointer Team <go-ssb-room@ssb-ngi-pointer.email>
    homepage: https://scuttlebutt.nz
@@ -44,9 +55,10 @@ nfpms:
    suggests:
      - ngingx
      - certbot
-   empty_folders:
-     - /var/log/go-ssb-room
    contents:
+     - dst: /var/log/go-ssb-room
+       type: dir
+
      - src: docs/files/example-systemd.service
        dst: /etc/systemd/system/go-ssb-room.service
        type: "config|noreplace"
@@ -62,11 +74,13 @@ nfpms:
    scripts:
      postinstall: docs/files/debian-postinstall.sh
      preremove: docs/files/debian-preremove.sh
+     postremove: docs/files/debian-postremove.sh
 
 archives:
-  - replacements:
-      linux: Linux
-      amd64: x86_64
+  - id: go-ssb-room
+    builds:
+      - linux-amd64
+      - linux-arm64
 
 checksum:
   name_template: 'checksums.txt'

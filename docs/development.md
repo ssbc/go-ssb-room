@@ -126,12 +126,33 @@ See the [testing.md](./testing.md) for a thorough walkthorugh of the different t
 
 ## Release packaging
 
-Because of [issue #79](https://github.com/ssb-ngi-pointer/go-ssb-room/issues/79) we can't simply create binaries for all platforms independantly. Therefore binaries for re-distributions need to be created on the relevant distributions themselvs. We currently do this for debian. The process is as follows:
+Install [Vagrant](https://www.vagrantup.com/)
 
-1) Install a recent debian stable version onto a dedicated machine or VM for instance (docker might also be possible).
-2) Install [Go](https://golang.org/doc/install).
-3) Install a C compiler (`sudo apt install gcc` for instance) for the CGo based sqlite dependency.
-4) Install [GoReleaser](https://goreleaser.com/install/).
-5) Create a version tag in git.
-6) run `goreleaser release` at the root of the repo to create the `dist/` folder with the `.deb` file.
-7) Upload the built packages.
+```shell
+vagrant up
+```
+
+```shell
+vagrant ssh
+```
+
+
+```shell
+cd /vagrant
+```
+
+To test if a release works:
+
+```shell
+goreleaser release --snapshot --rm-dist
+```
+
+Then when we're ready,
+
+```shell
+goreleaser release --skip-publish --rm-dist
+```
+
+to create the `dist/` folder with the `.deb` files.
+
+Upload these built packages to the next GitHub release.

@@ -25,3 +25,6 @@ dist/
 # secrets and config
 ssb-go-room-secrets/
 .env
+
+# vagrant
+.vagrant
