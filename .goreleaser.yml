@@ -9,7 +9,7 @@ before:
     - go generate ./...
 
 builds:
-  - id: linux-amd64
+  - id: go-ssb-room-linux-amd64
     env:
       # needed for sqlite
       - CGO_ENABLED=1
@@ -19,7 +19,17 @@ builds:
       - linux
     goarch:
       - amd64
-  - id: linux-arm64
+  - id: go-ssb-room-insert-user-linux-amd64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
+    goos:
+      - linux
+    goarch:
+      - amd64
+  - id: go-ssb-room-insert-arm64
     env:
       # needed for sqlite
       - CGO_ENABLED=1
@@ -28,6 +38,19 @@ builds:
       - CXX=aarch64-linux-gnu-g++
     main: ./cmd/server
     binary: go-ssb-room
+    goos:
+      - linux
+    goarch:
+      - arm64
+  - id: go-ssb-room-insert-user-linux-arm64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
     goos:
       - linux
     goarch:
@@ -76,9 +99,6 @@ nfpms:
 
 archives:
   - id: go-ssb-room
-    builds:
-      - linux-amd64
-      - linux-arm64
 
 checksum:
   name_template: 'checksums.txt'
