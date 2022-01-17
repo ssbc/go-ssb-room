@@ -55,6 +55,7 @@ func (sed ServerEndpointDetails) URLForAlias(a string) string {
 	if sed.UseSubdomainForAliases {
 		u.Host = a + "." + sed.Domain
 	} else {
+		u.Host = sed.Domain
 		u.Path = "/alias/" + a
 	}
 
