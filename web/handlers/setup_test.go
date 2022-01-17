@@ -33,6 +33,8 @@ type testSession struct {
 	Client *tester.Tester
 	URLTo  web.URLMaker
 
+	netInfo network.ServerEndpointDetails
+
 	// mocked dbs
 	AuthDB         *mockdb.FakeAuthWithSSBService
 	AuthFallbackDB *mockdb.FakeAuthFallbackService

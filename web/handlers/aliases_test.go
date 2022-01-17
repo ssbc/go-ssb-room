@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"testing"
@@ -15,6 +16,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/randutil"
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
 	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
 	refs "go.mindeco.de/ssb-refs"
@@ -159,4 +162,28 @@ func TestAliasResolveOnAndroidChrome(t *testing.T) {
 
 	frag := aliasURI.Fragment
 	a.Equal("Intent;scheme=ssb;end;", frag)
+}
+
+func TestURLForAlias(t *testing.T) {
+	ts := setup(t)
+
+	a := assert.New(t)
+
+	ts.netInfo = network.ServerEndpointDetails{
+		Domain: randutil.String(10),
+
+		UseSubdomainForAliases: true,
+	}
+
+	// test subdomain alias URLs
+	generatedURL := ts.netInfo.URLForAlias("dummy")
+	expectedURL := fmt.Sprintf("https://dummy.%s", ts.netInfo.Domain)
+	a.Equal(expectedURL, generatedURL)
+
+	//	test alias URLs using /alias/-path
+	ts.netInfo.UseSubdomainForAliases = false
+
+	generatedURL = ts.netInfo.URLForAlias("dummy")
+	expectedURL = fmt.Sprintf("https://%s/alias/dummy", ts.netInfo.Domain)
+	a.Equal(expectedURL, generatedURL)
 }
