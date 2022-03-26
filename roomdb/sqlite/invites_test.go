@@ -132,4 +132,21 @@ func TestInvites(t *testing.T) {
 		r.Error(err, "failed to consume the invite")
 	})
 
+	t.Run("invite member again", func(t *testing.T) {
+		r := require.New(t)
+
+		tok, err := db.Invites.Create(ctx, mid)
+		r.NoError(err, "failed to create invite token")
+
+		lst, err := db.Invites.List(ctx)
+		r.NoError(err, "failed to get list of tokens")
+		r.Len(lst, 1, "expected 1 invite")
+
+		_, err = db.Invites.Consume(ctx, tok, newMember)
+		r.NoError(err, "failed to consume the invite")
+
+		lst, err = db.Invites.List(ctx)
+		r.NoError(err, "failed to get list of tokens post consume")
+		r.Len(lst, 0, "expected no active invites")
+	})
 }
