@@ -60,7 +60,7 @@ func main() {
 
 	pubKey, err := refs.ParseFeedRef(flag.Arg(0))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Invalid ssb public-key referenfce:", err)
+		fmt.Fprintln(os.Stderr, "Invalid ssb public-key reference:", err)
 		os.Exit(1)
 	}
 
