@@ -62,8 +62,8 @@ AuthWithSSBError = "Anmeldung fehlgeschlagen. Stelle sicher, dass du eine SSB-Ap
 
 # auth with password
 AuthFallbackTitle = "Mit Passwort anmelden"
-AuthFallbackWelcome = "Eine Anmeldung mit Benutzername und Passwort ist nur möglich, wenn der Administrator dir einen solchen Zugang gegeben hat."
-AuthFallbackInstruct = "Alternative Anmeldemethode, falls du einen Benutzernamen und ein Passwort hast."
+AuthFallbackWelcome = "Eine Anmeldung mit SSB-ID und Passwort ist nur möglich, wenn der Administrator dir einen solchen Zugang gegeben hat."
+AuthFallbackInstruct = "Alternative Anmeldemethode, falls du eine SSB-ID und ein Passwort hast."
 
 AuthFallbackNewPassword="Neues Passwort"
 AuthFallbackRepeatPassword="Passwort wiederholen"

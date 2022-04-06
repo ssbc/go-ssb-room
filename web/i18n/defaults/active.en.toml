@@ -35,7 +35,7 @@ NavAdminNotices = "Notices"
 # Error messages
 ErrorAuthBadLogin = "The supplied authentication credentials (username or password) are incorrect."
 ErrorNotFound = "The database couldn't find the item in question."
-ErrorAlreadyAdded = "The public key <strong>{{.Key}}</strong> already is on the list"
+ErrorAlreadyAdded = "The SSB-ID <strong>{{.Key}}</strong> already is on the list"
 ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."
 ErrorNotAuthorized = "You are not authorized to access this page."
 ErrorForbidden = "The request could not be executed because of lacking privileges ({{.Details}})"
@@ -66,8 +66,8 @@ AuthWithSSBError = "Sign-in failed. Please make sure you use an SSB app that sup
 
 # auth with password
 AuthFallbackTitle = "Password sign-in"
-AuthFallbackWelcome = "Signing in with username and password is only possible if the administrator has given you one, because we do not support user registration."
-AuthFallbackInstruct = "This method is an acceptable fallback, if you have a username and password."
+AuthFallbackWelcome = "Signing in with SSB-ID and password is only possible if the administrator has given you one, because we do not support user registration."
+AuthFallbackInstruct = "This method is an acceptable fallback, if you have a SSB-ID and password."
 
 AuthFallbackNewPassword="New Password"
 AuthFallbackRepeatPassword="Repeat Password"
