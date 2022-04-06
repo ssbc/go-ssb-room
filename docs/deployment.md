@@ -111,6 +111,17 @@ is often added automatically by your provider.
 
 When the process is complete with `certbot`, restart your server, e.g. `systemctl restart nginx`.
 
+If you see such errors as the following when setting up your deployment:
+
+```
+nginx: [emerg] unknown "connection_upgrade" variable
+```
+
+You may need to configure `$connection_upgrade` in your
+`/etc/nginx/nginx.conf`. See [this
+article](https://futurestud.io/tutorials/nginx-how-to-fix-unknown-connection_upgrade-variable)
+for more.
+
 ## Enable TCP ports
 
 For your room to fully work the following **TCP** ports need to be allowed:
