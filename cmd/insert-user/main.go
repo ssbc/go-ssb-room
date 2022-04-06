@@ -53,6 +53,13 @@ func main() {
 	})
 	flag.Parse()
 
+	if _, err := os.Stat(repoPath); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Fprintf(os.Stderr, "error: %s does not exist (-repo)?\n", repoPath)
+			os.Exit(1)
+		}
+	}
+
 	// we require one more argument which is not a flag.
 	if len(flag.Args()) != 1 {
 		cliMissingArguments("please provide a public key")
