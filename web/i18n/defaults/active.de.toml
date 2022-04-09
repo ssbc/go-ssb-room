@@ -186,6 +186,8 @@ InviteInsertWelcome = "Du kannst mit deine SSB-ID eine Einladung anfordern. Dana
 
 InviteConsumedTitle = "Einladung angenommen!"
 InviteConsumedWelcome = "Du bist jetzt Mitglied dieses Raums. Wenn du eine Multiserver-Adresse benötigst, kannst du die folgende kopieren und einfügen: "
+InviteConsumedSetPassword = "Du kannst jetzt ein Fallback-Passwort für Ihr Konto erstellen:"
+InviteConsumedSetPasswordButton = "Passwort erstellen"
 
 # alias resolution
 ##################
