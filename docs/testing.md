@@ -10,6 +10,16 @@ working (it does not regress.) These tests are scattered around the repositories
 they are always contained in a file ending with `_test.go`—a compiler-enforced naming
 convention for Golang tests.
 
+## Running all tests
+
+You'll need to have Node.js v14 installed before running this.
+
+```
+go test ./...
+```
+
+This command can be run at the root of the repository.
+
 ## Structure
 Most routes are focused on administrating the room server. Tasks such as adding new users,
 editing notices (like the _Welcome_ or _Code of Conduct_ pages). These are routes that require
