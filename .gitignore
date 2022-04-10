@@ -15,6 +15,7 @@ muxrpc/test/nodejs/testrun
 web/handlers/testrun
 web/handlers/admin/testrun
 roomdb/sqlite/testrun
+web/i18n/i18ntesting/testrun/
 
 # build artifacts from node.js project web/styles
 node_modules
