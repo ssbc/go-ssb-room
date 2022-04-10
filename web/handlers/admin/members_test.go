@@ -112,12 +112,12 @@ func TestMembersAdd(t *testing.T) {
 	}
 	checkInputsAreDisabled(false)
 
-	// verify that inputs are disabled for RoleMember
+	// verify that inputs are enabled for RoleMember
 	ts.User = roomdb.Member{
 		ID:   7331,
 		Role: roomdb.RoleMember,
 	}
-	checkInputsAreDisabled(true)
+	checkInputsAreDisabled(false)
 }
 
 func TestMembersDontAddInvalid(t *testing.T) {
