@@ -109,7 +109,11 @@ certbot certonly --manual --server https://acme-v02.api.letsencrypt.org/director
 carefully with your DNS provider because you may have to input just `_acme-challenge` since the rest
 is often added automatically by your provider.
 
-When the process is complete with `certbot`, restart your server, e.g. `systemctl restart nginx`.
+When the process is complete with `certbot`, pay attention to where the certificate has been placed
+in the filesystem. If it's at `/etc/letsencrypt/live/hermies.club`, it's correct, otherwise you may
+need to rename it e.g. `hermies-club-0001` to `hermies.club`. 
+
+Then restart your server, e.g. `systemctl restart nginx`.
 
 If you see such errors as the following when setting up your deployment:
 
