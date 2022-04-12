@@ -111,7 +111,7 @@ is often added automatically by your provider.
 
 When the process is complete with `certbot`, pay attention to where the certificate has been placed
 in the filesystem. If it's at `/etc/letsencrypt/live/hermies.club`, it's correct, otherwise you may
-need to rename it e.g. `hermies-club-0001` to `hermies.club`. 
+need to rename it e.g. `hermies.club-0001` to `hermies.club`. 
 
 Then restart your server, e.g. `systemctl restart nginx`.
 
