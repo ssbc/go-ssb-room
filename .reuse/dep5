@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: go-ssb-room
+Upstream-Contact: Andre 'Staltz' Medeiros <contact@staltz.com>
+Source: https://gitlab.com/ssb-ngi-pointer/go-ssb-room-archived
+
+Files: web/assets/style.css
+Copyright: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+License: CC-BY-4.0
