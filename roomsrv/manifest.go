@@ -41,6 +41,7 @@ const manifest manifestHandler = `
 	"room": {
 		"registerAlias": "async",
 		"revokeAlias": "async",
+		"listAliases": "async",
 
 		"connect": "duplex",
 		"attendants": "source",

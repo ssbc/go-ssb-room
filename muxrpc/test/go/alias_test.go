@@ -123,3 +123,75 @@ func TestAliasRegister(t *testing.T) {
 	}
 	cancel()
 }
+
+func TestListAliases(t *testing.T) {
+	testInit(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	r := require.New(t)
+	a := assert.New(t)
+
+	// make a random test key
+	appKey := make([]byte, 32)
+	rand.Read(appKey)
+
+	netOpts := []roomsrv.Option{
+		roomsrv.WithAppKey(appKey),
+		roomsrv.WithContext(ctx),
+	}
+
+	theBots := []*testSession{}
+
+	session := makeNamedTestBot(t, "srv", ctx, netOpts)
+	theBots = append(theBots, session)
+
+	bobsKey, err := keys.NewKeyPair(nil)
+	r.NoError(err)
+
+	bobSession := makeNamedTestBot(t, "bob", ctx, append(netOpts,
+		roomsrv.WithKeyPair(bobsKey),
+	))
+	theBots = append(theBots, bobSession)
+
+	_, err = session.srv.Members.Add(ctx, bobSession.srv.Whoami(), roomdb.RoleMember)
+	r.NoError(err)
+
+	// allow bots to dial the remote
+	// side-effect of re-using a room-server as the client
+	_, err = bobSession.srv.Members.Add(ctx, session.srv.Whoami(), roomdb.RoleMember)
+	r.NoError(err)
+
+	// should work (we allowed A)
+	err = bobSession.srv.Network.Connect(ctx, session.srv.Network.GetListenAddr())
+	r.NoError(err, "connect A to the Server")
+
+	t.Log("letting handshaking settle..")
+	time.Sleep(1 * time.Second)
+
+	clientForServer, ok := bobSession.srv.Network.GetEndpointFor(session.srv.Whoami())
+	r.True(ok)
+
+	var testReg aliases.Registration
+	testReg.Alias = "bob"
+	testReg.RoomID = session.srv.Whoami()
+	testReg.UserID = bobSession.srv.Whoami()
+
+	confirmation := testReg.Sign(bobsKey.Pair.Secret)
+	sig := base64.StdEncoding.EncodeToString(confirmation.Signature) + ".sig.ed25519"
+
+	var response string
+
+	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.Ref())
+	r.NoError(err)
+	a.Equal("[]", response, "initially the list of aliases should be empty")
+
+	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "registerAlias"}, "bob", sig)
+	r.NoError(err)
+	a.NotEqual("", response, "response isn't empty")
+
+	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.Ref())
+	r.NoError(err)
+	a.Equal("[\"bob\"]", response, "new alias should be in the list")
+}
