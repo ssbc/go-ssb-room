@@ -167,11 +167,7 @@ func (h Handler) List(ctx context.Context, req *muxrpc.Request) (interface{}, er
 
 	allAliases, err := h.db.List(ctx)
 	if err != nil {
-		var takenErr roomdb.ErrAliasTaken
-		if errors.As(err, &takenErr) {
-			return nil, takenErr
-		}
-		return nil, fmt.Errorf("listAlias: could not register alias: %w", err)
+		return nil, fmt.Errorf("listAlias: could not list aliases: %w", err)
 	}
 
 	var filteredAliases []roomdb.Alias
