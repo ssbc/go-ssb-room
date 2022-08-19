@@ -61,6 +61,7 @@ func (s *Server) initHandlers() {
 		var method = muxrpc.Method{"room"}
 		mux.RegisterAsync(append(method, "registerAlias"), typemux.AsyncFunc(aliasHandler.Register))
 		mux.RegisterAsync(append(method, "revokeAlias"), typemux.AsyncFunc(aliasHandler.Revoke))
+		mux.RegisterAsync(append(method, "listAliases"), typemux.AsyncFunc(aliasHandler.List))
 
 		method = muxrpc.Method{"httpAuth"}
 		mux.RegisterAsync(append(method, "invalidateAllSolutions"), typemux.AsyncFunc(siwssbHandler.InvalidateAllSolutions))

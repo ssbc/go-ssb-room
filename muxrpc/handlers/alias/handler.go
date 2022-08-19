@@ -147,3 +147,43 @@ func (h Handler) Revoke(ctx context.Context, req *muxrpc.Request) (interface{}, 
 
 	return true, nil
 }
+
+func (h Handler) List(ctx context.Context, req *muxrpc.Request) (interface{}, error) {
+	var args []string
+
+	err := json.Unmarshal(req.RawArgs, &args)
+	if err != nil {
+		return nil, fmt.Errorf("listAlias: bad request: %w", err)
+	}
+
+	if n := len(args); n != 1 {
+		return nil, fmt.Errorf("listAlias: expected one argument got %d", n)
+	}
+
+	ref, err := refs.ParseFeedRef(args[0])
+	if err != nil {
+		return nil, fmt.Errorf("listAlias: invalid feed ref: %w", err)
+	}
+
+	allAliases, err := h.db.List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("listAlias: could not list aliases: %w", err)
+	}
+
+	var filteredAliases []roomdb.Alias
+	for _, alias := range allAliases {
+		if alias.Feed.Equal(ref) {
+			filteredAliases = append(filteredAliases, alias)
+		}
+	}
+
+	return aliasesToListOfAliasStrings(filteredAliases), nil
+}
+
+func aliasesToListOfAliasStrings(aliases []roomdb.Alias) []string {
+	result := make([]string, 0)
+	for _, alias := range aliases {
+		result = append(result, alias.Name)
+	}
+	return result
+}
