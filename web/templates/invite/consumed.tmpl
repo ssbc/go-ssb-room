@@ -19,5 +19,16 @@ SPDX-License-Identifier: CC-BY-4.0
     <span
       class="bg-gray-200 py-1 px-2 mb-8 w-64 font-mono break-all"
       >{{.MultiserverAddress}}</span>
+
+    <span
+      class="text-center"
+    >{{i18n "InviteConsumedSetPassword" }}<br /></span>
+
+    <span
+      class="w-64 my-6 text-center"
+    ><a
+      class="self-start shadow rounded h-8 flex flex-row justify-center items-center text-gray-100 bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:ring-opacity-50"
+      href="{{urlTo "members:change-password"}}"
+      >{{i18n "InviteConsumedSetPasswordButton" }}</a></span>
   </div>
 {{end}}

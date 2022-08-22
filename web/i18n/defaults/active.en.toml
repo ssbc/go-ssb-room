@@ -190,6 +190,8 @@ InviteInsertWelcome = "You can claim your invite by inserting your SSB ID below.
 
 InviteConsumedTitle = "Invite accepted!"
 InviteConsumedWelcome = "You are now a member of this room. If you need a multiserver address to connect to the room, you can copy-paste the one below:"
+InviteConsumedSetPassword = "You can now create an account fallback password:"
+InviteConsumedSetPasswordButton = "Create password"
 
 # alias resolution
 ##################
