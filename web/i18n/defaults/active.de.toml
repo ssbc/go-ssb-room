@@ -30,7 +30,7 @@ NavAdminInvites = "Einladungen"
 NavAdminNotices = "Hinweise"
 
 # Error messages
-ErrorAuthBadLogin = "Die angegebenen Authentifizierungsdaten (Benutzername oder Passwort) sind falsch."
+ErrorAuthBadLogin = "Die angegebenen Authentifizierungsdaten (SSB-ID oder Passwort) sind falsch."
 ErrorNotFound = "Die Datenbank konnte den betreffenden Artikel nicht finden."
 ErrorAlreadyAdded = "Der öffentliche Schlüssel <strong> {{.Key}} </ strong> ist bereits in der Liste enthalten."
 ErrorPageNotFound = "Die angeforderte Seite <strong> ({{.Path}}) </ strong> ist nicht vorhanden."

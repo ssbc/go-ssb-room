@@ -33,7 +33,7 @@ NavAdminInvites = "Invites"
 NavAdminNotices = "Notices"
 
 # Error messages
-ErrorAuthBadLogin = "The supplied authentication credentials (username or password) are incorrect."
+ErrorAuthBadLogin = "The supplied authentication credentials (SSB-ID or password) are incorrect."
 ErrorNotFound = "The database couldn't find the item in question."
 ErrorAlreadyAdded = "The SSB-ID <strong>{{.Key}}</strong> already is on the list"
 ErrorPageNotFound = "The requested page <strong>({{.Path}})</strong> is not there."
