@@ -20,9 +20,9 @@ It includes:
 
 * Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
 * User management (allow- & denylisting + moderator & administrator roles), all administered via the web dashboard
-* Multiple [privacy modes](https://ssb-ngi-pointer.github.io/rooms2/#privacy-modes)
-* [Sign-in with SSB](https://ssb-ngi-pointer.github.io/ssb-http-auth-spec/)
-* [HTTP Invites](https://github.com/ssb-ngi-pointer/ssb-http-invite-spec)
+* Multiple [privacy modes](https://ssbc.github.io/rooms2/#privacy-modes)
+* [Sign-in with SSB](https://ssbc.github.io/ssb-http-auth-spec/)
+* [HTTP Invites](https://github.com/ssbc/ssb-http-invite-spec)
 * Alias management
 
 For a comprehensive introduction to rooms 2.0, 🎥 [watch this video](https://www.youtube.com/watch?v=W5p0y_MWwDE).
