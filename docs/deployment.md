@@ -155,6 +155,13 @@ sudo ufw allow 8008/tcp
 # First Admin user
 
 To manage your now working server, you need an initial admin user. For this you can use the "insert-user" utility included with go-ssb-room.
+
+If you installed the Debian package, you will first need to install Go to build the "insert-user" utility.  You can do this via:
+
+```
+sudo apt-get install golang-go
+```
+
 In a new terminal window navigate to the insert-user utility folder and compile the GO-based utility into an executable your computer can use
 
 ```
