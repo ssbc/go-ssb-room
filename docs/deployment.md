@@ -113,6 +113,13 @@ When the process is complete with `certbot`, pay attention to where the certific
 in the filesystem. If it's at `/etc/letsencrypt/live/hermies.club`, it's correct, otherwise you may
 need to rename it e.g. `hermies.club-0001` to `hermies.club`. 
 
+The example nginx configuration uses prebuilt Diffie-Hellman parameters.  You can generate these
+with the following command:
+
+```
+openssl dhparam -out /etc/letsencrypt/ssl-dhparams.pem 2048
+```
+
 Then restart your server, e.g. `systemctl restart nginx`.
 
 If you see such errors as the following when setting up your deployment:
@@ -162,6 +169,12 @@ example (with custom repo location, only needed if you setup your with a custom 
 
 ```
 ./insert-user -repo "/ssb-go-room-secrets" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519"
+```
+
+Or if you installed go-ssb-room using the Debian package:
+
+```
+sudo ./insert-user -repo "/var/lib/go-ssb-room" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519"
 ```
 
 You can now login in the web-front-end using these credentials
