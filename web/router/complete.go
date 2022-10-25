@@ -5,12 +5,15 @@
 package router
 
 import (
+	"net/http"
+	"path"
+
 	"github.com/gorilla/mux"
 )
 
 // constant names for the named routes
 const (
-	CompleteIndex = "complete:index"
+	// CompleteIndex = "complete:index"
 
 	CompleteNoticeShow = "complete:notice:show"
 	CompleteNoticeList = "complete:notice:list"
@@ -37,7 +40,8 @@ func CompleteApp() *mux.Router {
 	Auth(m)
 	Admin(m.PathPrefix("/admin").Subrouter())
 
-	m.Path("/").Methods("GET").Name(CompleteIndex)
+	m.HandleFunc("/", home)
+	// m.Path("/").Methods("GET").Name(CompleteIndex)
 
 	m.Path("/alias/{alias}").Methods("GET").Name(CompleteAliasResolve)
 
@@ -55,5 +59,27 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/set-language").Methods("POST").Name(CompleteSetLanguage)
 
+	// route everything else to defaultHandler:
+	m.PathPrefix("/").HandlerFunc(home)
+
 	return m
+}
+
+// serves index file
+func home(w http.ResponseWriter, r *http.Request) {
+	p := path.Dir("../../web/index.html")
+	// fmt.Println(path.Dir("/"))
+	// // set header
+	w.Header().Set("Content-type", "text/html")
+	http.ServeFile(w, r, p)
+
+	// mydir, err := os.Getwd()
+	// if err != nil {
+	// 	// fmt.Println(err)
+	// 	w.Write([]byte("No"))
+	// }
+
+	// // fmt.Println(mydir)
+
+	// w.Write([]byte(mydir + p))
 }
