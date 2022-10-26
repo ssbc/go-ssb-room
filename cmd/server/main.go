@@ -88,13 +88,6 @@ func checkAndLog(err error) {
 	}
 }
 
-func initVueEnv() {
-	os.Setenv("NODE_ENV", "production")
-	os.Setenv("VITE_GRAPHQL_API", "https://graphql.planetary.pub")
-	os.Setenv("VITE_BLOB_URL", "https://graphql.planetary.pub/blob")
-	// os.Setenv("VITE_BASE_DIR", "/")
-}
-
 func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
@@ -146,7 +139,6 @@ func initFlags() {
 }
 
 func runroomsrv() error {
-	initVueEnv()
 	initFlags()
 
 	if flagPrintVersion {

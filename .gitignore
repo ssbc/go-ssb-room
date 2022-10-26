@@ -26,3 +26,6 @@ dist/
 # secrets and config
 ssb-go-room-secrets/
 .env
+
+# vscode
+.DS_STORE

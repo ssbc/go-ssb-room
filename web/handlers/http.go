@@ -375,6 +375,7 @@ func New(
 	// hook up main stdlib mux to the gorrilla/mux with named routes
 	// TODO: issue #35
 	mainMux.Handle("/", m)
+	// mainMux.Handle("/", helloWorldHandler)
 
 	consumeURL := urlTo(router.CompleteInviteConsume)
 

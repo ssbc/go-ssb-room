@@ -40,7 +40,6 @@ func CompleteApp() *mux.Router {
 	Auth(m)
 	Admin(m.PathPrefix("/admin").Subrouter())
 
-	m.HandleFunc("/", home)
 	// m.Path("/").Methods("GET").Name(CompleteIndex)
 
 	m.Path("/alias/{alias}").Methods("GET").Name(CompleteAliasResolve)
@@ -59,27 +58,18 @@ func CompleteApp() *mux.Router {
 
 	m.Path("/set-language").Methods("POST").Name(CompleteSetLanguage)
 
-	// route everything else to defaultHandler:
-	m.PathPrefix("/").HandlerFunc(home)
+	m.HandleFunc("/", HomePageHandler)
+
+	// all unknown routes are taken back to the index.html
+	// for the vue-router to handle
+	m.PathPrefix("/").HandlerFunc(HomePageHandler)
 
 	return m
 }
 
 // serves index file
-func home(w http.ResponseWriter, r *http.Request) {
+func HomePageHandler(w http.ResponseWriter, r *http.Request) {
 	p := path.Dir("../../web/index.html")
-	// fmt.Println(path.Dir("/"))
-	// // set header
 	w.Header().Set("Content-type", "text/html")
 	http.ServeFile(w, r, p)
-
-	// mydir, err := os.Getwd()
-	// if err != nil {
-	// 	// fmt.Println(err)
-	// 	w.Write([]byte("No"))
-	// }
-
-	// // fmt.Println(mydir)
-
-	// w.Write([]byte(mydir + p))
 }
