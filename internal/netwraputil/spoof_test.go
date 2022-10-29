@@ -8,8 +8,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/stretchr/testify/require"
 )
 

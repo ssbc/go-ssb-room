@@ -8,7 +8,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 // MiddlewareForTests gives us a way to inject _test members_. It should not be used in production.

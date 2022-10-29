@@ -7,13 +7,13 @@ package whoami
 import (
 	"context"
 
-	"go.cryptoscope.co/muxrpc/v2/typemux"
+	"github.com/ssbc/go-muxrpc/v2/typemux"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 var (

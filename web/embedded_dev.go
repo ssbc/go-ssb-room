@@ -16,7 +16,7 @@ import (
 const Production = false
 
 // absolute path of where this package is located
-var pkgDir = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/go-ssb-room/v2/web")
+var pkgDir = goutils.MustLocatePackage("github.com/ssbc/go-ssb-room/v2/web")
 
 var Templates = http.Dir(filepath.Join(pkgDir, "templates"))
 

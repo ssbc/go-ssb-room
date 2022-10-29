@@ -8,9 +8,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
 	"github.com/stretchr/testify/require"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestConfirmation(t *testing.T) {

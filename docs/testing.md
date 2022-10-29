@@ -37,21 +37,25 @@ The frontend tests—tests that check for the presence of various elements on se
 the module [`goquery`](https://github.com/PuerkitoBio/goquery) for querying the returned HTML.
 
 ## Snippets
+
 #### Print the raw html of the corresponding page
+
 ```
-    html, _ := ts.Client.GetHTML(url)
-    fmt.Println(html.Html())
+html, _ := ts.Client.GetHTML(url)
+fmt.Println(html.Html())
 ```
 
 #### Find and print the `title` element of a page
+
 ```
-    html, _ := ts.Client.GetHTML(url)
-    title := html.Find("title")
-    // print the title string
-    fmt.Println(title.Text())
+html, _ := ts.Client.GetHTML(url)
+title := html.Find("title")
+// print the title string
+fmt.Println(title.Text())
 ```
 
 ## Filling the mockdb
+
 `go-ssb-room` uses database mocks for performing tests against the backend database logic. This
 means prefilling a route with the data you expect to be returned when the route is queried.
 This type of testing is an alternative to using an entire pre-filled sqlite database of test
@@ -59,7 +63,7 @@ data.
 
 As such, there is no command you run first to generate your fake database, but
 functions you have to call in a kind of pre-test setup, inside each testing
-block you are authoring. 
+block you are authoring.
 
 > [counterfeiter](https://github.com/maxbrunsfeld/counterfeiter) generates a bunch of methods for each function, so you have
 > XXXXReturns,  XXXCallCount XXXArgsForCall(i) etc
@@ -72,6 +76,7 @@ That is, for a function `GetUID` there is a corresponding mock-filling function
 The following examples show more concretely what mocking the data looks like.
 
 **Having the List() function return a static list of three items:**
+
 ```go
 // go-ssb-room/web/handlers/admin/allow_list_test.go:113
 lst := roomdb.ListEntries{
@@ -80,10 +85,10 @@ lst := roomdb.ListEntries{
 	{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
 }
 ts.MembersDB.ListReturns(lst, nil)
-
 ```
 
 **Checking how often RemoveID was called and with what arguments:**
+
 ```go
 // go-ssb-room/web/handlers/admin/allow_list_test.go:210
  a.Equal(1, ts.MembersDB.RemoveIDCallCount())
@@ -91,8 +96,8 @@ ts.MembersDB.ListReturns(lst, nil)
  a.EqualValues(666, theID)
 ```
 
-
 ## Example test
+
 ```go
 package handlers
 
@@ -144,4 +149,3 @@ cd muxrpc/test/nodejs
 npm ci
 go test
 ```
-

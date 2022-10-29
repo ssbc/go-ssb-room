@@ -21,20 +21,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2/debug"
+	"github.com/ssbc/go-netwrap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2/debug"
-	"go.cryptoscope.co/netwrap"
 	"go.mindeco.de/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/testutils"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/testutils"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssbc/go-ssb-room/v2/roomsrv"
 )
 
 func init() {
@@ -143,7 +143,7 @@ func (ts *testSession) startGoServer(
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
 		// if the muxrpc protocol fucks up by e.g. unpacking body data into a header, this type of error will be surfaced here and look scary in the test output
-		// example: https://github.com/ssb-ngi-pointer/go-ssb-room/pull/85#issuecomment-801106687
+		// example: https://github.com/ssbc/go-ssb-room/pull/85#issuecomment-801106687
 		if err != nil && !errors.Is(err, context.Canceled) {
 			err = fmt.Errorf("go server exited: %w", err)
 			ts.t.Log(err)

@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 	"github.com/stretchr/testify/assert"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestDashboardSimple(t *testing.T) {

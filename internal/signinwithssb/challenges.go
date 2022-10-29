@@ -12,7 +12,7 @@ import (
 
 	"golang.org/x/crypto/ed25519"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // sign-in with ssb uses 256-bit nonces

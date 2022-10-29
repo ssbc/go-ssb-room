@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	tunserv "github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 func TestTunnelServerSimple(t *testing.T) {

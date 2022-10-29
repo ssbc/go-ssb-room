@@ -11,7 +11,7 @@ import (
 	"sort"
 	"time"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // ErrNotFound is returned by the admin db if an object couldn't be found.

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Package aliases implements the validation and signing features of https://ssb-ngi-pointer.github.io/rooms2/#alias
+// Package aliases implements the validation and signing features of https://ssbc.github.io/rooms2/#alias
 package aliases
 
 import (
@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/crypto/ed25519"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // Registration ties an alias to the ID of the user and the RoomID it should be registered on

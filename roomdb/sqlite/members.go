@@ -11,11 +11,11 @@ import (
 
 	"github.com/friendsofgo/errors"
 	"github.com/mattn/go-sqlite3"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 // compiler assertion to ensure the struct fullfills the interface

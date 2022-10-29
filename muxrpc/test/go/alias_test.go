@@ -13,14 +13,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
+	"github.com/ssbc/go-ssb-room/v2/internal/aliases"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomsrv"
 )
 
 // technically we are usign two servers here

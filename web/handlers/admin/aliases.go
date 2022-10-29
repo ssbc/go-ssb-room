@@ -12,9 +12,9 @@ import (
 	"github.com/gorilla/csrf"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/members"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/members"
 )
 
 // aliasesHandler implements the managment endpoints for aliases (list and revoke),

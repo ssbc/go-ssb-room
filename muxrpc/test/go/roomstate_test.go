@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
 )
 
 // peers not on the members list can't connect

@@ -22,10 +22,10 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	refs "go.mindeco.de/ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // TemplateFuncs returns a map of template functions
@@ -51,8 +51,8 @@ func NewURLTo(appRouter *mux.Router, netInfo network.ServerEndpointDetails) URLM
 	return func(routeName string, ps ...interface{}) *url.URL {
 		route := appRouter.Get(routeName)
 		if route == nil {
-			// TODO: https://github.com/ssb-ngi-pointer/go-ssb-room/issues/35 for a
-			// for reference, see https://github.com/ssb-ngi-pointer/go-ssb-room/pull/64
+			// TODO: https://github.com/ssbc/go-ssb-room/issues/35 for a
+			// for reference, see https://github.com/ssbc/go-ssb-room/pull/64
 			// level.Warn(l).Log("msg", "no such route", "route", routeName, "params", fmt.Sprintf("%v", ps))
 			return &url.URL{}
 		}
@@ -202,7 +202,7 @@ func StringifySSBURI(uri *url.URL, userAgent string) string {
 	browser := ua.Parse(userAgent)
 
 	// Special treatment for Android Chrome for issue #135
-	// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/135
+	// https://github.com/ssbc/go-ssb-room/issues/135
 	if browser.IsAndroid() && browser.IsChrome() {
 		href := url.URL{
 			Scheme:   "intent",

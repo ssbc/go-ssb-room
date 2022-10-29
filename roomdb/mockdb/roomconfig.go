@@ -9,7 +9,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 type FakeRoomConfig struct {

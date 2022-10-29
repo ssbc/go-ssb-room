@@ -8,7 +8,7 @@ import (
 	"net"
 	"sync"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 )
 
 type Authorizer interface {

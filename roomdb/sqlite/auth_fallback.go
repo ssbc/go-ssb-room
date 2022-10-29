@@ -19,9 +19,9 @@ import (
 	"go.mindeco.de/http/auth"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 )
 
 // compiler assertion to ensure the struct fullfills the interface

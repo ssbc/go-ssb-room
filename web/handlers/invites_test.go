@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
-	refs "go.mindeco.de/ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestInviteShowAcceptForm(t *testing.T) {
@@ -38,7 +38,7 @@ func TestInviteShowAcceptForm(t *testing.T) {
 
 		// request the form
 		doc, resp := ts.Client.GetHTML(acceptURL404)
-		// 500 until https://github.com/ssb-ngi-pointer/go-ssb-room/issues/66 is fixed
+		// 500 until https://github.com/ssbc/go-ssb-room/issues/66 is fixed
 		a.Equal(http.StatusInternalServerError, resp.Code)
 
 		// check database calls

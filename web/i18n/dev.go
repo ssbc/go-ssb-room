@@ -17,6 +17,6 @@ import (
 var Defaults fs.FS = os.DirFS(defaultsPath)
 
 var (
-	pkgDir       = goutils.MustLocatePackage("github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n")
+	pkgDir       = goutils.MustLocatePackage("github.com/ssbc/go-ssb-room/v2/web/i18n")
 	defaultsPath = filepath.Join(pkgDir, "defaults")
 )

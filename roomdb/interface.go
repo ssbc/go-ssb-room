@@ -15,8 +15,8 @@ package roomdb
 import (
 	"context"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"go.mindeco.de/http/auth"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 type RoomConfig interface {
@@ -143,7 +143,7 @@ type AliasesService interface {
 type InvitesService interface {
 	// Create creates a new invite for a new member. It returns the token or an error.
 	// createdBy is user ID of the admin or moderator who created it. MemberID -1 is allowed if Privacy Mode is set to Open.
-	// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
+	// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssbc/rooms2/issues/21)
 	Create(ctx context.Context, createdBy int64) (string, error)
 
 	// Consume checks if the passed token is still valid.

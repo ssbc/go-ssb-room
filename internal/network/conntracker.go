@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"go.cryptoscope.co/netwrap"
-	"go.cryptoscope.co/secretstream"
+	"github.com/ssbc/go-netwrap"
+	"github.com/ssbc/go-secretstream"
 )
 
 type connEntry struct {

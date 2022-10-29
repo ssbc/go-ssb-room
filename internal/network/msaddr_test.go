@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/stretchr/testify/assert"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestMultiserverAddress(t *testing.T) {

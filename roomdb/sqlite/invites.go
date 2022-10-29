@@ -17,9 +17,9 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -35,7 +35,7 @@ type Invites struct {
 
 // Create creates a new invite for a new member. It returns the token or an error.
 // createdBy is user ID of the admin or moderator who created it.
-// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssb-ngi-pointer/rooms2/issues/21)
+// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssbc/rooms2/issues/21)
 // The returned token is base64 URL encoded and has inviteTokenLength when decoded.
 func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 	var newInvite = models.Invite{

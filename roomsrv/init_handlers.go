@@ -5,15 +5,15 @@
 package roomsrv
 
 import (
-	muxrpc "go.cryptoscope.co/muxrpc/v2"
-	"go.cryptoscope.co/muxrpc/v2/typemux"
+	muxrpc "github.com/ssbc/go-muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2/typemux"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/alias"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/gossip"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/whoami"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/alias"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/gossip"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/whoami"
 )
 
 // instantiate and register the muxrpc handlers

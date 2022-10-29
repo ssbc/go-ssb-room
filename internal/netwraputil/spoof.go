@@ -8,8 +8,8 @@ import (
 	"errors"
 	"net"
 
-	"go.cryptoscope.co/netwrap"
-	"go.cryptoscope.co/secretstream"
+	"github.com/ssbc/go-netwrap"
+	"github.com/ssbc/go-secretstream"
 )
 
 // SpoofRemoteAddress wraps the connection with the passed reference

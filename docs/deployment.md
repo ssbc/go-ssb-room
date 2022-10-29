@@ -5,15 +5,16 @@ SPDX-License-Identifier: CC0-1.0
 -->
 
 # Getting Started
+
 There are two paths to starting your own room: creating a build from source, or downloading one
 of the premade releases.
 
 ## Premade builds
 
-See the [releases page](https://github.com/ssb-ngi-pointer/go-ssb-room/releases) for packaged linux releases.
+See the [releases page](https://github.com/ssbc/go-ssb-room/releases) for packaged linux releases.
 
 We currently only distributed pre-packaged releases for Debian-compatible distributions.
-See [Issue #79](https://github.com/ssb-ngi-pointer/go-ssb-room/issues/79) for the details.
+See [Issue #79](https://github.com/ssbc/go-ssb-room/issues/79) for the details.
 If this doesn't work for you, read the "Creating a build" section below.
 
 After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special attention to the
@@ -22,7 +23,7 @@ After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special att
 ## Creating a build
 
 * [Download Go](https://golang.org/doc/install) & [set up your Go environment](https://golang.org/doc/install#install). You will need at least Go v1.16.
-* Download the repository `git clone git@github.com:ssb-ngi-pointer/go-ssb-room.git && cd go-ssb-room`
+* Download the repository `git clone git@github.com:ssbc/go-ssb-room.git && cd go-ssb-room`
 * [Follow the development instructions](./development.md)
 * You should now have a working go-ssb-room binary! Read the HTTP Hosting section below and admin
   user sections below, for more instructions on the last mile.
@@ -32,7 +33,7 @@ After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special att
 This project includes a docker-compose.yml file as well as a Docker file. Using
 it should be fairly straight forward.
 
-Start off by making a copy of `.env_example` called `.env` and insert your 
+Start off by making a copy of `.env_example` called `.env` and insert your
 website domain there. With that done execute
 
 ```
@@ -78,7 +79,7 @@ Two bits of rationale:
 
 1. People usually want to have more than one site on their server. Put differently, we could
 have [LetsEncrypt](https://letsencrypt.org/) inside the go-ssb-room server but it would have to
-listen on port :443—blocking the use of other domains on the same IP.  
+listen on port :443—blocking the use of other domains on the same IP.
 2. Listening on :443 can be pretty annoying (you might need root privileges or similar capabilities).
 
 go-ssb-room needs three headers to function properly, which need to be forwarded by the
@@ -111,7 +112,7 @@ is often added automatically by your provider.
 
 When the process is complete with `certbot`, pay attention to where the certificate has been placed
 in the filesystem. If it's at `/etc/letsencrypt/live/hermies.club`, it's correct, otherwise you may
-need to rename it e.g. `hermies.club-0001` to `hermies.club`. 
+need to rename it e.g. `hermies.club-0001` to `hermies.club`.
 
 The example nginx configuration uses prebuilt Diffie-Hellman parameters.  You can generate these
 with the following command:
@@ -185,4 +186,3 @@ sudo ./insert-user -repo "/var/lib/go-ssb-room" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP
 ```
 
 You can now login in the web-front-end using these credentials
-

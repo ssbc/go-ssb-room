@@ -28,7 +28,7 @@ import (
 
 	migrate "github.com/rubenv/sql-migrate"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
 )
 
 type Database struct {

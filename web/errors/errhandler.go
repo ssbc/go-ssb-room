@@ -14,8 +14,8 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/i18n"
 )
 
 type ErrorHandler struct {

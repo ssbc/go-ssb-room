@@ -21,19 +21,19 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"github.com/skip2/go-qrcode"
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	"go.mindeco.de/http/render"
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	refs "go.mindeco.de/ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 var HTMLTemplates = []string{
@@ -61,7 +61,7 @@ const (
 const sessionLifetime = time.Hour * 24
 
 // WithSSBHandler implements the oauth-like challenge/response dance described in
-// https://ssb-ngi-pointer.github.io/ssb-http-auth-spec
+// https://ssbc.github.io/ssb-http-auth-spec
 type WithSSBHandler struct {
 	render *render.Renderer
 
@@ -356,7 +356,7 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 	}
 
 	// prepare the ssb-uri
-	// https://ssb-ngi-pointer.github.io/ssb-http-auth-spec/#list-of-new-ssb-uris
+	// https://ssbc.github.io/ssb-http-auth-spec/#list-of-new-ssb-uris
 	var queryParams = make(url.Values)
 	queryParams.Set("action", "start-http-auth")
 	queryParams.Set("sid", h.netInfo.RoomID.Ref())

@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ssbc/go-secretstream/secrethandshake"
+	refs "github.com/ssbc/go-ssb-refs"
 	"go.cryptoscope.co/nocomment"
-	"go.cryptoscope.co/secretstream/secrethandshake"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 var SecretPerms = os.FileMode(0600)
