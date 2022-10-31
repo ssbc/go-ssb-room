@@ -23,10 +23,10 @@ import (
 type Handler struct {
 	logger kitlog.Logger
 
-	netInfo network.ServerEndpointDetails
-	state   *roomstate.Manager
-	members roomdb.MembersService
-	config  roomdb.RoomConfig
+	netInfo   network.ServerEndpointDetails
+	state     *roomstate.Manager
+	membersdb roomdb.MembersService
+	config    roomdb.RoomConfig
 }
 
 type MetadataReply struct {
@@ -50,7 +50,7 @@ func (h *Handler) metadata(ctx context.Context, req *muxrpc.Request) (interface{
 	reply.Name = h.netInfo.Domain
 
 	// check if caller is a member
-	if _, err := h.members.GetByFeed(ctx, *ref); err != nil {
+	if _, err := h.membersdb.GetByFeed(ctx, *ref); err != nil {
 		if !errors.Is(err, roomdb.ErrNotFound) {
 			return nil, err
 		}
@@ -123,7 +123,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	case roomdb.ModeCommunity:
 		fallthrough
 	case roomdb.ModeRestricted:
-		_, err := h.members.GetByFeed(ctx, *peer)
+		_, err := h.membersdb.GetByFeed(ctx, *peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
