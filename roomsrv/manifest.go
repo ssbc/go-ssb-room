@@ -45,6 +45,7 @@ const manifest manifestHandler = `
 
 		"connect": "duplex",
 		"attendants": "source",
+		"members": "source",
 		"metadata": "async",
 		"ping": "sync"
 	},

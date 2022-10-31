@@ -30,7 +30,7 @@ func New(log kitlog.Logger, netInfo network.ServerEndpointDetails, m *roomstate.
 	h.netInfo = netInfo
 	h.logger = log
 	h.state = m
-	h.members = members
+	h.membersdb = members
 	h.config = config
 
 	return h
@@ -59,6 +59,7 @@ func (h *Handler) RegisterRoom(mux typemux.HandlerMux) {
 	mux.RegisterAsync(append(namespace, "ping"), typemux.AsyncFunc(h.ping))
 
 	mux.RegisterSource(append(namespace, "attendants"), typemux.SourceFunc(h.attendants))
+	mux.RegisterSource(append(namespace, "members"), typemux.SourceFunc(h.members))
 
 	mux.RegisterDuplex(append(namespace, "connect"), connectHandler{
 		logger: h.logger,
