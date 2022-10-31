@@ -26,6 +26,7 @@ It includes:
 * Alias management
 
 For a comprehensive introduction to rooms 2.0, 🎥 [watch this video](https://www.youtube.com/watch?v=W5p0y_MWwDE).
+For a description of MuxRPC APIs see https://github.com/ssbc/rooms2
 
 ## :rocket: Deployment
 
