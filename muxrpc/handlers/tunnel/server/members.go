@@ -32,7 +32,7 @@ func (h *Handler) members(ctx context.Context, req *muxrpc.Request, snk *muxrpc.
 	if pm == roomdb.ModeCommunity || pm == roomdb.ModeRestricted {
 		_, err := h.membersdb.GetByFeed(ctx, *peer)
 		if err != nil {
-			return fmt.Errorf("external user are not allowed to list members: %w", err)
+			return fmt.Errorf("external users are not allowed to list members: %w", err)
 		}
 	}
 
