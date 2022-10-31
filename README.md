@@ -7,7 +7,7 @@ SPDX-License-Identifier: CC0-1.0
 # Go-SSB Room
 [![REUSE status](https://api.reuse.software/badge/github.com/ssb-ngi-pointer/go-ssb-room)](https://api.reuse.software/info/github.com/ssb-ngi-pointer/go-ssb-room)
 
-This repository contains code for a [Secure Scuttlebutt](https://ssb.nz) [Room (v1+v2) server](https://github.com/ssb-ngi-pointer/rooms2), written in Go.
+This repository implements the [Room (v1+v2) server spec](https://github.com/ssbc/rooms2), in Go.
 
 It includes:
 * secret-handshake+boxstream network transport, sometimes referred to as SHS, using [secretstream](https://github.com/cryptoscope/secretstream)
