@@ -192,7 +192,7 @@ func TestRoomMembers(t *testing.T) {
 						responses,
 					)
 				} else {
-					r.EqualError(src.Err(), "muxrpc CallError: Error - external user are not allowed to list members: roomdb: object not found")
+					r.EqualError(src.Err(), "muxrpc CallError: Error - external users are not allowed to list members: roomdb: object not found")
 				}
 			})
 		})
