@@ -184,5 +184,5 @@ Or if you installed go-ssb-room using the Debian package:
 sudo ./insert-user -repo "/var/lib/go-ssb-room" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519"
 ```
 
-You can now login in the web-front-end using these credentials
+It will ask you to create a password to access the web-front-end.  You can now login in the web-front-end using these credentials
 

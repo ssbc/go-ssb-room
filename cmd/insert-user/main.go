@@ -76,7 +76,7 @@ func main() {
 	check(err)
 	defer db.Close()
 
-	fmt.Fprintln(os.Stderr, "Enter Password: ")
+	fmt.Fprintln(os.Stderr, "Choose a password to be able to log into the web frontend: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	check(err)
 
