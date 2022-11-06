@@ -90,7 +90,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	mid, err := db.Members.Add(ctx, *pubKey, role)
+	mid, err := db.Members.Add(ctx, pubKey, role)
 	check(err)
 
 	err = db.AuthFallback.SetPassword(ctx, mid, string(bytePassword))

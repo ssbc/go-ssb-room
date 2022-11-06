@@ -82,7 +82,7 @@ func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
 func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedRef, signature []byte) error {
 	return transact(a.db, func(tx *sql.Tx) error {
 		// check we have a members entry for the feed and load it to get its ID
-		memberEntry, err := models.Members(qm.Where("pub_key = ?", userFeed.Ref())).One(ctx, tx)
+		memberEntry, err := models.Members(qm.Where("pub_key = ?", userFeed.String())).One(ctx, tx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return roomdb.ErrNotFound

@@ -29,7 +29,7 @@ func DefaultKeyPair(r Interface) (*keys.KeyPair, error) {
 		if err := keys.SaveKeyPair(*keyPair, secPath); err != nil {
 			return nil, fmt.Errorf("repo: error saving new identity file: %w", err)
 		}
-		log.Printf("saved identity %s to %s", keyPair.Feed.Ref(), secPath)
+		log.Printf("saved identity %s to %s", keyPair.Feed.String(), secPath)
 	}
 	return keyPair, nil
 }
@@ -53,7 +53,7 @@ func newKeyPair(r Interface, name, algo string, seed io.Reader) (*keys.KeyPair, 
 			return nil, err
 		}
 	}
-	if algo != refs.RefAlgoFeedSSB1 && algo != refs.RefAlgoFeedGabby { //  enums would be nice
+	if algo != string(refs.RefAlgoFeedSSB1) && algo != string(refs.RefAlgoFeedGabby) { //  enums would be nice
 		return nil, fmt.Errorf("invalid feed refrence algo")
 	}
 	if _, err := keys.LoadKeyPair(secPath); err == nil {
@@ -63,11 +63,10 @@ func newKeyPair(r Interface, name, algo string, seed io.Reader) (*keys.KeyPair, 
 	if err != nil {
 		return nil, fmt.Errorf("repo: no keypair but couldn't create one either: %w", err)
 	}
-	keyPair.Feed.Algo = algo
 	if err := keys.SaveKeyPair(*keyPair, secPath); err != nil {
 		return nil, fmt.Errorf("repo: error saving new identity file: %w", err)
 	}
-	log.Printf("saved identity %s to %s", keyPair.Feed.Ref(), secPath)
+	log.Printf("saved identity %s to %s", keyPair.Feed.String(), secPath)
 	return keyPair, nil
 }
 

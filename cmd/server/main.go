@@ -375,7 +375,7 @@ func runroomsrv() error {
 	// all init was successfull
 	level.Info(log).Log(
 		"event", "serving",
-		"ID", roomsrv.Whoami().Ref(),
+		"ID", roomsrv.Whoami().String(),
 		"shsmuxaddr", listenAddrShsMux,
 		"httpaddr", listenAddrHTTP,
 		"version", version, "commit", commit,

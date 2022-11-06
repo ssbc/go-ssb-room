@@ -12,10 +12,10 @@ import (
 	"github.com/gorilla/csrf"
 	"go.mindeco.de/http/render"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 	"github.com/ssbc/go-ssb-room/v2/web/members"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 type deniedKeysHandler struct {
@@ -65,7 +65,7 @@ func (h deniedKeysHandler) add(w http.ResponseWriter, req *http.Request) {
 	// can be empty
 	comment := req.Form.Get("comment")
 
-	err = h.db.Add(req.Context(), *newEntryParsed, comment)
+	err = h.db.Add(req.Context(), newEntryParsed, comment)
 	if err != nil {
 		h.flashes.AddError(w, req, err)
 	} else {

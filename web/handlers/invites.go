@@ -20,12 +20,12 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/web"
 	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 type inviteHandler struct {
@@ -237,7 +237,7 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) {
 			resp.SendError(err)
 			return
 		}
-		newMember = *parsedID
+		newMember = parsedID
 	default:
 		http.Error(rw, fmt.Sprintf("unhandled Content-Type (%q)", ct), http.StatusBadRequest)
 		return
@@ -261,7 +261,7 @@ func (h inviteHandler) consume(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 	log := logging.FromContext(req.Context())
-	level.Info(log).Log("event", "invite consumed", "id", inv.ID, "ref", newMember.ShortRef())
+	level.Info(log).Log("event", "invite consumed", "id", inv.ID, "ref", newMember.ShortSigil())
 
 	resp.SendSuccess()
 }

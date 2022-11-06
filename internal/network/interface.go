@@ -131,10 +131,10 @@ type ConnTracker interface {
 }
 
 // GetFeedRefFromAddr uses netwrap to get the secretstream address and then uses ParseFeedRef
-func GetFeedRefFromAddr(addr net.Addr) (*refs.FeedRef, error) {
+func GetFeedRefFromAddr(addr net.Addr) (refs.FeedRef, error) {
 	addr = netwrap.GetAddr(addr, secretstream.NetworkString)
 	if addr == nil {
-		return nil, errors.New("no shs-bs address found")
+		return refs.FeedRef{}, errors.New("no shs-bs address found")
 	}
 	ssAddr := addr.(secretstream.Addr)
 	return refs.ParseFeedRef(ssAddr.String())

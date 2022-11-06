@@ -50,7 +50,7 @@ func (h *Handler) metadata(ctx context.Context, req *muxrpc.Request) (interface{
 	reply.Name = h.netInfo.Domain
 
 	// check if caller is a member
-	if _, err := h.membersdb.GetByFeed(ctx, *ref); err != nil {
+	if _, err := h.membersdb.GetByFeed(ctx, ref); err != nil {
 		if !errors.Is(err, roomdb.ErrNotFound) {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func (h *Handler) announce(_ context.Context, req *muxrpc.Request) (interface{},
 		return nil, err
 	}
 
-	h.state.AddEndpoint(*ref, req.Endpoint())
+	h.state.AddEndpoint(ref, req.Endpoint())
 
 	return true, nil
 }
@@ -101,7 +101,7 @@ func (h *Handler) leave(_ context.Context, req *muxrpc.Request) (interface{}, er
 		return nil, err
 	}
 
-	h.state.Remove(*ref)
+	h.state.Remove(ref)
 
 	return true, nil
 }
@@ -123,7 +123,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	case roomdb.ModeCommunity:
 		fallthrough
 	case roomdb.ModeRestricted:
-		_, err := h.membersdb.GetByFeed(ctx, *peer)
+		_, err := h.membersdb.GetByFeed(ctx, peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
@@ -134,7 +134,7 @@ func (h *Handler) endpoints(ctx context.Context, req *muxrpc.Request, snk *muxrp
 	h.state.RegisterLegacyEndpoints(toPeer)
 
 	// add the peer to the room state if they arent already
-	h.state.AlreadyAdded(*peer, req.Endpoint())
+	h.state.AlreadyAdded(peer, req.Endpoint())
 
 	// update the peer with
 	toPeer.Update(h.state.List())

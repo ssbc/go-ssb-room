@@ -27,13 +27,13 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/web"
 	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 var HTMLTemplates = []string{
@@ -225,7 +225,7 @@ func (h WithSSBHandler) DecideMethod(w http.ResponseWriter, req *http.Request) {
 	if cidString := queryVals.Get("cid"); cidString != "" {
 		parsedCID, err := refs.ParseFeedRef(cidString)
 		if err == nil {
-			cid = parsedCID
+			cid = &parsedCID
 
 			_, err := h.membersdb.GetByFeed(req.Context(), *cid)
 			if err != nil {
@@ -359,7 +359,7 @@ func (h WithSSBHandler) serverInitiated(sc string, userAgent string) (templateDa
 	// https://ssbc.github.io/ssb-http-auth-spec/#list-of-new-ssb-uris
 	var queryParams = make(url.Values)
 	queryParams.Set("action", "start-http-auth")
-	queryParams.Set("sid", h.netInfo.RoomID.Ref())
+	queryParams.Set("sid", h.netInfo.RoomID.String())
 	queryParams.Set("sc", sc)
 	queryParams.Set("multiserverAddress", h.netInfo.MultiserverAddress())
 

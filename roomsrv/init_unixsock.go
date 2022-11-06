@@ -34,7 +34,7 @@ func (s *Server) initUnixSock() error {
 	if s.keyPair == nil {
 		return fmt.Errorf("roomsrv/unixsock: keypair is nil. please use unixSocket with LateOption")
 	}
-	spoofWrapper := netwraputil.SpoofRemoteAddress(s.keyPair.Feed.ID)
+	spoofWrapper := netwraputil.SpoofRemoteAddress(s.keyPair.Feed.PubKey())
 
 	r := repo.New(s.repoPath)
 	sockPath := r.GetPath("socket")

@@ -120,7 +120,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 		msg = ih.LocalizeSimple("ErrorNotFound")
 
 	case errors.As(err, &aa):
-		msg = ih.LocalizeWithData("ErrorAlreadyAdded", "Feed", aa.Ref.Ref())
+		msg = ih.LocalizeWithData("ErrorAlreadyAdded", "Feed", aa.Ref.String())
 
 	case errors.As(err, &pnf):
 		code = http.StatusNotFound

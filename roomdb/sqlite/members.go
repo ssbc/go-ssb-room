@@ -59,7 +59,7 @@ func (Members) add(ctx context.Context, tx *sql.Tx, pubKey refs.FeedRef, role ro
 		return -1, err
 	}
 
-	if _, err := refs.ParseFeedRef(pubKey.Ref()); err != nil {
+	if _, err := refs.ParseFeedRef(pubKey.String()); err != nil {
 		return -1, err
 	}
 
@@ -105,7 +105,7 @@ func (m Members) GetByID(ctx context.Context, mid int64) (roomdb.Member, error) 
 
 // GetByFeed returns the member if it exists
 func (m Members) GetByFeed(ctx context.Context, h refs.FeedRef) (roomdb.Member, error) {
-	entry, err := models.Members(qm.Where("pub_key = ?", h.Ref())).One(ctx, m.db)
+	entry, err := models.Members(qm.Where("pub_key = ?", h.String())).One(ctx, m.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.Member{}, roomdb.ErrNotFound
@@ -156,7 +156,7 @@ func (m Members) Count(ctx context.Context) (uint, error) {
 
 // RemoveFeed removes the feed from the list.
 func (m Members) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
-	entry, err := models.Members(qm.Where("pub_key = ?", r.Ref())).One(ctx, m.db)
+	entry, err := models.Members(qm.Where("pub_key = ?", r.String())).One(ctx, m.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound

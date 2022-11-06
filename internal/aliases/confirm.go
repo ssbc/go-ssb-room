@@ -33,9 +33,9 @@ func (r Registration) Sign(privKey ed25519.PrivateKey) Confirmation {
 func (r Registration) createRegistrationMessage() []byte {
 	var message bytes.Buffer
 	message.WriteString("=room-alias-registration:")
-	message.WriteString(r.RoomID.Ref())
+	message.WriteString(r.RoomID.String())
 	message.WriteString(":")
-	message.WriteString(r.UserID.Ref())
+	message.WriteString(r.UserID.String())
 	message.WriteString(":")
 	message.WriteString(r.Alias)
 	return message.Bytes()

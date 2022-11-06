@@ -43,14 +43,14 @@ func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxr
 	}
 
 	if pm == roomdb.ModeCommunity || pm == roomdb.ModeRestricted {
-		_, err := h.membersdb.GetByFeed(ctx, *peer)
+		_, err := h.membersdb.GetByFeed(ctx, peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
 
 	// add peer to the state
-	h.state.AddEndpoint(*peer, req.Endpoint())
+	h.state.AddEndpoint(peer, req.Endpoint())
 
 	// send the current state
 	snk.SetEncoding(muxrpc.TypeJSON)

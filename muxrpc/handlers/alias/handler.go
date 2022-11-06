@@ -93,7 +93,7 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, err
 	}
 
-	confirmation.UserID = *userID
+	confirmation.UserID = userID
 
 	// check the signature
 	if !confirmation.Verify() {

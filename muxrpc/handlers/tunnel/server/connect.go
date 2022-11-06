@@ -46,7 +46,7 @@ func (h connectHandler) HandleConnect(ctx context.Context, edp muxrpc.Endpoint) 
 		return
 	}
 
-	h.state.Remove(*peer)
+	h.state.Remove(peer)
 }
 
 // HandleDuplex here implements the tunnel.connect behavior of the server-side. It receives incoming events
@@ -63,7 +63,7 @@ func (h connectHandler) HandleDuplex(ctx context.Context, req *muxrpc.Request, p
 	}
 	arg := args[0]
 
-	if !arg.Portal.Equal(&h.self) {
+	if !arg.Portal.Equal(h.self) {
 		return fmt.Errorf("talking to the wrong room")
 	}
 
@@ -74,29 +74,29 @@ func (h connectHandler) HandleDuplex(ctx context.Context, req *muxrpc.Request, p
 	}
 
 	// make sure they dont want to connect to themselves
-	if caller.Equal(&arg.Target) {
+	if caller.Equal(arg.Target) {
 		return fmt.Errorf("can't connect to self")
 	}
 
 	// see if we have and endpoint for the target
 	edp, has := h.state.Has(arg.Target)
 	if !has {
-		return fmt.Errorf("could not connect to:%s", arg.Target.Ref())
+		return fmt.Errorf("could not connect to:%s", arg.Target.String())
 	}
 
 	// call connect on them
 	var argWorigin connectWithOriginArg
 	argWorigin.ConnectArg = arg
-	argWorigin.Origin = *caller
+	argWorigin.Origin = caller
 
 	targetSrc, targetSnk, err := edp.Duplex(ctx, muxrpc.TypeBinary, muxrpc.Method{"tunnel", "connect"}, argWorigin)
 	if err != nil {
-		return fmt.Errorf("could not connect to:%s", arg.Target.Ref())
+		return fmt.Errorf("could not connect to:%s", arg.Target.String())
 	}
 
 	// pipe data between caller and target
 	var cpy muxrpcDuplexCopy
-	cpy.logger = kitlog.With(h.logger, "caller", caller.ShortRef(), "target", arg.Target.ShortRef())
+	cpy.logger = kitlog.With(h.logger, "caller", caller.ShortSigil(), "target", arg.Target.ShortSigil())
 	cpy.ctx, cpy.cancel = context.WithCancel(ctx)
 
 	go cpy.do(targetSnk, peerSrc)

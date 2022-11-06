@@ -110,10 +110,10 @@ func (json *aliasJSONResponder) UpdateRoomInfo(netInfo network.ServerEndpointDet
 func (json aliasJSONResponder) SendConfirmation(alias roomdb.Alias) {
 	var resp = aliasJSONResponse{
 		Status:             "successful",
-		RoomID:             json.netInfo.RoomID.Ref(),
+		RoomID:             json.netInfo.RoomID.String(),
 		MultiserverAddress: json.netInfo.MultiserverAddress(),
 		Alias:              alias.Name,
-		UserID:             alias.Feed.Ref(),
+		UserID:             alias.Feed.String(),
 		Signature:          base64.StdEncoding.EncodeToString(alias.Signature),
 	}
 	json.enc.Encode(resp)
@@ -152,9 +152,9 @@ func (html aliasHTMLResponder) SendConfirmation(alias roomdb.Alias) {
 	// construct the ssb:experimental?action=consume-alias&... uri for linking into apps
 	queryParams := url.Values{}
 	queryParams.Set("action", "consume-alias")
-	queryParams.Set("roomId", html.netInfo.RoomID.Ref())
+	queryParams.Set("roomId", html.netInfo.RoomID.String())
 	queryParams.Set("alias", alias.Name)
-	queryParams.Set("userId", alias.Feed.Ref())
+	queryParams.Set("userId", alias.Feed.String())
 	queryParams.Set("signature", base64.URLEncoding.EncodeToString(alias.Signature))
 	queryParams.Set("multiserverAddress", html.netInfo.MultiserverAddress())
 

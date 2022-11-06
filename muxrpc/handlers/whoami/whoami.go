@@ -39,5 +39,5 @@ func (h handler) HandleAsync(ctx context.Context, req *muxrpc.Request) (interfac
 		ID string `json:"id"`
 	}
 
-	return ret{h.id.Ref()}, nil
+	return ret{h.id.String()}, nil
 }

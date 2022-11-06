@@ -22,10 +22,10 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/internal/repo"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // TemplateFuncs returns a map of template functions
@@ -72,7 +72,7 @@ func NewURLTo(appRouter *mux.Router, netInfo network.ServerEndpointDetails) URLM
 			case int64:
 				params = append(params, strconv.FormatInt(v, 10))
 			case refs.FeedRef:
-				params = append(params, v.Ref())
+				params = append(params, v.String())
 			case roomdb.PinnedNoticeName:
 				params = append(params, string(v))
 			default:

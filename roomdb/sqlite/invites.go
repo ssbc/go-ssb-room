@@ -132,7 +132,7 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 		_, err = i.members.add(ctx, tx, newMember, roomdb.RoleMember)
 		var alreadyAdded roomdb.ErrAlreadyAdded
 		if err != nil {
-			if errors.As(err, &alreadyAdded) && alreadyAdded.Ref.Equal(&newMember) {
+			if errors.As(err, &alreadyAdded) && alreadyAdded.Ref.Equal(newMember) {
 				// it is fine to use an invite twice
 			} else {
 				return err
