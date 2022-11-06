@@ -92,7 +92,7 @@ func initFlags() {
 	u, err := user.Current()
 	checkFatal(err)
 
-	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key (or capability)")
+	flag.StringVar(&appKey, "shscap", "1KHLiKZvAvjbY1ziZEHMXawbCEIM6qwjCDm3VYRan/s=", "secret-handshake app-key or capability; should likely not be changed as this makes you part of a different network")
 
 	flag.StringVar(&listenAddrShsMux, "lismux", ":8008", "address to listen on for secret-handshake+muxrpc")
 	flag.StringVar(&listenAddrHTTP, "lishttp", ":3000", "address to listen on for HTTP requests")
