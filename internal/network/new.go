@@ -164,7 +164,7 @@ func (n *node) addRemote(edp muxrpc.Endpoint) {
 	if err != nil {
 		panic(err)
 	}
-	// ref := r.Ref()
+	// ref := r.String()
 	// if oldEdp, has := n.remotes[ref]; has {
 	// n.log.Log("remotes", "previous active", "ref", ref)
 	// c := client.FromEndpoint(oldEdp)

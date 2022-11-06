@@ -29,7 +29,10 @@ func TestInvites(t *testing.T) {
 	tr := repo.New(testRepo)
 
 	// fake feed for testing, looks ok at least
-	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	newMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 
 	db, err := Open(tr)
 	require.NoError(t, err)
@@ -55,7 +58,10 @@ func TestInvites(t *testing.T) {
 		r.Error(err, "can't create invite for invalid user")
 	})
 
-	invitingMember := refs.FeedRef{ID: bytes.Repeat([]byte("ohai"), 8), Algo: refs.RefAlgoFeedSSB1}
+	invitingMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("ohai"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	mid, err := db.Members.Add(ctx, invitingMember, roomdb.RoleModerator)
 	require.NoError(t, err, "failed to create test user")
 

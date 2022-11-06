@@ -68,7 +68,7 @@ func TestTunnelServerSimple(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -77,8 +77,8 @@ func TestTunnelServerSimple(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	// start testing basic room stuff
 	var meta tunserv.MetadataReply
@@ -145,11 +145,11 @@ func TestRoomAnnounce(t *testing.T) {
 
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	// let B listen for changes
 	newRoomMember, err := endpointB.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})

@@ -214,20 +214,35 @@ func TestNoticesRoleRightsEditing(t *testing.T) {
 		a.Equal(totalSaveCallCount, ts.NoticeDB.SaveCallCount(), "call count missmatch")
 	}
 
+	memKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	modKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	adminKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	memberUser := roomdb.Member{
 		ID:     7331,
 		Role:   roomdb.RoleMember,
-		PubKey: generatePubKey(),
+		PubKey: memKey,
 	}
 	modUser := roomdb.Member{
 		ID:     9001,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: modKey,
 	}
 	adminUser := roomdb.Member{
 		ID:     1337,
 		Role:   roomdb.RoleAdmin,
-		PubKey: generatePubKey(),
+		PubKey: adminKey,
 	}
 
 	/* test invite creation under various restricted mode with the roles member, mod, admin */
@@ -310,20 +325,35 @@ func TestNoticesRoleRightsAddingTranslation(t *testing.T) {
 		a.Equal(totalAddCallCount, ts.PinnedDB.SetCallCount(), "call count missmatch")
 	}
 
+	memKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	modKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	adminKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	memberUser := roomdb.Member{
 		ID:     7331,
 		Role:   roomdb.RoleMember,
-		PubKey: generatePubKey(),
+		PubKey: memKey,
 	}
 	modUser := roomdb.Member{
 		ID:     9001,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: modKey,
 	}
 	adminUser := roomdb.Member{
 		ID:     1337,
 		Role:   roomdb.RoleAdmin,
-		PubKey: generatePubKey(),
+		PubKey: adminKey,
 	}
 
 	/* test invite creation under various restricted mode with the roles member, mod, admin */

@@ -13,7 +13,7 @@ SPDX-License-Identifier: CC-BY-4.0
         class="text-center"
       >{{i18n "AdminInviteRevokeConfirmWelcome"}}</span>
 
-      {{$creator := .Invite.CreatedBy.PubKey.Ref}}
+      {{$creator := .Invite.CreatedBy.PubKey.String}}
       {{range $index, $alias := .Invite.CreatedBy.Aliases}}
         {{if eq $index 0}}
           {{$creator = $alias.Name}}

@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/internal/randutil"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestAliasResolve(t *testing.T) {
@@ -29,13 +29,14 @@ func TestAliasResolve(t *testing.T) {
 	a := assert.New(t)
 	r := require.New(t)
 
+	feed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{'F'}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	var testAlias = roomdb.Alias{
-		ID:   54321,
-		Name: "test-name",
-		Feed: refs.FeedRef{
-			ID:   bytes.Repeat([]byte{'F'}, 32),
-			Algo: "test",
-		},
+		ID:        54321,
+		Name:      "test-name",
+		Feed:      feed,
 		Signature: bytes.Repeat([]byte{'S'}, 32),
 	}
 	ts.AliasesDB.ResolveReturns(testAlias, nil)
@@ -67,11 +68,11 @@ func TestAliasResolve(t *testing.T) {
 	params := aliasURI.Query()
 	a.Equal("consume-alias", params.Get("action"))
 	a.Equal(testAlias.Name, params.Get("alias"))
-	a.Equal(testAlias.Feed.Ref(), params.Get("userId"))
+	a.Equal(testAlias.Feed.String(), params.Get("userId"))
 	sigData, err := base64.StdEncoding.DecodeString(params.Get("signature"))
 	r.NoError(err)
 	a.Equal(testAlias.Signature, sigData)
-	a.Equal(ts.NetworkInfo.RoomID.Ref(), params.Get("roomId"))
+	a.Equal(ts.NetworkInfo.RoomID.String(), params.Get("roomId"))
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), params.Get("multiserverAddress"))
 
 	// now as JSON
@@ -92,8 +93,8 @@ func TestAliasResolve(t *testing.T) {
 	sigData2, err := base64.StdEncoding.DecodeString(ar.Signature)
 	r.NoError(err)
 	a.Equal(testAlias.Signature, sigData2)
-	a.Equal(testAlias.Feed.Ref(), ar.UserID, "wrong user feed on response")
-	a.Equal(ts.NetworkInfo.RoomID.Ref(), ar.RoomID, "wrong room feed on response")
+	a.Equal(testAlias.Feed.String(), ar.UserID, "wrong user feed on response")
+	a.Equal(ts.NetworkInfo.RoomID.String(), ar.RoomID, "wrong room feed on response")
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), ar.MultiserverAddress)
 
 	/* alias resolving should not work for restricted rooms */
@@ -110,13 +111,14 @@ func TestAliasResolveOnAndroidChrome(t *testing.T) {
 	a := assert.New(t)
 	r := require.New(t)
 
+	feed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{'F'}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	var testAlias = roomdb.Alias{
-		ID:   54321,
-		Name: "test-name",
-		Feed: refs.FeedRef{
-			ID:   bytes.Repeat([]byte{'F'}, 32),
-			Algo: "test",
-		},
+		ID:        54321,
+		Name:      "test-name",
+		Feed:      feed,
 		Signature: bytes.Repeat([]byte{'S'}, 32),
 	}
 	ts.AliasesDB.ResolveReturns(testAlias, nil)
@@ -153,11 +155,11 @@ func TestAliasResolveOnAndroidChrome(t *testing.T) {
 	params := aliasURI.Query()
 	a.Equal("consume-alias", params.Get("action"))
 	a.Equal(testAlias.Name, params.Get("alias"))
-	a.Equal(testAlias.Feed.Ref(), params.Get("userId"))
+	a.Equal(testAlias.Feed.String(), params.Get("userId"))
 	sigData, err := base64.StdEncoding.DecodeString(params.Get("signature"))
 	r.NoError(err)
 	a.Equal(testAlias.Signature, sigData)
-	a.Equal(ts.NetworkInfo.RoomID.Ref(), params.Get("roomId"))
+	a.Equal(ts.NetworkInfo.RoomID.String(), params.Get("roomId"))
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), params.Get("multiserverAddress"))
 
 	frag := aliasURI.Fragment

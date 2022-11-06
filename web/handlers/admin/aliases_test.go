@@ -11,10 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
 	"github.com/ssbc/go-ssb-room/v2/web/webassert"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestAliasesRevokeConfirmation(t *testing.T) {
@@ -23,7 +23,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
-	testEntry := roomdb.Alias{ID: 666, Name: "the-test-name", Feed: *testKey}
+	testEntry := roomdb.Alias{ID: 666, Name: "the-test-name", Feed: testKey}
 	ts.AliasesDB.GetByIDReturns(testEntry, nil)
 
 	urlRevokeConfirm := ts.URLTo(router.AdminAliasesRevokeConfirm, "id", 3)
@@ -31,7 +31,7 @@ func TestAliasesRevokeConfirmation(t *testing.T) {
 	html, resp := ts.Client.GetHTML(urlRevokeConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
+	a.Equal(testKey.String(), html.Find("pre#verify").Text(), "has the key for verification")
 
 	form := html.Find("form#confirm")
 

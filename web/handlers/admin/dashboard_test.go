@@ -10,18 +10,21 @@ import (
 	"net/http"
 	"testing"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
 	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 	"github.com/stretchr/testify/assert"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestDashboardSimple(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	testRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)}
+	testRef, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	ts.RoomState.AddEndpoint(testRef, nil) // 1 online
 	ts.MembersDB.CountReturns(4, nil)      // 4 members
 	ts.InvitesDB.CountReturns(3, nil)      // 3 invites
@@ -47,15 +50,21 @@ func TestDashboardWithVisitors(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	visitorRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)}
-	memberRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{1}, 32)}
+	visitorRef, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+	memberRef, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	ts.RoomState.AddEndpoint(visitorRef, nil)
 	ts.RoomState.AddEndpoint(memberRef, nil)
 
 	ts.MembersDB.CountReturns(1, nil)
 	// return a member for the member but not for the visitor
 	ts.MembersDB.GetByFeedStub = func(ctx context.Context, r refs.FeedRef) (roomdb.Member, error) {
-		if r.Equal(&memberRef) {
+		if r.Equal(memberRef) {
 			return roomdb.Member{ID: 23, Role: roomdb.RoleMember, PubKey: r}, nil
 		}
 		return roomdb.Member{}, roomdb.ErrNotFound
@@ -73,12 +82,12 @@ func TestDashboardWithVisitors(t *testing.T) {
 	a.Equal(2, memberList.Length())
 
 	htmlVisitor := memberList.Eq(0)
-	a.Equal(visitorRef.Ref(), htmlVisitor.Text())
+	a.Equal(visitorRef.String(), htmlVisitor.Text())
 	gotLink, has := htmlVisitor.Attr("href")
 	a.False(has, "visitor should not have a link to a details page: %v", gotLink)
 
 	htmlMember := memberList.Eq(1)
-	a.Equal(memberRef.Ref(), htmlMember.Text())
+	a.Equal(memberRef.String(), htmlMember.Text())
 	gotLink, has = htmlMember.Attr("href")
 	a.True(has, "member should  have a link to a details page")
 	wantLink := ts.URLTo(router.AdminMemberDetails, "id", 23)

@@ -28,7 +28,7 @@ func TestSpoof(t *testing.T) {
 
 	ref, err := network.GetFeedRefFromAddr(wrapped.RemoteAddr())
 	r.NoError(err)
-	r.True(ref.Equal(&kp.Feed))
+	r.True(ref.Equal(kp.Feed))
 
 	wc.Close()
 	rc.Close()

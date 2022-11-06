@@ -73,7 +73,7 @@ func TestStaleMembers(t *testing.T) {
 	// restart srh
 	oldSrh := srh.feed
 	srh = ts.makeTestClient("srh")
-	r.True(oldSrh.Equal(&srh.feed))
+	r.True(oldSrh.Equal(srh.feed))
 	t.Log("restarted srh")
 
 	time.Sleep(1 * time.Second) // let server respond

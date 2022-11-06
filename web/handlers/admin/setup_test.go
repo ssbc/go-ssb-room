@@ -19,10 +19,10 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gorilla/sessions"
 	"github.com/pkg/errors"
+	refs "github.com/ssbc/go-ssb-refs"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
-	refs "github.com/ssbc/go-ssb-refs"
 
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/internal/randutil"
@@ -62,10 +62,13 @@ type testSession struct {
 
 var pubKeyCount byte
 
-func generatePubKey() refs.FeedRef {
-	pk := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{pubKeyCount}, 32)}
+func generatePubKey() (refs.FeedRef, error) {
+	pk, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{pubKeyCount}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		return refs.FeedRef{}, err
+	}
 	pubKeyCount++
-	return pk
+	return pk, nil
 }
 
 func newSession(t *testing.T) *testSession {
@@ -87,10 +90,14 @@ func newSession(t *testing.T) *testSession {
 	log, _ := logtest.KitLogger("admin", t)
 	ts.RoomState = roomstate.NewManager(log)
 
-	ts.netInfo = network.ServerEndpointDetails{
-		Domain: randutil.String(10),
-		RoomID: generatePubKey(),
+	pubKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
 
+	ts.netInfo = network.ServerEndpointDetails{
+		Domain:                 randutil.String(10),
+		RoomID:                 pubKey,
 		UseSubdomainForAliases: true,
 	}
 
@@ -108,11 +115,16 @@ func newSession(t *testing.T) *testSession {
 		return testURL
 	}
 
+	pubKey, err = generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	// fake user
 	ts.User = roomdb.Member{
 		ID:     1234,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: pubKey,
 	}
 
 	testPath := filepath.Join("testrun", t.Name())

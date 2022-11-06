@@ -16,8 +16,15 @@ import (
 
 func TestPayloadString(t *testing.T) {
 
-	server := refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "test"}
-	client := refs.FeedRef{ID: bytes.Repeat([]byte{2}, 32), Algo: "test"}
+	server, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	client, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{2}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 
 	var req ClientPayload
 
@@ -27,7 +34,7 @@ func TestPayloadString(t *testing.T) {
 	req.ServerChallenge = "fooo"
 	req.ClientChallenge = "barr"
 
-	want := "=http-auth-sign-in:@AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=.test:@AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=.test:fooo:barr"
+	want := "=http-auth-sign-in:@AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=.ed25519:@AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=.ed25519:fooo:barr"
 
 	got := req.createMessage()
 	assert.Equal(t, want, string(got))

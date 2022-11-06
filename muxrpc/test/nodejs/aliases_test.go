@@ -51,7 +51,7 @@ func TestGoServerJSClientAliases(t *testing.T) {
 	r.Equal(1, aliasesDB.RegisterCallCount(), "register call count")
 	_, name, ref, signature := aliasesDB.RegisterArgsForCall(0)
 	a.Equal("alice", name, "wrong alias registered")
-	a.Equal(alice.Ref(), ref.Ref())
+	a.Equal(alice.String(), ref.String())
 
 	var aliasReq aliases.Confirmation
 	aliasReq.Alias = name

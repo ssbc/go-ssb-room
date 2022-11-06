@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
 	"github.com/ssbc/go-ssb-room/v2/web/webassert"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestInviteShowAcceptForm(t *testing.T) {
@@ -197,13 +197,13 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	a.True(has, "should have value attribute")
 
 	// create the consume request
-	testNewMember := refs.FeedRef{
-		ID:   bytes.Repeat([]byte{1}, 32),
-		Algo: refs.RefAlgoFeedSSB1,
+	testNewMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
 	}
 	consumeVals := url.Values{
 		"invite": []string{testToken},
-		"id":     []string{testNewMember.Ref()},
+		"id":     []string{testNewMember.String()},
 
 		csrfName: []string{csrfValue},
 	}
@@ -227,7 +227,7 @@ func TestInviteConsumeInviteHTTP(t *testing.T) {
 	r.EqualValues(1, ts.InvitesDB.ConsumeCallCount())
 	_, tokenFromArg, newMemberRef := ts.InvitesDB.ConsumeArgsForCall(0)
 	a.Equal(testToken, tokenFromArg)
-	a.True(newMemberRef.Equal(&testNewMember))
+	a.True(newMemberRef.Equal(testNewMember))
 }
 
 func TestInviteConsumeInviteJSON(t *testing.T) {
@@ -266,9 +266,9 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	a.Equal(testToken, reply.Invite, "wrong invite token")
 
 	// create the consume request
-	testNewMember := refs.FeedRef{
-		ID:   bytes.Repeat([]byte{1}, 32),
-		Algo: refs.RefAlgoFeedSSB1,
+	testNewMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
 	}
 	var consume inviteConsumePayload
 	consume.Invite = testToken
@@ -285,7 +285,7 @@ func TestInviteConsumeInviteJSON(t *testing.T) {
 	r.EqualValues(1, ts.InvitesDB.ConsumeCallCount())
 	_, tokenFromArg, newMemberRef := ts.InvitesDB.ConsumeArgsForCall(0)
 	a.Equal(testToken, tokenFromArg)
-	a.True(newMemberRef.Equal(&testNewMember))
+	a.True(newMemberRef.Equal(testNewMember))
 
 	var jsonConsumeResp inviteConsumeJSONResponse
 	err = json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
@@ -312,9 +312,9 @@ func TestInviteConsumptionDenied(t *testing.T) {
 	ts.DeniedKeysDB.HasFeedReturns(true)
 
 	// create the consume request
-	testNewMember := refs.FeedRef{
-		ID:   bytes.Repeat([]byte{1}, 32),
-		Algo: refs.RefAlgoFeedSSB1,
+	testNewMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
 	}
 
 	var consume inviteConsumePayload
@@ -333,7 +333,7 @@ func TestInviteConsumptionDenied(t *testing.T) {
 
 	// decode the json response
 	var jsonConsumeResp inviteConsumeJSONResponse
-	err := json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
+	err = json.NewDecoder(resp.Body).Decode(&jsonConsumeResp)
 	r.NoError(err)
 
 	// json response should indicate an error for the denied key

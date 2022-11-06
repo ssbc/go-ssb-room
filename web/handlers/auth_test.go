@@ -15,18 +15,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/ssbc/go-muxrpc/v2"
 	"go.mindeco.de/http/auth"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
 	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 	"github.com/ssbc/go-ssb-room/v2/web/router"
 	"github.com/ssbc/go-ssb-room/v2/web/webassert"
-	refs "github.com/ssbc/go-ssb-refs"
 )
 
 func TestRestricted(t *testing.T) {
@@ -180,7 +180,10 @@ func TestFallbackAuthWorks(t *testing.T) {
 		{"title", "AdminDashboardTitle"},
 	})
 
-	testRef := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{0}, 32)}
+	testRef, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	ts.RoomState.AddEndpoint(testRef, nil)
 
 	html, resp = ts.Client.GetHTML(dashboardURL)
@@ -191,7 +194,10 @@ func TestFallbackAuthWorks(t *testing.T) {
 		{"title", "AdminDashboardTitle"},
 	})
 
-	testRef2 := refs.FeedRef{Algo: "ed25519", ID: bytes.Repeat([]byte{1}, 32)}
+	testRef2, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	ts.RoomState.AddEndpoint(testRef2, nil)
 
 	html, resp = ts.Client.GetHTML(dashboardURL)
@@ -216,7 +222,7 @@ func TestAuthWithSSBClientInitNotConnected(t *testing.T) {
 	cc := signinwithssb.GenerateChallenge()
 
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
@@ -243,7 +249,7 @@ func TestAuthWithSSBClientInitNotAllowed(t *testing.T) {
 	cc := signinwithssb.GenerateChallenge()
 
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 		"cc", cc,
 	)
 	r.NotNil(signInStartURL)
@@ -273,7 +279,7 @@ func TestAuthWithSSBClientAlternativeRoute(t *testing.T) {
 
 	loginURL := ts.URLTo(router.AuthLogin,
 		"ssb-http-auth", 1,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 		"cc", cc,
 	)
 	r.NotNil(loginURL)
@@ -352,7 +358,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	// prepare the url
 
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 		"cc", cc,
 	)
 	signInStartURL.Host = "localhost"
@@ -375,7 +381,7 @@ func TestAuthWithSSBClientInitHasClient(t *testing.T) {
 	// analyse the endpoints call
 	a.Equal(1, ts.MockedEndpoints.GetEndpointForCallCount())
 	edpRef := ts.MockedEndpoints.GetEndpointForArgsForCall(0)
-	a.Equal(client.Feed.Ref(), edpRef.Ref())
+	a.Equal(client.Feed.String(), edpRef.String())
 
 	// check the mock was called
 	a.Equal(1, edp.AsyncCallCount())
@@ -410,7 +416,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	// prepare the url
 
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 	)
 	r.NotNil(signInStartURL)
 
@@ -444,7 +450,7 @@ func TestAuthWithSSBServerInitHappyPath(t *testing.T) {
 	qry := parsedURI.Query()
 	a.Equal("start-http-auth", qry.Get("action"))
 	a.Equal(serverChallenge, qry.Get("sc"))
-	a.Equal(ts.NetworkInfo.RoomID.Ref(), qry.Get("sid"))
+	a.Equal(ts.NetworkInfo.RoomID.String(), qry.Get("sid"))
 	a.Equal(ts.NetworkInfo.MultiserverAddress(), qry.Get("multiserverAddress"))
 
 	qrCode, has := html.Find("#start-auth-qrcode").Attr("src")
@@ -511,7 +517,7 @@ func TestAuthWithSSBServerInitWrongSolution(t *testing.T) {
 
 	// prepare the url
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 	)
 	r.NotNil(signInStartURL)
 
@@ -572,7 +578,7 @@ func TestAuthWithSSBServerOnAndroidChrome(t *testing.T) {
 
 	// prepare the url
 	signInStartURL := ts.URLTo(router.AuthWithSSBLogin,
-		"cid", client.Feed.Ref(),
+		"cid", client.Feed.String(),
 	)
 	r.NotNil(signInStartURL)
 

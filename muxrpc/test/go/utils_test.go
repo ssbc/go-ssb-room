@@ -167,7 +167,7 @@ func (ts *testSession) makeTestClient(name string) testClient {
 		ts.clientKeys[name] = client
 	}
 
-	ts.t.Log(name, "is", client.Feed.ShortRef())
+	ts.t.Log(name, "is", client.Feed.ShortSigil())
 
 	// add it as a memeber, if it isnt already
 	_, err := ts.srv.Members.GetByFeed(ts.ctx, client.Feed)

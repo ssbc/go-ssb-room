@@ -27,7 +27,10 @@ func TestFallbackAuth(t *testing.T) {
 	tr := repo.New(testRepo)
 
 	// fake feed for testing, looks ok at least
-	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	newMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 
 	db, err := Open(tr)
 	r.NoError(err, "failed to open database")
@@ -40,7 +43,7 @@ func TestFallbackAuth(t *testing.T) {
 	err = db.AuthFallback.SetPassword(ctx, memberID, testPassword)
 	r.NoError(err, "failed to create password")
 
-	cookieVal, err := db.AuthFallback.Check(newMember.Ref(), string(testPassword))
+	cookieVal, err := db.AuthFallback.Check(newMember.String(), string(testPassword))
 	r.NoError(err, "failed to check password")
 	gotID, ok := cookieVal.(int64)
 	r.True(ok, "unexpected cookie value: %T", cookieVal)
@@ -74,7 +77,10 @@ func TestFallbackAuthSetPassword(t *testing.T) {
 	tr := repo.New(testRepo)
 
 	// fake feed for testing, looks ok at least
-	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	newMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 
 	db, err := Open(tr)
 	r.NoError(err, "failed to open database")
@@ -88,14 +94,14 @@ func TestFallbackAuthSetPassword(t *testing.T) {
 	r.NoError(err, "failed to set password")
 
 	// use the password
-	cookieVal, err := db.AuthFallback.Check(newMember.Ref(), string(testPassword))
+	cookieVal, err := db.AuthFallback.Check(newMember.String(), string(testPassword))
 	r.NoError(err, "failed to check password")
 	gotID, ok := cookieVal.(int64)
 	r.True(ok, "unexpected cookie value: %T", cookieVal)
 	r.Equal(memberID, gotID, "unexpected member ID value")
 
 	// use a wrong password
-	cookieVal, err = db.AuthFallback.Check(newMember.Ref(), string(testPassword)+"nope-nope-nope")
+	cookieVal, err = db.AuthFallback.Check(newMember.String(), string(testPassword)+"nope-nope-nope")
 	r.Error(err, "wrong password actually worked?!")
 	r.Nil(cookieVal)
 
@@ -105,11 +111,11 @@ func TestFallbackAuthSetPassword(t *testing.T) {
 	r.NoError(err, "failed to update password")
 
 	// now try to use old and new
-	cookieVal, err = db.AuthFallback.Check(newMember.Ref(), string(testPassword))
+	cookieVal, err = db.AuthFallback.Check(newMember.String(), string(testPassword))
 	r.Error(err, "old password actually worked?!")
 	r.Nil(cookieVal)
 
-	cookieVal, err = db.AuthFallback.Check(newMember.Ref(), string(changedTestPassword))
+	cookieVal, err = db.AuthFallback.Check(newMember.String(), string(changedTestPassword))
 	r.NoError(err, "new password didnt work")
 	gotID, ok = cookieVal.(int64)
 	r.True(ok, "unexpected cookie value: %T", cookieVal)
@@ -125,8 +131,15 @@ func TestFallbackAuthSetPasswordWithToken(t *testing.T) {
 	tr := repo.New(testRepo)
 
 	// two fake feeds for testing, looks ok at least
-	alf := refs.FeedRef{ID: bytes.Repeat([]byte("whyy"), 8), Algo: refs.RefAlgoFeedSSB1}
-	carl := refs.FeedRef{ID: bytes.Repeat([]byte("carl"), 8), Algo: refs.RefAlgoFeedSSB1}
+	alf, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("whyy"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
+
+	carl, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("carl"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 
 	db, err := Open(tr)
 	r.NoError(err, "failed to open database")
@@ -155,7 +168,7 @@ func TestFallbackAuthSetPasswordWithToken(t *testing.T) {
 	r.NoError(err, "setPassword with token failed")
 
 	// now use the new password
-	cookieVal, err := db.AuthFallback.Check(carl.Ref(), newPassword)
+	cookieVal, err := db.AuthFallback.Check(carl.String(), newPassword)
 	r.NoError(err, "new password didnt work")
 	gotID, ok := cookieVal.(int64)
 	r.True(ok, "unexpected cookie value: %T", cookieVal)

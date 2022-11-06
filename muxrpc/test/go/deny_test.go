@@ -72,7 +72,7 @@ func TestConnEstablishmentDeniedKey(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -81,8 +81,8 @@ func TestConnEstablishmentDeniedKey(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }
@@ -141,7 +141,7 @@ func TestConnEstablishmentDenyNonMembersRestrictedRoom(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B (B is not a member, and the server is restricted)")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -150,8 +150,8 @@ func TestConnEstablishmentDenyNonMembersRestrictedRoom(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }
@@ -211,7 +211,7 @@ func TestConnEstablishmentAllowNonMembersCommunityRoom(t *testing.T) {
 	r.True(has, "botB has no endpoint for the server")
 	err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	t.Log(srvWho.ID.Ref())
+	t.Log(srvWho.ID.String())
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
 	r.True(has, "botA has no endpoint for the server")
@@ -219,8 +219,8 @@ func TestConnEstablishmentAllowNonMembersCommunityRoom(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }

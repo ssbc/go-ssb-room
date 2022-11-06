@@ -121,7 +121,7 @@ func (ts *testSession) startGoServer(
 			if err != nil {
 				return nil, err
 			}
-			fname := filepath.Join("testrun", ts.t.Name(), "muxdump", ref.ShortRef())
+			fname := filepath.Join("testrun", ts.t.Name(), "muxdump", ref.ShortSigil())
 			return debug.WrapDump(fname, conn)
 		}),
 	)
@@ -135,7 +135,7 @@ func (ts *testSession) startGoServer(
 
 	srv, err := roomsrv.New(membersDB, deniedKeysDB, aliasDB, authSessionsDB, sb, fakeConfig, netInfo, opts...)
 	r.NoError(err, "failed to init tees a server")
-	ts.t.Logf("go server: %s", srv.Whoami().Ref())
+	ts.t.Logf("go server: %s", srv.Whoami().String())
 	ts.t.Cleanup(func() {
 		ts.t.Log("bot close:", srv.Close())
 	})
@@ -187,7 +187,7 @@ func (ts *testSession) startJSClient(
 		"TEST_NAME=" + name,
 		"TEST_REPO=" + cmd.Dir,
 		"TEST_PEERADDR=" + netwrap.GetAddr(peerAddr, "tcp").String(),
-		"TEST_PEERREF=" + peerRef.Ref(),
+		"TEST_PEERREF=" + peerRef.String(),
 		"TEST_SESSIONSCRIPT=" + testScript,
 		// "DEBUG=ssb:room:tunnel:*",
 	}
@@ -221,8 +221,8 @@ func (ts *testSession) startJSClient(
 
 	jsBotRef, err := refs.ParseFeedRef(pubScanner.Text())
 	r.NoError(err, "failed to get %s key from JS process")
-	ts.t.Logf("JS %s:%d %s", name, jsBotCnt, jsBotRef.Ref())
-	return *jsBotRef
+	ts.t.Logf("JS %s:%d %s", name, jsBotCnt, jsBotRef.String())
+	return jsBotRef
 }
 
 // startJSBotAsServer returns the servers public key and it's TCP port on localhost.
@@ -277,8 +277,8 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	srvRef, err := refs.ParseFeedRef(pubScanner.Text())
 	r.NoError(err, "failed to get srvRef key from JS process")
-	ts.t.Logf("JS %s: %s port: %d", name, srvRef.Ref(), port)
-	return srvRef, port
+	ts.t.Logf("JS %s: %s port: %d", name, srvRef.String(), port)
+	return &srvRef, port
 }
 
 func (ts *testSession) wait() {

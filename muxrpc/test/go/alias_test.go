@@ -104,7 +104,7 @@ func TestAliasRegister(t *testing.T) {
 
 	a.Equal(confirmation.Alias, alias.Name)
 	a.Equal(confirmation.Signature, alias.Signature)
-	a.True(confirmation.UserID.Equal(&bobsKey.Feed))
+	a.True(confirmation.UserID.Equal(bobsKey.Feed))
 
 	t.Log("alias stored")
 
@@ -183,7 +183,7 @@ func TestListAliases(t *testing.T) {
 
 	var response string
 
-	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.Ref())
+	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.String())
 	r.NoError(err)
 	a.Equal("[]", response, "initially the list of aliases should be empty")
 
@@ -191,7 +191,7 @@ func TestListAliases(t *testing.T) {
 	r.NoError(err)
 	a.NotEqual("", response, "response isn't empty")
 
-	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.Ref())
+	err = clientForServer.Async(ctx, &response, muxrpc.TypeString, muxrpc.Method{"room", "listAliases"}, bobsKey.Feed.String())
 	r.NoError(err)
 	a.Equal("[\"bob\"]", response, "new alias should be in the list")
 }

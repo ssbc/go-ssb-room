@@ -11,11 +11,11 @@ SPDX-License-Identifier: CC-BY-4.0
   >{{i18n "AdminMemberDetailsTitle"}}</h1>
 
   <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsSSBID"}}</label>
-  <p id="ssb-id" class="mb-8 font-mono font-bold tracking-wider truncate text-gray-900">{{.Member.PubKey.Ref}}</p>
+  <p id="ssb-id" class="mb-8 font-mono font-bold tracking-wider truncate text-gray-900">{{.Member.PubKey.String}}</p>
 
   <label class="mt-2 mb-1 font-bold text-gray-400 text-sm">{{i18n "AdminMemberDetailsRole"}}</label>
   {{ $user := is_logged_in }}
-  {{ $viewerIsSameAsMember := eq $user.PubKey.Ref .Member.PubKey.Ref }}
+  {{ $viewerIsSameAsMember := eq $user.PubKey.String .Member.PubKey.String }}
   {{ if member_is_elevated }}
     <details class="mb-8 self-start w-40" id="change-role">
       <summary class="px-3 py-1 rounded shadow bg-white ring-1 ring-gray-300 hover:bg-gray-100 cursor-pointer">

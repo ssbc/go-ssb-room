@@ -32,12 +32,18 @@ func TestMembers(t *testing.T) {
 	require.NoError(t, err)
 
 	// broken feed (unknown algo)
-	tf := refs.FeedRef{ID: bytes.Repeat([]byte("fooo"), 8), Algo: "nope"}
+	tf, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("fooo"), 8), "nope")
+	if err != nil {
+		r.Error(err)
+	}
 	_, err = db.Members.Add(ctx, tf, roomdb.RoleMember)
 	r.Error(err)
 
 	// looks ok at least
-	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	okFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	mid, err := db.Members.Add(ctx, okFeed, roomdb.RoleMember)
 	r.NoError(err)
 
@@ -57,7 +63,7 @@ func TestMembers(t *testing.T) {
 	r.NoError(err)
 	r.Equal(okMember.ID, mid)
 	r.Equal(okMember.Role, roomdb.RoleMember)
-	r.True(okMember.PubKey.Equal(&okFeed))
+	r.True(okMember.PubKey.Equal(okFeed))
 
 	_, yes = db.Members.GetByFeed(ctx, tf)
 	r.Error(yes)
@@ -91,7 +97,10 @@ func TestMembersUnique(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1312"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	_, err = db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.NoError(err)
 
@@ -117,7 +126,10 @@ func TestMembersByID(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1312"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	_, err = db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.NoError(err)
 
@@ -157,12 +169,18 @@ func TestMembersSetRole(t *testing.T) {
 	require.NoError(t, err)
 
 	// create two users
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1"), 32), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1"), 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	idA, err := db.Members.Add(ctx, feedA, roomdb.RoleAdmin)
 	r.NoError(err)
 	t.Log("member A:", idA)
 
-	feedB := refs.FeedRef{ID: bytes.Repeat([]byte("2"), 32), Algo: refs.RefAlgoFeedSSB1}
+	feedB, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("2"), 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	idB, err := db.Members.Add(ctx, feedB, roomdb.RoleModerator)
 	r.NoError(err)
 	t.Log("member B:", idB)
@@ -238,7 +256,10 @@ func TestMembersAliases(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1312"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	mid, err := db.Members.Add(ctx, feedA, roomdb.RoleMember)
 	r.NoError(err)
 
