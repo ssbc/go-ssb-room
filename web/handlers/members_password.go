@@ -46,10 +46,13 @@ func newMembersHandler(devMode bool, r *render.Renderer, urlTo web.URLMaker, fh 
 		}
 	} else {
 		// Init the have-i-been-pwned client for insecure password checks.
-		const storeExpiry = 1 * time.Hour
-		hibpClient := hibp.NewClient(storeExpiry)
+		httpClient := http.DefaultClient
+		httpClient.Timeout = 1 * time.Hour
 
-		mh.leakedLookup = hibpClient.Pwned.Compromised
+		hibpClient := hibp.NewClient()
+		hibpClient.SetHTTPClient(httpClient)
+
+		mh.leakedLookup = hibpClient.Compromised
 	}
 
 	return mh
