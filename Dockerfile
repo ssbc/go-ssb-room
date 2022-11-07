@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Unlicense
 
-FROM golang:1.16-alpine
+FROM golang:1.17-alpine
 
 RUN apk add --no-cache \
       build-base \

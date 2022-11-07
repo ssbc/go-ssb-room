@@ -22,7 +22,7 @@ After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special att
 
 ## Creating a build
 
-* [Download Go](https://golang.org/doc/install) & [set up your Go environment](https://golang.org/doc/install#install). You will need at least Go v1.16.
+* [Download Go](https://golang.org/doc/install) & [set up your Go environment](https://golang.org/doc/install#install). You will need at least Go v1.17.
 * Download the repository `git clone git@github.com:ssbc/go-ssb-room.git && cd go-ssb-room`
 * [Follow the development instructions](./development.md)
 * You should now have a working go-ssb-room binary! Read the HTTP Hosting section below and admin
@@ -162,6 +162,8 @@ If you installed the Debian package, you will first need to install Go to build 
 ```
 sudo apt-get install golang-go
 ```
+
+(**WARNING**: please check that `golang-go` is >= 1.17 and if not, you may need to use the [official installation documentation](https://go.dev/dl/) instead. `go-ssb-room` requires at least Go 1.17.)
 
 In a new terminal window navigate to the insert-user utility folder and compile the GO-based utility into an executable your computer can use
 
