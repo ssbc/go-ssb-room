@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-// Package aliases implements the validation and signing features of https://ssb-ngi-pointer.github.io/rooms2/#alias
+// Package aliases implements the validation and signing features of https://ssbc.github.io/rooms2/#alias
 package aliases
 
 import (
@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/crypto/ed25519"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // Registration ties an alias to the ID of the user and the RoomID it should be registered on
@@ -33,9 +33,9 @@ func (r Registration) Sign(privKey ed25519.PrivateKey) Confirmation {
 func (r Registration) createRegistrationMessage() []byte {
 	var message bytes.Buffer
 	message.WriteString("=room-alias-registration:")
-	message.WriteString(r.RoomID.Ref())
+	message.WriteString(r.RoomID.String())
 	message.WriteString(":")
-	message.WriteString(r.UserID.Ref())
+	message.WriteString(r.UserID.String())
 	message.WriteString(":")
 	message.WriteString(r.Alias)
 	return message.Bytes()

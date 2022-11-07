@@ -10,12 +10,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/netwraputil"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/internal/netwraputil"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
 )
 
 // WithUNIXSocket enables listening for muxrpc connections on a unix socket files ($repo/socket).
@@ -34,7 +34,7 @@ func (s *Server) initUnixSock() error {
 	if s.keyPair == nil {
 		return fmt.Errorf("roomsrv/unixsock: keypair is nil. please use unixSocket with LateOption")
 	}
-	spoofWrapper := netwraputil.SpoofRemoteAddress(s.keyPair.Feed.ID)
+	spoofWrapper := netwraputil.SpoofRemoteAddress(s.keyPair.Feed.PubKey())
 
 	r := repo.New(s.repoPath)
 	sockPath := r.GetPath("socket")

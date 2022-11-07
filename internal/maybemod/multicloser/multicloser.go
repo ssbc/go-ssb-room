@@ -9,7 +9,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/multierror"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/multierror"
 )
 
 type Closer struct {

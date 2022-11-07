@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"net"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 // opens the shs listener for TCP connections
@@ -37,13 +37,13 @@ func (s *Server) initNetwork() error {
 
 		// if privacy mode is restricted, deny connections from non-members
 		if pm == roomdb.ModeRestricted {
-			if _, err := s.Members.GetByFeed(s.rootCtx, *remote); err != nil {
+			if _, err := s.Members.GetByFeed(s.rootCtx, remote); err != nil {
 				return nil, fmt.Errorf("access restricted to members")
 			}
 		}
 
 		// if feed is in the deny list, deny their connection
-		if s.DeniedKeys.HasFeed(s.rootCtx, *remote) {
+		if s.DeniedKeys.HasFeed(s.rootCtx, remote) {
 			return nil, fmt.Errorf("this key has been banned")
 		}
 

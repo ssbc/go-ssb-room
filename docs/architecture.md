@@ -9,9 +9,9 @@ SPDX-License-Identifier: CC0-1.0
 ## Invite flow
 
 This implementation of Rooms 2.0 is compliant with the [Rooms 2.0
-specification](https://github.com/ssb-ngi-pointer/rooms2), but we add a few additional features
+specification](https://github.com/ssbc/rooms2), but we add a few additional features
 and pages in order to improve user experience when their SSB app does not support [SSB
-URIs](https://github.com/ssb-ngi-pointer/ssb-uri-spec).
+URIs](https://github.com/ssbc/ssb-uri-spec).
 
 A summary can be seen in the following chart:
 
@@ -25,7 +25,7 @@ in a form.
 ## Sign-in flow
 
 This implementation is compliant with [SSB HTTP
-Authentication](https://github.com/ssb-ngi-pointer/ssb-http-auth-spec), but we add a few
+Authentication](https://github.com/ssbc/ssb-http-auth-spec), but we add a few
 additional features and pages in order to improve user experience. For instance, besides
 conventional SSB HTTP Auth, we also render a QR code to sign-in with a remote SSB app (an SSB
 identity not on the device that has the browser open). We also support sign-in with

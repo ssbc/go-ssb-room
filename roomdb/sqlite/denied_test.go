@@ -12,12 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 	"github.com/stretchr/testify/require"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestDeniedKeys(t *testing.T) {
@@ -32,14 +32,20 @@ func TestDeniedKeys(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	tf := refs.FeedRef{ID: bytes.Repeat([]byte("fooo"), 8), Algo: "nope"}
+	tf, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("fooo"), 8), "nope")
+	if err != nil {
+		r.Error(err)
+	}
 	err = db.DeniedKeys.Add(ctx, tf, "wont work anyhow")
 	r.Error(err)
 
 	// looks ok at least
 	created := time.Now()
 	time.Sleep(time.Second)
-	okFeed := refs.FeedRef{ID: bytes.Repeat([]byte("b44d"), 8), Algo: refs.RefAlgoFeedSSB1}
+	okFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("b44d"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	err = db.DeniedKeys.Add(ctx, okFeed, "be gone")
 	r.NoError(err)
 
@@ -53,7 +59,7 @@ func TestDeniedKeys(t *testing.T) {
 	lst, err := db.DeniedKeys.List(ctx)
 	r.NoError(err)
 	r.Len(lst, 1)
-	r.Equal(okFeed.Ref(), lst[0].PubKey.Ref())
+	r.Equal(okFeed.String(), lst[0].PubKey.String())
 	r.Equal("be gone", lst[0].Comment)
 	r.True(lst[0].CreatedAt.After(created), "not created after the sleep?")
 
@@ -92,7 +98,10 @@ func TestDeniedKeysUnique(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("b33f"), 8), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("b33f"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	err = db.DeniedKeys.Add(ctx, feedA, "test comment")
 	r.NoError(err)
 
@@ -118,7 +127,10 @@ func TestDeniedKeysByID(t *testing.T) {
 	db, err := Open(tr)
 	require.NoError(t, err)
 
-	feedA := refs.FeedRef{ID: bytes.Repeat([]byte("b33f"), 8), Algo: refs.RefAlgoFeedSSB1}
+	feedA, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("b33f"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		r.Error(err)
+	}
 	err = db.DeniedKeys.Add(ctx, feedA, "nope")
 	r.NoError(err)
 

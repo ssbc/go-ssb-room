@@ -12,7 +12,7 @@ import (
 
 	"golang.org/x/crypto/ed25519"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // sign-in with ssb uses 256-bit nonces
@@ -54,9 +54,9 @@ type ClientPayload struct {
 func (cr ClientPayload) createMessage() []byte {
 	var msg bytes.Buffer
 	msg.WriteString("=http-auth-sign-in:")
-	msg.WriteString(cr.ServerID.Ref())
+	msg.WriteString(cr.ServerID.String())
 	msg.WriteString(":")
-	msg.WriteString(cr.ClientID.Ref())
+	msg.WriteString(cr.ClientID.String())
 	msg.WriteString(":")
 	msg.WriteString(cr.ServerChallenge)
 	msg.WriteString(":")

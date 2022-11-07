@@ -69,8 +69,8 @@ go generate ./...
 cd cmd/server && go build && ./server -htts-domain=my.room.example
 ```
 
-
 ## Tooling
+
 ### Mocks
 
 [`counterfeiter`](https://github.com/maxbrunsfeld/counterfeiter) enables generating mocks for defined interfaces. To update the mocks, run `go generate` in package roomdb.
@@ -126,7 +126,7 @@ See the [testing.md](./testing.md) for a thorough walkthorugh of the different t
 
 ## Release packaging
 
-Because of [issue #79](https://github.com/ssb-ngi-pointer/go-ssb-room/issues/79) we can't simply create binaries for all platforms independantly. Therefore binaries for re-distributions need to be created on the relevant distributions themselvs. We currently do this for debian. The process is as follows:
+Because of [issue #79](https://github.com/ssbc/go-ssb-room/issues/79) we can't simply create binaries for all platforms independantly. Therefore binaries for re-distributions need to be created on the relevant distributions themselvs. We currently do this for debian. The process is as follows:
 
 1) Install a recent debian stable version onto a dedicated machine or VM for instance (docker might also be possible).
 2) Install [Go](https://golang.org/doc/install).

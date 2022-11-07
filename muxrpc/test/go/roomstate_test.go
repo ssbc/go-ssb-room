@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
 )
 
 // peers not on the members list can't connect
@@ -73,7 +73,7 @@ func TestStaleMembers(t *testing.T) {
 	// restart srh
 	oldSrh := srh.feed
 	srh = ts.makeTestClient("srh")
-	r.True(oldSrh.Equal(&srh.feed))
+	r.True(oldSrh.Equal(srh.feed))
 	t.Log("restarted srh")
 
 	time.Sleep(1 * time.Second) // let server respond

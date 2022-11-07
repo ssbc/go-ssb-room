@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Unlicense
 
-module github.com/ssb-ngi-pointer/go-ssb-room/v2
+module github.com/ssbc/go-ssb-room/v2
 
 go 1.16
 
@@ -20,30 +20,29 @@ require (
 	github.com/mattevans/pwned-passwords v0.3.0
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.3.0
-	github.com/mileusna/useragent v1.0.2 // indirect
+	github.com/mileusna/useragent v1.0.2
 	github.com/nicksnyder/go-i18n/v2 v2.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.7.0
+	github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221020091224-b09bdf60812f
+	github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d
+	github.com/ssbc/go-secretstream v1.2.11-0.20221019175226-fa042d4912fe
+	github.com/ssbc/go-ssb-refs v0.5.2-0.20221019090322-8b558c2f31de
+	github.com/stretchr/testify v1.8.0
 	github.com/throttled/throttled/v2 v2.7.1
 	github.com/unrolled/secure v1.0.8
 	github.com/vcraescu/go-paginator/v2 v2.0.0
 	github.com/volatiletech/sqlboiler/v4 v4.5.0
 	github.com/volatiletech/strmangle v0.0.1
-	go.cryptoscope.co/muxrpc/v2 v2.0.6
-	go.cryptoscope.co/netwrap v0.1.1
 	go.cryptoscope.co/nocomment v0.0.0-20210520094614-fb744e81f810
-	go.cryptoscope.co/secretstream v1.2.8
 	go.mindeco.de v1.12.0
-	go.mindeco.de/ssb-refs v0.2.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.5
 	golang.org/x/tools v0.1.1
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79

@@ -15,17 +15,17 @@ import (
 	"go.mindeco.de/http/tester"
 	"go.mindeco.de/logging/logtest"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network/mocked"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomstate"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n/i18ntesting"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/network/mocked"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssbc/go-ssb-room/v2/roomstate"
+	"github.com/ssbc/go-ssb-room/v2/web"
+	"github.com/ssbc/go-ssb-room/v2/web/i18n/i18ntesting"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
 )
 
 type testSession struct {
@@ -86,16 +86,16 @@ func setup(t *testing.T) *testSession {
 
 	ts.MockedEndpoints = new(mocked.FakeEndpoints)
 
+	roomID, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("test"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	ts.NetworkInfo = network.ServerEndpointDetails{
-		Domain:    "localhost",
-		PortHTTPS: 443,
-
+		Domain:              "localhost",
+		PortHTTPS:           443,
 		ListenAddressMUXRPC: ":8008",
-
-		RoomID: refs.FeedRef{
-			ID:   bytes.Repeat([]byte("test"), 8),
-			Algo: refs.RefAlgoFeedSSB1,
-		},
+		RoomID:              roomID,
 	}
 
 	log, _ := logtest.KitLogger("complete", t)

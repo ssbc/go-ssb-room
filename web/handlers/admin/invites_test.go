@@ -14,9 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 )
 
 func TestInvitesOverview(t *testing.T) {
@@ -218,20 +218,35 @@ func TestInvitesCreateAndRevoke(t *testing.T) {
 	shownLink := doc.Find("#invite-facade-link").Text()
 	a.Equal(wantURL.String(), shownLink)
 
+	memKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	modKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	adminKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	memberUser := roomdb.Member{
 		ID:     7331,
 		Role:   roomdb.RoleMember,
-		PubKey: generatePubKey(),
+		PubKey: memKey,
 	}
 	modUser := roomdb.Member{
 		ID:     9001,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: modKey,
 	}
 	adminUser := roomdb.Member{
 		ID:     1337,
 		Role:   roomdb.RoleAdmin,
-		PubKey: generatePubKey(),
+		PubKey: adminKey,
 	}
 
 	/* test invite creation under various restricted mode with the roles member, mod, admin */

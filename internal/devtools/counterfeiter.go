@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
+//go:build tools
 // +build tools
 
 package devtools

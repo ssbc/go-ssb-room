@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 
+	"github.com/ssbc/go-muxrpc/v2"
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 // This test denies connections for keys that have been added to the deny list database, DeniedKeys.
@@ -72,7 +72,7 @@ func TestConnEstablishmentDeniedKey(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -81,8 +81,8 @@ func TestConnEstablishmentDeniedKey(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }
@@ -141,7 +141,7 @@ func TestConnEstablishmentDenyNonMembersRestrictedRoom(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B (B is not a member, and the server is restricted)")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -150,8 +150,8 @@ func TestConnEstablishmentDenyNonMembersRestrictedRoom(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }
@@ -211,7 +211,7 @@ func TestConnEstablishmentAllowNonMembersCommunityRoom(t *testing.T) {
 	r.True(has, "botB has no endpoint for the server")
 	err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	t.Log(srvWho.ID.Ref())
+	t.Log(srvWho.ID.String())
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
 	r.True(has, "botA has no endpoint for the server")
@@ -219,8 +219,8 @@ func TestConnEstablishmentAllowNonMembersCommunityRoom(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	cancel()
 }

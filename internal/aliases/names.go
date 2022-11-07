@@ -5,7 +5,7 @@
 package aliases
 
 // IsValid decides whether an alias is okay for use or not.
-// The room spec defines it as _labels valid under RFC 1035_ ( https://ssb-ngi-pointer.github.io/rooms2/#alias-string )
+// The room spec defines it as _labels valid under RFC 1035_ ( https://ssbc.github.io/rooms2/#alias-string )
 // but that can be mostly any string since DNS is a 8bit binary protocol,
 // as long as it's shorter then 63 charachters.
 //

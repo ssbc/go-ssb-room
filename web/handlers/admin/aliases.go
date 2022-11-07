@@ -12,9 +12,9 @@ import (
 	"github.com/gorilla/csrf"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/members"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/members"
 )
 
 // aliasesHandler implements the managment endpoints for aliases (list and revoke),
@@ -90,7 +90,7 @@ func (h aliasesHandler) revoke(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// ensure own alias or admin
-	if !aliasEntry.Feed.Equal(&currentMember.PubKey) && currentMember.Role != roomdb.RoleAdmin {
+	if !aliasEntry.Feed.Equal(currentMember.PubKey) && currentMember.Role != roomdb.RoleAdmin {
 		err := weberrors.ErrForbidden{Details: fmt.Errorf("not your alias or not an admin")}
 		h.flashes.AddError(rw, req, err)
 		return

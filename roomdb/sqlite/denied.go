@@ -14,9 +14,9 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -30,7 +30,7 @@ type DeniedKeys struct {
 // Add adds the feed to the list.
 func (dk DeniedKeys) Add(ctx context.Context, a refs.FeedRef, comment string) error {
 	// TODO: better valid
-	if _, err := refs.ParseFeedRef(a.Ref()); err != nil {
+	if _, err := refs.ParseFeedRef(a.String()); err != nil {
 		return err
 	}
 
@@ -53,7 +53,7 @@ func (dk DeniedKeys) Add(ctx context.Context, a refs.FeedRef, comment string) er
 
 // HasFeed returns true if a feed is on the list.
 func (dk DeniedKeys) HasFeed(ctx context.Context, h refs.FeedRef) bool {
-	_, err := models.DeniedKeys(qm.Where("pub_key = ?", h.Ref())).One(ctx, dk.db)
+	_, err := models.DeniedKeys(qm.Where("pub_key = ?", h.String())).One(ctx, dk.db)
 	if err != nil {
 		return false
 	}
@@ -116,7 +116,7 @@ func (dk DeniedKeys) Count(ctx context.Context) (uint, error) {
 
 // RemoveFeed removes the feed from the list.
 func (dk DeniedKeys) RemoveFeed(ctx context.Context, r refs.FeedRef) error {
-	entry, err := models.DeniedKeys(qm.Where("pub_key = ?", r.Ref())).One(ctx, dk.db)
+	entry, err := models.DeniedKeys(qm.Where("pub_key = ?", r.String())).One(ctx, dk.db)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return roomdb.ErrNotFound

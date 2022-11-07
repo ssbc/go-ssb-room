@@ -11,14 +11,14 @@ import (
 	"fmt"
 	"strings"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	validate "github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	validate "github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 // Handler implements the muxrpc methods for the "Sign-in with SSB" calls. SendSolution and InvalidateAllSolutions.
@@ -64,7 +64,7 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 		return nil, err
 	}
 
-	member, err := h.members.GetByFeed(ctx, *clientID)
+	member, err := h.members.GetByFeed(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("client is not a room member")
 	}
@@ -81,7 +81,7 @@ func (h Handler) SendSolution(ctx context.Context, req *muxrpc.Request) (interfa
 	var payload validate.ClientPayload
 	payload.ServerID = h.self
 	payload.ServerChallenge = params[0]
-	payload.ClientID = *clientID
+	payload.ClientID = clientID
 	payload.ClientChallenge = params[1]
 
 	sig, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(params[2], ".sig.ed25519"))
@@ -120,7 +120,7 @@ func (h Handler) InvalidateAllSolutions(ctx context.Context, req *muxrpc.Request
 	}
 
 	// lookup the member
-	member, err := h.members.GetByFeed(ctx, *clientID)
+	member, err := h.members.GetByFeed(ctx, clientID)
 	if err != nil {
 		return nil, err
 	}

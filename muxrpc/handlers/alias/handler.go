@@ -13,14 +13,14 @@ import (
 	"fmt"
 	"strings"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/aliases"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
 )
 
 // Handler implements the muxrpc methods for alias registration and recvocation
@@ -93,7 +93,7 @@ func (h Handler) Register(ctx context.Context, req *muxrpc.Request) (interface{}
 		return nil, err
 	}
 
-	confirmation.UserID = *userID
+	confirmation.UserID = userID
 
 	// check the signature
 	if !confirmation.Verify() {

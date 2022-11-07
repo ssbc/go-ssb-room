@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 type announcements map[string]struct{}
@@ -54,7 +54,7 @@ func TestEndpointClients(t *testing.T) {
 	go logEndpointsStream(ts, carlEndpointsSrc, "carl", announcementsForCarl)
 	time.Sleep(1 * time.Second) // give some time to process new events
 
-	_, seen := announcementsForCarl[carl.feed.Ref()]
+	_, seen := announcementsForCarl[carl.feed.String()]
 	a.True(seen, "carl saw himself")
 
 	// let alf join the room
@@ -66,13 +66,13 @@ func TestEndpointClients(t *testing.T) {
 	time.Sleep(1 * time.Second) // give some time to process new events
 
 	// assert what alf saw
-	_, seen = announcementsForAlf[carl.feed.Ref()]
+	_, seen = announcementsForAlf[carl.feed.String()]
 	a.True(seen, "alf saw carl")
-	_, seen = announcementsForAlf[alf.feed.Ref()]
+	_, seen = announcementsForAlf[alf.feed.String()]
 	a.True(seen, "alf saw himself")
 
 	// assert what carl saw
-	_, seen = announcementsForCarl[alf.feed.Ref()]
+	_, seen = announcementsForCarl[alf.feed.String()]
 	a.True(seen, "carl saw alf")
 
 	// let bre join the room
@@ -85,17 +85,17 @@ func TestEndpointClients(t *testing.T) {
 	time.Sleep(1 * time.Second) // give some time to process new events
 
 	// assert bre saw the other two and herself
-	_, seen = announcementsForBre[carl.feed.Ref()]
+	_, seen = announcementsForBre[carl.feed.String()]
 	a.True(seen, "bre saw carl")
-	_, seen = announcementsForBre[alf.feed.Ref()]
+	_, seen = announcementsForBre[alf.feed.String()]
 	a.True(seen, "bre saw alf")
-	_, seen = announcementsForBre[bre.feed.Ref()]
+	_, seen = announcementsForBre[bre.feed.String()]
 	a.True(seen, "bre saw herself")
 
 	// assert the others saw bre
-	_, seen = announcementsForAlf[bre.feed.Ref()]
+	_, seen = announcementsForAlf[bre.feed.String()]
 	a.True(seen, "alf saw bre")
-	_, seen = announcementsForCarl[bre.feed.Ref()]
+	_, seen = announcementsForCarl[bre.feed.String()]
 	a.True(seen, "carl saw bre")
 
 	// terminate server and the clients
@@ -127,10 +127,10 @@ func logEndpointsStream(ts *testSession, src *muxrpc.ByteSource, who string, a a
 		}
 		ts.t.Log(who, "got endpoints:", len(edps))
 		for i, f := range edps {
-			ts.t.Log(who, ":", i, f.ShortRef())
+			ts.t.Log(who, ":", i, f.ShortSigil())
 
 			// mark as f is present
-			a[f.Ref()] = struct{}{}
+			a[f.String()] = struct{}{}
 		}
 	}
 

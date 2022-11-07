@@ -8,8 +8,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestSpoof(t *testing.T) {
 
 	ref, err := network.GetFeedRefFromAddr(wrapped.RemoteAddr())
 	r.NoError(err)
-	r.True(ref.Equal(&kp.Feed))
+	r.True(ref.Equal(kp.Feed))
 
 	wc.Close()
 	rc.Close()

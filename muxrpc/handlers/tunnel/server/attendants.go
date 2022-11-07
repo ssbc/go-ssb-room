@@ -10,10 +10,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
+	"github.com/ssbc/go-muxrpc/v2"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 // AttendantsUpdate is emitted if a single member joins or leaves.
@@ -43,14 +43,14 @@ func (h *Handler) attendants(ctx context.Context, req *muxrpc.Request, snk *muxr
 	}
 
 	if pm == roomdb.ModeCommunity || pm == roomdb.ModeRestricted {
-		_, err := h.membersdb.GetByFeed(ctx, *peer)
+		_, err := h.membersdb.GetByFeed(ctx, peer)
 		if err != nil {
 			return fmt.Errorf("external user are not allowed to enumerate members")
 		}
 	}
 
 	// add peer to the state
-	h.state.AddEndpoint(*peer, req.Endpoint())
+	h.state.AddEndpoint(peer, req.Endpoint())
 
 	// send the current state
 	snk.SetEncoding(muxrpc.TypeJSON)

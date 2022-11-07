@@ -13,9 +13,9 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite/models"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -82,7 +82,7 @@ func (a Aliases) List(ctx context.Context) ([]roomdb.Alias, error) {
 func (a Aliases) Register(ctx context.Context, alias string, userFeed refs.FeedRef, signature []byte) error {
 	return transact(a.db, func(tx *sql.Tx) error {
 		// check we have a members entry for the feed and load it to get its ID
-		memberEntry, err := models.Members(qm.Where("pub_key = ?", userFeed.Ref())).One(ctx, tx)
+		memberEntry, err := models.Members(qm.Where("pub_key = ?", userFeed.String())).One(ctx, tx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return roomdb.ErrNotFound

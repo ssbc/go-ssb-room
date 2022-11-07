@@ -13,11 +13,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-muxrpc/v2"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 // this tests the new room.attendants call
@@ -55,7 +55,7 @@ func TestRoomAttendants(t *testing.T) {
 	decodeJSONsrc(t, carlsSource, &initState)
 	a.Equal("state", initState.Type)
 	a.Len(initState.IDs, 1)
-	a.True(initState.IDs[0].Equal(&carl.feed))
+	a.True(initState.IDs[0].Equal(carl.feed))
 
 	announcementsForCarl := make(announcements)
 	go logAttendantsStream(ts, carlsSource, "carl", announcementsForCarl)
@@ -85,7 +85,7 @@ func TestRoomAttendants(t *testing.T) {
 	a.Len(announcementsForAlf, 0, "none yet")
 
 	// assert what carl saw
-	_, seen = announcementsForCarl[alf.feed.Ref()]
+	_, seen = announcementsForCarl[alf.feed.String()]
 	a.True(seen, "carl saw alf")
 
 	// let bre join the room
@@ -109,10 +109,10 @@ func TestRoomAttendants(t *testing.T) {
 	a.Len(announcementsForBre, 0, "none yet")
 
 	//  the two present people saw her
-	_, seen = announcementsForAlf[bre.feed.Ref()]
+	_, seen = announcementsForAlf[bre.feed.String()]
 	a.True(seen, "alf saw bre")
 
-	_, seen = announcementsForCarl[bre.feed.Ref()]
+	_, seen = announcementsForCarl[bre.feed.String()]
 	a.True(seen, "carl saw alf")
 
 	// shutdown alf first
@@ -122,10 +122,10 @@ func TestRoomAttendants(t *testing.T) {
 
 	// bre and arl should have removed him
 
-	_, seen = announcementsForBre[alf.feed.Ref()]
+	_, seen = announcementsForBre[alf.feed.String()]
 	a.False(seen, "alf should be gone for bre")
 
-	_, seen = announcementsForCarl[alf.feed.Ref()]
+	_, seen = announcementsForCarl[alf.feed.String()]
 	a.False(seen, "alf should be gone for carl")
 
 	// terminate server and the clients
@@ -143,12 +143,12 @@ func TestRoomAttendants(t *testing.T) {
 func assertListContains(t *testing.T, lst []refs.FeedRef, who refs.FeedRef) {
 	var found = false
 	for _, feed := range lst {
-		if feed.Equal(&who) {
+		if feed.Equal(who) {
 			found = true
 		}
 	}
 	if !found {
-		t.Errorf("did not find %s in list of %d", who.ShortRef(), len(lst))
+		t.Errorf("did not find %s in list of %d", who.ShortSigil(), len(lst))
 	}
 }
 
@@ -176,13 +176,13 @@ func logAttendantsStream(ts *testSession, src *muxrpc.ByteSource, who string, a 
 		if err != nil {
 			panic(err)
 		}
-		ts.t.Log(who, "got an update:", update.Type, update.ID.ShortRef())
+		ts.t.Log(who, "got an update:", update.Type, update.ID.ShortSigil())
 
 		switch update.Type {
 		case "joined":
-			a[update.ID.Ref()] = struct{}{}
+			a[update.ID.String()] = struct{}{}
 		case "left":
-			delete(a, update.ID.Ref())
+			delete(a, update.ID.String())
 		default:
 			ts.t.Fatalf("%s: unexpected update type: %v", who, update.Type)
 		}

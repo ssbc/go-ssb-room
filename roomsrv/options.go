@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"go.cryptoscope.co/netwrap"
+	"github.com/ssbc/go-netwrap"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
 	kitlog "go.mindeco.de/log"
 )
 

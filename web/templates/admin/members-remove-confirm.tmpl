@@ -16,7 +16,7 @@ SPDX-License-Identifier: CC-BY-4.0
       <pre
         id="verify"
         class="my-4 font-mono truncate max-w-full text-lg text-gray-700"
-      >{{.Entry.PubKey.Ref}}</pre>
+      >{{.Entry.PubKey.String}}</pre>
 
       <form id="confirm" action="{{urlTo "admin:members:remove"}}" method="POST">
         {{ .csrfField }}

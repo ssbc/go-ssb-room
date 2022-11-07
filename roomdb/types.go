@@ -11,7 +11,7 @@ import (
 	"sort"
 	"time"
 
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
 )
 
 // ErrNotFound is returned by the admin db if an object couldn't be found.
@@ -169,7 +169,7 @@ type ErrAlreadyAdded struct {
 }
 
 func (aa ErrAlreadyAdded) Error() string {
-	return fmt.Sprintf("roomdb: the item (%s) is already on the list", aa.Ref.Ref())
+	return fmt.Sprintf("roomdb: the item (%s) is already on the list", aa.Ref.PubKey())
 }
 
 // Invite is a combination of an invite id, who created it and when.
@@ -205,14 +205,14 @@ func (r *DBFeedRef) Scan(src interface{}) error {
 		return err
 	}
 
-	r.FeedRef = *fr
+	r.FeedRef = fr
 	return nil
 }
 
 // Value returns feed references as strings to the database.
 // https://pkg.go.dev/database/sql/driver#Valuer
 func (r DBFeedRef) Value() (driver.Value, error) {
-	return driver.Value(r.Ref()), nil
+	return driver.Value(r.String()), nil
 }
 
 // PinnedNoticeName holds a name of a well known part of the page with a fixed location.

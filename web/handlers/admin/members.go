@@ -14,13 +14,13 @@ import (
 	"github.com/gorilla/csrf"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/members"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/members"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
 )
 
 type membersHandler struct {
@@ -59,7 +59,7 @@ func (h membersHandler) add(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = h.db.Add(req.Context(), *newEntryParsed, roomdb.RoleMember)
+	_, err = h.db.Add(req.Context(), newEntryParsed, roomdb.RoleMember)
 	if err != nil {
 		h.flashes.AddError(w, req, err)
 		return

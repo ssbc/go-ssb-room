@@ -14,10 +14,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 )
 
 func TestDeniedKeysEmpty(t *testing.T) {
@@ -91,7 +91,7 @@ func TestDeniedKeysAddDisabledInterface(t *testing.T) {
 			// require call count to not panic
 			r.Equal(totalAddCallCount, ts.DeniedKeysDB.AddCallCount())
 			_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(totalAddCallCount - 1)
-			a.Equal(newKey, addedKey.Ref())
+			a.Equal(newKey, addedKey.String())
 			a.Equal("some comment", addedComment)
 		} else {
 			r.Equal(totalAddCallCount, ts.DeniedKeysDB.AddCallCount())
@@ -191,7 +191,7 @@ func TestDeniedKeysAdd(t *testing.T) {
 
 	a.Equal(1, ts.DeniedKeysDB.AddCallCount())
 	_, addedKey, addedComment := ts.DeniedKeysDB.AddArgsForCall(0)
-	a.Equal(newKey, addedKey.Ref())
+	a.Equal(newKey, addedKey.String())
 	a.Equal("some comment", addedComment)
 }
 
@@ -223,10 +223,25 @@ func TestDeniedKeys(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
+	fakeFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oneThreeOneTwoFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1312"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	acabFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	lst := []roomdb.ListEntry{
-		{ID: 1, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
-		{ID: 2, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
-		{ID: 3, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
+		{ID: 1, PubKey: fakeFeed},
+		{ID: 2, PubKey: oneThreeOneTwoFeed},
+		{ID: 3, PubKey: acabFeed},
 	}
 	ts.DeniedKeysDB.ListReturns(lst, nil)
 
@@ -243,8 +258,12 @@ func TestDeniedKeys(t *testing.T) {
 
 	a.EqualValues(html.Find("#theList li").Length(), 3)
 
+	feed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 	lst = []roomdb.ListEntry{
-		{ID: 666, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
+		{ID: 666, PubKey: feed},
 	}
 	ts.DeniedKeysDB.ListReturns(lst, nil)
 
@@ -273,7 +292,7 @@ func TestDeniedKeysRemoveConfirmation(t *testing.T) {
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
-	testEntry := roomdb.ListEntry{ID: 666, PubKey: *testKey}
+	testEntry := roomdb.ListEntry{ID: 666, PubKey: testKey}
 	ts.DeniedKeysDB.GetByIDReturns(testEntry, nil)
 
 	urlRemoveConfirm := ts.URLTo(router.AdminDeniedKeysRemoveConfirm, "id", 3)
@@ -281,7 +300,7 @@ func TestDeniedKeysRemoveConfirmation(t *testing.T) {
 	html, resp := ts.Client.GetHTML(urlRemoveConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
+	a.Equal(testKey.String(), html.Find("pre#verify").Text(), "has the key for verification")
 
 	form := html.Find("form#confirm")
 
@@ -333,8 +352,12 @@ func TestDeniedKeysRemovalRights(t *testing.T) {
 	ts := newSession(t)
 
 	// check disabled remove button on list page
+	pubKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
 	ts.DeniedKeysDB.ListReturns([]roomdb.ListEntry{
-		{ID: 666, PubKey: generatePubKey(), Comment: "test-entry"},
+		{ID: 666, PubKey: pubKey, Comment: "test-entry"},
 	}, nil)
 
 	urlRemoveConfirm := ts.URLTo(router.AdminDeniedKeysRemoveConfirm, "id", "666").String()
@@ -382,21 +405,36 @@ func TestDeniedKeysRemovalRights(t *testing.T) {
 		}
 	}
 
+	memKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	modKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	adminKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	// the users who will execute the action
 	memberUser := roomdb.Member{
 		ID:     7331,
 		Role:   roomdb.RoleMember,
-		PubKey: generatePubKey(),
+		PubKey: memKey,
 	}
 	modUser := roomdb.Member{
 		ID:     9001,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: modKey,
 	}
 	adminUser := roomdb.Member{
 		ID:     1337,
 		Role:   roomdb.RoleAdmin,
-		PubKey: generatePubKey(),
+		PubKey: adminKey,
 	}
 
 	/* test various restricted mode with the roles member, mod, admin */

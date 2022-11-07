@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/aliases"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssbc/go-ssb-room/v2/internal/aliases"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/mockdb"
 )
 
 func TestGoServerJSClientAliases(t *testing.T) {
@@ -51,7 +51,7 @@ func TestGoServerJSClientAliases(t *testing.T) {
 	r.Equal(1, aliasesDB.RegisterCallCount(), "register call count")
 	_, name, ref, signature := aliasesDB.RegisterArgsForCall(0)
 	a.Equal("alice", name, "wrong alias registered")
-	a.Equal(alice.Ref(), ref.Ref())
+	a.Equal(alice.String(), ref.String())
 
 	var aliasReq aliases.Confirmation
 	aliasReq.Alias = name

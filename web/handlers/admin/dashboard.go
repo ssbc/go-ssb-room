@@ -10,15 +10,15 @@ import (
 	"net/http"
 	"time"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"go.mindeco.de/http/render"
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
-	refs "go.mindeco.de/ssb-refs"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomstate"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomstate"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
 )
 
 type dashboardHandler struct {
@@ -34,7 +34,7 @@ func (h dashboardHandler) overview(w http.ResponseWriter, req *http.Request) (in
 	var (
 		err     error
 		ctx     = req.Context()
-		roomRef = h.netInfo.RoomID.Ref()
+		roomRef = h.netInfo.RoomID.String()
 
 		onlineRefs   []refs.FeedRef
 		refsUpdateCh = make(chan []refs.FeedRef)
@@ -116,5 +116,5 @@ func (dm connectedUser) String() string {
 	if len(dm.Aliases) > 0 {
 		return dm.Aliases[0].Name
 	}
-	return dm.PubKey.Ref()
+	return dm.PubKey.String()
 }

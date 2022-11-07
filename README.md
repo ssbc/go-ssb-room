@@ -5,12 +5,12 @@ SPDX-License-Identifier: CC0-1.0
 -->
 
 # Go-SSB Room
-[![REUSE status](https://api.reuse.software/badge/github.com/ssb-ngi-pointer/go-ssb-room)](https://api.reuse.software/info/github.com/ssb-ngi-pointer/go-ssb-room)
+[![REUSE status](https://api.reuse.software/badge/github.com/ssbc/go-ssb-room)](https://api.reuse.software/info/github.com/ssbc/go-ssb-room)
 
 This repository implements the [Room (v1+v2) server spec](https://github.com/ssbc/rooms2), in Go.
 
 It includes:
-* secret-handshake+boxstream network transport, sometimes referred to as SHS, using [secretstream](https://github.com/cryptoscope/secretstream)
+* secret-handshake+boxstream network transport, sometimes referred to as SHS, using [secretstream](https://github.com/ssbc/go-secretstream)
 * muxrpc handlers for tunneling connections
 * a fully embedded HTTP server & HTML frontend, for administering the room
 
@@ -45,4 +45,3 @@ For an in-depth codebase walkthrough, see the [development.md](./docs/developmen
 ## License
 
 MIT
-

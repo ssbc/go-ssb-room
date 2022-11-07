@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
+	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/stretchr/testify/assert"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 func TestMultiserverAddress(t *testing.T) {
@@ -21,10 +21,11 @@ func TestMultiserverAddress(t *testing.T) {
 	sed.Domain = "the.ho.st"
 	sed.ListenAddressMUXRPC = ":8008"
 
-	sed.RoomID = refs.FeedRef{
-		ID:   bytes.Repeat([]byte("ohai"), 8),
-		Algo: "doesnt-matter", // not part of msaddr v1
+	roomID, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("ohai"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
 	}
+	sed.RoomID = roomID
 
 	gotMultiAddr := sed.MultiserverAddress()
 

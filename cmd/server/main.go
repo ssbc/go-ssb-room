@@ -26,21 +26,21 @@ import (
 	_ "net/http/pprof"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/ssbc/go-muxrpc/v2/debug"
 	"github.com/throttled/throttled/v2"
 	"github.com/throttled/throttled/v2/store/memstore"
 	"github.com/unrolled/secure"
-	"go.cryptoscope.co/muxrpc/v2/debug"
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/sqlite"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
-	mksrv "github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/handlers"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite"
+	"github.com/ssbc/go-ssb-room/v2/roomsrv"
+	mksrv "github.com/ssbc/go-ssb-room/v2/roomsrv"
+	"github.com/ssbc/go-ssb-room/v2/web/handlers"
 )
 
 // Version and Build are set by ldflags
@@ -375,7 +375,7 @@ func runroomsrv() error {
 	// all init was successfull
 	level.Info(log).Log(
 		"event", "serving",
-		"ID", roomsrv.Whoami().Ref(),
+		"ID", roomsrv.Whoami().String(),
 		"shsmuxaddr", listenAddrShsMux,
 		"httpaddr", listenAddrHTTP,
 		"version", version, "commit", commit,

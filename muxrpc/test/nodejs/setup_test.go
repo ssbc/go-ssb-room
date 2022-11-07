@@ -21,20 +21,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2/debug"
+	"github.com/ssbc/go-netwrap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2/debug"
-	"go.cryptoscope.co/netwrap"
 	"go.mindeco.de/log"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/testutils"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/signinwithssb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomsrv"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/testutils"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/signinwithssb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/mockdb"
+	"github.com/ssbc/go-ssb-room/v2/roomsrv"
 )
 
 func init() {
@@ -121,7 +121,7 @@ func (ts *testSession) startGoServer(
 			if err != nil {
 				return nil, err
 			}
-			fname := filepath.Join("testrun", ts.t.Name(), "muxdump", ref.ShortRef())
+			fname := filepath.Join("testrun", ts.t.Name(), "muxdump", ref.ShortSigil())
 			return debug.WrapDump(fname, conn)
 		}),
 	)
@@ -135,7 +135,7 @@ func (ts *testSession) startGoServer(
 
 	srv, err := roomsrv.New(membersDB, deniedKeysDB, aliasDB, authSessionsDB, sb, fakeConfig, netInfo, opts...)
 	r.NoError(err, "failed to init tees a server")
-	ts.t.Logf("go server: %s", srv.Whoami().Ref())
+	ts.t.Logf("go server: %s", srv.Whoami().String())
 	ts.t.Cleanup(func() {
 		ts.t.Log("bot close:", srv.Close())
 	})
@@ -143,7 +143,7 @@ func (ts *testSession) startGoServer(
 	ts.done.Go(func() error {
 		err := srv.Network.Serve(ts.ctx)
 		// if the muxrpc protocol fucks up by e.g. unpacking body data into a header, this type of error will be surfaced here and look scary in the test output
-		// example: https://github.com/ssb-ngi-pointer/go-ssb-room/pull/85#issuecomment-801106687
+		// example: https://github.com/ssbc/go-ssb-room/pull/85#issuecomment-801106687
 		if err != nil && !errors.Is(err, context.Canceled) {
 			err = fmt.Errorf("go server exited: %w", err)
 			ts.t.Log(err)
@@ -187,7 +187,7 @@ func (ts *testSession) startJSClient(
 		"TEST_NAME=" + name,
 		"TEST_REPO=" + cmd.Dir,
 		"TEST_PEERADDR=" + netwrap.GetAddr(peerAddr, "tcp").String(),
-		"TEST_PEERREF=" + peerRef.Ref(),
+		"TEST_PEERREF=" + peerRef.String(),
 		"TEST_SESSIONSCRIPT=" + testScript,
 		// "DEBUG=ssb:room:tunnel:*",
 	}
@@ -221,8 +221,8 @@ func (ts *testSession) startJSClient(
 
 	jsBotRef, err := refs.ParseFeedRef(pubScanner.Text())
 	r.NoError(err, "failed to get %s key from JS process")
-	ts.t.Logf("JS %s:%d %s", name, jsBotCnt, jsBotRef.Ref())
-	return *jsBotRef
+	ts.t.Logf("JS %s:%d %s", name, jsBotCnt, jsBotRef.String())
+	return jsBotRef
 }
 
 // startJSBotAsServer returns the servers public key and it's TCP port on localhost.
@@ -277,8 +277,8 @@ func (ts *testSession) startJSBotAsServer(name, testScriptFileName string) (*ref
 
 	srvRef, err := refs.ParseFeedRef(pubScanner.Text())
 	r.NoError(err, "failed to get srvRef key from JS process")
-	ts.t.Logf("JS %s: %s port: %d", name, srvRef.Ref(), port)
-	return srvRef, port
+	ts.t.Logf("JS %s: %s port: %d", name, srvRef.String(), port)
+	return &srvRef, port
 }
 
 func (ts *testSession) wait() {

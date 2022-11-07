@@ -12,8 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/stretchr/testify/require"
 )
 

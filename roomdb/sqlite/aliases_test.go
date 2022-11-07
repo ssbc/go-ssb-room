@@ -15,9 +15,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 func TestAliases(t *testing.T) {
@@ -28,7 +28,10 @@ func TestAliases(t *testing.T) {
 	tr := repo.New(testRepo)
 
 	// fake feed for testing, looks ok at least
-	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	newMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// 64 bytes of random for testing (validation is handled by the handlers)
 	testSig := make([]byte, 64)
@@ -112,7 +115,10 @@ func TestAliasesUniqueError(t *testing.T) {
 	r.NoError(err)
 
 	// fake feed for testing, looks ok at least
-	newMember := refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: refs.RefAlgoFeedSSB1}
+	newMember, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// 64 bytes of random for testing (validation is handled by the handlers)
 	testSig := make([]byte, 64)

@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ssbc/go-secretstream/secrethandshake"
+	refs "github.com/ssbc/go-ssb-refs"
 	"go.cryptoscope.co/nocomment"
-	"go.cryptoscope.co/secretstream/secrethandshake"
-	refs "go.mindeco.de/ssb-refs"
 )
 
 var SecretPerms = os.FileMode(0600)
@@ -38,8 +38,8 @@ type ssbSecret struct {
 // IsValidFeedFormat checks if the passed FeedRef is for one of the two supported formats,
 // legacy/crapp or GabbyGrove.
 func IsValidFeedFormat(r refs.FeedRef) error {
-	if r.Algo != refs.RefAlgoFeedSSB1 && r.Algo != refs.RefAlgoFeedGabby {
-		return fmt.Errorf("ssb: unsupported feed format:%s", r.Algo)
+	if r.Algo() != refs.RefAlgoFeedSSB1 && r.Algo() != refs.RefAlgoFeedGabby {
+		return fmt.Errorf("ssb: unsupported feed format:%s", r.Algo())
 	}
 	return nil
 }
@@ -53,11 +53,13 @@ func NewKeyPair(r io.Reader) (*KeyPair, error) {
 		return nil, fmt.Errorf("ssb: error building key pair: %w", err)
 	}
 
+	feed, err := refs.NewFeedRefFromBytes(kp.Public[:], refs.RefAlgoFeedSSB1)
+	if err != nil {
+		return nil, fmt.Errorf("ssb: error building key pair: %w", err)
+	}
+
 	keyPair := KeyPair{
-		Feed: refs.FeedRef{
-			ID:   kp.Public[:],
-			Algo: refs.RefAlgoFeedSSB1,
-		},
+		Feed: feed,
 		Pair: *kp,
 	}
 

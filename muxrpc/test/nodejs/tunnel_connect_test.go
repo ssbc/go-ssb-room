@@ -16,9 +16,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb/mockdb"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomdb/mockdb"
 )
 
 // legacy js end-to-end test as a sanity check
@@ -136,7 +136,7 @@ func TestModernJSClient(t *testing.T) {
 }
 
 // found a nasty `throw err` in the JS stack around pull.drain. lets make sure it stays gone
-// https://github.com/ssb-ngi-pointer/go-ssb-room/issues/190
+// https://github.com/ssbc/go-ssb-room/issues/190
 func TestClientSurvivesShutdown(t *testing.T) {
 	r := require.New(t)
 
@@ -177,11 +177,11 @@ func TestClientSurvivesShutdown(t *testing.T) {
 func writeRoomHandleFile(srv, target refs.FeedRef, filePath string) error {
 	var roomHandle bytes.Buffer
 	roomHandle.WriteString("tunnel:")
-	roomHandle.WriteString(srv.Ref())
+	roomHandle.WriteString(srv.String())
 	roomHandle.WriteString(":")
-	roomHandle.WriteString(target.Ref())
+	roomHandle.WriteString(target.String())
 	roomHandle.WriteString("~shs:")
-	roomHandle.WriteString(base64.StdEncoding.EncodeToString(target.ID))
+	roomHandle.WriteString(base64.StdEncoding.EncodeToString(target.PubKey()))
 
 	os.MkdirAll(filepath.Dir(filePath), 0700)
 	return ioutil.WriteFile(filePath, roomHandle.Bytes(), 0700)

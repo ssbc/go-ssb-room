@@ -15,10 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 )
 
 func TestMembersEmpty(t *testing.T) {
@@ -78,7 +78,7 @@ func TestMembersAdd(t *testing.T) {
 
 	a.Equal(1, ts.MembersDB.AddCallCount())
 	_, addedPubKey, addedRole := ts.MembersDB.AddArgsForCall(0)
-	a.Equal(newKey, addedPubKey.Ref())
+	a.Equal(newKey, addedPubKey.String())
 	a.Equal(roomdb.RoleMember, addedRole)
 
 	/* Verify that the inputs are visible/hidden depending on user roles */
@@ -149,10 +149,25 @@ func TestMembers(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
+	fakeFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	oneThreeOneTwoFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("1312"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	acabFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte("acab"), 8), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	lst := []roomdb.Member{
-		{ID: 1, Role: roomdb.RoleMember, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}},
-		{ID: 2, Role: roomdb.RoleModerator, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("1312"), 8), Algo: "test"}},
-		{ID: 3, Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte("acab"), 8), Algo: "true"}},
+		{ID: 1, Role: roomdb.RoleMember, PubKey: fakeFeed},
+		{ID: 2, Role: roomdb.RoleModerator, PubKey: oneThreeOneTwoFeed},
+		{ID: 3, Role: roomdb.RoleAdmin, PubKey: acabFeed},
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
@@ -175,8 +190,13 @@ func TestMembers(t *testing.T) {
 	a.EqualValues(elems.Find("span[data-role='admin']").Length(), 1)
 	a.EqualValues(elems.Find("span[data-role='moderator']").Length(), 1)
 
+	oneFeed, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{1}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	lst = []roomdb.Member{
-		{ID: 666, Role: roomdb.RoleAdmin, PubKey: refs.FeedRef{ID: bytes.Repeat([]byte{1}, 32), Algo: "one"}},
+		{ID: 666, Role: roomdb.RoleAdmin, PubKey: oneFeed},
 	}
 	ts.MembersDB.ListReturns(lst, nil)
 
@@ -208,7 +228,11 @@ func TestMemberDetails(t *testing.T) {
 	ts := newSession(t)
 	a := assert.New(t)
 
-	feedRef := refs.FeedRef{ID: bytes.Repeat([]byte{0}, 32), Algo: "fake"}
+	feedRef, err := refs.NewFeedRefFromBytes(bytes.Repeat([]byte{0}, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	aliases := []roomdb.Alias{
 		{ID: 11, Name: "robert", Feed: feedRef, Signature: bytes.Repeat([]byte{0}, 4)},
 		{ID: 21, Name: "bob", Feed: feedRef, Signature: bytes.Repeat([]byte{0}, 4)},
@@ -271,7 +295,7 @@ func TestMemberDetails(t *testing.T) {
 
 		// check for SSB ID
 		ssbID := html.Find("#ssb-id")
-		a.Equal(feedRef.Ref(), ssbID.Text())
+		a.Equal(feedRef.String(), ssbID.Text())
 
 		// check for change-role dropdown
 		roleDropdown := html.Find("#change-role")
@@ -312,20 +336,35 @@ func TestMemberDetails(t *testing.T) {
 		webassert.HasFlashMessages(t, ts.Client, overviewURL, wantLabel)
 	}
 
+	memKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	modKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
+	adminKey, err := generatePubKey()
+	if err != nil {
+		t.Error(err)
+	}
+
 	memberUser := roomdb.Member{
 		ID:     7331,
 		Role:   roomdb.RoleMember,
-		PubKey: generatePubKey(),
+		PubKey: memKey,
 	}
 	modUser := roomdb.Member{
 		ID:     9001,
 		Role:   roomdb.RoleModerator,
-		PubKey: generatePubKey(),
+		PubKey: modKey,
 	}
 	adminUser := roomdb.Member{
 		ID:     1337,
 		Role:   roomdb.RoleAdmin,
-		PubKey: generatePubKey(),
+		PubKey: adminKey,
 	}
 
 	for _, mode := range roomdb.AllPrivacyModes {
@@ -370,7 +409,7 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 
 	testKey, err := refs.ParseFeedRef("@x7iOLUcq3o+sjGeAnipvWeGzfuYgrXl8L4LYlxIhwDc=.ed25519")
 	a.NoError(err)
-	testEntry := roomdb.Member{ID: 666, PubKey: *testKey}
+	testEntry := roomdb.Member{ID: 666, PubKey: testKey}
 	ts.MembersDB.GetByIDReturns(testEntry, nil)
 
 	urlRemoveConfirm := ts.URLTo(router.AdminMembersRemoveConfirm, "id", 3)
@@ -378,7 +417,7 @@ func TestMembersRemoveConfirmation(t *testing.T) {
 	html, resp := ts.Client.GetHTML(urlRemoveConfirm)
 	a.Equal(http.StatusOK, resp.Code, "wrong HTTP status code")
 
-	a.Equal(testKey.Ref(), html.Find("pre#verify").Text(), "has the key for verification")
+	a.Equal(testKey.String(), html.Find("pre#verify").Text(), "has the key for verification")
 
 	form := html.Find("form#confirm")
 
@@ -441,10 +480,15 @@ func TestMembersCreateResetToken(t *testing.T) {
 
 	// setup mock
 
+	testRef, err := refs.NewFeedRefFromBytes(make([]byte, 32), refs.RefAlgoFeedSSB1)
+	if err != nil {
+		t.Error(err)
+	}
+
 	ts.MembersDB.GetByIDReturns(roomdb.Member{
 		ID:     2342,
 		Role:   roomdb.RoleMember,
-		PubKey: refs.FeedRef{ID: make([]byte, 32), Algo: refs.RefAlgoFeedSSB1},
+		PubKey: testRef,
 	}, nil)
 
 	urlViewDetails := ts.URLTo(router.AdminMemberDetails, "id", "2342")
@@ -482,7 +526,7 @@ func TestMembersCreateResetToken(t *testing.T) {
 	})
 	a.Equal(http.StatusOK, resp.Code)
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err = goquery.NewDocumentFromReader(resp.Body)
 	require.NoError(t, err)
 
 	gotResetURL, has := doc.Find("#password-reset-link").Attr("href")

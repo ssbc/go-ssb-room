@@ -8,9 +8,9 @@ package mocked
 import (
 	"sync"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	muxrpc "go.cryptoscope.co/muxrpc/v2"
-	refs "go.mindeco.de/ssb-refs"
+	muxrpc "github.com/ssbc/go-muxrpc/v2"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
 )
 
 type FakeEndpoints struct {

@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 )
 
 type manifestHandler string

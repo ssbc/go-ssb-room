@@ -11,8 +11,8 @@ import (
 
 	"github.com/russross/blackfriday/v2"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/errors"
 )
 
 type noticeHandler struct {

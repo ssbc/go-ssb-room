@@ -14,8 +14,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/repo"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
+	"github.com/ssbc/go-ssb-room/v2/internal/repo"
+	"github.com/ssbc/go-ssb-room/v2/web/i18n"
 )
 
 // justTheKeys auto generates from the defaults a list of Label = "Label"

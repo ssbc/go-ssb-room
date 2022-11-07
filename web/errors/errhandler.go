@@ -14,8 +14,8 @@ import (
 	"go.mindeco.de/log/level"
 	"go.mindeco.de/logging"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/web/i18n"
 )
 
 type ErrorHandler struct {
@@ -120,7 +120,7 @@ func localizeError(ih *i18n.Localizer, err error) (int, template.HTML) {
 		msg = ih.LocalizeSimple("ErrorNotFound")
 
 	case errors.As(err, &aa):
-		msg = ih.LocalizeWithData("ErrorAlreadyAdded", "Feed", aa.Ref.Ref())
+		msg = ih.LocalizeWithData("ErrorAlreadyAdded", "Feed", aa.Ref.String())
 
 	case errors.As(err, &pnf):
 		code = http.StatusNotFound

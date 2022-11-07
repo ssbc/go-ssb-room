@@ -11,11 +11,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/maybemod/keys"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/internal/maybemod/keys"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"go.mindeco.de/log"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 
 	"github.com/stretchr/testify/require"
 )

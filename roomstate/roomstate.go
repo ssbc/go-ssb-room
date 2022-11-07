@@ -9,11 +9,11 @@ import (
 	"sort"
 	"sync"
 
-	"go.cryptoscope.co/muxrpc/v2"
+	"github.com/ssbc/go-muxrpc/v2"
 	kitlog "go.mindeco.de/log"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/broadcasts"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/ssbc/go-ssb-room/v2/internal/broadcasts"
 )
 
 type Manager struct {
@@ -79,7 +79,7 @@ func (m *Manager) ListAsRefs() []refs.FeedRef {
 		if err != nil {
 			panic(fmt.Errorf("invalid feed ref in room state: %d: %s", i, err))
 		}
-		rlst[i] = *fr
+		rlst[i] = fr
 	}
 	return rlst
 }
@@ -88,7 +88,7 @@ func (m *Manager) ListAsRefs() []refs.FeedRef {
 func (m *Manager) AddEndpoint(who refs.FeedRef, edp muxrpc.Endpoint) {
 	m.roomMu.Lock()
 	// add ref to to the room map
-	m.room[who.Ref()] = edp
+	m.room[who.String()] = edp
 	currentMembers := m.room.AsList()
 	m.roomMu.Unlock()
 	// update all the connected tunnel.endpoints calls
@@ -101,7 +101,7 @@ func (m *Manager) AddEndpoint(who refs.FeedRef, edp muxrpc.Endpoint) {
 func (m *Manager) Remove(who refs.FeedRef) {
 	m.roomMu.Lock()
 	// remove ref from lobby
-	delete(m.room, who.Ref())
+	delete(m.room, who.String())
 	currentMembers := m.room.AsList()
 	m.roomMu.Unlock()
 	// update all the connected tunnel.endpoints calls
@@ -117,10 +117,10 @@ func (m *Manager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
 
 	var currentMembers []string
 	// if the peer didn't call tunnel.announce()
-	_, has := m.room[who.Ref()]
+	_, has := m.room[who.String()]
 	if !has {
 		// register them as if they didnt
-		m.room[who.Ref()] = edp
+		m.room[who.String()] = edp
 		currentMembers = m.room.AsList()
 	}
 	m.roomMu.Unlock()
@@ -138,7 +138,7 @@ func (m *Manager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
 func (m *Manager) Has(who refs.FeedRef) (muxrpc.Endpoint, bool) {
 	m.roomMu.Lock()
 	// add ref to to the room map
-	edp, has := m.room[who.Ref()]
+	edp, has := m.room[who.String()]
 	m.roomMu.Unlock()
 	return edp, has
 }

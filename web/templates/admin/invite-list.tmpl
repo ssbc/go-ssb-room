@@ -58,8 +58,8 @@ SPDX-License-Identifier: CC-BY-4.0
     <tbody id="the-table-rows" class="divide-y">
       {{range .Entries}}
         {{ $user := is_logged_in }}
-        {{$hasCreatedInvite := eq $user.PubKey.Ref .CreatedBy.PubKey.Ref }}
-        {{$creator := .CreatedBy.PubKey.Ref}}
+        {{$hasCreatedInvite := eq $user.PubKey.String .CreatedBy.PubKey.String }}
+        {{$creator := .CreatedBy.PubKey.String }}
         {{$creatorIsAlias := false}}
         {{range $index, $alias := .CreatedBy.Aliases}}
           {{if eq $index 0}}

@@ -16,12 +16,12 @@ It will store it's files (roomdb and cookie secrets) under /var/lib/go-ssb-room.
 This is also where you would put custom translations.
 
 For more configuration background see /usr/share/go-ssb-room/README.md
-or visit the code repo at https://github.com/ssb-ngi-pointer/go-ssb-room/tree/master/docs
+or visit the code repo at https://github.com/ssbc/go-ssb-room/tree/master/docs
 
 Like outlined in that document, we highly encourage using nginx with certbot for TLS termination.
 We also supply an example config for this. You can find it under /usr/share/go-ssb-room/nginx-example.conf
 
-> Important 
+> Important
 
 Before you start using room server via the systemd service, you need to at least change the https domain in the systemd service.
 

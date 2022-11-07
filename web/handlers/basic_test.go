@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/webassert"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/web/webassert"
 )
 
 func TestIndex(t *testing.T) {

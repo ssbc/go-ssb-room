@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ssbc/go-muxrpc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.cryptoscope.co/muxrpc/v2"
 
-	tunserv "github.com/ssb-ngi-pointer/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	refs "go.mindeco.de/ssb-refs"
+	refs "github.com/ssbc/go-ssb-refs"
+	tunserv "github.com/ssbc/go-ssb-room/v2/muxrpc/handlers/tunnel/server"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
 )
 
 func TestTunnelServerSimple(t *testing.T) {
@@ -68,7 +68,7 @@ func TestTunnelServerSimple(t *testing.T) {
 		a.Nil(endpointB, "should not have an endpoint on B")
 		err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 		r.Error(err)
-		t.Log(srvWho.ID.Ref())
+		t.Log(srvWho.ID.String())
 	}
 
 	endpointA, has := botA.Network.GetEndpointFor(serv.Whoami())
@@ -77,8 +77,8 @@ func TestTunnelServerSimple(t *testing.T) {
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
 
-	t.Log("server whoami:", srvWho.ID.Ref())
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	t.Log("server whoami:", srvWho.ID.String())
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	// start testing basic room stuff
 	var meta tunserv.MetadataReply
@@ -145,11 +145,11 @@ func TestRoomAnnounce(t *testing.T) {
 
 	err = endpointA.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	err = endpointB.Async(ctx, &srvWho, muxrpc.TypeJSON, muxrpc.Method{"whoami"})
 	r.NoError(err)
-	a.True(serv.Whoami().Equal(&srvWho.ID))
+	a.True(serv.Whoami().Equal(srvWho.ID))
 
 	// let B listen for changes
 	newRoomMember, err := endpointB.Source(ctx, muxrpc.TypeJSON, muxrpc.Method{"tunnel", "endpoints"})

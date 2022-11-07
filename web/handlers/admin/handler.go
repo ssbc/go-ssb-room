@@ -18,13 +18,13 @@ import (
 	"github.com/vcraescu/go-paginator/v2/view"
 	"go.mindeco.de/http/render"
 
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/internal/network"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomdb"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/roomstate"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web"
-	weberrors "github.com/ssb-ngi-pointer/go-ssb-room/v2/web/errors"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/i18n"
-	"github.com/ssb-ngi-pointer/go-ssb-room/v2/web/router"
+	"github.com/ssbc/go-ssb-room/v2/internal/network"
+	"github.com/ssbc/go-ssb-room/v2/roomdb"
+	"github.com/ssbc/go-ssb-room/v2/roomstate"
+	"github.com/ssbc/go-ssb-room/v2/web"
+	weberrors "github.com/ssbc/go-ssb-room/v2/web/errors"
+	"github.com/ssbc/go-ssb-room/v2/web/i18n"
+	"github.com/ssbc/go-ssb-room/v2/web/router"
 )
 
 // HTMLTemplates define the list of files the template system should load.
