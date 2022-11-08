@@ -223,3 +223,74 @@ func TestNoticesCreateOnlyModsAndHigherInRestricted(t *testing.T) {
 	webassert.HasFlashMessages(t, ts.Client, noticeListURL, "ErrorNotAuthorized")
 
 }
+
+func TestNoticesListReturnsJSONWhenCorrectParameterIsSet(t *testing.T) {
+	ts := setup(t)
+	a := assert.New(t)
+
+	ts.PinnedDB.ListReturns(roomdb.PinnedNotices{
+		"name1": {
+			{
+				ID:       1,
+				Title:    "title1",
+				Content:  "content1",
+				Language: "language1",
+			},
+			{
+				ID:       2,
+				Title:    "title2",
+				Content:  "content2",
+				Language: "language2",
+			},
+		},
+		"name2": {
+			{
+				ID:       3,
+				Title:    "title3",
+				Content:  "content3",
+				Language: "language3",
+			},
+		},
+	}, nil)
+
+	noticeURL := ts.URLTo(router.CompleteNoticeList)
+	values := noticeURL.Query()
+	values.Set("encoding", "json")
+	noticeURL.RawQuery = values.Encode()
+
+	var response listNoticesJSONResponse
+	res := ts.Client.GetJSON(noticeURL, &response)
+	a.Equal(http.StatusOK, res.Code, "wrong HTTP status code")
+	a.Equal(listNoticesJSONResponse{
+		PinnedNotices: []listNoticesJSONResponsePinnedNotice{
+			{
+				Name: "name1",
+				Notices: []listNoticesJSONResponseNotice{
+					{
+						ID:       1,
+						Title:    "title1",
+						Content:  "content1",
+						Language: "language1",
+					},
+					{
+						ID:       2,
+						Title:    "title2",
+						Content:  "content2",
+						Language: "language2",
+					},
+				},
+			},
+			{
+				Name: "name2",
+				Notices: []listNoticesJSONResponseNotice{
+					{
+						ID:       3,
+						Title:    "title3",
+						Content:  "content3",
+						Language: "language3",
+					},
+				},
+			},
+		},
+	}, response)
+}

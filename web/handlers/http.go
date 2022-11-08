@@ -329,12 +329,13 @@ func New(
 
 	// notices (the mini-CMS)
 	var nh = noticeHandler{
+		render:  r,
 		flashes: flashHelper,
 
 		notices: dbs.Notices,
 		pinned:  dbs.PinnedNotices,
 	}
-	m.Get(router.CompleteNoticeList).Handler(r.HTML("notice/list.tmpl", nh.list))
+	m.Get(router.CompleteNoticeList).HandlerFunc(nh.list)
 	m.Get(router.CompleteNoticeShow).Handler(r.HTML("notice/show.tmpl", nh.show))
 
 	// public aliases
