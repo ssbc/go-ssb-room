@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC0-1.0
 
 ## Development notes
 
-To get started, you need a recent version of [Go](https://golang.org). v1.16 and onward should be sufficient.
+To get started, you need a recent version of [Go](https://golang.org). v1.17 and onward should be sufficient.
 
 Also, if you want to develop the CSS and HTML on the website, you need Node.js v14 in order to compile Tailwind.
 
