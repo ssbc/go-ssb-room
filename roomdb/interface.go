@@ -19,6 +19,7 @@ import (
 	"go.mindeco.de/http/auth"
 )
 
+//counterfeiter:generate . RoomConfig
 type RoomConfig interface {
 	GetPrivacyMode(context.Context) (PrivacyMode, error)
 	SetPrivacyMode(context.Context, PrivacyMode) error
@@ -28,6 +29,7 @@ type RoomConfig interface {
 
 // AuthFallbackService allows password authentication which might be helpful for scenarios
 // where one lost access to his ssb device or key.
+//counterfeiter:generate . AuthFallbackService
 type AuthFallbackService interface {
 
 	// Check receives the username and password (in clear) and checks them accordingly.
@@ -48,6 +50,7 @@ type AuthFallbackService interface {
 // AuthWithSSBService defines utility functions for the challenge/response system of sign-in with ssb
 // They are particualarly of service to check valid sessions (after the client provided a solution for a challenge)
 // And to log out valid sessions from the clients device.
+//counterfeiter:generate . AuthWithSSBService
 type AuthWithSSBService interface {
 
 	// CreateToken is used to generate a token that is stored inside a cookie.
@@ -65,6 +68,7 @@ type AuthWithSSBService interface {
 }
 
 // MembersService stores and retreives the list of internal users (members, mods and admins).
+//counterfeiter:generate . MembersService
 type MembersService interface {
 	// Add adds a new member
 	Add(_ context.Context, pubKey refs.FeedRef, r Role) (int64, error)
@@ -95,6 +99,7 @@ type MembersService interface {
 }
 
 // DeniedKeysService changes the lists of public keys that are not allowed to get into the room
+//counterfeiter:generate . DeniedKeysService
 type DeniedKeysService interface {
 	// Add adds the feed to the list, together with a comment for other members
 	Add(ctx context.Context, ref refs.FeedRef, comment string) error
@@ -122,6 +127,7 @@ type DeniedKeysService interface {
 }
 
 // AliasesService manages alias handle registration and lookup
+//counterfeiter:generate . AliasesService
 type AliasesService interface {
 	// Resolve returns all the relevant information for that alias or an error if it doesnt exist
 	Resolve(context.Context, string) (Alias, error)
@@ -140,6 +146,7 @@ type AliasesService interface {
 }
 
 // InvitesService manages creation and consumption of invite tokens for joining the room.
+//counterfeiter:generate . InvitesService
 type InvitesService interface {
 	// Create creates a new invite for a new member. It returns the token or an error.
 	// createdBy is user ID of the admin or moderator who created it. MemberID -1 is allowed if Privacy Mode is set to Open.
@@ -169,6 +176,7 @@ type InvitesService interface {
 
 // PinnedNoticesService allows an admin to assign Notices to specific placeholder pages.
 // like updates, privacy policy, code of conduct
+//counterfeiter:generate . PinnedNoticesService
 type PinnedNoticesService interface {
 	// List returns a list of all the pinned notices with their corresponding notices and languages
 	List(context.Context) (PinnedNotices, error)
@@ -181,6 +189,7 @@ type PinnedNoticesService interface {
 }
 
 // NoticesService is the low level store to manage single notices
+//counterfeiter:generate . NoticesService
 type NoticesService interface {
 	// GetByID returns the page for that ID or an error
 	GetByID(context.Context, int64) (Notice, error)
@@ -191,23 +200,3 @@ type NoticesService interface {
 	// RemoveID removes the page for that ID.
 	RemoveID(context.Context, int64) error
 }
-
-// for tests we use generated mocks from these interfaces created with https://github.com/maxbrunsfeld/counterfeiter
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/aliases.go . AliasesService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/auth.go . AuthWithSSBService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/auth_fallback.go . AuthFallbackService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/denied.go . DeniedKeysService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/fixed_pages.go . PinnedNoticesService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/invites.go . InvitesService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/members.go . MembersService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/pages.go . NoticesService
-
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o mockdb/roomconfig.go . RoomConfig
