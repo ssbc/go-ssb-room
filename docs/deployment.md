@@ -17,7 +17,7 @@ We currently only distributed pre-packaged releases for Debian-compatible distri
 See [Issue #79](https://github.com/ssbc/go-ssb-room/issues/79) for the details.
 If this doesn't work for you, read the "Creating a build" section below.
 
-After running `sudo dpkg -i go-ssb-room_v1.2.3_Linux_x86_64.deb` pay special attention to the
+After running `sudo dpkg -i go-ssb-room_v1.2.3_linux_amd64.deb` pay special attention to the
 [postinstall notes](./files/debian-postinstall.sh) for how to configure the systemd file and webserver.
 
 ## Creating a build
