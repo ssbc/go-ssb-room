@@ -46,7 +46,7 @@ require (
 	github.com/volatiletech/strmangle v0.0.4
 	go.cryptoscope.co/nocomment v0.0.0-20210520094614-fb744e81f810
 	go.mindeco.de v1.12.0
-	golang.org/x/crypto v0.1.0
+	golang.org/x/crypto v0.2.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/text v0.4.0
 	golang.org/x/tools v0.3.0
