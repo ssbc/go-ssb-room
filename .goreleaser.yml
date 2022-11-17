@@ -9,7 +9,8 @@ before:
     - go generate ./...
 
 builds:
-  - env:
+  - id: go-ssb-room-linux-amd64
+    env:
       # needed for sqlite
       - CGO_ENABLED=1
     main: ./cmd/server
@@ -19,11 +20,82 @@ builds:
     goarch:
       - amd64
 
+  - id: go-ssb-room-insert-user-linux-amd64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+  - id: go-ssb-room-linux-arm64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    main: ./cmd/server
+    binary: go-ssb-room
+    goos:
+      - linux
+    goarch:
+      - arm64
+
+  - id: go-ssb-room-insert-user-linux-arm64
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=aarch64-linux-gnu-gcc
+      - CXX=aarch64-linux-gnu-g++
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
+    goos:
+      - linux
+    goarch:
+      - arm64
+
+  - id: go-ssb-room-linux-armhf
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf--g++
+    main: ./cmd/server
+    binary: go-ssb-room
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - 6
+      - 7
+
+  - id: go-ssb-room-insert-user-linux-armhf
+    env:
+      # needed for sqlite
+      - CGO_ENABLED=1
+      # cross-compilation
+      - CC=arm-linux-gnueabihf-gcc
+      - CXX=arm-linux-gnueabihf--g++
+    main: ./cmd/insert-user
+    binary: go-ssb-room-insert-user
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - 6
+      - 7
+
 gomod:
-  # sum.golang.org somehow doesn't handle replace as expected. TODO: file issue
-  proxy: false
   env:
-    - GOPROXY=https://proxy.golang.org,direct
+    - GOPROXY=https://proxy.golang.org
     - GOSUMDB=sum.golang.org
 
 # for .deb packages
@@ -31,9 +103,6 @@ gomod:
 nfpms:
  - id: go-ssb-room
    package_name: go-ssb-room
-   replacements:
-     linux: Linux
-     amd64: x86_64
    vendor: Secure-Scuttlebutt Community
    maintainer: Go-SSB-Room NGI-Pointer Team <go-ssb-room@ssb-ngi-pointer.email>
    homepage: https://scuttlebutt.nz
@@ -44,9 +113,10 @@ nfpms:
    suggests:
      - ngingx
      - certbot
-   empty_folders:
-     - /var/log/go-ssb-room
    contents:
+     - dst: /var/log/go-ssb-room
+       type: dir
+
      - src: docs/files/example-systemd.service
        dst: /etc/systemd/system/go-ssb-room.service
        type: "config|noreplace"
@@ -64,9 +134,7 @@ nfpms:
      preremove: docs/files/debian-preremove.sh
 
 archives:
-  - replacements:
-      linux: Linux
-      amd64: x86_64
+  - id: go-ssb-room
 
 checksum:
   name_template: 'checksums.txt'

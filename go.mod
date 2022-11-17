@@ -34,7 +34,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cast v1.5.0 // indirect
-	github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221020091224-b09bdf60812f
+	github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221111190521-10382533750c
 	github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d
 	github.com/ssbc/go-secretstream v1.2.11-0.20221111164233-4b41f899f844
 	github.com/ssbc/go-ssb-refs v0.5.2-0.20221019090322-8b558c2f31de

@@ -424,8 +424,8 @@ github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH
 github.com/spf13/viper v1.9.0/go.mod h1:+i6ajR7OX2XaiBkrcZJFK21htRk7eDeLg7+O6bhUPP4=
 github.com/ssbc/go-luigi v0.3.7-0.20221019204020-324065b9a7c6 h1:4Mhg4qHaiX56eXNND9gGJAf0xzoRQQtfFFhv6wcIOIU=
 github.com/ssbc/go-luigi v0.3.7-0.20221019204020-324065b9a7c6/go.mod h1:tBPMBysJeh1u3vStvrWe5w3YBC4fnbnGsLk5ML4D6do=
-github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221020091224-b09bdf60812f h1:eIzrej3VH9sYd13X8zVVzlsDRh0uCjYCbdsLcsZqrnc=
-github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221020091224-b09bdf60812f/go.mod h1:CFvV9kCI3SmJM38pf1NCXWrS7UVgTYXJdKs+Q9hkJIw=
+github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221111190521-10382533750c h1:xqjaqcG0diMshLo0OaujvHE96OFrd/GiCTJYCTrPVhE=
+github.com/ssbc/go-muxrpc/v2 v2.0.14-0.20221111190521-10382533750c/go.mod h1:CFvV9kCI3SmJM38pf1NCXWrS7UVgTYXJdKs+Q9hkJIw=
 github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d h1:UnYPPekKU0mHzMMOSuI6117Djq9xni60c/IzzUYxgCI=
 github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d/go.mod h1:tsE1qeqkc8kvf1psPNdJ5s8O+/jE1WlKwsEETb2VZqs=
 github.com/ssbc/go-secretstream v1.2.11-0.20221111164233-4b41f899f844 h1:r1uKQOpTliDf9BCMbRfCeynZ87Y+XMs/DBZqZzB596Y=

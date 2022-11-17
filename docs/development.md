@@ -128,10 +128,12 @@ See the [testing.md](./testing.md) for a thorough walkthorugh of the different t
 
 Because of [issue #79](https://github.com/ssbc/go-ssb-room/issues/79) we can't simply create binaries for all platforms independantly. Therefore binaries for re-distributions need to be created on the relevant distributions themselvs. We currently do this for debian. The process is as follows:
 
-1) Install a recent debian stable version onto a dedicated machine or VM for instance (docker might also be possible).
-2) Install [Go](https://golang.org/doc/install).
-3) Install a C compiler (`sudo apt install gcc` for instance) for the CGo based sqlite dependency.
-4) Install [GoReleaser](https://goreleaser.com/install/).
-5) Create a version tag in git.
-6) run `goreleaser release` at the root of the repo to create the `dist/` folder with the `.deb` file.
-7) Upload the built packages.
+1. Install a recent debian stable version onto a dedicated machine or VM for instance (docker might also be possible).
+1. Install [Go](https://golang.org/doc/install).
+1. Install a C compiler (`sudo apt install gcc` for instance) for the CGo based sqlite dependency.
+1. Install a compiler which supports cross-compilation for ARM* architectures (`sudo apt install gccgo-aarch64-linux-gnu gccgo-arm-linux-gnueabihf`).
+1. Install Node.js v14 and install the dependencies (`cd ./web/styles && npm ci`, you may need to `npm install postcss` also).
+1. Install [GoReleaser](https://goreleaser.com/install/).
+1. Create a version tag in git.
+1. Run `goreleaser release` at the root of the repo to create the `dist/` folder with the `.deb` file.
+1. Upload the built packages.
