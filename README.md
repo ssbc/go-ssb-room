@@ -16,6 +16,8 @@ It includes:
 
 ![](./docs/images/screenshot.png)
 
+See [this project](https://github.com/orgs/ssbc/projects/2) for current focus.
+
 ## :star: Features
 
 * Rooms v1 (`tunnel.connect`, `tunnel.endpoints`, etc.)
