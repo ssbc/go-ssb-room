@@ -350,7 +350,22 @@ func (html inviteConsumeHTMLResponder) SendError(err error) {
 	html.renderer.Error(html.rw, html.req, http.StatusInternalServerError, err)
 }
 
-func (h inviteHandler) createOpenMode(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
+func (h inviteHandler) createOpenMode(rw http.ResponseWriter, r *http.Request) {
+	switch r.Header.Get("Accept") {
+	case "application/json":
+		if r.Method != http.MethodPost {
+			h.render.Error(rw, r, http.StatusBadRequest, errors.New("invalid method"))
+		}
+		h.createOpenModeJSON(rw, r)
+	default:
+		if r.Method != http.MethodGet {
+			h.render.Error(rw, r, http.StatusBadRequest, errors.New("invalid method"))
+		}
+		h.render.HTML("admin/invite-created.tmpl", h.createOpenModeHTML)(rw, r)
+	}
+}
+
+func (h inviteHandler) createOpenModeHTML(rw http.ResponseWriter, req *http.Request) (interface{}, error) {
 	ctx := req.Context()
 
 	token, err := h.invites.Create(ctx, -1)
@@ -363,4 +378,31 @@ func (h inviteHandler) createOpenMode(rw http.ResponseWriter, req *http.Request)
 	return map[string]interface{}{
 		"FacadeURL": facadeURL.String(),
 	}, nil
+}
+
+func (h inviteHandler) createOpenModeJSON(rw http.ResponseWriter, req *http.Request) {
+	logger := logging.FromContext(req.Context())
+	ctx := req.Context()
+	enc := json.NewEncoder(rw)
+
+	token, err := h.invites.Create(ctx, -1)
+	if err != nil {
+		data := struct {
+			Status string `json:"status"`
+			Error  string `json:"error"`
+		}{"failed", err.Error()}
+		rw.WriteHeader(http.StatusInternalServerError)
+		if err := enc.Encode(data); err != nil {
+			level.Warn(logger).Log("event", "sending json error failed", "err", err)
+		}
+		return
+	}
+
+	response := map[string]string{
+		"url": h.urlTo(router.CompleteInviteFacade, "token", token).String(),
+	}
+
+	if err := enc.Encode(response); err != nil {
+		level.Warn(logger).Log("event", "sending json response failed", "err", err)
+	}
 }

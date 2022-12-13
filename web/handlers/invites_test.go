@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
@@ -341,4 +342,43 @@ func TestInviteConsumptionDenied(t *testing.T) {
 
 	// invite should not be consumed
 	r.EqualValues(0, ts.InvitesDB.ConsumeCallCount())
+}
+
+func TestOpenModeCreateInviteHTML(t *testing.T) {
+	ts := setup(t)
+	r := require.New(t)
+
+	someToken := "fake-token"
+	ts.InvitesDB.CreateReturns(someToken, nil)
+
+	doc, resp := ts.Client.GetHTML(ts.URLTo(router.OpenModeCreateInvite))
+	r.Equal(http.StatusOK, resp.Code)
+
+	facadeLink := doc.Find("#invite-facade-link")
+	r.NotNil(facadeLink)
+	r.Contains(facadeLink.AttrOr("href", ""), someToken)
+	r.Contains(facadeLink.Text(), someToken)
+}
+
+func TestOpenModeCreateInviteJSON(t *testing.T) {
+	ts := setup(t)
+	r := require.New(t)
+
+	someToken := "fake-token"
+	ts.InvitesDB.CreateReturns(someToken, nil)
+
+	req, err := http.NewRequest("POST", ts.URLTo(router.OpenModeCreateInvite).String(), nil)
+	r.NoError(err)
+
+	req.Header.Set("Accept", "application/json")
+
+	recorder := httptest.NewRecorder()
+	ts.Mux.ServeHTTP(recorder, req)
+	r.Equal(http.StatusOK, recorder.Code)
+
+	response := map[string]string{}
+	err = json.Unmarshal(recorder.Body.Bytes(), &response)
+	r.NoError(err)
+
+	require.Contains(t, response["url"], someToken)
 }
