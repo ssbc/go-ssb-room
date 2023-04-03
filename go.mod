@@ -10,7 +10,7 @@ require (
 	filippo.io/edwards25519 v1.0.0 // indirect
 	github.com/BurntSushi/toml v1.2.1
 	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/dustin/go-humanize v1.0.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/friendsofgo/errors v0.9.2
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
