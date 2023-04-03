@@ -509,8 +509,8 @@ github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d h1:UnYPPekKU0mHz
 github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d/go.mod h1:tsE1qeqkc8kvf1psPNdJ5s8O+/jE1WlKwsEETb2VZqs=
 github.com/ssbc/go-secretstream v1.2.11-0.20221111164233-4b41f899f844 h1:r1uKQOpTliDf9BCMbRfCeynZ87Y+XMs/DBZqZzB596Y=
 github.com/ssbc/go-secretstream v1.2.11-0.20221111164233-4b41f899f844/go.mod h1:imXhXNa5OfEL+qrGtOs6NZ9zJe6L3P+ZwFVC2mIgH0E=
-github.com/ssbc/go-ssb-refs v0.5.2-0.20221019090322-8b558c2f31de h1:av0v73MeB+HASXfbtr3+r1dWD1DrYlGEIMCdVKV09Ag=
-github.com/ssbc/go-ssb-refs v0.5.2-0.20221019090322-8b558c2f31de/go.mod h1:TRIqkOhZERfVzB+NoO3eUoru0ceQAsDnfZricPd1sUM=
+github.com/ssbc/go-ssb-refs v0.5.2 h1:PDjtfRMywwsP69pNdiCh/P9gj95W4iJsrQo5uDus0EY=
+github.com/ssbc/go-ssb-refs v0.5.2/go.mod h1:HlojPQQVXjZv+rqOnDVaZo5c8kwJQC7kpejcRqOJ54o=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
