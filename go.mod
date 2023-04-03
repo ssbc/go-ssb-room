@@ -36,7 +36,7 @@ require (
 	github.com/ssbc/go-netwrap v0.1.5-0.20221019160355-cd323bb2e29d
 	github.com/ssbc/go-secretstream v1.2.11-0.20221111164233-4b41f899f844
 	github.com/ssbc/go-ssb-refs v0.5.2-0.20221019090322-8b558c2f31de
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/throttled/throttled/v2 v2.9.1
 	github.com/unrolled/secure v1.13.0
 	github.com/vcraescu/go-paginator/v2 v2.0.0
