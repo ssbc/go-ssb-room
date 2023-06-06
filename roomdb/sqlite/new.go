@@ -9,11 +9,11 @@
 //
 // The process of updating the schema and ORM can be summarized as follows:
 //
-// 	1. Make changes to the interfaces in package roomdb
-//	2. Add a new migration to the 'migrations' folder
-//	3. Run 'go test -run Simple', which applies all the migrations
-//	4. Run sqlboiler to generate package models
-//	5. Implement the interface as needed by using the models package
+//  1. Make changes to the interfaces in package roomdb
+//  2. Add a new migration to the 'migrations' folder
+//  3. Run 'go test -run Simple', which applies all the migrations
+//  4. Run sqlboiler to generate package models
+//  5. Implement the interface as needed by using the models package
 //
 // For convenience step 3 and 4 are combined in the generate_models bash script.
 package sqlite
@@ -60,9 +60,9 @@ func Open(r repo.Interface) (*Database, error) {
 	}
 
 	// enable constraint enforcment for relations
-	fname += "?_foreign_keys=on"
+	dsn := fmt.Sprintf("file:%s?_pragma=foreign_keys(1)", fname)
 
-	db, err := sql.Open("sqlite3", fname)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("roomdb: failed to open sqlite database: %w", err)
 	}

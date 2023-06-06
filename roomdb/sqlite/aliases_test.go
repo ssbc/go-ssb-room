@@ -141,6 +141,6 @@ func TestAliasesUniqueError(t *testing.T) {
 	err = db.Aliases.Register(ctx, testName, newMember, testSig)
 	r.Error(err)
 	var takenErr roomdb.ErrAliasTaken
-	r.True(errors.As(err, &takenErr), "expected a special error value")
+	r.True(errors.As(err, &takenErr), "expected a special error value. Got: %s", err)
 	r.Equal(testName, takenErr.Name)
 }

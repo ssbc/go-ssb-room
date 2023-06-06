@@ -13,11 +13,12 @@ import (
 	"fmt"
 
 	"github.com/friendsofgo/errors"
-	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.mindeco.de/http/auth"
 	"golang.org/x/crypto/bcrypt"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
@@ -182,23 +183,24 @@ func (af AuthFallback) CreateResetToken(ctx context.Context, createdByMember, fo
 	tokenBytes := make([]byte, inviteTokenLength)
 
 	err := transact(af.db, func(tx *sql.Tx) error {
+		h := sha256.New()
 
 		inserted := false
 	trying:
 		for tries := 100; tries > 0; tries-- {
+			h.Reset()
+
 			// generate an invite code
 			rand.Read(tokenBytes)
 
 			// hash the binary of the token for storage
-			h := sha256.New()
 			h.Write(tokenBytes)
 			newResetToken.HashedToken = fmt.Sprintf("%x", h.Sum(nil))
-
 			// insert the new invite
 			err := newResetToken.Insert(ctx, tx, boil.Infer())
 			if err != nil {
-				var sqlErr sqlite3.Error
-				if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+				var sqlErr *sqlite.Error
+				if errors.As(err, &sqlErr) && sqlErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 					// generated an existing token, retry
 					continue trying
 				}

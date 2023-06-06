@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 
 	"github.com/ssbc/go-ssb-room/v2/internal/randutil"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
@@ -57,8 +58,8 @@ func (a AuthWithSSB) CreateToken(ctx context.Context, memberID int64) (string, e
 			cols := boil.Whitelist(models.SIWSSBSessionColumns.Token, models.SIWSSBSessionColumns.MemberID)
 			err := newToken.Insert(ctx, tx, cols)
 			if err != nil {
-				var sqlErr sqlite3.Error
-				if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+				var sqlErr *sqlite.Error
+				if errors.As(err, &sqlErr) && sqlErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 					// generated an existing token, retry
 					continue trying
 				}
