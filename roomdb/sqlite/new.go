@@ -27,6 +27,7 @@ import (
 	"time"
 
 	migrate "github.com/rubenv/sql-migrate"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 
 	"github.com/ssbc/go-ssb-room/v2/internal/repo"
 )
@@ -80,11 +81,7 @@ func Open(r repo.Interface) (*Database, error) {
 		log.Printf("roomdb: applied %d migrations", n)
 	}
 
-	if err := deleteConsumedInvites(db); err != nil {
-		return nil, err
-	}
-
-	if err := deleteConsumedResetTokens(db); err != nil {
+	if err := cleanup(db); err != nil {
 		return nil, err
 	}
 
@@ -94,10 +91,7 @@ func Open(r repo.Interface) (*Database, error) {
 		ticker := time.NewTicker(fiveDays)
 		for range ticker.C {
 			err := transact(db, func(tx *sql.Tx) error {
-				if err := deleteConsumedResetTokens(tx); err != nil {
-					return err
-				}
-				return deleteConsumedInvites(tx)
+				return cleanup(db)
 			})
 			if err != nil {
 				// TODO: hook up logging
@@ -123,6 +117,21 @@ func Open(r repo.Interface) (*Database, error) {
 	}
 
 	return roomdb, nil
+}
+
+func cleanup(db boil.ContextExecutor) error {
+	if err := deleteExpiredAuthWithSSBSessions(db); err != nil {
+		return err
+	}
+
+	if err := deleteConsumedInvites(db); err != nil {
+		return err
+	}
+
+	if err := deleteConsumedResetTokens(db); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Close closes the contained sql database object

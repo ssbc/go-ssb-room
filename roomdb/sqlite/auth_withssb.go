@@ -7,6 +7,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/friendsofgo/errors"
@@ -135,4 +136,14 @@ func (a AuthWithSSB) WipeTokensForMember(ctx context.Context, memberID int64) er
 		}
 		return nil
 	})
+}
+
+// delete sessions that are older then the timeout.
+// TODO: maybe change the qm slightly to use the sessionTimeout constant
+func deleteExpiredAuthWithSSBSessions(tx boil.ContextExecutor) error {
+	_, err := models.SIWSSBSessions(qm.Where("created_at < date('now', '-1 day')")).DeleteAll(context.Background(), tx)
+	if err != nil {
+		return fmt.Errorf("roomdb: failed to delete expired authWithSSB sessions: %w", err)
+	}
+	return nil
 }
