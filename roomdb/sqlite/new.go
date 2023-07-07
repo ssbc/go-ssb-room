@@ -91,7 +91,7 @@ func Open(r repo.Interface) (*Database, error) {
 		ticker := time.NewTicker(fiveDays)
 		for range ticker.C {
 			err := transact(db, func(tx *sql.Tx) error {
-				return cleanup(db)
+				return cleanup(tx)
 			})
 			if err != nil {
 				// TODO: hook up logging
