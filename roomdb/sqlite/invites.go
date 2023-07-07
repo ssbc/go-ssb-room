@@ -13,9 +13,10 @@ import (
 	"fmt"
 
 	"github.com/friendsofgo/errors"
-	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 
 	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
@@ -81,8 +82,8 @@ func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 			// insert the new invite
 			err := newInvite.Insert(ctx, tx, boil.Infer())
 			if err != nil {
-				var sqlErr sqlite3.Error
-				if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+				var sqlErr *sqlite.Error
+				if errors.As(err, &sqlErr) && sqlErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 					// generated an existing token, retry
 					continue trying
 				}

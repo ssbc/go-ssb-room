@@ -159,7 +159,7 @@ func TestFallbackAuthSetPasswordWithToken(t *testing.T) {
 
 	// has to be a from valid user tho
 	noToken, err := db.AuthFallback.CreateResetToken(ctx, 666, carlID)
-	r.Error(err)
+	r.Error(err, "token?: %s", noToken)
 	r.Equal("", noToken)
 
 	// change carls password by using the token

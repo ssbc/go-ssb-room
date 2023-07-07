@@ -10,12 +10,13 @@ import (
 	"fmt"
 
 	"github.com/friendsofgo/errors"
-	"github.com/mattn/go-sqlite3"
 	refs "github.com/ssbc/go-ssb-refs"
 	"github.com/ssbc/go-ssb-room/v2/roomdb"
 	"github.com/ssbc/go-ssb-room/v2/roomdb/sqlite/models"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 // compiler assertion to ensure the struct fullfills the interface
@@ -69,8 +70,8 @@ func (Members) add(ctx context.Context, tx *sql.Tx, pubKey refs.FeedRef, role ro
 
 	err := newMember.Insert(ctx, tx, boil.Infer())
 	if err != nil {
-		var sqlErr sqlite3.Error
-		if errors.As(err, &sqlErr) && sqlErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+		var sqlErr *sqlite.Error
+		if errors.As(err, &sqlErr) && sqlErr.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE {
 			return -1, roomdb.ErrAlreadyAdded{Ref: pubKey}
 		}
 		return -1, fmt.Errorf("members: failed to insert new user: %w", err)

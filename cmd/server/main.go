@@ -25,13 +25,13 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/ssbc/go-muxrpc/v2/debug"
 	"github.com/throttled/throttled/v2"
 	"github.com/throttled/throttled/v2/store/memstore"
 	"github.com/unrolled/secure"
 	kitlog "go.mindeco.de/log"
 	"go.mindeco.de/log/level"
+	_ "modernc.org/sqlite"
 
 	"github.com/ssbc/go-ssb-room/v2/internal/network"
 	"github.com/ssbc/go-ssb-room/v2/internal/repo"
