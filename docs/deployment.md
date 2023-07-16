@@ -34,39 +34,59 @@ This project includes a docker-compose.yml file as well as a Docker file. Using
 it should be fairly straight forward.
 
 Start off by making a copy of `.env_example` called `.env` and insert your
-website domain there. With that done execute
+website domain there.
 
+For example:
+```env
+# SPDX-FileCopyrightText: 2021 The NGI Pointer Secure-Scuttlebutt Team of 2020/2021
+#
+# SPDX-License-Identifier: Unlicense
+
+HTTPS_DOMAIN=yourserver.your-domain.com
+ALIASES_AS_SUBDOMAINS=true
+# uncomment variable  if you want to store data in a custom directory (required for default docker-compose setup)
+REPO=/ssb-go-room-secrets
 ```
+- `HTTPS_DOMAIN`: This is the domain, where the server can be found
+- `ALIASES_AS_SUBDOMAINS`: If a user gets an alias on this server, the user will get his own subdomain. For example, the user chooses the alias 'bob', so the subdomain will be 'bob.yourserver.your-domain.com'. The user will be reachable under this domain.
+- `REPO`: This is the folder, where the docker container has his volume, to permanently store data.
+
+With that done execute
+
+```bash
 docker-compose build room
 ```
 
 Followed by
 
+```bash
+docker-compose up -d
 ```
-docker-compose up
-```
+
+That will start the SSB server and let it run in the background.
 
 Your database, secrets and other things will be synchronized to a folder in your
 project called "docker-secrets".
 
 After starting your server for the first time you need to enter your running
-server to insert your first user (your docker-compose up should be active).
+server to insert your first user (your docker-compose up should be active). First of all, you need to copy your SSB-ID. You can find that, by your account. It's the long text with the @ at the beginning. This account will become the administrator of the server. Then you need to get into the running docker container.
+
 You can do this by:
 
-```
+```bash
 docker-compose exec room sh
 ```
 
-Then inside the virtual machine:
+Then inside the docker container:
 
-```
+```bash
 /app/cmd/insert-user/insert-user -repo /ssb-go-room-secrets @your-own-ssb-public-key
 ```
 
-Fill in your password and then exit your instance by typing `exit`.
+Fill in your password and then exit your instance by typing `exit`. The password will not be shown, that's normal.
 
 You should setup Nginx or HTTPS load-balancing outside the docker-compose
-instance.
+instance. The port `8008` for the SSB protocol should be streamed to the domain from the instance. This can be done with (for example) Nginx. More about that in ![HTTP Hosting](#http-hosting).
 
 # HTTP Hosting
 
@@ -98,7 +118,7 @@ which uses the [certbot](https://certbot.eff.org/) utility.
 
 For example, to get a wildcard SSL certificate for `hermies.club`, we typically run
 
-```
+```bash
 certbot certonly --manual --server https://acme-v02.api.letsencrypt.org/directory \
   --preferred-challenges dns-01 \
   -d 'hermies.club' -d '*.hermies.club'
@@ -117,7 +137,7 @@ need to rename it e.g. `hermies.club-0001` to `hermies.club`.
 The example nginx configuration uses prebuilt Diffie-Hellman parameters.  You can generate these
 with the following command:
 
-```
+```bash
 openssl dhparam -out /etc/letsencrypt/ssl-dhparams.pem 2048
 ```
 
@@ -125,7 +145,7 @@ Then restart your server, e.g. `systemctl restart nginx`.
 
 If you see such errors as the following when setting up your deployment:
 
-```
+```bash
 nginx: [emerg] unknown "connection_upgrade" variable
 ```
 
@@ -159,7 +179,7 @@ To manage your now working server, you need an initial admin user. For this you 
 
 If you installed the Debian package, you will first need to install Go to build the "insert-user" utility.  You can do this via:
 
-```
+```bash
 sudo apt-get install golang-go
 ```
 
@@ -167,7 +187,7 @@ sudo apt-get install golang-go
 
 In a new terminal window navigate to the insert-user utility folder and compile the GO-based utility into an executable your computer can use
 
-```
+```bash
 cd cmd/insert-user
 go build
 ```
@@ -177,14 +197,37 @@ Execute the `./insert-user -h` command to get a full list of custom options (opt
 
 example (with custom repo location, only needed if you setup your with a custom repo):
 
-```
+```bash
 ./insert-user -repo "/ssb-go-room-secrets" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519"
 ```
 
 Or if you installed go-ssb-room using the Debian package:
 
-```
+```bash
 sudo ./insert-user -repo "/var/lib/go-ssb-room" "@Bp5Z5TQKv6E/Y+QZn/3LiDWMPi63EP8MHsXZ4tiIb2w=.ed25519"
 ```
 
 It will ask you to create a password to access the web-front-end.  You can now login in the web-front-end using these credentials.
+
+# Troubleshooting
+
+## Building the docker image
+
+If the build fails with the error message similar to 
+```
+note: module requires Go 1.18
+ERROR: Service 'room' failed to build: The command '/bin/sh -c cd /app/cmd/server && go build &&     cd /app/cmd/insert-user && go build' returned a non-zero code: 2
+```
+just increase in the `Dockerfile` the version like shown here:
+
+Change:
+```Dockerfile
+FROM golang:1.17-alpine
+```
+
+To Go version that the module requires (like described in the error message):
+```Dockerfile
+FROM golang:1.18-alpine
+```
+
+And run the build command again.
