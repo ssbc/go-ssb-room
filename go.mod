@@ -21,7 +21,6 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/gorilla/websocket v1.5.0
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattevans/pwned-passwords v0.6.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
@@ -46,13 +45,13 @@ require (
 	github.com/volatiletech/strmangle v0.0.4
 	go.cryptoscope.co/nocomment v0.0.0-20210520094614-fb744e81f810
 	go.mindeco.de v1.12.0
-	golang.org/x/crypto v0.9.0
-	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.9.0
-	golang.org/x/tools v0.6.0
+	golang.org/x/crypto v0.11.0
+	golang.org/x/sync v0.3.0
+	golang.org/x/text v0.11.0
+	golang.org/x/tools v0.11.1
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gorm.io/gorm v1.25.1 // indirect
-	modernc.org/sqlite v1.23.0 // indirect
+	modernc.org/sqlite v1.23.0
 )
 
 exclude go.cryptoscope.co/ssb v0.0.0-20201207161753-31d0f24b7a79
